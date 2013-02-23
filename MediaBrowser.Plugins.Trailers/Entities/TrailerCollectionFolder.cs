@@ -1,12 +1,10 @@
 ﻿using MediaBrowser.Controller.Entities;
-using System.ComponentModel.Composition;
 
 namespace MediaBrowser.Plugins.Trailers.Entities
 {
     /// <summary>
     /// Class TrailerCollectionFolder
     /// </summary>
-    [Export(typeof(BasePluginFolder))]
     class TrailerCollectionFolder : BasePluginFolder
     {
         /// <summary>

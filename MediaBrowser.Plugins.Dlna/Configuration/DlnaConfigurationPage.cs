@@ -1,6 +1,5 @@
 using MediaBrowser.Controller.Plugins;
 using System;
-using System.ComponentModel.Composition;
 using System.IO;
 
 namespace MediaBrowser.Plugins.Dlna.Configuration
@@ -8,7 +7,6 @@ namespace MediaBrowser.Plugins.Dlna.Configuration
     /// <summary>
     /// Class DlnaConfigurationPage
     /// </summary>
-    [Export(typeof(IPluginConfigurationPage))]
     class DlnaConfigurationPage : IPluginConfigurationPage
     {
         /// <summary>

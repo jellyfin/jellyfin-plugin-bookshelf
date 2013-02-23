@@ -3,7 +3,6 @@ using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Plugins.Trailers.Entities;
 using System;
-using System.ComponentModel.Composition;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +12,6 @@ namespace MediaBrowser.Plugins.Trailers.Providers
     /// <summary>
     /// Class TrailerFromJsonProvider
     /// </summary>
-    [Export(typeof(BaseMetadataProvider))]
     class TrailerFromJsonProvider : BaseMetadataProvider
     {
         /// <summary>

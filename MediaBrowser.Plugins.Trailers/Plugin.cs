@@ -1,10 +1,10 @@
 ﻿using MediaBrowser.Common.Plugins;
+using MediaBrowser.Common.ScheduledTasks;
 using MediaBrowser.Controller.ScheduledTasks;
 using MediaBrowser.Model.Plugins;
 using MediaBrowser.Plugins.Trailers.Configuration;
 using MediaBrowser.Plugins.Trailers.ScheduledTasks;
 using System;
-using System.ComponentModel.Composition;
 using System.IO;
 
 namespace MediaBrowser.Plugins.Trailers
@@ -12,7 +12,6 @@ namespace MediaBrowser.Plugins.Trailers
     /// <summary>
     /// Class Plugin
     /// </summary>
-    [Export(typeof(IPlugin))]
     public class Plugin : BasePlugin<PluginConfiguration>
     {
         /// <summary>
@@ -42,13 +41,22 @@ namespace MediaBrowser.Plugins.Trailers
         /// <value>The instance.</value>
         public static Plugin Instance { get; private set; }
 
+        private ITaskManager TaskManager { get; set; }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Plugin" /> class.
         /// </summary>
-        public Plugin()
+        public Plugin(ITaskManager taskManager)
             : base()
         {
+            if (taskManager == null)
+            {
+                throw new ArgumentNullException("taskManager");
+            }
+
             Instance = this;
+
+            TaskManager = taskManager;
         }
 
         /// <summary>
@@ -92,7 +100,7 @@ namespace MediaBrowser.Plugins.Trailers
 
             if (isFirstRun)
             {
-                Kernel.TaskManager.QueueScheduledTask<CurrentTrailerDownloadTask>();
+                TaskManager.QueueScheduledTask<CurrentTrailerDownloadTask>();
             }
         }
 
@@ -112,7 +120,7 @@ namespace MediaBrowser.Plugins.Trailers
             if (pathChanged)
             {
                 _downloadPath = null;
-                Kernel.TaskManager.QueueScheduledTask<RefreshMediaLibraryTask>();
+                TaskManager.QueueScheduledTask<RefreshMediaLibraryTask>();
             }
         }
     }

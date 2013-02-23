@@ -1,24 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.Composition;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using MediaBrowser.Common.Extensions;
-using MediaBrowser.Common.Net;
+﻿using MediaBrowser.Common.Net;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Plugins.Dlna.Configuration;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 
 namespace MediaBrowser.Plugins.Dlna
 {
     /// <summary>
     /// Class Plugin
     /// </summary>
-    [Export(typeof(IPlugin))]
     public class Plugin : BasePlugin<PluginConfiguration>
     {
         //these are Neptune values, they probably belong in the managed wrapper somewhere, but they aren't

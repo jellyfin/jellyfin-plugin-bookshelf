@@ -3,12 +3,11 @@ using MediaBrowser.Common.ScheduledTasks;
 using MediaBrowser.Common.Serialization;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Entities;
+using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Net;
-using MediaBrowser.Model.Tasks;
 using MediaBrowser.Plugins.Trailers.Entities;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -19,9 +18,12 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
     /// <summary>
     /// Downloads trailers from the web at scheduled times
     /// </summary>
-    [Export(typeof(IScheduledTask))]
     public class CurrentTrailerDownloadTask : BaseScheduledTask<Kernel>
     {
+        public CurrentTrailerDownloadTask(Kernel kernel, ITaskManager taskManager, ILogger logger) : base(kernel, taskManager, logger)
+        {
+        }
+
         /// <summary>
         /// Creates the triggers that define when the task will run
         /// </summary>

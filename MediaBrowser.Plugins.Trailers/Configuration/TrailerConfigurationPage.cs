@@ -1,6 +1,5 @@
 ﻿using MediaBrowser.Controller.Plugins;
 using System;
-using System.ComponentModel.Composition;
 using System.IO;
 
 namespace MediaBrowser.Plugins.Trailers.Configuration
@@ -8,7 +7,6 @@ namespace MediaBrowser.Plugins.Trailers.Configuration
     /// <summary>
     /// Class TrailerConfigurationPage
     /// </summary>
-    [Export(typeof(IPluginConfigurationPage))]
     class TrailerConfigurationPage : IPluginConfigurationPage
     {
         /// <summary>

@@ -1,14 +1,12 @@
 ﻿using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Plugins;
 using System;
-using System.ComponentModel.Composition;
 
 namespace MediaBrowser.Plugins.Tmt5
 {
     /// <summary>
     /// Class Plugin
     /// </summary>
-    [Export(typeof(IPlugin))]
     public class Plugin : BaseUiPlugin<BasePluginConfiguration>
     {
         /// <summary>

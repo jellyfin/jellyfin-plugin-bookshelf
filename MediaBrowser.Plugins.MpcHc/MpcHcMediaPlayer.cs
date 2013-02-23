@@ -7,7 +7,6 @@ using MediaBrowser.UI.Playback;
 using MediaBrowser.UI.Playback.ExternalPlayer;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -19,7 +18,6 @@ namespace MediaBrowser.Plugins.MpcHc
     /// <summary>
     /// Class GenericExternalPlayer
     /// </summary>
-    [Export(typeof(BaseMediaPlayer))]
     public class MpcHcMediaPlayer : BaseExternalPlayer
     {
         /// <summary>
@@ -32,8 +30,7 @@ namespace MediaBrowser.Plugins.MpcHc
         /// </summary>
         private SemaphoreSlim MpcHttpInterfaceResourcePool = new SemaphoreSlim(1, 1);
 
-        [ImportingConstructor]
-        public MpcHcMediaPlayer([Import("logger")] ILogger logger)
+        public MpcHcMediaPlayer(ILogger logger)
             : base(logger)
         {
         }

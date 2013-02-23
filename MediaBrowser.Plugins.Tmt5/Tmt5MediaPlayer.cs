@@ -7,7 +7,6 @@ using MediaBrowser.UI.Playback.ExternalPlayer;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -18,11 +17,9 @@ namespace MediaBrowser.Plugins.Tmt5
     /// <summary>
     /// Class GenericExternalPlayer
     /// </summary>
-    [Export(typeof(BaseMediaPlayer))]
     public class Tmt5MediaPlayer : BaseExternalPlayer
     {
-        [ImportingConstructor]
-        public Tmt5MediaPlayer([Import("logger")] ILogger logger)
+        public Tmt5MediaPlayer(ILogger logger)
             : base(logger)
         {
         }
