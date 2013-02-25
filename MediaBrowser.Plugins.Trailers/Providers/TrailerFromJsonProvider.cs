@@ -1,5 +1,4 @@
-﻿using MediaBrowser.Common.Serialization;
-using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Plugins.Trailers.Entities;
 using System;

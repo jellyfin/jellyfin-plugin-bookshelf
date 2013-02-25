@@ -1,8 +1,8 @@
 ﻿using MediaBrowser.Common.IO;
 using MediaBrowser.Common.ScheduledTasks;
-using MediaBrowser.Common.Serialization;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.IO;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Net;
 using MediaBrowser.Plugins.Trailers.Entities;
@@ -28,11 +28,9 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
         /// Creates the triggers that define when the task will run
         /// </summary>
         /// <returns>IEnumerable{BaseTaskTrigger}.</returns>
-        protected override IEnumerable<BaseTaskTrigger> GetDefaultTriggers()
+        public override IEnumerable<ITaskTrigger> GetDefaultTriggers()
         {
-            var trigger = new DailyTrigger { TimeOfDay = TimeSpan.FromHours(2) }; //2am
-
-            return new[] { trigger };
+            return new[] { new DailyTrigger { TimeOfDay = TimeSpan.FromHours(2) } };
         }
 
         /// <summary>
