@@ -255,46 +255,7 @@ namespace MediaBrowser.Plugins.Dlna
             //I'm just not sure if those folders listed with object IDs are all well known across clients or if these ones are WMP specific
             //if they are device specific but also significant, then that might explain why Plex goes to the trouble of having configurable client device profiles for its DLNA server
 
-            //var didl = Platinum.Didl.header;
-
-            //IEnumerable<BaseItem> children = null;
-
-            //// I need to ask someone on the MB team if there's a better way to do this, it seems like it 
-            ////could get pretty expensive to get ALL children all the time
-            ////if it's our only option perhaps we should cache results locally or something similar
-            //children = this.CurrentUser.RootFolder.GetRecursiveChildren(this.CurrentUser);
-            ////children = children.Filter(Extensions.FilterType.Music | Extensions.FilterType.Video).Page(starting_index, requested_count);
-
-            //int itemCount = 0;
-
-            //if (children != null)
-            //{
-            //    foreach (var child in children)
-            //    {
-
-            //        using (var item = BaseItemToMediaItem(child, context))
-            //        {
-            //            if (item != null)
-            //            {
-            //                string test;
-            //                test = item.ToDidl(filter);
-            //                didl += item.ToDidl(filter);
-            //                itemCount++;
-            //            }
-            //        }
-            //    }
-
-            //    didl += Platinum.Didl.footer;
-
-            //    action.SetArgumentValue("Result", didl);
-            //    action.SetArgumentValue("NumberReturned", itemCount.ToString());
-            //    action.SetArgumentValue("TotalMatches", itemCount.ToString());
-
-            //    // update ID may be wrong here, it should be the one of the container?
-            //    action.SetArgumentValue("UpdateId", "1");
-
-            //    return NEP_Success;
-
+            
             //XBOX360 Video
             //BrowseDirectChildren Entered - Parameters: 
             //action: { Name:"Browse", Description:" { Name:"Browse", Arguments:[ ] } ", 
@@ -323,66 +284,48 @@ namespace MediaBrowser.Plugins.Dlna
             2013-02-24 22:47:09.0699, Info, App, ProcessFileRequest Entered - Parameters: context: { LocalAddress:{ IP:192.168.1.56, Port:1733 }, RemoteAddress:{ IP:192.168.1.27, Port:9842 }, Request:"http://192.168.1.56:1733/1ce95963-d31a-3052-8cf1-f31e934bd4fe?albumArt=true", Signature:XBox } response:Platinum.HttpResponse
             2013-02-24 22:47:24.0908, Info, App, BrowseDirectChildren Entered - Parameters: action: { Name:"Browse", Description:" { Name:"Browse", Arguments:[ ] } ", Arguments:[ ] }  object_id:90a8b701-b1ca-325d-e00f-d3f60267584d filter:dc:title,res,res@protection,res@duration,res@bitrate,upnp:genre,upnp:actor,res@microsoft:codec starting_index:0 requested_count:1000 sort_criteria:+upnp:class,+dc:title context: { LocalAddress:{ IP:192.168.1.56, Port:1733 }, RemoteAddress:{ IP:192.168.1.27, Port:44378 }, Request:"http://192.168.1.56:1733/ContentDirectory/944ef00a-1bd9-d8f2-02ab-9a5de207da75/control.xml", Signature:XBox }
             */
-            var didl = Platinum.Didl.header;
-            int itemCount = 0;
 
-            IEnumerable<Model.ModelBase> children = null;
-            Model.ModelBase objectIDMatch;
-            // I need to ask someone on the MB team if there's a better way to do this, it seems like it 
-            //could get pretty expensive to get ALL children all the time
-            //if it's our only option perhaps we should cache results locally or something similar
+            Model.ModelBase objectIDMatch = null;
+
             var root = new Model.Root(this.CurrentUser);
             if (string.Equals(object_id, "0", StringComparison.OrdinalIgnoreCase))
                 objectIDMatch = root;
             else
                 objectIDMatch = root.GetChildRecursive(object_id);
 
-            if (objectIDMatch == null)
+            if (objectIDMatch != null)
             {
-                didl += Platinum.Didl.footer;
-
-                action.SetArgumentValue("Result", didl);
-                action.SetArgumentValue("NumberReturned", itemCount.ToString());
-                action.SetArgumentValue("TotalMatches", itemCount.ToString());
-
-                // update ID may be wrong here, it should be the one of the container?
-                action.SetArgumentValue("UpdateId", "1");
-
-                return NEP_Success;
-            }
-
-            children = objectIDMatch.Children;
-
-
-            if (children != null)
-            {
-                foreach (var child in children)
+                var children = objectIDMatch.Children;
+                if (children != null)
                 {
-
-                    using (var item = child.MediaObject)
+                    int itemCount = 0;
+                    var didl = Platinum.Didl.header;
+                    foreach (var child in children)
                     {
-                        if (item != null)
+                        using (var item = child.MediaObject)
                         {
-                            AddContextInfo(item, child.MainMediaResource, child.Id, child.Extension, context);
+                            if (item != null)
+                            {
+                                AddContextInfo(item, child.MainMediaResource, child.Id, child.Extension, context);
 
-                            string test;
-                            test = item.ToDidl(filter);
-                            didl += item.ToDidl(filter);
-                            itemCount++;
+                                string test;
+                                test = item.ToDidl(filter);
+                                didl += item.ToDidl(filter);
+                                itemCount++;
+                            }
                         }
                     }
+                    didl += Platinum.Didl.footer;
+
+                    action.SetArgumentValue("Result", didl);
+                    action.SetArgumentValue("NumberReturned", itemCount.ToString());
+                    action.SetArgumentValue("TotalMatches", itemCount.ToString());
+
+                    // update ID may be wrong here, it should be the one of the container?
+                    action.SetArgumentValue("UpdateId", "1");
+
+                    return NEP_Success;
                 }
-
-                didl += Platinum.Didl.footer;
-
-                action.SetArgumentValue("Result", didl);
-                action.SetArgumentValue("NumberReturned", itemCount.ToString());
-                action.SetArgumentValue("TotalMatches", itemCount.ToString());
-
-                // update ID may be wrong here, it should be the one of the container?
-                action.SetArgumentValue("UpdateId", "1");
-
-                return NEP_Success;
             }
             return NEP_Failure;
         }
@@ -462,50 +405,6 @@ namespace MediaBrowser.Plugins.Dlna
             //this means it wants albums put into containers, I thought Platinum might do this for us, but it doesn't
 
 
-            //var didl = Platinum.Didl.header;
-
-            //IEnumerable<BaseItem> children = null;
-
-            //// I need to ask someone on the MB team if there's a better way to do this, it seems like it 
-            ////could get pretty expensive to get ALL children all the time
-            ////if it's our only option perhaps we should cache results locally or something similar
-            //children = this.CurrentUser.RootFolder.GetRecursiveChildren(this.CurrentUser);
-            ////children = children.Filter(Extensions.FilterType.Music | Extensions.FilterType.Video).Page(starting_index, requested_count);
-
-            ////var test = GetFilterFromCriteria(searchCriteria);
-            //children = children.Where(GetBaseItemMatchFromCriteria(searchCriteria));
-
-
-            //int itemCount = 0;
-
-            //if (children != null)
-            //{
-            //    Platinum.MediaItem item = null;
-            //    foreach (var child in children)
-            //    {
-            //        item = BaseItemToMediaItem(child, context);
-
-            //        if (item != null)
-            //        {
-            //            item.ParentID = string.Empty;
-
-            //            didl += item.ToDidl(filter);
-            //            itemCount++;
-            //        }
-            //    }
-
-            //    didl += Platinum.Didl.footer;
-
-            //    action.SetArgumentValue("Result", didl);
-            //    action.SetArgumentValue("NumberReturned", itemCount.ToString());
-            //    action.SetArgumentValue("TotalMatches", itemCount.ToString());
-
-            //    // update ID may be wrong here, it should be the one of the container?
-            //    action.SetArgumentValue("UpdateId", "1");
-
-            //    return NEP_Success;
-            //}
-            //return NEP_Failure;
             var didl = Platinum.Didl.header;
             int itemCount = 0;
 
@@ -663,6 +562,7 @@ namespace MediaBrowser.Plugins.Dlna
 
                     result.AddResource(resource);
                 }
+                
                 MediaItemHelper.AddAlbumArtInfoToMediaItem(result, id, Kernel.HttpServerUrlPrefix, ips);
             }
         }
@@ -1001,6 +901,30 @@ namespace MediaBrowser.Plugins.Dlna
             result.People.AddArtist(new Platinum.PersonRole(item.Artist));
             result.People.Contributor = item.AlbumArtist;
             result.Affiliation.Album = item.Album;
+            return result;
+        }
+
+        internal static Platinum.MediaResource GetMediaResource(MusicArtist item)
+        {
+            //there's nothing specific about an music artist item that requires extra Resources
+            return GetMediaResource((BaseItem)item);
+        }
+        internal static Platinum.MediaItem GetMediaItem(MusicArtist item)
+        {
+            var result = GetMediaItem((BaseItem)item);
+            result.Title = item.Name; 
+            return result;
+        }
+
+        internal static Platinum.MediaResource GetMediaResource(MusicAlbum item)
+        {
+            //there's nothing specific about an music artist item that requires extra Resources
+            return GetMediaResource((BaseItem)item);
+        }
+        internal static Platinum.MediaItem GetMediaItem(MusicAlbum item)
+        {
+            var result = GetMediaItem((BaseItem)item);
+            result.Title = item.Name;
             return result;
         }
 
