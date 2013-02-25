@@ -1,4 +1,5 @@
 ﻿using MediaBrowser.Common.Extensions;
+using MediaBrowser.Common.Net;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Extensions;
@@ -26,9 +27,9 @@ namespace MediaBrowser.Plugins.Trailers
         /// Downloads a list of trailer info's from the apple url
         /// </summary>
         /// <returns>Task{List{TrailerInfo}}.</returns>
-        public static async Task<List<TrailerInfo>> GetTrailerList(CancellationToken cancellationToken)
+        public static async Task<List<TrailerInfo>> GetTrailerList(IHttpClient httpClient, CancellationToken cancellationToken)
         {
-            var stream = await Kernel.Instance.HttpManager.Get(TrailerFeedUrl, Kernel.Instance.ResourcePools.AppleTrailerVideos, cancellationToken).ConfigureAwait(false);
+            var stream = await httpClient.Get(TrailerFeedUrl, Kernel.Instance.ResourcePools.AppleTrailerVideos, cancellationToken).ConfigureAwait(false);
 
             var list = new List<TrailerInfo>();
 

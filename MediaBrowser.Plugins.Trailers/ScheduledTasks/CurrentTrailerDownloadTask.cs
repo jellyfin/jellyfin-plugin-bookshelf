@@ -1,10 +1,12 @@
 ﻿using MediaBrowser.Common.IO;
+using MediaBrowser.Common.Net;
 using MediaBrowser.Common.ScheduledTasks;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.IO;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Net;
+using MediaBrowser.Model.Serialization;
 using MediaBrowser.Plugins.Trailers.Entities;
 using System;
 using System.Collections.Generic;
@@ -20,8 +22,29 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
     /// </summary>
     public class CurrentTrailerDownloadTask : BaseScheduledTask<Kernel>
     {
-        public CurrentTrailerDownloadTask(Kernel kernel, ITaskManager taskManager, ILogger logger) : base(kernel, taskManager, logger)
+        /// <summary>
+        /// The _HTTP client
+        /// </summary>
+        private readonly IHttpClient _httpClient;
+
+        /// <summary>
+        /// The _json serializer
+        /// </summary>
+        private readonly IJsonSerializer _jsonSerializer;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CurrentTrailerDownloadTask" /> class.
+        /// </summary>
+        /// <param name="kernel">The kernel.</param>
+        /// <param name="httpClient">The HTTP client.</param>
+        /// <param name="taskManager">The task manager.</param>
+        /// <param name="jsonSerializer">The json serializer.</param>
+        /// <param name="logger">The logger.</param>
+        public CurrentTrailerDownloadTask(Kernel kernel, IHttpClient httpClient, ITaskManager taskManager, IJsonSerializer jsonSerializer, ILogger logger)
+            : base(kernel, taskManager, logger)
         {
+            _jsonSerializer = jsonSerializer;
+            _httpClient = httpClient;
         }
 
         /// <summary>
@@ -42,7 +65,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
         protected override async Task ExecuteInternal(CancellationToken cancellationToken, IProgress<double> progress)
         {
             // Get the list of trailers
-            var trailers = await AppleTrailerListingDownloader.GetTrailerList(cancellationToken).ConfigureAwait(false);
+            var trailers = await AppleTrailerListingDownloader.GetTrailerList(_httpClient, cancellationToken).ConfigureAwait(false);
 
             progress.Report(1);
 
@@ -135,7 +158,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
                 Logger.Info("Downloading trailer: " + trailer.TrailerUrl);
 
                 // Fetch the video to a temp file because it's too big to put into a MemoryStream
-                videoTask = Kernel.HttpManager.FetchToTempFile(trailer.TrailerUrl, Kernel.ResourcePools.AppleTrailerVideos, cancellationToken, new Progress<double> { }, "QuickTime/7.6.2");
+                videoTask = _httpClient.GetTempFile(trailer.TrailerUrl, Kernel.ResourcePools.AppleTrailerVideos, cancellationToken, new Progress<double> { }, "QuickTime/7.6.2");
                 tasks.Add(videoTask);
             }
 
@@ -143,7 +166,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
             {
                 // Fetch the image to a memory stream
                 Logger.Info("Downloading trailer image: " + imageUrl);
-                imageTask = Kernel.HttpManager.FetchToMemoryStream(imageUrl, Kernel.ResourcePools.AppleTrailerImages, cancellationToken);
+                imageTask = _httpClient.GetMemoryStream(imageUrl, Kernel.ResourcePools.AppleTrailerImages, cancellationToken);
                 tasks.Add(imageTask);
             }
 
@@ -218,7 +241,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
             // Save metadata only if the video was downloaded
             if (!videoFailed && videoTask != null)
             {
-                JsonSerializer.SerializeToFile(trailer.Video, Path.Combine(folderPath, "trailer.json"));
+                _jsonSerializer.SerializeToFile(trailer.Video, Path.Combine(folderPath, "trailer.json"));
             }
         }
 

@@ -1,5 +1,6 @@
 ﻿using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
+using MediaBrowser.Model.Serialization;
 using MediaBrowser.Plugins.Trailers.Entities;
 using System;
 using System.IO;
@@ -13,6 +14,20 @@ namespace MediaBrowser.Plugins.Trailers.Providers
     /// </summary>
     class TrailerFromJsonProvider : BaseMetadataProvider
     {
+        /// <summary>
+        /// The _json serializer
+        /// </summary>
+        private readonly IJsonSerializer _jsonSerializer;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TrailerFromJsonProvider" /> class.
+        /// </summary>
+        /// <param name="jsonSerializer">The json serializer.</param>
+        public TrailerFromJsonProvider(IJsonSerializer jsonSerializer)
+        {
+            _jsonSerializer = jsonSerializer;
+        }
+
         /// <summary>
         /// Supportses the specified item.
         /// </summary>
@@ -59,7 +74,7 @@ namespace MediaBrowser.Plugins.Trailers.Providers
 
             if (metadataFile.HasValue)
             {
-                var tempTrailer = JsonSerializer.DeserializeFromFile<Trailer>(metadataFile.Value.Path);
+                var tempTrailer = _jsonSerializer.DeserializeFromFile<Trailer>(metadataFile.Value.Path);
 
                 ImportMetdata(tempTrailer, item);
 
