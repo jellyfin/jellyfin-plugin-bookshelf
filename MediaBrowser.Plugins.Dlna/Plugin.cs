@@ -255,27 +255,116 @@ namespace MediaBrowser.Plugins.Dlna
             //I'm just not sure if those folders listed with object IDs are all well known across clients or if these ones are WMP specific
             //if they are device specific but also significant, then that might explain why Plex goes to the trouble of having configurable client device profiles for its DLNA server
 
+            //var didl = Platinum.Didl.header;
+
+            //IEnumerable<BaseItem> children = null;
+
+            //// I need to ask someone on the MB team if there's a better way to do this, it seems like it 
+            ////could get pretty expensive to get ALL children all the time
+            ////if it's our only option perhaps we should cache results locally or something similar
+            //children = this.CurrentUser.RootFolder.GetRecursiveChildren(this.CurrentUser);
+            ////children = children.Filter(Extensions.FilterType.Music | Extensions.FilterType.Video).Page(starting_index, requested_count);
+
+            //int itemCount = 0;
+
+            //if (children != null)
+            //{
+            //    foreach (var child in children)
+            //    {
+
+            //        using (var item = BaseItemToMediaItem(child, context))
+            //        {
+            //            if (item != null)
+            //            {
+            //                string test;
+            //                test = item.ToDidl(filter);
+            //                didl += item.ToDidl(filter);
+            //                itemCount++;
+            //            }
+            //        }
+            //    }
+
+            //    didl += Platinum.Didl.footer;
+
+            //    action.SetArgumentValue("Result", didl);
+            //    action.SetArgumentValue("NumberReturned", itemCount.ToString());
+            //    action.SetArgumentValue("TotalMatches", itemCount.ToString());
+
+            //    // update ID may be wrong here, it should be the one of the container?
+            //    action.SetArgumentValue("UpdateId", "1");
+
+            //    return NEP_Success;
+
+            //XBOX360 Video
+            //BrowseDirectChildren Entered - Parameters: 
+            //action: { Name:"Browse", Description:" { Name:"Browse", Arguments:[ ] } ", 
+            //Arguments:[ ] }  
+            //object_id:15 
+            //filter:dc:title,res,res@protection,res@duration,res@bitrate,upnp:genre,upnp:actor,res@microsoft:codec 
+            //starting_index:0 
+            //requested_count:1000 
+            //sort_criteria:+upnp:class,+dc:title 
+            //context: { LocalAddress:{ IP:192.168.1.56, Port:1143 }, RemoteAddress:{ IP:192.168.1.27, Port:43702 }, Request:"http://192.168.1.56:1143/ContentDirectory/41d4bbfc-aff3-f300-7e69-14762558a3ba/control.xml", Signature:XBox }
+
+            //a working log from Xbox360 Video App
+            //no metadata (other than Title) that works, but the xbox doesn't seem to support anything more than that
+            //image/thumbnail serving works if you feed it the direct path, current 'api url' doesn't work, perhaps because it has no extension
+
+            /*
+            2013-02-24 22:46:52.3962, Info, App, BrowseDirectChildren Entered - Parameters: action: { Name:"Browse", Description:" { Name:"Browse", Arguments:[ ] } ", Arguments:[ ] }  object_id:15 filter:dc:title,res,res@protection,res@duration,res@bitrate,upnp:genre,upnp:actor,res@microsoft:codec starting_index:0 requested_count:1000 sort_criteria:+upnp:class,+dc:title context: { LocalAddress:{ IP:192.168.1.56, Port:1733 }, RemoteAddress:{ IP:192.168.1.27, Port:48040 }, Request:"http://192.168.1.56:1733/ContentDirectory/944ef00a-1bd9-d8f2-02ab-9a5de207da75/control.xml", Signature:XBox }
+            2013-02-24 22:46:54.5234, Info, App, BrowseDirectChildren Entered - Parameters: action: { Name:"Browse", Description:" { Name:"Browse", Arguments:[ ] } ", Arguments:[ ] }  object_id:af99c816-0c3b-4770-099e-d5c039548e4f filter:dc:title,res,res@protection,res@duration,res@bitrate,upnp:genre,upnp:actor,res@microsoft:codec starting_index:0 requested_count:1000 sort_criteria:+upnp:class,+dc:title context: { LocalAddress:{ IP:192.168.1.56, Port:1733 }, RemoteAddress:{ IP:192.168.1.27, Port:11538 }, Request:"http://192.168.1.56:1733/ContentDirectory/944ef00a-1bd9-d8f2-02ab-9a5de207da75/control.xml", Signature:XBox }
+            2013-02-24 22:46:56.6050, Info, App, BrowseDirectChildren Entered - Parameters: action: { Name:"Browse", Description:" { Name:"Browse", Arguments:[ ] } ", Arguments:[ ] }  object_id:5da43a95-3c34-3c3a-e123-50f20623d650 filter:dc:title,res,res@protection,res@duration,res@bitrate,upnp:genre,upnp:actor,res@microsoft:codec starting_index:0 requested_count:1000 sort_criteria:+upnp:class,+dc:title context: { LocalAddress:{ IP:192.168.1.56, Port:1733 }, RemoteAddress:{ IP:192.168.1.27, Port:33536 }, Request:"http://192.168.1.56:1733/ContentDirectory/944ef00a-1bd9-d8f2-02ab-9a5de207da75/control.xml", Signature:XBox }
+            2013-02-24 22:46:58.8234, Info, App, BrowseDirectChildren Entered - Parameters: action: { Name:"Browse", Description:" { Name:"Browse", Arguments:[ ] } ", Arguments:[ ] }  object_id:26d7de4d-2e5d-7f8c-6d61-71674afc6503 filter:dc:title,res,res@protection,res@duration,res@bitrate,upnp:genre,upnp:actor,res@microsoft:codec starting_index:0 requested_count:1000 sort_criteria:+upnp:class,+dc:title context: { LocalAddress:{ IP:192.168.1.56, Port:1733 }, RemoteAddress:{ IP:192.168.1.27, Port:59852 }, Request:"http://192.168.1.56:1733/ContentDirectory/944ef00a-1bd9-d8f2-02ab-9a5de207da75/control.xml", Signature:XBox }
+            2013-02-24 22:46:59.9894, Info, App, BrowseDirectChildren Entered - Parameters: action: { Name:"Browse", Description:" { Name:"Browse", Arguments:[ ] } ", Arguments:[ ] }  object_id:e51e6a3e-fe62-4bae-04c9-e8b6efb41b1e filter:dc:title,res,res@protection,res@duration,res@bitrate,upnp:genre,upnp:actor,res@microsoft:codec starting_index:0 requested_count:1000 sort_criteria:+upnp:class,+dc:title context: { LocalAddress:{ IP:192.168.1.56, Port:1733 }, RemoteAddress:{ IP:192.168.1.27, Port:8285 }, Request:"http://192.168.1.56:1733/ContentDirectory/944ef00a-1bd9-d8f2-02ab-9a5de207da75/control.xml", Signature:XBox }
+            2013-02-24 22:47:01.0216, Info, App, BrowseDirectChildren Entered - Parameters: action: { Name:"Browse", Description:" { Name:"Browse", Arguments:[ ] } ", Arguments:[ ] }  object_id:d42fe500-8ac1-7476-6445-eec48085cc4a filter:dc:title,res,res@protection,res@duration,res@bitrate,upnp:genre,upnp:actor,res@microsoft:codec starting_index:0 requested_count:1000 sort_criteria:+upnp:class,+dc:title context: { LocalAddress:{ IP:192.168.1.56, Port:1733 }, RemoteAddress:{ IP:192.168.1.27, Port:46319 }, Request:"http://192.168.1.56:1733/ContentDirectory/944ef00a-1bd9-d8f2-02ab-9a5de207da75/control.xml", Signature:XBox }
+            2013-02-24 22:47:01.1244, Info, App, ProcessFileRequest Entered - Parameters: context: { LocalAddress:{ IP:192.168.1.56, Port:1733 }, RemoteAddress:{ IP:192.168.1.27, Port:9842 }, Request:"http://192.168.1.56:1733/7cb7f497-234f-05e3-64c0-926ff07d3fa6?albumArt=true", Signature:XBox } response:Platinum.HttpResponse
+            2013-02-24 22:47:01.1244, Info, App, ProcessFileRequest Entered - Parameters: context: { LocalAddress:{ IP:192.168.1.56, Port:1733 }, RemoteAddress:{ IP:192.168.1.27, Port:65477 }, Request:"http://192.168.1.56:1733/76ab6bd1-a914-b126-45fc-e84a6402f8b0?albumArt=true", Signature:XBox } response:Platinum.HttpResponse
+            2013-02-24 22:47:08.9738, Info, App, BrowseDirectChildren Entered - Parameters: action: { Name:"Browse", Description:" { Name:"Browse", Arguments:[ ] } ", Arguments:[ ] }  object_id:da407897-748f-065a-f020-d9dbaf598ff2 filter:dc:title,res,res@protection,res@duration,res@bitrate,upnp:genre,upnp:actor,res@microsoft:codec starting_index:0 requested_count:1000 sort_criteria:+upnp:class,+dc:title context: { LocalAddress:{ IP:192.168.1.56, Port:1733 }, RemoteAddress:{ IP:192.168.1.27, Port:37906 }, Request:"http://192.168.1.56:1733/ContentDirectory/944ef00a-1bd9-d8f2-02ab-9a5de207da75/control.xml", Signature:XBox }
+            2013-02-24 22:47:09.0699, Info, App, ProcessFileRequest Entered - Parameters: context: { LocalAddress:{ IP:192.168.1.56, Port:1733 }, RemoteAddress:{ IP:192.168.1.27, Port:9842 }, Request:"http://192.168.1.56:1733/1ce95963-d31a-3052-8cf1-f31e934bd4fe?albumArt=true", Signature:XBox } response:Platinum.HttpResponse
+            2013-02-24 22:47:24.0908, Info, App, BrowseDirectChildren Entered - Parameters: action: { Name:"Browse", Description:" { Name:"Browse", Arguments:[ ] } ", Arguments:[ ] }  object_id:90a8b701-b1ca-325d-e00f-d3f60267584d filter:dc:title,res,res@protection,res@duration,res@bitrate,upnp:genre,upnp:actor,res@microsoft:codec starting_index:0 requested_count:1000 sort_criteria:+upnp:class,+dc:title context: { LocalAddress:{ IP:192.168.1.56, Port:1733 }, RemoteAddress:{ IP:192.168.1.27, Port:44378 }, Request:"http://192.168.1.56:1733/ContentDirectory/944ef00a-1bd9-d8f2-02ab-9a5de207da75/control.xml", Signature:XBox }
+            */
             var didl = Platinum.Didl.header;
+            int itemCount = 0;
 
-            IEnumerable<BaseItem> children = null;
-
+            IEnumerable<Model.ModelBase> children = null;
+            Model.ModelBase objectIDMatch;
             // I need to ask someone on the MB team if there's a better way to do this, it seems like it 
             //could get pretty expensive to get ALL children all the time
             //if it's our only option perhaps we should cache results locally or something similar
-            children = this.CurrentUser.RootFolder.GetRecursiveChildren(this.CurrentUser);
-            //children = children.Filter(Extensions.FilterType.Music | Extensions.FilterType.Video).Page(starting_index, requested_count);
+            var root = new Model.Root(this.CurrentUser);
+            if (string.Equals(object_id, "0", StringComparison.OrdinalIgnoreCase))
+                objectIDMatch = root;
+            else
+                objectIDMatch = root.GetChildRecursive(object_id);
 
-            int itemCount = 0;
+            if (objectIDMatch == null)
+            {
+                didl += Platinum.Didl.footer;
+
+                action.SetArgumentValue("Result", didl);
+                action.SetArgumentValue("NumberReturned", itemCount.ToString());
+                action.SetArgumentValue("TotalMatches", itemCount.ToString());
+
+                // update ID may be wrong here, it should be the one of the container?
+                action.SetArgumentValue("UpdateId", "1");
+
+                return NEP_Success;
+            }
+
+            children = objectIDMatch.Children;
+
 
             if (children != null)
             {
                 foreach (var child in children)
                 {
-                    
-                    using (var item = BaseItemToMediaItem(child, context))
+
+                    using (var item = child.MediaObject)
                     {
                         if (item != null)
                         {
+                            AddContextInfo(item, child.MainMediaResource, child.Id, child.Extension, context);
+
                             string test;
                             test = item.ToDidl(filter);
                             didl += item.ToDidl(filter);
@@ -285,7 +374,7 @@ namespace MediaBrowser.Plugins.Dlna
                 }
 
                 didl += Platinum.Didl.footer;
-                
+
                 action.SetArgumentValue("Result", didl);
                 action.SetArgumentValue("NumberReturned", itemCount.ToString());
                 action.SetArgumentValue("TotalMatches", itemCount.ToString());
@@ -316,9 +405,14 @@ namespace MediaBrowser.Plugins.Dlna
                     if (uri.Query == "?albumArt=true")
                     {
                         if (!string.IsNullOrWhiteSpace(item.PrimaryImagePath))
+                        {
                             //let see if we can serve artwork like this to the Xbox 360 Video App
-                            Platinum.MediaServer.SetResponseFilePath(context, response, Kernel.HttpServerUrlPrefix.Replace("+", context.LocalAddress.ip) + "/api/image?id=" + item.Id.ToString() + "&type=primary");
-                        //Platinum.MediaServer.SetResponseFilePath(context, response, item.PrimaryImagePath);
+                            //var url = Kernel.HttpServerUrlPrefix.Replace("+", context.LocalAddress.ip) + "Items/" + item.Id.ToString() + "/Images/Primary";
+                            //Logger.Debug("Serving image url:" + url);
+                            //Platinum.MediaServer.SetResponseFilePath(context, response, url);
+                            //the 360 Video App will not accept the above url as an image, perhaps if it had an image extension it might work
+                            Platinum.MediaServer.SetResponseFilePath(context, response, item.PrimaryImagePath);
+                        }
                     }
                     else
                         Platinum.MediaServer.SetResponseFilePath(context, response, item.Path);
@@ -368,35 +462,97 @@ namespace MediaBrowser.Plugins.Dlna
             //this means it wants albums put into containers, I thought Platinum might do this for us, but it doesn't
 
 
+            //var didl = Platinum.Didl.header;
+
+            //IEnumerable<BaseItem> children = null;
+
+            //// I need to ask someone on the MB team if there's a better way to do this, it seems like it 
+            ////could get pretty expensive to get ALL children all the time
+            ////if it's our only option perhaps we should cache results locally or something similar
+            //children = this.CurrentUser.RootFolder.GetRecursiveChildren(this.CurrentUser);
+            ////children = children.Filter(Extensions.FilterType.Music | Extensions.FilterType.Video).Page(starting_index, requested_count);
+
+            ////var test = GetFilterFromCriteria(searchCriteria);
+            //children = children.Where(GetBaseItemMatchFromCriteria(searchCriteria));
+
+
+            //int itemCount = 0;
+
+            //if (children != null)
+            //{
+            //    Platinum.MediaItem item = null;
+            //    foreach (var child in children)
+            //    {
+            //        item = BaseItemToMediaItem(child, context);
+
+            //        if (item != null)
+            //        {
+            //            item.ParentID = string.Empty;
+
+            //            didl += item.ToDidl(filter);
+            //            itemCount++;
+            //        }
+            //    }
+
+            //    didl += Platinum.Didl.footer;
+
+            //    action.SetArgumentValue("Result", didl);
+            //    action.SetArgumentValue("NumberReturned", itemCount.ToString());
+            //    action.SetArgumentValue("TotalMatches", itemCount.ToString());
+
+            //    // update ID may be wrong here, it should be the one of the container?
+            //    action.SetArgumentValue("UpdateId", "1");
+
+            //    return NEP_Success;
+            //}
+            //return NEP_Failure;
             var didl = Platinum.Didl.header;
+            int itemCount = 0;
 
-            IEnumerable<BaseItem> children = null;
-
+            IEnumerable<Model.ModelBase> children = null;
+            Model.ModelBase objectIDMatch;
             // I need to ask someone on the MB team if there's a better way to do this, it seems like it 
             //could get pretty expensive to get ALL children all the time
             //if it's our only option perhaps we should cache results locally or something similar
-            children = this.CurrentUser.RootFolder.GetRecursiveChildren(this.CurrentUser);
-            //children = children.Filter(Extensions.FilterType.Music | Extensions.FilterType.Video).Page(starting_index, requested_count);
+            var root = new Model.Root(this.CurrentUser);
+            if (string.Equals(object_id, "0", StringComparison.OrdinalIgnoreCase))
+                objectIDMatch = root;
+            else
+                objectIDMatch = root.GetChildRecursive(object_id);
 
-            //var test = GetFilterFromCriteria(searchCriteria);
-            children = children.Where(GetBaseItemMatchFromCriteria(searchCriteria));
+            if (objectIDMatch == null)
+            {
+                didl += Platinum.Didl.footer;
 
+                action.SetArgumentValue("Result", didl);
+                action.SetArgumentValue("NumberReturned", itemCount.ToString());
+                action.SetArgumentValue("TotalMatches", itemCount.ToString());
 
-            int itemCount = 0;
+                // update ID may be wrong here, it should be the one of the container?
+                action.SetArgumentValue("UpdateId", "1");
+
+                return NEP_Success;
+            }
+
+            children = objectIDMatch.RecursiveChildren;
+
 
             if (children != null)
             {
-                Platinum.MediaItem item = null;
                 foreach (var child in children)
                 {
-                    item = BaseItemToMediaItem(child, context);
 
-                    if (item != null)
+                    using (var item = child.MediaObject)
                     {
-                        item.ParentID = string.Empty;
+                        if (item != null)
+                        {
+                            AddContextInfo(item, child.MainMediaResource, child.Id, child.Extension, context);
 
-                        didl += item.ToDidl(filter);
-                        itemCount++;
+                            string test;
+                            test = item.ToDidl(filter);
+                            didl += item.ToDidl(filter);
+                            itemCount++;
+                        }
                     }
                 }
 
@@ -459,7 +615,7 @@ namespace MediaBrowser.Plugins.Dlna
                 // iterate through all ips and create a resource for each
                 // I think we need extensions (".mp3" type extensions) on these for Xbox360 Video and Music apps to work
 
-                
+
                 //resource.URI = new Uri(Kernel.HttpServerUrlPrefix + "/api/video.ts?id=" + child.Id.ToString("D")).ToString();
                 //result.AddResource(resource);
 
@@ -475,6 +631,40 @@ namespace MediaBrowser.Plugins.Dlna
             }
 
             return result;
+        }
+
+        private void AddContextInfo(Platinum.MediaObject result, Platinum.MediaResource resource, string id, string extension, Platinum.HttpRequestContext context)
+        {
+            if (result != null && resource != null)
+            {
+                //have a go at finding the mime type
+                var mimeType = string.Empty;
+                if (!string.IsNullOrWhiteSpace(extension))
+                {
+                    mimeType = MimeTypes.GetMimeType(extension);
+                    resource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType(mimeType, true, context);
+                }
+                // get list of ips and make sure the ip the request came from is used for the first resource returned
+                // this ensures that clients which look only at the first resource will be able to reach the item
+                IEnumerable<String> ips = GetUPnPIPAddresses(context).Distinct();
+
+                // iterate through all ips and create a resource for each
+                // I think we need extensions (".mp3" type extensions) on these for Xbox360 Video and Music apps to work
+
+
+                //resource.URI = new Uri(Kernel.HttpServerUrlPrefix + "/api/video.ts?id=" + child.Id.ToString("D")).ToString();
+                //result.AddResource(resource);
+
+                foreach (String ip in ips)
+                {
+                    //doesn't work for WMP
+                    //resource.URI = new Uri(Kernel.HttpServerUrlPrefix.Replace("+", ip) + "/api/video.ts?id=" + child.Id.ToString()).ToString();
+                    resource.URI = new Uri("http://" + ip + ":" + context.LocalAddress.port + "/" + id).ToString();
+
+                    result.AddResource(resource);
+                }
+                MediaItemHelper.AddAlbumArtInfoToMediaItem(result, id, Kernel.HttpServerUrlPrefix, ips);
+            }
         }
 
         private void AddResourcesToMediaItem(Platinum.MediaItem item, BaseItem child, Platinum.HttpRequestContext context)
@@ -711,7 +901,7 @@ namespace MediaBrowser.Plugins.Dlna
         }
         #endregion
 
-        public override void UpdateConfiguration(Model.Plugins.BasePluginConfiguration configuration)
+        public override void UpdateConfiguration(MediaBrowser.Model.Plugins.BasePluginConfiguration configuration)
         {
             base.UpdateConfiguration(configuration);
             var config = (PluginConfiguration)configuration;
@@ -873,20 +1063,35 @@ namespace MediaBrowser.Plugins.Dlna
             return result;
         }
 
-        internal static void AddAlbumArtInfoToMediaItem(Platinum.MediaItem item, BaseItem child, string httpServerUrlPrefix, IEnumerable<String> ips)
+        internal static void AddAlbumArtInfoToMediaItem(Platinum.MediaObject item, BaseItem child, string httpServerUrlPrefix, IEnumerable<String> ips)
         {
             foreach (var ip in ips)
             {
                 AddAlbumArtInfoToMediaItem(item, child, httpServerUrlPrefix, ip);
             }
         }
-        private static void AddAlbumArtInfoToMediaItem(Platinum.MediaItem item, BaseItem child, string httpServerUrlPrefix, string ip)
+        private static void AddAlbumArtInfoToMediaItem(Platinum.MediaObject item, BaseItem child, string httpServerUrlPrefix, string ip)
         {
+            if (item == null || child == null) return;
+
             //making the artwork a direct hit to the MediaBrowser server instead of via the DLNA plugin works for WMP
             item.Extra.AddAlbumArtInfo(new Platinum.AlbumArtInfo(httpServerUrlPrefix.Replace("+", ip) + "/api/image?id=" + child.Id.ToString() + "&type=primary"));
         }
+        internal static void AddAlbumArtInfoToMediaItem(Platinum.MediaObject item, string id, string httpServerUrlPrefix, IEnumerable<String> ips)
+        {
+            foreach (var ip in ips)
+            {
+                AddAlbumArtInfoToMediaItem(item, id, httpServerUrlPrefix, ip);
+            }
+        }
+        private static void AddAlbumArtInfoToMediaItem(Platinum.MediaObject item, string id, string httpServerUrlPrefix, string ip)
+        {
+            if (item == null) return;
 
-        
+            //making the artwork a direct hit to the MediaBrowser server instead of via the DLNA plugin works for WMP
+            item.Extra.AddAlbumArtInfo(new Platinum.AlbumArtInfo(httpServerUrlPrefix.Replace("+", ip) + "/api/image?id=" + id + "&type=primary"));
+        }
+
         /// <summary>
         /// Gets the title.
         /// </summary>

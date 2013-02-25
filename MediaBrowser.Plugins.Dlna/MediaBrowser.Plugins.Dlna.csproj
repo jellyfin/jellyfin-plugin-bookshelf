@@ -48,6 +48,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\MediaBrowser.Common.3.0.6\lib\net45\MediaBrowser.Model.dll</HintPath>
     </Reference>
+    <Reference Include="MoreLinq">
+      <HintPath>..\packages\morelinq.1.0.15631-beta\lib\net35\MoreLinq.dll</HintPath>
+    </Reference>
     <Reference Include="Platinum.Managed">
       <HintPath>..\ThirdParty\UPnP\Libs\Platinum.Managed.dll</HintPath>
     </Reference>
@@ -62,6 +65,7 @@
   <ItemGroup>
     <Compile Include="Configuration\DlnaConfigurationPage.cs" />
     <Compile Include="Configuration\PluginConfiguration.cs" />
+    <Compile Include="Model\ModelBase.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
