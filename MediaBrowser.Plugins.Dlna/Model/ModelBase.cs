@@ -38,7 +38,15 @@ namespace MediaBrowser.Plugins.Dlna.Model
         }
         protected internal ModelBase GetChildRecursive(string id)
         {
-            return this.RecursiveChildren.FirstOrDefault(i => ((i != null) && (string.Equals(i.Id, id, StringComparison.OrdinalIgnoreCase))));
+            //if we can short cicuit this and find the item in our immediate children, then we don't have to
+            //spend extra time doing all that recursive searching, 
+            //and of course if we do, our children have the same short cicuit logic because this is a recursive function
+            //it seems like it migth result in extra processing but in reality it saves a LOT of processing
+            var result = this.Children.FirstOrDefault(i => ((i != null) && (string.Equals(i.Id, id, StringComparison.OrdinalIgnoreCase))));
+            if (result == null)
+                return this.RecursiveChildren.FirstOrDefault(i => ((i != null) && (string.Equals(i.Id, id, StringComparison.OrdinalIgnoreCase))));
+            else
+                return result;
         }
 
         protected internal abstract Platinum.MediaObject MediaObject { get; }
