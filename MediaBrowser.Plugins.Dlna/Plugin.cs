@@ -306,7 +306,7 @@ namespace MediaBrowser.Plugins.Dlna
                         {
                             if (item != null)
                             {
-                                AddContextInfo(item, child.MainMediaResource, child.Id, child.Extension, context);
+                                AddContextInfo(item, child.MainMediaResource, child.MbItem, child.Id,  context);
 
                                 string test;
                                 test = item.ToDidl(filter);
@@ -445,7 +445,7 @@ namespace MediaBrowser.Plugins.Dlna
                     {
                         if (item != null)
                         {
-                            AddContextInfo(item, child.MainMediaResource, child.Id, child.Extension, context);
+                            AddContextInfo(item, child.MainMediaResource, child.MbItem, child.Id, context);
 
                             string test;
                             test = item.ToDidl(filter);
@@ -463,7 +463,7 @@ namespace MediaBrowser.Plugins.Dlna
 
                 // update ID may be wrong here, it should be the one of the container?
                 action.SetArgumentValue("UpdateId", "1");
-
+                
                 return NEP_Success;
             }
             
@@ -533,17 +533,18 @@ namespace MediaBrowser.Plugins.Dlna
             return result;
         }
 
-        private void AddContextInfo(Platinum.MediaObject result, Platinum.MediaResource resource, string id, string extension, Platinum.HttpRequestContext context)
+        private void AddContextInfo(Platinum.MediaObject pltMediaObject, Platinum.MediaResource resource, BaseItem mbItem, string id,Platinum.HttpRequestContext context)
         {
-            if (result != null && resource != null)
+            if (pltMediaObject != null && resource != null)
             {
                 //have a go at finding the mime type
                 var mimeType = string.Empty;
-                if (!string.IsNullOrWhiteSpace(extension))
+                if (mbItem != null && mbItem.Path != null && Path.HasExtension(mbItem.Path))
                 {
-                    mimeType = MimeTypes.GetMimeType(extension);
+                    mimeType = MimeTypes.GetMimeType(mbItem.Path);
                     resource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType(mimeType, true, context);
                 }
+                
                 // get list of ips and make sure the ip the request came from is used for the first resource returned
                 // this ensures that clients which look only at the first resource will be able to reach the item
                 IEnumerable<String> ips = GetUPnPIPAddresses(context).Distinct();
@@ -554,17 +555,22 @@ namespace MediaBrowser.Plugins.Dlna
 
                 //resource.URI = new Uri(Kernel.HttpServerUrlPrefix + "/api/video.ts?id=" + child.Id.ToString("D")).ToString();
                 //result.AddResource(resource);
-
+                //Controller.Kernel.Instance.HttpServerUrlPrefix
                 foreach (String ip in ips)
                 {
                     //doesn't work for WMP
                     //resource.URI = new Uri(Kernel.HttpServerUrlPrefix.Replace("+", ip) + "/api/video.ts?id=" + child.Id.ToString()).ToString();
-                    resource.URI = new Uri("http://" + ip + ":" + context.LocalAddress.port + "/" + id).ToString();
+                    //resource.URI = new Uri("http://" + ip + ":" + context.LocalAddress.port + "/" +  id).ToString();
 
-                    result.AddResource(resource);
+                    resource.URI = new Uri(Kernel.HttpServerUrlPrefix.Replace("+", ip) + "/Items/" + id + "/MediaStreams/Default").ToString();
+                    //MediaStreams 
+                    //pltItem.Extra.AddAlbumArtInfo(new Platinum.AlbumArtInfo(httpServerUrlPrefix.Replace("+", ip) + "/Items/" + id + "/Images/" + img.Key));
+
+
+                    pltMediaObject.AddResource(resource);
                 }
                 
-                MediaItemHelper.AddAlbumArtInfoToMediaItem(result, id, Kernel.HttpServerUrlPrefix, ips);
+                MediaItemHelper.AddAlbumArtInfoToMediaItem(pltMediaObject, mbItem, id, Kernel.HttpServerUrlPrefix, ips);
             }
         }
 
@@ -697,7 +703,7 @@ namespace MediaBrowser.Plugins.Dlna
             //we really need a syntax tree parser here
             //but the requests never seem to get more complex than "'Condition One' And 'Condition Two'"
             //something like Rosylin would be fun but it'd be serious overkill
-            //the syntax seems to be very clear and there are only a handful of valid constructs
+            //the syntax seems to be very clear and there are only a handful of valid constructs (so far)
             //so this very basic parsing will provide some support for now
 
             Queue<string> criteriaQueue = new Queue<string>(searchCriteria.Split(' '));
@@ -882,7 +888,6 @@ namespace MediaBrowser.Plugins.Dlna
         {
             var result = GetMediaItem((BaseItem)item);
             result.Title = GetTitle(item);
-            
             return result;
         }
 
@@ -1042,19 +1047,24 @@ namespace MediaBrowser.Plugins.Dlna
             //making the artwork a direct hit to the MediaBrowser server instead of via the DLNA plugin works for WMP
             item.Extra.AddAlbumArtInfo(new Platinum.AlbumArtInfo(httpServerUrlPrefix.Replace("+", ip) + "/api/image?id=" + child.Id.ToString() + "&type=primary"));
         }
-        internal static void AddAlbumArtInfoToMediaItem(Platinum.MediaObject item, string id, string httpServerUrlPrefix, IEnumerable<String> ips)
+        internal static void AddAlbumArtInfoToMediaItem(Platinum.MediaObject pltItem, BaseItem mbItem, string id, string httpServerUrlPrefix, IEnumerable<String> ips)
         {
             foreach (var ip in ips)
             {
-                AddAlbumArtInfoToMediaItem(item, id, httpServerUrlPrefix, ip);
+                AddAlbumArtInfoToMediaItem(pltItem, mbItem, id, httpServerUrlPrefix, ip);
             }
         }
-        private static void AddAlbumArtInfoToMediaItem(Platinum.MediaObject item, string id, string httpServerUrlPrefix, string ip)
+        private static void AddAlbumArtInfoToMediaItem(Platinum.MediaObject pltItem, BaseItem mbItem, string id, string httpServerUrlPrefix, string ip)
         {
-            if (item == null) return;
+            if ((pltItem == null) || (mbItem == null) || (mbItem.Images == null)) return;
 
             //making the artwork a direct hit to the MediaBrowser server instead of via the DLNA plugin works for WMP
-            item.Extra.AddAlbumArtInfo(new Platinum.AlbumArtInfo(httpServerUrlPrefix.Replace("+", ip) + "/api/image?id=" + id + "&type=primary"));
+            //not sure it'll work for all other clients
+            //Xbox360 Video App ignores it and askes for: video url + ?artwork=true
+            foreach (var img in mbItem.Images)
+            {
+                pltItem.Extra.AddAlbumArtInfo(new Platinum.AlbumArtInfo(httpServerUrlPrefix.Replace("+", ip) + "/Items/" + id + "/Images/" + img.Key));
+            }
         }
 
         /// <summary>
@@ -1123,6 +1133,11 @@ namespace MediaBrowser.Plugins.Dlna
 
         internal static Platinum.ObjectClass GetPlatinumClassObject(this BaseItem item)
         {
+            //its debatable whether or not we should use videoBroadcast for Episodes
+            //its really for recorded tv, but it displays nicely in WMP
+            //it might break Xbox (and other clients) though so will require testing
+            if (item is Episode)
+                return new Platinum.ObjectClass("object.item.videoItem.videoBroadcast", "");
             if (item is Video)
                 return new Platinum.ObjectClass("object.item.videoItem", "");
             else if (item is Audio)
