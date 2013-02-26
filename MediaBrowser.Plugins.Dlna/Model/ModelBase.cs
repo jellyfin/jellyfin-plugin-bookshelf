@@ -717,12 +717,17 @@ namespace MediaBrowser.Plugins.Dlna.Model
         {
             get { return this.MediaItem; }
         }
-        internal Platinum.MediaItem MediaItem
+        internal Platinum.MediaContainer MediaItem
         {
             get
             {
-                var result = MediaItemHelper.GetMediaItem(this.MBItem);
+                var result = new Platinum.MediaContainer();
+                result.ObjectID = this.Id;
                 result.ParentID = this.ParentId;
+                result.Class = new Platinum.ObjectClass("object.container.person.musicArtist", "");
+                result.Title = this.MBItem.Name;
+                result.Description.DescriptionText = this.MBItem.Name;
+                result.Description.LongDescriptionText = this.MBItem.Name;
                 return result;
             }
         }
@@ -759,12 +764,17 @@ namespace MediaBrowser.Plugins.Dlna.Model
         {
             get { return this.MediaItem; }
         }
-        internal Platinum.MediaItem MediaItem
+        internal Platinum.MediaContainer MediaItem
         {
             get
             {
-                var result = MediaItemHelper.GetMediaItem(this.MBItem);
+                var result = new Platinum.MediaContainer();
+                result.ObjectID = this.Id;
                 result.ParentID = this.ParentId;
+                result.Class = new Platinum.ObjectClass("object.container.album.musicAlbum", "");
+                result.Title = this.MBItem.Name;
+                result.Description.DescriptionText = this.MBItem.Name;
+                result.Description.LongDescriptionText = this.MBItem.Name;
                 return result;
             }
         }
