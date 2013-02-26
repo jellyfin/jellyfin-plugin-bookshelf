@@ -466,6 +466,7 @@ namespace MediaBrowser.Plugins.Dlna
 
                 return NEP_Success;
             }
+            
             return NEP_Failure;
         }
 
@@ -596,7 +597,7 @@ namespace MediaBrowser.Plugins.Dlna
                     //I'm not sure what this actually means, is it Sample Rate
                     if (videoChild.DefaultVideoStream.SampleRate.HasValue)
                         resource.SampleFrequency = (uint)videoChild.DefaultVideoStream.SampleRate.Value;
-                    //file size?
+                    //file size is bytes
                     //resource.Size
 
                 }
@@ -820,26 +821,39 @@ namespace MediaBrowser.Plugins.Dlna
 
             if (item.DefaultVideoStream != null)
             {
-                //Bitrate is Bytes per second
+                //Bitrate - The bitrate in bytes/second of the resource.
                 if (item.DefaultVideoStream.BitRate.HasValue)
                     result.Bitrate = (uint)item.DefaultVideoStream.BitRate;
 
-                //not sure if we know Colour Depth
-                //resource.ColorDepth
+                //ColourDepth - The color depth in bits of the resource (image or video).
+                //result.ColorDepth
+
+                //NbAudioChannels - Number of audio channels of the resource, e.g. 1 for mono, 2 for stereo, 6 for Dolby surround, etc.
                 if (item.DefaultVideoStream.Channels.HasValue)
                     result.NbAudioChannels = (uint)item.DefaultVideoStream.Channels.Value;
 
-                //resource.Protection
-                //resource.ProtoInfo
+                //Protection - Some statement of the protection type of the resource (not standardized).
+                //result.Protection
 
-                //we must know resolution, I'm just not sure how to get it
-                //resource.Resolution
+                //ProtoInfo - The 'protocolInfo' attribute is a string that identifies the
+                //streaming or transport protocol for transmitting the resource.
+                //If not present then the content has not yet been fully imported by
+                //the ContentDirectory service and is not yet accessible for playback.
+                //result.ProtoInfo
 
-                //I'm not sure what this actually means, is it Sample Rate
+                //Resolution - X*Y resolution of the resource (image or video).
+                //The string pattern is restricted to strings of the form:
+                //[0-9]+x[0-9]+
+                //(one or more digits,'x', followed by one or more digits).
+                //SampleFrequency - The sample frequency of the resource in Hz
+                //result.Resolution
+
                 if (item.DefaultVideoStream.SampleRate.HasValue)
                     result.SampleFrequency = (uint)item.DefaultVideoStream.SampleRate.Value;
-                //file size?
-                //resource.Size
+
+                //Size - size, in bytes, of the resource.
+                //result.Size
+
 
                 ////to do subtitles for clients that can deal with external subtitles (like srt)
                 ////we will have to do something like this
@@ -868,6 +882,7 @@ namespace MediaBrowser.Plugins.Dlna
         {
             var result = GetMediaItem((BaseItem)item);
             result.Title = GetTitle(item);
+            
             return result;
         }
 
@@ -931,7 +946,23 @@ namespace MediaBrowser.Plugins.Dlna
         internal static Platinum.MediaResource GetMediaResource(BaseItem item)
         {
             var result = new Platinum.MediaResource();
-            //duration is in seconds
+
+            //duration - The 'duration' attribute identifies the duration of the playback of
+            //the resource, at normal speed.
+            //The format of the duration string is:
+            //H+:MM:SS[.F+], or H+:MM:SS[.F0/F1]
+            //Where:
+            //+H		one or more digits to indicate elapsed hours,
+            //MM		exactly 2 digits to indicate minutes (00 to 59),
+            //SS		exactly 2 digits to indicate seconds (00 to 59),
+            //F+		any number of digits (including no digits) to indicate fractions of seconds,
+            //F0/F1	a fraction, with F0 and F1 at least one digit long,
+            //        and F0 < F1.
+            //The string may be preceded by an optional + or - sign, and the
+            //decimal point itself may be omitted if there are no fractional	seconds digits.            
+            
+            //we don't have to worry about the string formating because Platinum does it for us
+            //we just have to give it the duration in seconds
             if (item.RunTimeTicks.HasValue)
                 result.Duration = (uint)TimeSpan.FromTicks(item.RunTimeTicks.Value).TotalSeconds;
 
@@ -952,7 +983,7 @@ namespace MediaBrowser.Plugins.Dlna
             result.Description.DescriptionText = "this is DescriptionText";
             result.Description.LongDescriptionText = item.Overview == null ? string.Empty : item.Overview;
             result.Description.Rating = item.CommunityRating.ToString();
-
+            
             if (item.Genres != null)
             {
                 foreach (var genre in item.Genres)
@@ -969,10 +1000,14 @@ namespace MediaBrowser.Plugins.Dlna
                     else if (string.Equals(person.Type, PersonType.MusicArtist, StringComparison.OrdinalIgnoreCase))
                     {
                         result.People.AddArtist(new Platinum.PersonRole(person.Name, "MusicArtist"));
+                        result.People.AddArtist(new Platinum.PersonRole(person.Name, "artist"));
                         result.People.AddArtist(new Platinum.PersonRole(person.Name, "Performer"));
                     }
                     else if (string.Equals(person.Type, PersonType.Composer, StringComparison.OrdinalIgnoreCase))
+                    {
                         result.People.AddAuthors(new Platinum.PersonRole(person.Name, "Composer"));
+                        result.Creator = person.Name;
+                    }
                     else if (string.Equals(person.Type, PersonType.Writer, StringComparison.OrdinalIgnoreCase))
                         result.People.AddAuthors(new Platinum.PersonRole(person.Name, "Writer"));
                     else if (string.Equals(person.Type, PersonType.Director, StringComparison.OrdinalIgnoreCase))
@@ -984,6 +1019,12 @@ namespace MediaBrowser.Plugins.Dlna
                         result.People.AddArtist(new Platinum.PersonRole(person.Name, person.Type == null ? string.Empty : person.Type));
                 }
             }
+
+            //'restricted' attribute (true, false, 1, 0).
+            //When restricted="true", the ability to change or delete the
+            //Container or Item is restricted.            
+            //result.Restricted
+
             return result;
         }
 
