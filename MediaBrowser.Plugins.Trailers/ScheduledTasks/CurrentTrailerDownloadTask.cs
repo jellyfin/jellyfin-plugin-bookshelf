@@ -20,7 +20,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
     /// <summary>
     /// Downloads trailers from the web at scheduled times
     /// </summary>
-    public class CurrentTrailerDownloadTask : BaseScheduledTask<Kernel>
+    public class CurrentTrailerDownloadTask : IScheduledTask
     {
         /// <summary>
         /// The _HTTP client
@@ -32,26 +32,29 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
         /// </summary>
         private readonly IJsonSerializer _jsonSerializer;
 
+        private ILogger Logger { get; set;}
+        private Kernel Kernel { get; set; }
+ 
         /// <summary>
         /// Initializes a new instance of the <see cref="CurrentTrailerDownloadTask" /> class.
         /// </summary>
         /// <param name="kernel">The kernel.</param>
         /// <param name="httpClient">The HTTP client.</param>
-        /// <param name="taskManager">The task manager.</param>
         /// <param name="jsonSerializer">The json serializer.</param>
         /// <param name="logger">The logger.</param>
-        public CurrentTrailerDownloadTask(Kernel kernel, IHttpClient httpClient, ITaskManager taskManager, IJsonSerializer jsonSerializer, ILogger logger)
-            : base(kernel, taskManager, logger)
+        public CurrentTrailerDownloadTask(Kernel kernel, IHttpClient httpClient, IJsonSerializer jsonSerializer, ILogger logger)
         {
             _jsonSerializer = jsonSerializer;
             _httpClient = httpClient;
+            Logger = logger;
+            Kernel = kernel;
         }
 
         /// <summary>
         /// Creates the triggers that define when the task will run
         /// </summary>
         /// <returns>IEnumerable{BaseTaskTrigger}.</returns>
-        public override IEnumerable<ITaskTrigger> GetDefaultTriggers()
+        public IEnumerable<ITaskTrigger> GetDefaultTriggers()
         {
             return new[] { new DailyTrigger { TimeOfDay = TimeSpan.FromHours(2) } };
         }
@@ -62,7 +65,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <param name="progress">The progress.</param>
         /// <returns>Task.</returns>
-        protected override async Task ExecuteInternal(CancellationToken cancellationToken, IProgress<double> progress)
+        public async Task Execute(CancellationToken cancellationToken, IProgress<double> progress)
         {
             // Get the list of trailers
             var trailers = await AppleTrailerListingDownloader.GetTrailerList(_httpClient, cancellationToken).ConfigureAwait(false);
@@ -305,7 +308,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
         /// Gets the name of the task
         /// </summary>
         /// <value>The name.</value>
-        public override string Name
+        public string Name
         {
             get { return "Find current trailers"; }
         }
@@ -314,7 +317,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
         /// Gets the category.
         /// </summary>
         /// <value>The category.</value>
-        public override string Category
+        public string Category
         {
             get
             {
@@ -326,7 +329,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
         /// Gets the description.
         /// </summary>
         /// <value>The description.</value>
-        public override string Description
+        public string Description
         {
             get { return "Searches the web for upcoming movie trailers, and downloads them based on your Trailer plugin settings."; }
         }
