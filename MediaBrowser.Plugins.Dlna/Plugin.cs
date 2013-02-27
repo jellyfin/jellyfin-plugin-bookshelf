@@ -3,6 +3,7 @@ using MediaBrowser.Common.Plugins;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Entities.TV;
+using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Plugins.Dlna.Configuration;
 using System;
@@ -47,6 +48,8 @@ namespace MediaBrowser.Plugins.Dlna
             get { return "DLNA Server"; }
         }
 
+        private IUserManager UserManager { get; set; }
+
         /// <summary>
         /// Gets the instance.
         /// </summary>
@@ -56,10 +59,11 @@ namespace MediaBrowser.Plugins.Dlna
         /// <summary>
         /// Initializes a new instance of the <see cref="Plugin" /> class.
         /// </summary>
-        public Plugin()
+        public Plugin(IUserManager userManager)
             : base()
         {
             Instance = this;
+            UserManager = userManager;
         }
 
         /// <summary>
@@ -658,18 +662,18 @@ namespace MediaBrowser.Plugins.Dlna
                 {
                     //this looks like a lot of processing but it really isn't
                     //its mostly gaurding against no users or no matching user existing
-                    var serverKernel = Controller.Kernel.Instance;
-                    if (serverKernel.Users.Any())
+
+                    if (UserManager.Users.Any())
                     {
                         if (string.IsNullOrWhiteSpace(this.Configuration.UserName))
-                            this._CurrentUser = serverKernel.Users.First();
+                            this._CurrentUser = UserManager.Users.First();
                         else
                         {
-                            this._CurrentUser = serverKernel.Users.FirstOrDefault(i => string.Equals(i.Name, this.Configuration.UserName, StringComparison.OrdinalIgnoreCase));
+                            this._CurrentUser = UserManager.Users.FirstOrDefault(i => string.Equals(i.Name, this.Configuration.UserName, StringComparison.OrdinalIgnoreCase));
                             if (this._CurrentUser == null)
                             {
                                 //log and return first user
-                                this._CurrentUser = serverKernel.Users.First();
+                                this._CurrentUser = UserManager.Users.First();
                                 Logger.Error("Configured user: \"{0}\" not found. Using first user found: \"{1}\" instead", this.Configuration.UserName, this._CurrentUser.Name);
                             }
                         }
