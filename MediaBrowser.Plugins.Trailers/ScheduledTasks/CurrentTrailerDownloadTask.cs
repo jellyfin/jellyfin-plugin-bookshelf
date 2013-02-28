@@ -4,6 +4,7 @@ using MediaBrowser.Common.ScheduledTasks;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.IO;
+using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Net;
 using MediaBrowser.Model.Serialization;
@@ -34,20 +35,23 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
 
         private ILogger Logger { get; set;}
         private Kernel Kernel { get; set; }
- 
+        private ILibraryManager LibraryManager { get; set; }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="CurrentTrailerDownloadTask" /> class.
         /// </summary>
         /// <param name="kernel">The kernel.</param>
+        /// <param name="libraryManager">The library manager.</param>
         /// <param name="httpClient">The HTTP client.</param>
         /// <param name="jsonSerializer">The json serializer.</param>
         /// <param name="logger">The logger.</param>
-        public CurrentTrailerDownloadTask(Kernel kernel, IHttpClient httpClient, IJsonSerializer jsonSerializer, ILogger logger)
+        public CurrentTrailerDownloadTask(Kernel kernel, ILibraryManager libraryManager, IHttpClient httpClient, IJsonSerializer jsonSerializer, ILogger logger)
         {
             _jsonSerializer = jsonSerializer;
             _httpClient = httpClient;
             Logger = logger;
             Kernel = kernel;
+            LibraryManager = libraryManager;
         }
 
         /// <summary>
@@ -282,7 +286,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
         /// </summary>
         private void DeleteOldTrailers()
         {
-            var collectionFolder = (Folder)Kernel.RootFolder.Children.First(c => c.GetType().Name.Equals(typeof(TrailerCollectionFolder).Name));
+            var collectionFolder = (Folder)LibraryManager.RootFolder.Children.First(c => c.GetType().Name.Equals(typeof(TrailerCollectionFolder).Name));
 
             foreach (var trailer in collectionFolder.RecursiveChildren.OfType<Trailer>().Where(IsOldTrailer))
             {
