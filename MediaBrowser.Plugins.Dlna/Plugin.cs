@@ -198,7 +198,7 @@ namespace MediaBrowser.Plugins.Dlna
 
         private int server_BrowseMetadata(Platinum.Action action, string object_id, string filter, int starting_index, int requested_count, string sort_criteria, Platinum.HttpRequestContext context)
         {
-            Logger.Info("BrowseMetadata Entered - Parameters: action:{0} object_id:{1} filter:{2} starting_index:{3} requested_count:{4} sort_criteria:{5} context:{6}",
+            Logger.Info("BrowseMetadata Entered - Parameters: action:{0} object_id:\"{1}\" filter:\"{2}\" starting_index:{3} requested_count:{4} sort_criteria:\"{5}\" context:{6}",
                 action.ToLogString(), object_id, filter, starting_index, requested_count, sort_criteria, context.ToLogString());
 
             //nothing much seems to call BrowseMetadata so far
@@ -236,7 +236,7 @@ namespace MediaBrowser.Plugins.Dlna
         }
         private int server_BrowseDirectChildren(Platinum.Action action, String object_id, String filter, Int32 starting_index, Int32 requested_count, String sort_criteria, Platinum.HttpRequestContext context)
         {
-            Logger.Info("BrowseDirectChildren Entered - Parameters: action:{0} object_id:{1} filter:{2} starting_index:{3} requested_count:{4} sort_criteria:{5} context:{6}",
+            Logger.Info("BrowseDirectChildren Entered - Parameters: action:{0} object_id:\"{1}\" filter:\"{2}\" starting_index:{3} requested_count:{4} sort_criteria:\"{5}\" context:{6}",
                 action.ToLogString(), object_id, filter, starting_index, requested_count, sort_criteria, context.ToLogString());
 
             //WMP doesn't care how many results we return and what type they are
@@ -259,7 +259,7 @@ namespace MediaBrowser.Plugins.Dlna
             //I'm just not sure if those folders listed with object IDs are all well known across clients or if these ones are WMP specific
             //if they are device specific but also significant, then that might explain why Plex goes to the trouble of having configurable client device profiles for its DLNA server
 
-            
+
             //XBOX360 Video
             //BrowseDirectChildren Entered - Parameters: 
             //action: { Name:"Browse", Description:" { Name:"Browse", Arguments:[ ] } ", 
@@ -302,21 +302,23 @@ namespace MediaBrowser.Plugins.Dlna
                 var children = objectIDMatch.Children;
                 if (children != null)
                 {
+                    var ips = GetUPnPIPAddresses(context);
+                    var urlPrefixes = new List<string>();
+                    foreach (var ip in ips)
+                    {
+                        urlPrefixes.Add(Kernel.HttpServerUrlPrefix.Replace("+", ip));
+                    }
+
                     int itemCount = 0;
                     var didl = Platinum.Didl.header;
                     foreach (var child in children)
                     {
-                        using (var item = child.MediaObject)
+                        using (var item = child.GetMediaObject(context, urlPrefixes))
                         {
-                            if (item != null)
-                            {
-                                AddContextInfo(item, child.MainMediaResource, child.MbItem, child.Id,  context);
-
-                                string test;
-                                test = item.ToDidl(filter);
-                                didl += item.ToDidl(filter);
-                                itemCount++;
-                            }
+                            string test;
+                            test = item.ToDidl(filter);
+                            didl += item.ToDidl(filter);
+                            itemCount++;
                         }
                     }
                     didl += Platinum.Didl.footer;
@@ -373,7 +375,7 @@ namespace MediaBrowser.Plugins.Dlna
         }
         private int server_SearchContainer(Platinum.Action action, string object_id, string searchCriteria, string filter, int starting_index, int requested_count, string sort_criteria, Platinum.HttpRequestContext context)
         {
-            Logger.Info("SearchContainer Entered - Parameters: action:{0} object_id:{1} searchCriteria:{7} filter:{2} starting_index:{3} requested_count:{4} sort_criteria:{5} context:{6}",
+            Logger.Info("SearchContainer Entered - Parameters: action:{0} object_id:\"{1}\" searchCriteria:\"{7}\" filter:\"{2}\" starting_index:{3} requested_count:{4} sort_criteria:\"{5}\" context:{6}",
                 action.ToLogString(), object_id, filter, starting_index, requested_count, sort_criteria, context.ToLogString(), searchCriteria);
 
             //Doesn't call search at all:
@@ -439,23 +441,23 @@ namespace MediaBrowser.Plugins.Dlna
 
             children = objectIDMatch.RecursiveChildren;
 
-
             if (children != null)
             {
+                var ips = GetUPnPIPAddresses(context);
+                var urlPrefixes = new List<string>();
+                foreach (var ip in ips)
+                {
+                    urlPrefixes.Add(Kernel.HttpServerUrlPrefix.Replace("+", ip));
+                }
+
                 foreach (var child in children)
                 {
-
-                    using (var item = child.MediaObject)
+                    using (var item = child.GetMediaObject(context, urlPrefixes))
                     {
-                        if (item != null)
-                        {
-                            AddContextInfo(item, child.MainMediaResource, child.MbItem, child.Id, context);
-
-                            string test;
-                            test = item.ToDidl(filter);
-                            didl += item.ToDidl(filter);
-                            itemCount++;
-                        }
+                        string test;
+                        test = item.ToDidl(filter);
+                        didl += item.ToDidl(filter);
+                        itemCount++;
                     }
                 }
 
@@ -467,168 +469,11 @@ namespace MediaBrowser.Plugins.Dlna
 
                 // update ID may be wrong here, it should be the one of the container?
                 action.SetArgumentValue("UpdateId", "1");
-                
+
                 return NEP_Success;
             }
-            
+
             return NEP_Failure;
-        }
-
-        private Platinum.MediaItem BaseItemToMediaItem(BaseItem child, Platinum.HttpRequestContext context)
-        {
-            Platinum.MediaItem result = null;
-            Platinum.MediaResource resource = null;
-
-            if (child.IsFolder)
-            {
-                //DLNA is a fairly flat system, there doesn't appear to be much room in the system for folders so far
-                //I haven't tested too many DLNA clients yet tho
-                result = null;
-                //item =  new Platinum.MediaItem();
-                //item.Class = new Platinum.ObjectClass("object.container.storageFolder", "");
-            }
-            else if (child is Episode)
-            {
-                result = MediaItemHelper.GetMediaItem((Episode)child);
-                resource = MediaItemHelper.GetMediaResource((Episode)child);
-            }
-            else if (child is Video)
-            {
-                result = MediaItemHelper.GetMediaItem((Video)child);
-                resource = MediaItemHelper.GetMediaResource((Video)child);
-            }
-            else if (child is Audio)
-            {
-                result = MediaItemHelper.GetMediaItem((Audio)child);
-                resource = MediaItemHelper.GetMediaResource((Audio)child);
-            }
-
-            if (result != null)
-            {
-                //have a go at finding the mime type
-                var mimeType = string.Empty;
-                if (child.Path != null && Path.HasExtension(child.Path))
-                    mimeType = MimeTypes.GetMimeType(child.Path);
-
-                resource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType(mimeType, true, context);
-
-                // get list of ips and make sure the ip the request came from is used for the first resource returned
-                // this ensures that clients which look only at the first resource will be able to reach the item
-                IEnumerable<String> ips = GetUPnPIPAddresses(context); //.Distinct();
-
-                // iterate through all ips and create a resource for each
-                // I think we need extensions (".mp3" type extensions) on these for Xbox360 Video and Music apps to work
-
-
-                //resource.URI = new Uri(Kernel.HttpServerUrlPrefix + "/api/video.ts?id=" + child.Id.ToString("D")).ToString();
-                //result.AddResource(resource);
-
-                foreach (String ip in ips)
-                {
-                    //doesn't work for WMP
-                    //resource.URI = new Uri(Kernel.HttpServerUrlPrefix.Replace("+", ip) + "/api/video.ts?id=" + child.Id.ToString()).ToString();
-                    resource.URI = new Uri("http://" + ip + ":" + context.LocalAddress.port + "/" + child.Id.ToString("D")).ToString();
-
-                    result.AddResource(resource);
-                }
-                MediaItemHelper.AddAlbumArtInfoToMediaItem(result, child, Kernel.HttpServerUrlPrefix, ips);
-            }
-
-            return result;
-        }
-
-        private void AddContextInfo(Platinum.MediaObject pltMediaObject, Platinum.MediaResource resource, BaseItem mbItem, string id,Platinum.HttpRequestContext context)
-        {
-            if (pltMediaObject != null && resource != null)
-            {
-                //have a go at finding the mime type
-                var mimeType = string.Empty;
-                if (mbItem != null && mbItem.Path != null && Path.HasExtension(mbItem.Path))
-                {
-                    mimeType = MimeTypes.GetMimeType(mbItem.Path);
-                    resource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType(mimeType, true, context);
-                }
-                
-                // get list of ips and make sure the ip the request came from is used for the first resource returned
-                // this ensures that clients which look only at the first resource will be able to reach the item
-                IEnumerable<String> ips = GetUPnPIPAddresses(context).Distinct();
-
-                // iterate through all ips and create a resource for each
-                // I think we need extensions (".mp3" type extensions) on these for Xbox360 Video and Music apps to work
-
-
-                //resource.URI = new Uri(Kernel.HttpServerUrlPrefix + "/api/video.ts?id=" + child.Id.ToString("D")).ToString();
-                //result.AddResource(resource);
-                //Controller.Kernel.Instance.HttpServerUrlPrefix
-                foreach (String ip in ips)
-                {
-                    //doesn't work for WMP
-                    //resource.URI = new Uri(Kernel.HttpServerUrlPrefix.Replace("+", ip) + "/api/video.ts?id=" + child.Id.ToString()).ToString();
-                    //resource.URI = new Uri("http://" + ip + ":" + context.LocalAddress.port + "/" +  id).ToString();
-
-                    resource.URI = new Uri(Kernel.HttpServerUrlPrefix.Replace("+", ip) + "/Items/" + id + "/MediaStreams/Default").ToString();
-                    //MediaStreams 
-                    //pltItem.Extra.AddAlbumArtInfo(new Platinum.AlbumArtInfo(httpServerUrlPrefix.Replace("+", ip) + "/Items/" + id + "/Images/" + img.Key));
-
-
-                    pltMediaObject.AddResource(resource);
-                }
-                
-                MediaItemHelper.AddAlbumArtInfoToMediaItem(pltMediaObject, mbItem, id, Kernel.HttpServerUrlPrefix, ips);
-            }
-        }
-
-        private void AddResourcesToMediaItem(Platinum.MediaItem item, BaseItem child, Platinum.HttpRequestContext context)
-        {
-            Platinum.MediaResource resource = null;
-
-            if (child is Video)
-            {
-                var videoChild = (Video)child;
-                resource = new Platinum.MediaResource();
-
-                if (videoChild.DefaultVideoStream != null)
-                {
-                    //Bitrate is Bytes per second
-                    if (videoChild.DefaultVideoStream.BitRate.HasValue)
-                        resource.Bitrate = (uint)videoChild.DefaultVideoStream.BitRate;
-
-                    //not sure if we know Colour Depth
-                    //resource.ColorDepth
-                    if (videoChild.DefaultVideoStream.Channels.HasValue)
-                        resource.NbAudioChannels = (uint)videoChild.DefaultVideoStream.Channels.Value;
-
-                    //resource.Protection
-                    //resource.ProtoInfo
-
-                    //we must know resolution, I'm just not sure how to get it
-                    //resource.Resolution
-
-                    //I'm not sure what this actually means, is it Sample Rate
-                    if (videoChild.DefaultVideoStream.SampleRate.HasValue)
-                        resource.SampleFrequency = (uint)videoChild.DefaultVideoStream.SampleRate.Value;
-                    //file size is bytes
-                    //resource.Size
-
-                }
-            }
-            else if (child is Audio)
-            {
-
-            }
-
-            // get list of ips and make sure the ip the request came from is used for the first resource returned
-            // this ensures that clients which look only at the first resource will be able to reach the item
-            List<String> ips = GetUPnPIPAddresses(context);
-
-            // iterate through all ips and create a resource for each
-            // I think we need extensions (".mp3" type extensions) on these for Xbox360 Video and Music apps to work
-
-            foreach (String ip in ips)
-            {
-                resource.URI = new Uri("http://" + ip + ":" + context.LocalAddress.port + "/" + child.Id.ToString("D")).ToString();
-                item.AddResource(resource);
-            }
         }
 
         /// <summary>
@@ -636,7 +481,7 @@ namespace MediaBrowser.Plugins.Dlna
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        private List<String> GetUPnPIPAddresses(Platinum.HttpRequestContext context)
+        private IEnumerable<String> GetUPnPIPAddresses(Platinum.HttpRequestContext context)
         {
             // get list of ips and make sure the ip the request came from is used for the first resource returned
             // this ensures that clients which look only at the first resource will be able to reach the item
@@ -647,7 +492,7 @@ namespace MediaBrowser.Plugins.Dlna
                 result.Remove(localIP);
                 result.Insert(0, localIP);
             }
-            return result;
+            return result.Distinct();
         }
 
         /// <summary>
@@ -823,347 +668,6 @@ namespace MediaBrowser.Plugins.Dlna
         }
     }
 
-    internal static class MediaItemHelper
-    {
-        internal static Platinum.MediaResource GetMediaResource(Video item)
-        {
-            var result = GetMediaResource((BaseItem)item);
-
-            if (item.DefaultVideoStream != null)
-            {
-                //Bitrate - The bitrate in bytes/second of the resource.
-                if (item.DefaultVideoStream.BitRate.HasValue)
-                    result.Bitrate = (uint)item.DefaultVideoStream.BitRate;
-
-                //ColourDepth - The color depth in bits of the resource (image or video).
-                //result.ColorDepth
-
-                //NbAudioChannels - Number of audio channels of the resource, e.g. 1 for mono, 2 for stereo, 6 for Dolby surround, etc.
-                if (item.DefaultVideoStream.Channels.HasValue)
-                    result.NbAudioChannels = (uint)item.DefaultVideoStream.Channels.Value;
-
-                //Protection - Some statement of the protection type of the resource (not standardized).
-                //result.Protection
-
-                //ProtoInfo - The 'protocolInfo' attribute is a string that identifies the
-                //streaming or transport protocol for transmitting the resource.
-                //If not present then the content has not yet been fully imported by
-                //the ContentDirectory service and is not yet accessible for playback.
-                //result.ProtoInfo
-
-                //Resolution - X*Y resolution of the resource (image or video).
-                //The string pattern is restricted to strings of the form:
-                //[0-9]+x[0-9]+
-                //(one or more digits,'x', followed by one or more digits).
-                //SampleFrequency - The sample frequency of the resource in Hz
-                //result.Resolution
-
-                if (item.DefaultVideoStream.SampleRate.HasValue)
-                    result.SampleFrequency = (uint)item.DefaultVideoStream.SampleRate.Value;
-
-                //Size - size, in bytes, of the resource.
-                //result.Size
-
-
-                ////to do subtitles for clients that can deal with external subtitles (like srt)
-                ////we will have to do something like this
-                //IEnumerable<String> ips = GetUPnPIPAddresses(context);
-                //foreach (var st in videoChild.MediaStreams)
-                //{
-                //    if (st.Type == MediaStreamType.Subtitle)
-                //    {
-                //        Platinum.MediaResource subtitleResource = new Platinum.MediaResource();
-                //        subtitleResource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfo(st.Path, with_dlna_extension: false);
-                //        foreach (String ip in ips)
-                //        {
-                //            //we'll need to figure out which of these options works for whick players
-                //            //either serve them ourselves
-                //            resource.URI = new Uri("http://" + ip + ":" + context.LocalAddress.port + "/" + child.Id.ToString("D")).ToString();
-                //            //or get the web api to serve them directly
-                //            resource.URI = new Uri(Kernel.HttpServerUrlPrefix.Replace("+", ip) + "/api/video?id=" + child.Id.ToString() + "&type=Subtitle").ToString();
-                //            result.AddResource(resource);
-                //        }
-                //    }
-                //}
-            }
-            return result;
-        }
-        internal static Platinum.MediaItem GetMediaItem(Video item)
-        {
-            var result = GetMediaItem((BaseItem)item);
-            result.Title = GetTitle(item);
-            return result;
-        }
-
-        internal static Platinum.MediaResource GetMediaResource(Episode item)
-        {
-            //there's nothing specific about an episode that requires extra Resources
-            return GetMediaResource((Video)item);
-        }
-        internal static Platinum.MediaItem GetMediaItem(Episode item)
-        {
-            var result = GetMediaItem((Video)item);
-
-            if (item.IndexNumber.HasValue)
-                result.Recorded.EpisodeNumber = (uint)item.IndexNumber.Value;
-            if (item.Series != null && item.Series.Name != null)
-                result.Recorded.SeriesTitle = item.Series.Name;
-            result.Recorded.ProgramTitle = item.Name == null ? string.Empty : item.Name;
-
-            return result;
-        }
-
-        internal static Platinum.MediaResource GetMediaResource(Audio item)
-        {
-            //there's nothing specific about an audio item that requires extra Resources
-            return GetMediaResource((BaseItem)item);
-        }
-        internal static Platinum.MediaItem GetMediaItem(Audio item)
-        {
-            var result = GetMediaItem((BaseItem)item);
-            result.Title = GetTitle(item);
-            result.People.AddArtist(new Platinum.PersonRole(item.Artist));
-            result.People.Contributor = item.AlbumArtist;
-            result.Affiliation.Album = item.Album;
-            return result;
-        }
-
-        internal static Platinum.MediaResource GetMediaResource(MusicArtist item)
-        {
-            //there's nothing specific about an music artist item that requires extra Resources
-            return GetMediaResource((BaseItem)item);
-        }
-        internal static Platinum.MediaItem GetMediaItem(MusicArtist item)
-        {
-            var result = GetMediaItem((BaseItem)item);
-            result.Title = item.Name; 
-            return result;
-        }
-
-        internal static Platinum.MediaResource GetMediaResource(MusicAlbum item)
-        {
-            //there's nothing specific about an music artist item that requires extra Resources
-            return GetMediaResource((BaseItem)item);
-        }
-        internal static Platinum.MediaItem GetMediaItem(MusicAlbum item)
-        {
-            var result = GetMediaItem((BaseItem)item);
-            result.Title = item.Name;
-            return result;
-        }
-
-        internal static Platinum.MediaResource GetMediaResource(BaseItem item)
-        {
-            var result = new Platinum.MediaResource();
-
-            //duration - The 'duration' attribute identifies the duration of the playback of
-            //the resource, at normal speed.
-            //The format of the duration string is:
-            //H+:MM:SS[.F+], or H+:MM:SS[.F0/F1]
-            //Where:
-            //+H		one or more digits to indicate elapsed hours,
-            //MM		exactly 2 digits to indicate minutes (00 to 59),
-            //SS		exactly 2 digits to indicate seconds (00 to 59),
-            //F+		any number of digits (including no digits) to indicate fractions of seconds,
-            //F0/F1	a fraction, with F0 and F1 at least one digit long,
-            //        and F0 < F1.
-            //The string may be preceded by an optional + or - sign, and the
-            //decimal point itself may be omitted if there are no fractional	seconds digits.            
-            
-            //we don't have to worry about the string formating because Platinum does it for us
-            //we just have to give it the duration in seconds
-            if (item.RunTimeTicks.HasValue)
-                result.Duration = (uint)TimeSpan.FromTicks(item.RunTimeTicks.Value).TotalSeconds;
-
-            return result;
-        }
-        internal static Platinum.MediaItem GetMediaItem(BaseItem item)
-        {
-            var result = new Platinum.MediaItem();
-
-            result.ObjectID = item.Id.ToString();
-
-            //if (child.Parent != null)
-            //    result.ParentID = child.Parent.Id.ToString();
-            result.Class = item.GetPlatinumClassObject();
-
-            result.Description.Date = item.PremiereDate.HasValue ? item.PremiereDate.Value.ToString() : string.Empty;
-            result.Description.Language = item.Language == null ? string.Empty : item.Language;
-            result.Description.DescriptionText = "this is DescriptionText";
-            result.Description.LongDescriptionText = item.Overview == null ? string.Empty : item.Overview;
-            result.Description.Rating = item.CommunityRating.ToString();
-            
-            if (item.Genres != null)
-            {
-                foreach (var genre in item.Genres)
-                {
-                    result.Affiliation.AddGenre(genre);
-                }
-            }
-            if (item.People != null)
-            {
-                foreach (var person in item.People)
-                {
-                    if (string.Equals(person.Type, PersonType.Actor, StringComparison.OrdinalIgnoreCase))
-                        result.People.AddActor(new Platinum.PersonRole(person.Name, person.Role == null ? string.Empty : person.Role));
-                    else if (string.Equals(person.Type, PersonType.MusicArtist, StringComparison.OrdinalIgnoreCase))
-                    {
-                        result.People.AddArtist(new Platinum.PersonRole(person.Name, "MusicArtist"));
-                        result.People.AddArtist(new Platinum.PersonRole(person.Name, "artist"));
-                        result.People.AddArtist(new Platinum.PersonRole(person.Name, "Performer"));
-                    }
-                    else if (string.Equals(person.Type, PersonType.Composer, StringComparison.OrdinalIgnoreCase))
-                    {
-                        result.People.AddAuthors(new Platinum.PersonRole(person.Name, "Composer"));
-                        result.Creator = person.Name;
-                    }
-                    else if (string.Equals(person.Type, PersonType.Writer, StringComparison.OrdinalIgnoreCase))
-                        result.People.AddAuthors(new Platinum.PersonRole(person.Name, "Writer"));
-                    else if (string.Equals(person.Type, PersonType.Director, StringComparison.OrdinalIgnoreCase))
-                    {
-                        result.People.AddAuthors(new Platinum.PersonRole(person.Name, "Director"));
-                        result.People.Director = result.People.Director + " " + person.Name;
-                    }
-                    else
-                        result.People.AddArtist(new Platinum.PersonRole(person.Name, person.Type == null ? string.Empty : person.Type));
-                }
-            }
-
-            //'restricted' attribute (true, false, 1, 0).
-            //When restricted="true", the ability to change or delete the
-            //Container or Item is restricted.            
-            //result.Restricted
-
-            return result;
-        }
-
-        internal static void AddAlbumArtInfoToMediaItem(Platinum.MediaObject item, BaseItem child, string httpServerUrlPrefix, IEnumerable<String> ips)
-        {
-            foreach (var ip in ips)
-            {
-                AddAlbumArtInfoToMediaItem(item, child, httpServerUrlPrefix, ip);
-            }
-        }
-        private static void AddAlbumArtInfoToMediaItem(Platinum.MediaObject item, BaseItem child, string httpServerUrlPrefix, string ip)
-        {
-            if (item == null || child == null) return;
-
-            //making the artwork a direct hit to the MediaBrowser server instead of via the DLNA plugin works for WMP
-            item.Extra.AddAlbumArtInfo(new Platinum.AlbumArtInfo(httpServerUrlPrefix.Replace("+", ip) + "/api/image?id=" + child.Id.ToString() + "&type=primary"));
-        }
-        internal static void AddAlbumArtInfoToMediaItem(Platinum.MediaObject pltItem, BaseItem mbItem, string id, string httpServerUrlPrefix, IEnumerable<String> ips)
-        {
-            foreach (var ip in ips)
-            {
-                AddAlbumArtInfoToMediaItem(pltItem, mbItem, id, httpServerUrlPrefix, ip);
-            }
-        }
-        private static void AddAlbumArtInfoToMediaItem(Platinum.MediaObject pltItem, BaseItem mbItem, string id, string httpServerUrlPrefix, string ip)
-        {
-            if ((pltItem == null) || (mbItem == null) || (mbItem.Images == null)) return;
-
-            //making the artwork a direct hit to the MediaBrowser server instead of via the DLNA plugin works for WMP
-            //not sure it'll work for all other clients
-            //Xbox360 Video App ignores it and askes for: video url + ?artwork=true
-            foreach (var img in mbItem.Images)
-            {
-                pltItem.Extra.AddAlbumArtInfo(new Platinum.AlbumArtInfo(httpServerUrlPrefix.Replace("+", ip) + "/Items/" + id + "/Images/" + img.Key));
-            }
-        }
-
-        /// <summary>
-        /// Gets the title.
-        /// </summary>
-        /// <param name="video">The video.</param>
-        /// <returns>System.String.</returns>
-        private static string GetTitle(Video video)
-        {
-            //we have to be extremely careful with all string handling
-            //if we set a null reference to a Platinum string it will not marshall to native correctly and things got very bad very quickly
-            var title = video.Name == null ? string.Empty : video.Name;
-
-            var episode = video as Episode;
-
-            if (episode != null)
-            {
-                if (episode.Season != null)
-                {
-                    title = string.Format("{0}-{1}", episode.Season.Name, title);
-                }
-                if (episode.Series != null)
-                {
-                    title = string.Format("{0}-{1}", episode.Series.Name, title);
-                }
-            }
-
-            return title;
-        }
-
-        /// <summary>
-        /// Gets the title.
-        /// </summary>
-        /// <param name="audio">The audio.</param>
-        /// <returns>System.String.</returns>
-        private static string GetTitle(Audio audio)
-        {
-            return audio.Name == null ? string.Empty : audio.Name;
-        }
-
-    }
-
-    internal static class Extensions
-    {
-        [Flags()]
-        internal enum FilterType
-        {
-            Folder = 1,
-            Music = 2,
-            Video = 4
-        }
-        internal static IEnumerable<BaseItem> Filter(this IEnumerable<BaseItem> en, FilterType filter)
-        {
-            return en.Where(i => (
-                (((filter & FilterType.Folder) == FilterType.Folder) && (i is Folder)) ||
-                (((filter & FilterType.Music) == FilterType.Music) && (i is Audio)) ||
-                (((filter & FilterType.Video) == FilterType.Video) && (i is Video)))
-                                );
-        }
-
-        internal static IEnumerable<BaseItem> Page(this IEnumerable<BaseItem> en, int starting_index, int requested_count)
-        {
-            return en.Skip(starting_index).Take(requested_count);
-        }
-
-
-        internal static Platinum.ObjectClass GetPlatinumClassObject(this BaseItem item)
-        {
-            //its debatable whether or not we should use videoBroadcast for Episodes
-            //its really for recorded tv, but it displays nicely in WMP
-            //it might break Xbox (and other clients) though so will require testing
-            if (item is Episode)
-                return new Platinum.ObjectClass("object.item.videoItem.videoBroadcast", "");
-            if (item is Video)
-                return new Platinum.ObjectClass("object.item.videoItem", "");
-            else if (item is Audio)
-                return new Platinum.ObjectClass("object.item.audioItem.musicTrack", "");
-            else if (item is Folder)
-                return new Platinum.ObjectClass("object.container.storageFolder", "");
-            else
-                return null;
-        }
-        internal static Platinum.ObjectClass GetPlatinumClassObject(this Folder item)
-        {
-            return new Platinum.ObjectClass("object.container.storageFolder", "");
-        }
-        internal static Platinum.ObjectClass GetPlatinumClassObject(this Audio item)
-        {
-            return new Platinum.ObjectClass("object.item.audioItem.musicTrack", "");
-        }
-        internal static Platinum.ObjectClass GetPlatinumClassObject(this Video item)
-        {
-            return new Platinum.ObjectClass("object.item.videoItem", "");
-        }
-    }
     internal static class LoggingExtensions
     {
         //provide some json-esque string that can be used for Verbose logging purposed
@@ -1210,4 +714,5 @@ namespace MediaBrowser.Plugins.Dlna
                 item.ip, item.port);
         }
     }
+
 }
