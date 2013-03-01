@@ -155,7 +155,7 @@ namespace MediaBrowser.Plugins.Dlna
 
         private void SetupUPnPServer()
         {
-
+            Logger.Info("DlnaServerPlugin - UPnP Server Starting");
             this._Upnp = new Platinum.UPnP();
             // Will need a config setting to set the friendly name of the upnp server
             //this._PlatinumServer = new Platinum.MediaConnect("MB3 UPnP", "MB3UPnP", 1901);
@@ -171,10 +171,12 @@ namespace MediaBrowser.Plugins.Dlna
 
             this._Upnp.AddDeviceHost(this._PlatinumServer);
             this._Upnp.Start();
+            Logger.Info("DlnaServerPlugin - UPnP Server Started");
         }
 
         private void CleanupUPnPServer()
         {
+            Logger.Info("DlnaServerPlugin - UPnP Server Stopping");
             if (this._Upnp != null && this._Upnp.Running)
                 this._Upnp.Stop();
 
@@ -194,11 +196,12 @@ namespace MediaBrowser.Plugins.Dlna
                 this._Upnp.Dispose();
                 this._Upnp = null;
             }
+            Logger.Info("DlnaServerPlugin - UPnP Server Stopped");
         }
 
         private int server_BrowseMetadata(Platinum.Action action, string object_id, string filter, int starting_index, int requested_count, string sort_criteria, Platinum.HttpRequestContext context)
         {
-            Logger.Info("BrowseMetadata Entered - Parameters: action:{0} object_id:\"{1}\" filter:\"{2}\" starting_index:{3} requested_count:{4} sort_criteria:\"{5}\" context:{6}",
+            Logger.Debug("BrowseMetadata Entered - Parameters: action:{0} object_id:\"{1}\" filter:\"{2}\" starting_index:{3} requested_count:{4} sort_criteria:\"{5}\" context:{6}",
                 action.ToLogString(), object_id, filter, starting_index, requested_count, sort_criteria, context.ToLogString());
 
             //nothing much seems to call BrowseMetadata so far
@@ -236,7 +239,7 @@ namespace MediaBrowser.Plugins.Dlna
         }
         private int server_BrowseDirectChildren(Platinum.Action action, String object_id, String filter, Int32 starting_index, Int32 requested_count, String sort_criteria, Platinum.HttpRequestContext context)
         {
-            Logger.Info("BrowseDirectChildren Entered - Parameters: action:{0} object_id:\"{1}\" filter:\"{2}\" starting_index:{3} requested_count:{4} sort_criteria:\"{5}\" context:{6}",
+            Logger.Debug("BrowseDirectChildren Entered - Parameters: action:{0} object_id:\"{1}\" filter:\"{2}\" starting_index:{3} requested_count:{4} sort_criteria:\"{5}\" context:{6}",
                 action.ToLogString(), object_id, filter, starting_index, requested_count, sort_criteria, context.ToLogString());
 
             //WMP doesn't care how many results we return and what type they are
@@ -337,7 +340,7 @@ namespace MediaBrowser.Plugins.Dlna
         }
         private int server_ProcessFileRequest(Platinum.HttpRequestContext context, Platinum.HttpResponse response)
         {
-            Logger.Info("ProcessFileRequest Entered - Parameters: context:{0} response:{1}",
+            Logger.Debug("ProcessFileRequest Entered - Parameters: context:{0} response:{1}",
                 context.ToLogString(), response);
 
             Uri uri = context.Request.URI;
@@ -375,7 +378,7 @@ namespace MediaBrowser.Plugins.Dlna
         }
         private int server_SearchContainer(Platinum.Action action, string object_id, string searchCriteria, string filter, int starting_index, int requested_count, string sort_criteria, Platinum.HttpRequestContext context)
         {
-            Logger.Info("SearchContainer Entered - Parameters: action:{0} object_id:\"{1}\" searchCriteria:\"{7}\" filter:\"{2}\" starting_index:{3} requested_count:{4} sort_criteria:\"{5}\" context:{6}",
+            Logger.Debug("SearchContainer Entered - Parameters: action:{0} object_id:\"{1}\" searchCriteria:\"{7}\" filter:\"{2}\" starting_index:{3} requested_count:{4} sort_criteria:\"{5}\" context:{6}",
                 action.ToLogString(), object_id, filter, starting_index, requested_count, sort_criteria, context.ToLogString(), searchCriteria);
 
             //Doesn't call search at all:
@@ -492,6 +495,12 @@ namespace MediaBrowser.Plugins.Dlna
                 result.Remove(localIP);
                 result.Insert(0, localIP);
             }
+            //remove all the localIPs just for testing (won't crash if they aren't in there)
+            result.Remove("127.0.0.1");
+            result.Remove("127.0.0.1");
+            result.Remove("127.0.0.1");
+            result.Remove("127.0.0.1");
+            result.Remove("127.0.0.1");
             return result.Distinct();
         }
 
