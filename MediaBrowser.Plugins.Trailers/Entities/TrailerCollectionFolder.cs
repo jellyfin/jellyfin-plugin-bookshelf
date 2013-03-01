@@ -28,4 +28,19 @@ namespace MediaBrowser.Plugins.Trailers.Entities
             get { return Plugin.Instance.DownloadPath; }
         }
     }
+
+    /// <summary>
+    /// Class PluginFolderCreator
+    /// </summary>
+    public class PluginFolderCreator : IVirtualFolderCreator
+    {
+        /// <summary>
+        /// Gets the folder.
+        /// </summary>
+        /// <returns>BasePluginFolder.</returns>
+        public BasePluginFolder GetFolder()
+        {
+            return new TrailerCollectionFolder();
+        }
+    }
 }

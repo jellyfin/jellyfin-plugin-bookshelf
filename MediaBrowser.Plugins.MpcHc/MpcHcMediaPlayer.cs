@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Model.Dto;
+﻿using MediaBrowser.Common.Net;
+using MediaBrowser.Model.Dto;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.UI.Configuration;
@@ -23,16 +24,19 @@ namespace MediaBrowser.Plugins.MpcHc
         /// <summary>
         /// The state sync lock
         /// </summary>
-        private object stateSyncLock = new object();
+        private readonly object _stateSyncLock = new object();
 
         /// <summary>
         /// The MPC HTTP interface resource pool
         /// </summary>
         private SemaphoreSlim MpcHttpInterfaceResourcePool = new SemaphoreSlim(1, 1);
 
-        public MpcHcMediaPlayer(ILogger logger)
+        private readonly IHttpClient _httpClient;
+
+        public MpcHcMediaPlayer(ILogger logger, IHttpClient httpClient)
             : base(logger)
         {
+            _httpClient = httpClient;
         }
 
         /// <summary>
@@ -242,7 +246,7 @@ namespace MediaBrowser.Plugins.MpcHc
             {
                 var token = HttpInterfaceCancellationTokenSource.Token;
 
-                using (var stream = await UIKernel.Instance.HttpManager.Get(StatusUrl, MpcHttpInterfaceResourcePool, token).ConfigureAwait(false))
+                using (var stream = await _httpClient.Get(StatusUrl, MpcHttpInterfaceResourcePool, token).ConfigureAwait(false))
                 {
                     token.ThrowIfCancellationRequested();
 
@@ -318,7 +322,7 @@ namespace MediaBrowser.Plugins.MpcHc
             }
             else
             {
-                lock (stateSyncLock)
+                lock (_stateSyncLock)
                 {
                     if (_currentPlaylistIndex != playlistIndex)
                     {
@@ -499,7 +503,7 @@ namespace MediaBrowser.Plugins.MpcHc
 
             try
             {
-                using (var stream = await UIKernel.Instance.HttpManager.Get(url, MpcHttpInterfaceResourcePool, HttpInterfaceCancellationTokenSource.Token).ConfigureAwait(false))
+                using (var stream = await _httpClient.Get(url, MpcHttpInterfaceResourcePool, HttpInterfaceCancellationTokenSource.Token).ConfigureAwait(false))
                 {
                 }
             }
