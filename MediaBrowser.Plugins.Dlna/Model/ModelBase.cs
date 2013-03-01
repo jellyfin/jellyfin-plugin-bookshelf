@@ -554,7 +554,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             {
                 return this.User.RootFolder.GetRecursiveChildren(User)
                     .OfType<MediaBrowser.Controller.Entities.Audio.Audio>()
-                    .Where(i => (i != null) && (i.Genres
+                    .Where(i => (i != null) & (i.Genres != null) && (i.Genres
                         .Any(g => (g != null) && string.Equals(g, this.Genre, StringComparison.OrdinalIgnoreCase))))
                     .Select(i => new MusicItem(this.User, i, parentId: this.Id));
             }
