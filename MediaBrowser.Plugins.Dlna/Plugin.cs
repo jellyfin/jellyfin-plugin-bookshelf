@@ -49,6 +49,7 @@ namespace MediaBrowser.Plugins.Dlna
         }
 
         private IUserManager UserManager { get; set; }
+        private ILibraryManager LibraryManager { get; set; }
 
         /// <summary>
         /// Gets the instance.
@@ -59,11 +60,12 @@ namespace MediaBrowser.Plugins.Dlna
         /// <summary>
         /// Initializes a new instance of the <see cref="Plugin" /> class.
         /// </summary>
-        public Plugin(IUserManager userManager)
+        public Plugin(IUserManager userManager, ILibraryManager libraryManager)
             : base()
         {
             Instance = this;
             UserManager = userManager;
+            LibraryManager = libraryManager;
         }
 
         /// <summary>
@@ -346,6 +348,7 @@ namespace MediaBrowser.Plugins.Dlna
             Uri uri = context.Request.URI;
             var id = uri.AbsolutePath.TrimStart('/');
             Guid itemID;
+            
             if (Guid.TryParseExact(id, "D", out itemID))
             {
                 var item = this.CurrentUser.RootFolder.FindItemById(itemID, this.CurrentUser);
