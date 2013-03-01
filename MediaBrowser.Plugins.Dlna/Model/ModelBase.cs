@@ -1220,22 +1220,20 @@ namespace MediaBrowser.Plugins.Dlna.Model
             if (item == null || item.MBItem == null)
                 return result;
 
-            var videoOptions = GetOriginalVideoOptions(item);
+            var videoOptions = GetTestVideoOptions(item);
             foreach (var prefix in urlPrefixes)
             {
                 foreach (var opt in videoOptions)
                 {
                     var resource = GetBasicMediaResource((BaseItem)item.MBItem);
-                    //BitRate - The bitrate in bytes/second of the resource.
-                    if (opt.BitRate.HasValue)
-                        resource.Bitrate = (uint)opt.BitRate.Value;
+                    //VideoBitRate - The bitrate in bytes/second of the resource.
+                    resource.Bitrate = (uint)opt.VideoBitrate;
 
                     //ColourDepth - The color depth in bits of the resource (image or video).
                     //result.ColorDepth
 
                     //AudioChannels - Number of audio channels of the resource, e.g. 1 for mono, 2 for stereo, 6 for Dolby surround, etc.
-                    if (opt.AudioChannels.HasValue)
-                        resource.NbAudioChannels = (uint)opt.AudioChannels.Value;
+                    resource.NbAudioChannels = (uint)opt.AudioChannels;
 
                     //Protection - Some statement of the protection type of the resource (not standardized).
                     //result.Protection
@@ -1246,9 +1244,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
                     //(one or more digits,'x', followed by one or more digits).
                     //SampleFrequency - The sample frequency of the resource in Hz
                     //result.Resolution
-
-                    if (opt.SampleRate.HasValue)
-                        resource.SampleFrequency = (uint)opt.SampleRate.Value;
+                    resource.SampleFrequency = (uint)opt.SampleRate;
 
                     //Size - size, in bytes, of the resource.
                     //result.Size
@@ -1261,7 +1257,11 @@ namespace MediaBrowser.Plugins.Dlna.Model
                         resource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType(mimeType, true, context);
                     }
 
-                    resource.URI = new Uri(prefix + "Videos/" + item.MBItem.Id.ToString() + "/stream" + opt.UriExtension).ToString();
+                    //http://25.62.100.208:8096/mediabrowser/Videos/7cb7f497-234f-05e3-64c0-926ff07d3fa6/stream.asf?audioChannels=2&audioBitrate=128000&videoBitrate=5000000&maxWidth=1920&maxHeight=1080&videoCodec=wmv&audioCodec=wma
+                    //resource.URI = new Uri(prefix + "Videos/" + item.MBItem.Id.ToString() + "/stream" + opt.UriExtension).ToString();
+                    var uri = string.Format("{0}Videos/{1}/stream{2}?audioChannels={3}&audioBitrate={4}&videoBitrate={5}&maxWidth={6}&maxHeight={7}&videoCodec={8}&audioCodec={9}", 
+                                            prefix, item.MBItem.Id, opt.UriExtension, opt.AudioChannels, opt.AudioBitrate, opt.VideoBitrate, opt.MaxWidth, opt.MaxHeight, opt.VideoCodec, opt.AudioCodec);
+                    resource.URI = new Uri(uri).ToString();
 
                     result.Add(resource);
                 }
@@ -1271,55 +1271,102 @@ namespace MediaBrowser.Plugins.Dlna.Model
         }
 
 
-        /// <summary>
-        /// returns a set of VideoOptions which all have their various BitRates, AudioChannels etc set to the same as the original file
-        /// </summary>
-        /// <param name="item"></param>
-        /// <returns></returns>
-        private static IEnumerable<VideoOptions> GetOriginalVideoOptions(VideoItem item)
+        ///// <summary>
+        ///// returns a set of VideoOptions which all have their various BitRates, AudioChannels etc set to the same as the original file
+        ///// </summary>
+        ///// <param name="item"></param>
+        ///// <returns></returns>
+        //private static IEnumerable<VideoOptions> GetOriginalVideoOptions(VideoItem item)
+        //{
+        //    var result = new List<VideoOptions>();
+        //    if (item == null || item.MBItem == null || item.MBItem.DefaultVideoStream == null)
+        //        return result;
+
+        //    var originalVideoOptions = new VideoOptions()
+        //    {
+        //        VideoBitrate = item.MBItem.DefaultVideoStream.BitRate.Value,
+        //        AudioChannels = item.MBItem.DefaultVideoStream.Channels.Value,
+        //        SampleRate = item.MBItem.DefaultVideoStream.SampleRate.Value
+        //    };
+        //    if (item.MBItem.Path != null && System.IO.Path.HasExtension(item.MBItem.Path))
+        //    {
+        //        originalVideoOptions.MimeExtension = System.IO.Path.GetExtension(item.MBItem.Path);
+        //        originalVideoOptions.UriExtension = System.IO.Path.GetExtension(item.MBItem.Path);
+        //    }
+        //    //ensure that the uri extension is a valid uri extension
+        //    if (ValidUriExtensions.Contains(originalVideoOptions.UriExtension))
+        //        result.Add(originalVideoOptions);
+
+        //    //add one of each valid uri extension
+        //    foreach (var ext in ValidUriExtensions)
+        //    {
+        //        //skip original uri because it's already been added
+        //        if (!string.Equals(ext, originalVideoOptions.UriExtension, StringComparison.OrdinalIgnoreCase))
+        //        {
+        //            var videoOptions = originalVideoOptions.Clone();
+        //            videoOptions.MimeExtension = ext;
+        //            videoOptions.UriExtension = ext;
+        //            result.Add(videoOptions);
+        //        }
+        //    }
+        //    return result;
+        //}
+        private static IEnumerable<VideoOptions> GetTestVideoOptions(VideoItem item)
         {
             var result = new List<VideoOptions>();
             if (item == null || item.MBItem == null || item.MBItem.DefaultVideoStream == null)
                 return result;
 
+            //audioChannels=2&audioBitrate=128000&videoBitrate=5000000&maxWidth=1920&maxHeight=1080&videoCodec=wmv&audioCodec=wma
             var originalVideoOptions = new VideoOptions()
             {
-                BitRate = item.MBItem.DefaultVideoStream.BitRate,
-                AudioChannels = item.MBItem.DefaultVideoStream.Channels,
-                SampleRate = item.MBItem.DefaultVideoStream.SampleRate
+                AudioChannels = 2,
+                AudioBitrate = 128000,
+                VideoBitrate = 5000000,
+                MaxWidth = 1920,
+                MaxHeight = 1080,
             };
-            if (item.MBItem.Path != null && System.IO.Path.HasExtension(item.MBItem.Path))
-            {
-                originalVideoOptions.MimeExtension = System.IO.Path.GetExtension(item.MBItem.Path);
-                originalVideoOptions.UriExtension = System.IO.Path.GetExtension(item.MBItem.Path);
-            }
-            //ensure that the uri extension is a valid uri extension
-            if (ValidUriExtensions.Contains(originalVideoOptions.UriExtension))
-                result.Add(originalVideoOptions);
 
-            //add one of each valid uri extension
-            foreach (var ext in ValidUriExtensions)
-            {
-                //skip original uri because it's already been added
-                if (!string.Equals(ext, originalVideoOptions.UriExtension, StringComparison.OrdinalIgnoreCase))
-                {
-                    var videoOptions = originalVideoOptions.Clone();
-                    videoOptions.MimeExtension = ext;
-                    videoOptions.UriExtension = ext;
-                    result.Add(videoOptions);
-                }
-            }
+            //http://192.168.1.56:8096/mediabrowser/Videos/7cb7f497-234f-05e3-64c0-926ff07d3fa6/stream.asf?audioChannels=2&audioBitrate=128000&videoBitrate=5000000&maxWidth=1920&maxHeight=1080&videoCodec=h264&audioCodec=aac
+            var asfOptions = originalVideoOptions.Clone();
+            asfOptions.MimeExtension = ".asf";
+            asfOptions.UriExtension = ".asf";
+            asfOptions.VideoCodec = "h264";
+            asfOptions.AudioCodec = "aac";
+            result.Add(asfOptions);
+
+            //audioChannels=2&audioBitrate=128000&videoBitrate=5000000&maxWidth=1920&maxHeight=1080&videoCodec=wmv&audioCodec=wma
+            var wmvOptions = originalVideoOptions.Clone();
+            wmvOptions.MimeExtension = ".wmv";
+            wmvOptions.UriExtension = ".wmv";
+            wmvOptions.VideoCodec = "wmv";
+            wmvOptions.AudioCodec = "wma";
+            result.Add(wmvOptions);
+
+            ////http://192.168.1.56:8096/mediabrowser/Videos/7cb7f497-234f-05e3-64c0-926ff07d3fa6/stream.asf?audioChannels=2&audioBitrate=128000&videoBitrate=5000000&maxWidth=1920&maxHeight=1080&videoCodec=h264&audioCodec=aac
+            //var mp4Options = originalVideoOptions.Clone();
+            //mp4Options.MimeExtension = ".mp4";
+            //mp4Options.UriExtension = ".mp4";
+            //mp4Options.VideoCodec = "h264";
+            //mp4Options.AudioCodec = "aac";
+            //result.Add(mp4Options);
+
             return result;
         }
-
         
         private class VideoOptions
         {
+            //audioChannels=2&audioBitrate=128000&videoBitrate=5000000&maxWidth=1920&maxHeight=1080&videoCodec=wmv&audioCodec=wma
             internal string MimeExtension { get; set; }
             internal string UriExtension { get; set; }
-            internal int? BitRate { get; set; }
-            internal int? AudioChannels { get; set; }
-            internal int? SampleRate { get; set; }
+            internal int VideoBitrate { get; set; }
+            internal string VideoCodec { get; set; }
+            internal int MaxWidth { get; set; }
+            internal int MaxHeight { get; set; }
+            internal int SampleRate { get; set; }
+            internal int AudioBitrate { get; set; }
+            internal int AudioChannels { get; set; }
+            internal string AudioCodec { get; set; }
 
             internal VideoOptions Clone()
             {
@@ -1331,9 +1378,14 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 {
                     MimeExtension = item.MimeExtension,
                     UriExtension = item.UriExtension,
-                    BitRate = item.BitRate,
+                    VideoBitrate = item.VideoBitrate,
+                    VideoCodec = item.VideoCodec,
+                    MaxWidth = item.MaxWidth,
+                    MaxHeight = item.MaxHeight,
+                    SampleRate = item.SampleRate,
+                    AudioBitrate = item.AudioBitrate,
                     AudioChannels = item.AudioChannels,
-                    SampleRate = item.SampleRate
+                    AudioCodec = item.AudioCodec
                 };
             }
         }
