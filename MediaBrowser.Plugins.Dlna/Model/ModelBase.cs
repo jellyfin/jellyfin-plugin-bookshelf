@@ -554,8 +554,8 @@ namespace MediaBrowser.Plugins.Dlna.Model
             {
                 return this.User.RootFolder.GetRecursiveChildren(User)
                     .OfType<MediaBrowser.Controller.Entities.Audio.Audio>()
-                    .Where(i => i.Genres
-                        .Any(g => string.Equals(g, this.Genre, StringComparison.OrdinalIgnoreCase)))
+                    .Where(i => (i != null) & (i.Genres != null) && (i.Genres
+                        .Any(g => (g != null) && string.Equals(g, this.Genre, StringComparison.OrdinalIgnoreCase))))
                     .Select(i => new MusicItem(this.User, i, parentId: this.Id));
             }
         }
@@ -1342,6 +1342,22 @@ namespace MediaBrowser.Plugins.Dlna.Model
             wmvOptions.VideoCodec = "wmv";
             wmvOptions.AudioCodec = "wma";
             result.Add(wmvOptions);
+
+            //http://localhost:8096/mediabrowser/Videos/<id>/stream.webm?audioChannels=2&audioBitrate=128000&videoBitrate=5000000&maxWidth=1920&maxHeight=1080&videoCodec=vpx&audioCodec=Vorbis
+            var webmOptions = originalVideoOptions.Clone();
+            webmOptions.MimeExtension = ".webm";
+            webmOptions.UriExtension = ".webm";
+            webmOptions.VideoCodec = "vpx";
+            webmOptions.AudioCodec = "vorbis";
+            result.Add(webmOptions);
+
+            ////http://localhost:8096/mediabrowser/Videos/<id>/stream.webm?audioChannels=2&audioBitrate=128000&videoBitrate=5000000&maxWidth=1920&maxHeight=1080&videoCodec=vpx&audioCodec=Vorbis
+            //var webmMkvOptions = originalVideoOptions.Clone();
+            //webmMkvOptions.MimeExtension = ".mkv";
+            //webmMkvOptions.UriExtension = ".webm";
+            //webmMkvOptions.VideoCodec = "vpx";
+            //webmMkvOptions.AudioCodec = "vorbis";
+            //result.Add(webmMkvOptions);
 
             ////http://192.168.1.56:8096/mediabrowser/Videos/7cb7f497-234f-05e3-64c0-926ff07d3fa6/stream.asf?audioChannels=2&audioBitrate=128000&videoBitrate=5000000&maxWidth=1920&maxHeight=1080&videoCodec=h264&audioCodec=aac
             //var mp4Options = originalVideoOptions.Clone();
