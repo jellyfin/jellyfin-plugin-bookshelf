@@ -1,4 +1,6 @@
-﻿using MediaBrowser.Common.Net;
+﻿using System.Diagnostics;
+using System.Threading.Tasks;
+using MediaBrowser.Common.Net;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
@@ -75,40 +77,6 @@ namespace MediaBrowser.Plugins.Dlna
             base.InitializeOnServer(isFirstRun);
 
             Kernel.ReloadCompleted += Kernel_ReloadCompleted;
-            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
-
-        }
-
-        /// <summary>
-        /// Handles the AssemblyResolve event of the CurrentDomain control.
-        /// </summary>
-        /// <param name="sender">The source of the event.</param>
-        /// <param name="args">The <see cref="ResolveEventArgs" /> instance containing the event data.</param>
-        /// <returns>Assembly.</returns>
-        Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
-        {
-            var askedAssembly = new AssemblyName(args.Name);
-
-            var resourcePath = "MediaBrowser.Plugins.Dlna.Assemblies." + askedAssembly.Name + ".dll";
-
-            using (var stream = GetType().Assembly.GetManifestResourceStream(resourcePath))
-            {
-                if (stream != null)
-                {
-                    Logger.Info("Loading assembly from resource {0}", resourcePath);
-
-                    using (var memoryStream = new MemoryStream())
-                    {
-                        stream.CopyTo(memoryStream);
-
-                        memoryStream.Position = 0;
-
-                        return Assembly.Load(memoryStream.ToArray());
-                    }
-                }
-            }
-
-            return null;
         }
 
         /// <summary>
@@ -120,7 +88,6 @@ namespace MediaBrowser.Plugins.Dlna
             if (dispose)
             {
                 Kernel.ReloadCompleted -= Kernel_ReloadCompleted;
-                AppDomain.CurrentDomain.AssemblyResolve -= CurrentDomain_AssemblyResolve;
                 DisposeDlnaServer();
             }
 
@@ -132,9 +99,38 @@ namespace MediaBrowser.Plugins.Dlna
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
-        void Kernel_ReloadCompleted(object sender, EventArgs e)
+        async void Kernel_ReloadCompleted(object sender, EventArgs e)
         {
+            await ExtractAssemblies().ConfigureAwait(false);
+
             InitializeDlnaServer();
+        }
+
+        /// <summary>
+        /// Extracts the assemblies.
+        /// </summary>
+        /// <returns>Task.</returns>
+        private async Task ExtractAssemblies()
+        {
+            var runningDirectory = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
+
+            var files = new[] { "log4net.dll", "Platinum.Managed.dll" };
+
+            foreach (var file in files)
+            {
+                var outputFile = Path.Combine(runningDirectory, file);
+
+                if (!File.Exists(outputFile))
+                {
+                    using (var source = GetType().Assembly.GetManifestResourceStream("MediaBrowser.Plugins.Dlna.Assemblies." + file))
+                    {
+                        using (var fileStream = new FileStream(outputFile, FileMode.Create, FileAccess.Write, FileShare.Read, 4096, true))
+                        {
+                            await source.CopyToAsync(fileStream).ConfigureAwait(false);
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>

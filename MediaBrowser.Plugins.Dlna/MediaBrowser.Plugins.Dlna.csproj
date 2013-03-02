@@ -73,9 +73,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\ThirdParty\UPnP\Libs\log4net.dll">
+    <EmbeddedResource Include="..\ThirdParty\UPnP\Libs\log4net.dll">
       <Link>Assemblies\log4net.dll</Link>
-    </Content>
+    </EmbeddedResource>
     <EmbeddedResource Include="Configuration\configPage.html" />
   </ItemGroup>
   <ItemGroup>
