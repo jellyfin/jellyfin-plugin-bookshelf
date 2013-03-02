@@ -7,7 +7,7 @@ namespace MediaBrowser.Plugins.MpcHc
     /// <summary>
     /// Class Plugin
     /// </summary>
-    public class Plugin : BaseUiPlugin<BasePluginConfiguration>
+    public class Plugin : BasePlugin<BasePluginConfiguration>, IUIPlugin
     {
         /// <summary>
         /// Gets the name of the plugin
@@ -22,7 +22,7 @@ namespace MediaBrowser.Plugins.MpcHc
         /// Gets the minimum required UI version.
         /// </summary>
         /// <value>The minimum required UI version.</value>
-        public override Version MinimumRequiredUIVersion
+        public Version MinimumRequiredUIVersion
         {
             get { return new Version("2.9.4782.23738"); }
         }
