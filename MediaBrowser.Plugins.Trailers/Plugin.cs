@@ -1,11 +1,8 @@
-﻿using MediaBrowser.Common.Plugins;
-using MediaBrowser.Common.ScheduledTasks;
-using MediaBrowser.Controller.ScheduledTasks;
+﻿using MediaBrowser.Common.Kernel;
+using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Plugins;
+using MediaBrowser.Model.Serialization;
 using MediaBrowser.Plugins.Trailers.Configuration;
-using MediaBrowser.Plugins.Trailers.ScheduledTasks;
-using System;
-using System.IO;
 
 namespace MediaBrowser.Plugins.Trailers
 {
@@ -14,6 +11,11 @@ namespace MediaBrowser.Plugins.Trailers
     /// </summary>
     public class Plugin : BasePlugin<PluginConfiguration>
     {
+        public Plugin(IKernel kernel, IXmlSerializer xmlSerializer) : base(kernel, xmlSerializer)
+        {
+            Instance = this;
+        }
+
         /// <summary>
         /// Gets the name of the plugin
         /// </summary>
@@ -41,87 +43,17 @@ namespace MediaBrowser.Plugins.Trailers
         /// <value>The instance.</value>
         public static Plugin Instance { get; private set; }
 
-        private ITaskManager TaskManager { get; set; }
-
         /// <summary>
-        /// Initializes a new instance of the <see cref="Plugin" /> class.
-        /// </summary>
-        public Plugin(ITaskManager taskManager)
-            : base()
-        {
-            if (taskManager == null)
-            {
-                throw new ArgumentNullException("taskManager");
-            }
-
-            Instance = this;
-
-            TaskManager = taskManager;
-        }
-
-        /// <summary>
-        /// The _download path
-        /// </summary>
-        private string _downloadPath;
-        /// <summary>
-        /// Gets the path to the trailer download directory
-        /// </summary>
-        /// <value>The download path.</value>
-        public string DownloadPath
-        {
-            get
-            {
-                if (_downloadPath == null)
-                {
-                    // Use 
-                    _downloadPath = Configuration.DownloadPath;
-
-                    if (string.IsNullOrWhiteSpace(_downloadPath))
-                    {
-                        _downloadPath = Path.Combine(Controller.Kernel.Instance.ApplicationPaths.DataPath, Name);
-                    }
-
-                    if (!Directory.Exists(_downloadPath))
-                    {
-                        Directory.CreateDirectory(_downloadPath);
-                    }
-                }
-                return _downloadPath;
-            }
-        }
-
-        /// <summary>
-        /// Starts the plugin on the server
-        /// </summary>
-        /// <param name="isFirstRun">if set to <c>true</c> [is first run].</param>
-        protected override void InitializeOnServer(bool isFirstRun)
-        {
-            base.InitializeOnServer(isFirstRun);
-
-            if (isFirstRun)
-            {
-                TaskManager.QueueScheduledTask<CurrentTrailerDownloadTask>();
-            }
-        }
-
-        /// <summary>
-        /// Completely overwrites the current configuration with a new copy
-        /// Returns true or false indicating success or failure
+        /// Updates the configuration.
         /// </summary>
         /// <param name="configuration">The configuration.</param>
         public override void UpdateConfiguration(BasePluginConfiguration configuration)
         {
-            var config = (PluginConfiguration) configuration;
-
-            var pathChanged = !string.Equals(Configuration.DownloadPath, config.DownloadPath, StringComparison.OrdinalIgnoreCase);
+            var oldConfig = Configuration;
 
             base.UpdateConfiguration(configuration);
 
-            if (pathChanged)
-            {
-                _downloadPath = null;
-                TaskManager.QueueScheduledTask<RefreshMediaLibraryTask>();
-            }
+            ServerEntryPoint.Instance.OnConfigurationUpdated(oldConfig, (PluginConfiguration)configuration);
         }
     }
 }

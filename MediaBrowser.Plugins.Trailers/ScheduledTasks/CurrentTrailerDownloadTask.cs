@@ -139,7 +139,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
                 folderName += string.Format(" ({0})", trailer.Video.ProductionYear);
             }
 
-            var folderPath = Path.Combine(Plugin.Instance.DownloadPath, folderName);
+            var folderPath = Path.Combine(ServerEntryPoint.Instance.DownloadPath, folderName);
 
             // Figure out which image we're going to download
             var imageUrl = trailer.HdImageUrl ?? trailer.ImageUrl;

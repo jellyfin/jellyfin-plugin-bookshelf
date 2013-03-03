@@ -1,5 +1,6 @@
 ﻿using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
+using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Plugins.Trailers.Entities;
 using System;
@@ -23,7 +24,9 @@ namespace MediaBrowser.Plugins.Trailers.Providers
         /// Initializes a new instance of the <see cref="TrailerFromJsonProvider" /> class.
         /// </summary>
         /// <param name="jsonSerializer">The json serializer.</param>
-        public TrailerFromJsonProvider(IJsonSerializer jsonSerializer)
+        /// <param name="logManager">The log manager.</param>
+        public TrailerFromJsonProvider(IJsonSerializer jsonSerializer, ILogManager logManager)
+            : base(logManager)
         {
             _jsonSerializer = jsonSerializer;
         }

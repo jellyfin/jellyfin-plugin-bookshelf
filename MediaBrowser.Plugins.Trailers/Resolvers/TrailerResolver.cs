@@ -19,7 +19,7 @@ namespace MediaBrowser.Plugins.Trailers.Resolvers
         protected override Trailer Resolve(ItemResolveArgs args)
         {
             // Must be a directory and under the trailer download folder
-            if (args.IsDirectory && args.Path.StartsWith(Plugin.Instance.DownloadPath, StringComparison.OrdinalIgnoreCase))
+            if (args.IsDirectory && args.Path.StartsWith(ServerEntryPoint.Instance.DownloadPath, StringComparison.OrdinalIgnoreCase))
             {
                 // The trailer must be a video file
                 return FindTrailer(args);

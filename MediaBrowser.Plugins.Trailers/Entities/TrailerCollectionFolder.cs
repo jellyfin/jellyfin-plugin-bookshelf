@@ -25,7 +25,7 @@ namespace MediaBrowser.Plugins.Trailers.Entities
         /// <value>The path.</value>
         public override string Path
         {
-            get { return Plugin.Instance.DownloadPath; }
+            get { return ServerEntryPoint.Instance.DownloadPath; }
         }
     }
 
