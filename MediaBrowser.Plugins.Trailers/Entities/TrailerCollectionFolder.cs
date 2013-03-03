@@ -32,6 +32,7 @@ namespace MediaBrowser.Plugins.Trailers.Entities
     /// <summary>
     /// Class PluginFolderCreator
     /// </summary>
+   
     public class PluginFolderCreator : IVirtualFolderCreator
     {
         /// <summary>
