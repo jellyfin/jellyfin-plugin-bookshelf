@@ -129,47 +129,25 @@ namespace MediaBrowser.Plugins.Dlna
             int itemCount = 0;
             var didl = Platinum.Didl.header;
 
-            if (objectIDMatch == null)
-            {
-                didl += Platinum.Didl.footer;
-
-                action.SetArgumentValue("Result", didl);
-                action.SetArgumentValue("NumberReturned", itemCount.ToString());
-                action.SetArgumentValue("TotalMatches", itemCount.ToString());
-
-                // update ID may be wrong here, it should be the one of the container?
-                action.SetArgumentValue("UpdateId", "1");
-
-                return NEP_Success;
-            }
-
             if (objectIDMatch != null)
             {
-                var children = objectIDMatch.Children;
-                if (children != null)
+                var urlPrefixes = GetHttpServerPrefixes(context);
+                using (var item = objectIDMatch.GetMediaObject(context, urlPrefixes))
                 {
-                    var urlPrefixes = GetHttpServerPrefixes(context);
-                    foreach (var child in children)
-                    {
-                        using (var item = child.GetMediaObject(context, urlPrefixes))
-                        {
-                            didl += item.ToDidl(filter);
-                            itemCount++;
-                        }
-                    }
-                    didl += Platinum.Didl.footer;
-
-                    action.SetArgumentValue("Result", didl);
-                    action.SetArgumentValue("NumberReturned", itemCount.ToString());
-                    action.SetArgumentValue("TotalMatches", itemCount.ToString());
-
-                    // update ID may be wrong here, it should be the one of the container?
-                    action.SetArgumentValue("UpdateId", "1");
-
-                    return NEP_Success;
+                    didl += item.ToDidl(filter);
+                    itemCount++;
                 }
             }
-            return NEP_Failure;
+            didl += Platinum.Didl.footer;
+
+            action.SetArgumentValue("Result", didl);
+            action.SetArgumentValue("NumberReturned", itemCount.ToString());
+            action.SetArgumentValue("TotalMatches", itemCount.ToString());
+
+            // update ID may be wrong here, it should be the one of the container?
+            action.SetArgumentValue("UpdateId", "1");
+
+            return NEP_Success;
         }
         private int server_BrowseDirectChildren(Platinum.Action action, String object_id, String filter, Int32 starting_index, Int32 requested_count, String sort_criteria, Platinum.HttpRequestContext context)
         {

@@ -705,6 +705,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             result.ParentID = item.ParentId;
             result.Class = new Platinum.ObjectClass("object.container", "");
             result.Title = item.Title;
+            result.ChildrenCount = item.Children.Count();
 
             result.Description.Date = item.MbItem.PremiereDate.HasValue ? item.MbItem.PremiereDate.Value.ToString() : string.Empty;
             result.Description.Language = item.MbItem.Language == null ? string.Empty : item.MbItem.Language;
@@ -722,6 +723,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             result.ParentID = item.ParentId;
             result.Class = new Platinum.ObjectClass("object.container.album.videoAlbum", "");
             result.Title = item.MbItem.Name;
+            result.ChildrenCount = item.Children.Count();
 
             result.Description.Date = item.MbItem.PremiereDate.HasValue ? item.MbItem.PremiereDate.Value.ToString() : string.Empty;
             result.Description.Language = item.MbItem.Language == null ? string.Empty : item.MbItem.Language;
@@ -775,6 +777,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             result.ParentID = item.ParentId;
             result.Class = new Platinum.ObjectClass("object.container.storageFolder", "");
             result.Title = item.MbItem.Name;
+            result.ChildrenCount = item.Children.Count();
 
             result.Description.Date = item.MbItem.PremiereDate.HasValue ? item.MbItem.PremiereDate.Value.ToString() : string.Empty;
             result.Description.Language = item.MbItem.Language == null ? string.Empty : item.MbItem.Language;
@@ -827,6 +830,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             result.ObjectID = item.Id;
             result.ParentID = item.ParentId;
             result.Class = new Platinum.ObjectClass("object.container.genre.videoGenre", "");
+            result.ChildrenCount = item.Children.Count();
 
             result.Title = item.Genre == null ? string.Empty : item.Genre;
             result.Description.DescriptionText = item.Genre == null ? string.Empty : item.Genre;
@@ -840,6 +844,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             result.ObjectID = item.Id;
             result.ParentID = item.ParentId;
             result.Class = new Platinum.ObjectClass("object.container", "");
+            result.ChildrenCount = item.Children.Count();
 
             result.Title = item.Person.Name == null ? string.Empty : item.Person.Name;
             result.Description.DescriptionText = string.Format("{0} {1} {2}", item.Person.Name, item.Person.Role, item.Person.Type);
@@ -936,6 +941,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             result.ParentID = item.ParentId;
             result.Class = new Platinum.ObjectClass("object.container.person.musicArtist", "");
             result.Title = item.MBItem.Name == null ? string.Empty : item.MBItem.Name;
+            result.ChildrenCount = item.Children.Count();
             result.Description.DescriptionText = item.MBItem.Name == null ? string.Empty : item.MBItem.Name;
             result.Description.LongDescriptionText = item.MBItem.Name == null ? string.Empty : item.MBItem.Name;
             return result;
@@ -947,6 +953,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             result.ParentID = item.ParentId;
             result.Class = new Platinum.ObjectClass("object.container.album.musicAlbum", "");
             result.Title = item.MBItem.Name == null ? string.Empty : item.MBItem.Name;
+            result.ChildrenCount = item.Children.Count();
             result.Description.DescriptionText = item.MBItem.Name == null ? string.Empty : item.MBItem.Name;
             result.Description.LongDescriptionText = item.MBItem.Name == null ? string.Empty : item.MBItem.Name;
             return result;
@@ -957,6 +964,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             result.ObjectID = item.Id;
             result.ParentID = item.ParentId;
             result.Class = new Platinum.ObjectClass("object.container.genre.musicGenre", "");
+            result.ChildrenCount = item.Children.Count();
             result.Title = item.Genre == null ? string.Empty : item.Genre;
             result.Description.DescriptionText = item.Genre == null ? string.Empty : item.Genre;
             result.Description.LongDescriptionText = item.Genre == null ? string.Empty : item.Genre;
