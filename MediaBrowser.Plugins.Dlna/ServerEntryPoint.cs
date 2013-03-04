@@ -592,6 +592,22 @@ namespace MediaBrowser.Plugins.Dlna
             {
                 var outputFile = Path.Combine(runningDirectory, file);
 
+                //temporary until we can get Platinum stable and working properly
+                if (File.Exists(outputFile))
+                {
+                    //hopefully the file isn't in use yet and we can delete it
+                    try
+                    {
+                        File.Delete(outputFile);
+                    }
+                    catch (Exception ex)
+                    {
+                        //log the exception and swallow it, better to no crash the entire server
+                        Logger.ErrorException("Error deleting only Platinum assemblies", ex);
+                    }
+                }
+                //end of temporary 
+
                 if (!File.Exists(outputFile))
                 {
                     using (var source = GetType().Assembly.GetManifestResourceStream("MediaBrowser.Plugins.Dlna.Assemblies." + file))
