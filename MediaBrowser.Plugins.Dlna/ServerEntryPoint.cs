@@ -153,8 +153,6 @@ namespace MediaBrowser.Plugins.Dlna
                     {
                         using (var item = child.GetMediaObject(context, urlPrefixes))
                         {
-                            string test;
-                            test = item.ToDidl(filter);
                             didl += item.ToDidl(filter);
                             itemCount++;
                         }
@@ -248,8 +246,6 @@ namespace MediaBrowser.Plugins.Dlna
                     {
                         using (var item = child.GetMediaObject(context, urlPrefixes))
                         {
-                            string test;
-                            test = item.ToDidl(filter);
                             didl += item.ToDidl(filter);
                             itemCount++;
                         }
@@ -383,8 +379,6 @@ namespace MediaBrowser.Plugins.Dlna
                 {
                     using (var item = child.GetMediaObject(context, urlPrefixes))
                     {
-                        string test;
-                        test = item.ToDidl(filter);
                         didl += item.ToDidl(filter);
                         itemCount++;
                     }
@@ -418,7 +412,7 @@ namespace MediaBrowser.Plugins.Dlna
             {
                 result.Add(Kernel.HttpServerUrlPrefix.Replace("+", ip));
             }
-            return result;
+            return result.OrderBy(i=>i);
         }
 
         /// <summary>

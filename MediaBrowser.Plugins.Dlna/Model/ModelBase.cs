@@ -89,15 +89,17 @@ namespace MediaBrowser.Plugins.Dlna.Model
         {
             this.Music = new WellKnownMusicContainer(user);
             this.Video = new WellKnownVideoContainer(user);
+            this.Playlists = new WellKnownPlaylistsContainer(user);
         }
         internal WellKnownMusicContainer Music { get; private set; }
         internal WellKnownVideoContainer Video { get; private set; }
+        internal WellKnownPlaylistsContainer Playlists { get; private set; }
 
         protected internal override IEnumerable<ModelBase> Children
         {
             get
             {
-                return new List<ModelBase>() { this.Music, this.Video };
+                return new List<ModelBase>() { this.Music, this.Video, this.Playlists };
             }
         }
     }
@@ -147,6 +149,25 @@ namespace MediaBrowser.Plugins.Dlna.Model
             get
             {
                 return new List<ModelBase>() { this.AllVideo, this.Genre, this.Actor, this.Series, this.Folders };
+            }
+        }
+    }
+    internal class WellKnownPlaylistsContainer : WellKnownContainerBase
+    {
+        internal WellKnownPlaylistsContainer(User user)
+            : base(user, user.RootFolder, id: "12", parentId: "0", title: "Playlists")
+        {
+            this.AllPlaylists = new WellKnownAllPlaylistsContainer(user);
+            this.PlaylistFolders = new WellKnownPlaylistsFolderContainer(user);
+        }
+        internal WellKnownAllPlaylistsContainer AllPlaylists { get; private set; }
+        internal WellKnownPlaylistsFolderContainer PlaylistFolders { get; private set; }
+
+        protected internal override IEnumerable<ModelBase> Children
+        {
+            get
+            {
+                return new List<ModelBase>() { this.AllPlaylists, this.PlaylistFolders };
             }
         }
     }
@@ -332,6 +353,35 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 var folderChildren = this.MbFolder.GetChildren(this.User).OfType<Folder>().Select(i => (ModelBase)(new VideoFolderContainer(this.User, i, this.Id)));
                 var videoChildren = this.MbFolder.GetChildren(this.User).OfType<Video>().Select(i => (ModelBase)(new VideoItem(this.User, i, this.Id)));
                 return folderChildren.Union(videoChildren);
+            }
+        }
+    }
+
+    internal class WellKnownAllPlaylistsContainer : WellKnownContainerBase
+    {
+        internal WellKnownAllPlaylistsContainer(User user)
+            : base(user, user.RootFolder, id: "13", parentId: "12", title: "AllPlaylists")
+        {
+        }
+        protected internal override IEnumerable<ModelBase> Children
+        {
+            get
+            {
+                return new List<ModelBase>();
+            }
+        }
+    }
+    internal class WellKnownPlaylistsFolderContainer : WellKnownContainerBase
+    {
+        internal WellKnownPlaylistsFolderContainer(User user)
+            : base(user, user.RootFolder, id: "17", parentId: "12", title: "PlaylistsFolders")
+        {
+        }
+        protected internal override IEnumerable<ModelBase> Children
+        {
+            get
+            {
+                return new List<ModelBase>();
             }
         }
     }
