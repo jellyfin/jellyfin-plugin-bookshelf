@@ -211,13 +211,7 @@ namespace MediaBrowser.Plugins.Dlna
                 var children = objectIDMatch.Children;
                 if (children != null)
                 {
-                    var ips = GetUPnPIPAddresses(context);
-                    var urlPrefixes = new List<string>();
-                    foreach (var ip in ips)
-                    {
-                        urlPrefixes.Add(Kernel.HttpServerUrlPrefix.Replace("+", ip));
-                    }
-
+                    var urlPrefixes = GetHttpServerPrefixes(context);
                     int itemCount = 0;
                     var didl = Platinum.Didl.header;
                     foreach (var child in children)
@@ -353,12 +347,7 @@ namespace MediaBrowser.Plugins.Dlna
 
             if (children != null)
             {
-                var ips = GetUPnPIPAddresses(context);
-                var urlPrefixes = new List<string>();
-                foreach (var ip in ips)
-                {
-                    urlPrefixes.Add(Kernel.HttpServerUrlPrefix.Replace("+", ip));
-                }
+                var urlPrefixes = GetHttpServerPrefixes(context);
 
                 foreach (var child in children)
                 {
@@ -384,6 +373,22 @@ namespace MediaBrowser.Plugins.Dlna
             }
 
             return NEP_Failure;
+        }
+
+        /// <summary>
+        /// Gets a list of valid http server prefixes that the dlna server can hand out to clients
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        private IEnumerable<String> GetHttpServerPrefixes(Platinum.HttpRequestContext context)
+        {
+            var result = new List<string>();
+            var ips = GetUPnPIPAddresses(context);
+            foreach (var ip in ips)
+            {
+                result.Add(Kernel.HttpServerUrlPrefix.Replace("+", ip));
+            }
+            return result;
         }
 
         /// <summary>
