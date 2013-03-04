@@ -1,8 +1,8 @@
-﻿using MediaBrowser.Common.Kernel;
+﻿using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Plugins;
-using System;
 using MediaBrowser.Model.Serialization;
+using System;
 
 namespace MediaBrowser.Plugins.Tmt5
 {
@@ -11,7 +11,8 @@ namespace MediaBrowser.Plugins.Tmt5
     /// </summary>
     public class Plugin : BasePlugin<BasePluginConfiguration>, IUIPlugin
     {
-        public Plugin(IKernel kernel, IXmlSerializer xmlSerializer) : base(kernel, xmlSerializer)
+        public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer)
+            : base(applicationPaths, xmlSerializer)
         {
         }
 

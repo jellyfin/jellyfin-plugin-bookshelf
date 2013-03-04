@@ -165,7 +165,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
                 Logger.Info("Downloading trailer: " + trailer.TrailerUrl);
 
                 // Fetch the video to a temp file because it's too big to put into a MemoryStream
-                videoTask = _httpClient.GetTempFile(trailer.TrailerUrl, Kernel.ResourcePools.AppleTrailerVideos, cancellationToken, new Progress<double> { }, "QuickTime/7.6.2");
+                videoTask = _httpClient.GetTempFile(trailer.TrailerUrl, Plugin.Instance.AppleTrailerVideos, cancellationToken, new Progress<double> { }, "QuickTime/7.6.2");
                 tasks.Add(videoTask);
             }
 
@@ -173,7 +173,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
             {
                 // Fetch the image to a memory stream
                 Logger.Info("Downloading trailer image: " + imageUrl);
-                imageTask = _httpClient.GetMemoryStream(imageUrl, Kernel.ResourcePools.AppleTrailerImages, cancellationToken);
+                imageTask = _httpClient.GetMemoryStream(imageUrl, Plugin.Instance.AppleTrailerImages, cancellationToken);
                 tasks.Add(imageTask);
             }
 

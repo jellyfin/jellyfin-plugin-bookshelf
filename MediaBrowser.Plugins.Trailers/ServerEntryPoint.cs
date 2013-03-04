@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Common.ScheduledTasks;
+﻿using MediaBrowser.Common.Configuration;
+using MediaBrowser.Common.ScheduledTasks;
 using MediaBrowser.Controller.Plugins;
 using MediaBrowser.Controller.ScheduledTasks;
 using MediaBrowser.Plugins.Trailers.Configuration;
@@ -13,8 +14,17 @@ namespace MediaBrowser.Plugins.Trailers
     /// </summary>
     public class ServerEntryPoint : IServerEntryPoint
     {
+        /// <summary>
+        /// Gets the instance.
+        /// </summary>
+        /// <value>The instance.</value>
         public static ServerEntryPoint Instance { get; private set; }
-        
+
+        /// <summary>
+        /// The _application paths
+        /// </summary>
+        private readonly IApplicationPaths _applicationPaths;
+
         /// <summary>
         /// The _task manager
         /// </summary>
@@ -39,7 +49,7 @@ namespace MediaBrowser.Plugins.Trailers
 
                     if (string.IsNullOrWhiteSpace(_downloadPath))
                     {
-                        _downloadPath = Path.Combine(Controller.Kernel.Instance.ApplicationPaths.DataPath, Plugin.Instance.Name);
+                        _downloadPath = Path.Combine(_applicationPaths.DataPath, Plugin.Instance.Name);
                     }
 
                     if (!Directory.Exists(_downloadPath))
@@ -55,11 +65,13 @@ namespace MediaBrowser.Plugins.Trailers
         /// Initializes a new instance of the <see cref="ServerEntryPoint" /> class.
         /// </summary>
         /// <param name="taskManager">The task manager.</param>
-        public ServerEntryPoint(ITaskManager taskManager)
+        /// <param name="appPaths">The app paths.</param>
+        public ServerEntryPoint(ITaskManager taskManager, IApplicationPaths appPaths)
         {
             _taskManager = taskManager;
 
             Instance = this;
+            _applicationPaths = appPaths;
         }
 
         /// <summary>

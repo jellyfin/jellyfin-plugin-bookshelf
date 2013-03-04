@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Controller;
+using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Resolvers;
 using System;
@@ -11,6 +12,17 @@ namespace MediaBrowser.Plugins.Trailers.Resolvers
     /// </summary>
     public class TrailerResolver : BaseVideoResolver<Trailer>
     {
+        private readonly IServerApplicationPaths _applicationPaths;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TrailerResolver" /> class.
+        /// </summary>
+        /// <param name="applicationPaths">The application paths.</param>
+        public TrailerResolver(IServerApplicationPaths applicationPaths)
+        {
+            _applicationPaths = applicationPaths;
+        }
+
         /// <summary>
         /// Resolves the specified args.
         /// </summary>
@@ -38,7 +50,7 @@ namespace MediaBrowser.Plugins.Trailers.Resolvers
             // Loop through each child file/folder and see if we find a video
             return args.FileSystemChildren
                 .Where(c => !c.IsDirectory)
-                .Select(child => base.Resolve(new ItemResolveArgs
+                .Select(child => base.Resolve(new ItemResolveArgs(_applicationPaths)
                 {
                     FileInfo = child,
                     Path = child.Path

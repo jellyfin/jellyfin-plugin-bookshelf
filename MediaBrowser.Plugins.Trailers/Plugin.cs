@@ -1,4 +1,6 @@
-﻿using MediaBrowser.Common.Kernel;
+﻿using System.Threading;
+using MediaBrowser.Common.Configuration;
+using MediaBrowser.Common.Kernel;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Plugins;
 using MediaBrowser.Model.Serialization;
@@ -11,7 +13,18 @@ namespace MediaBrowser.Plugins.Trailers
     /// </summary>
     public class Plugin : BasePlugin<PluginConfiguration>
     {
-        public Plugin(IKernel kernel, IXmlSerializer xmlSerializer) : base(kernel, xmlSerializer)
+        /// <summary>
+        /// Apple doesn't seem to like too many simulataneous requests.
+        /// </summary>
+        public readonly SemaphoreSlim AppleTrailerVideos = new SemaphoreSlim(1, 1);
+
+        /// <summary>
+        /// The apple trailer images
+        /// </summary>
+        public readonly SemaphoreSlim AppleTrailerImages = new SemaphoreSlim(1, 1);
+
+        public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer)
+            : base(applicationPaths, xmlSerializer)
         {
             Instance = this;
         }
