@@ -118,30 +118,58 @@ namespace MediaBrowser.Plugins.Dlna
             //filter:@id,upnp:class,res,res@protocolInfo,res@av:authenticationUri,res@size,dc:title,upnp:albumArtURI,res@dlna:ifoFileURI,res@protection,res@bitrate,res@duration,res@sampleFrequency,res@bitsPerSample,res@nrAudioChannels,res@resolution,res@colorDepth,dc:date,av:dateTime,upnp:artist,upnp:album,upnp:genre,dc:contributer,upnp:storageFree,upnp:storageUsed,upnp:originalTrackNumber,dc:publisher,dc:language,dc:region,dc:description,upnp:toc,@childCount,upnp:albumArtURI@dlna:profileID,res@dlna:cleartextSize 
             //starting_index:0 requested_count:1 sort_criteria: context:HttpRequestContext LocalAddress:HttpRequestContext.SocketAddress IP:192.168.1.56 Port:1845 RemoteAddress:HttpRequestContext.SocketAddress IP:192.168.1.40 Port:49277 Request:http://192.168.1.56:1845/ContentDirectory/7c6b1b90-872b-2cda-3c5c-21a0e430ce5e/control.xml Signature:PS3
 
+            Model.ModelBase objectIDMatch = null;
 
+            var root = new Model.Root(CurrentUser);
+            if (string.Equals(object_id, "0", StringComparison.OrdinalIgnoreCase))
+                objectIDMatch = root;
+            else
+                objectIDMatch = root.GetChildRecursive(object_id);
 
-            if (object_id == "0")
+            int itemCount = 0;
+            var didl = Platinum.Didl.header;
+
+            if (objectIDMatch == null)
             {
-                var root = new Platinum.MediaContainer();
-                root.Title = "Root";
-                root.ObjectID = "0";
-                root.ParentID = "-1";
-                root.Class = new Platinum.ObjectClass("object.container.storageFolder", "");
+                didl += Platinum.Didl.footer;
 
-                var didl = Platinum.Didl.header + root.ToDidl(filter) + Platinum.Didl.footer;
                 action.SetArgumentValue("Result", didl);
-                action.SetArgumentValue("NumberReturned", "1");
-                action.SetArgumentValue("TotalMatches", "1");
+                action.SetArgumentValue("NumberReturned", itemCount.ToString());
+                action.SetArgumentValue("TotalMatches", itemCount.ToString());
 
                 // update ID may be wrong here, it should be the one of the container?
                 action.SetArgumentValue("UpdateId", "1");
 
                 return NEP_Success;
             }
-            else
+
+            if (objectIDMatch != null)
             {
-                return NEP_Failure;
+                var children = objectIDMatch.Children;
+                if (children != null)
+                {
+                    var urlPrefixes = GetHttpServerPrefixes(context);
+                    foreach (var child in children)
+                    {
+                        using (var item = child.GetMediaObject(context, urlPrefixes))
+                        {
+                            didl += item.ToDidl(filter);
+                            itemCount++;
+                        }
+                    }
+                    didl += Platinum.Didl.footer;
+
+                    action.SetArgumentValue("Result", didl);
+                    action.SetArgumentValue("NumberReturned", itemCount.ToString());
+                    action.SetArgumentValue("TotalMatches", itemCount.ToString());
+
+                    // update ID may be wrong here, it should be the one of the container?
+                    action.SetArgumentValue("UpdateId", "1");
+
+                    return NEP_Success;
+                }
             }
+            return NEP_Failure;
         }
         private int server_BrowseDirectChildren(Platinum.Action action, String object_id, String filter, Int32 starting_index, Int32 requested_count, String sort_criteria, Platinum.HttpRequestContext context)
         {
@@ -211,21 +239,13 @@ namespace MediaBrowser.Plugins.Dlna
                 var children = objectIDMatch.Children;
                 if (children != null)
                 {
-                    var ips = GetUPnPIPAddresses(context);
-                    var urlPrefixes = new List<string>();
-                    foreach (var ip in ips)
-                    {
-                        urlPrefixes.Add(Kernel.HttpServerUrlPrefix.Replace("+", ip));
-                    }
-
+                    var urlPrefixes = GetHttpServerPrefixes(context);
                     int itemCount = 0;
                     var didl = Platinum.Didl.header;
                     foreach (var child in children)
                     {
                         using (var item = child.GetMediaObject(context, urlPrefixes))
                         {
-                            string test;
-                            test = item.ToDidl(filter);
                             didl += item.ToDidl(filter);
                             itemCount++;
                         }
@@ -353,19 +373,12 @@ namespace MediaBrowser.Plugins.Dlna
 
             if (children != null)
             {
-                var ips = GetUPnPIPAddresses(context);
-                var urlPrefixes = new List<string>();
-                foreach (var ip in ips)
-                {
-                    urlPrefixes.Add(Kernel.HttpServerUrlPrefix.Replace("+", ip));
-                }
+                var urlPrefixes = GetHttpServerPrefixes(context);
 
                 foreach (var child in children)
                 {
                     using (var item = child.GetMediaObject(context, urlPrefixes))
                     {
-                        string test;
-                        test = item.ToDidl(filter);
                         didl += item.ToDidl(filter);
                         itemCount++;
                     }
@@ -384,6 +397,22 @@ namespace MediaBrowser.Plugins.Dlna
             }
 
             return NEP_Failure;
+        }
+
+        /// <summary>
+        /// Gets a list of valid http server prefixes that the dlna server can hand out to clients
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        private IEnumerable<String> GetHttpServerPrefixes(Platinum.HttpRequestContext context)
+        {
+            var result = new List<string>();
+            var ips = GetUPnPIPAddresses(context);
+            foreach (var ip in ips)
+            {
+                result.Add(Kernel.HttpServerUrlPrefix.Replace("+", ip));
+            }
+            return result.OrderBy(i=>i);
         }
 
         /// <summary>
@@ -586,6 +615,22 @@ namespace MediaBrowser.Plugins.Dlna
             foreach (var file in files)
             {
                 var outputFile = Path.Combine(runningDirectory, file);
+
+                //temporary until we can get Platinum stable and working properly
+                if (File.Exists(outputFile))
+                {
+                    //hopefully the file isn't in use yet and we can delete it
+                    try
+                    {
+                        File.Delete(outputFile);
+                    }
+                    catch (Exception ex)
+                    {
+                        //log the exception and swallow it, better to no crash the entire server
+                        Logger.ErrorException("Error deleting only Platinum assemblies", ex);
+                    }
+                }
+                //end of temporary 
 
                 if (!File.Exists(outputFile))
                 {
