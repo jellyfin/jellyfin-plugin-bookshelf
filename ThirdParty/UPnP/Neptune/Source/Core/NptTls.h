@@ -127,7 +127,8 @@ public:
     enum {
         OPTION_VERIFY_LATER               = 1,
         OPTION_REQUIRE_CLIENT_CERTIFICATE = 2,
-        OPTION_ADD_DEFAULT_TRUST_ANCHORS  = 4
+        OPTION_ADD_DEFAULT_TRUST_ANCHORS  = 4,
+        OPTION_NO_SESSION_CACHE           = 8
     };
     NPT_TlsContext(NPT_Flags options=0);
    ~NPT_TlsContext();
@@ -242,6 +243,7 @@ public:
 /*----------------------------------------------------------------------
 |   NPT_HttpTlsConnector
 +---------------------------------------------------------------------*/
+#if defined(NPT_CONFIG_ENABLE_TLS)
 class NPT_HttpTlsConnector : public NPT_HttpClient::Connector
 {
 public:
@@ -263,7 +265,6 @@ public:
                                const NPT_HttpProxyAddress*  proxy,
                                bool                         reuse,
                                NPT_HttpClient::Connection*& connection);
-    virtual NPT_Result Abort() { return NPT_ERROR_NOT_IMPLEMENTED; }
 
 private:
     // singleton management
@@ -287,6 +288,18 @@ private:
     NPT_TlsContext& m_TlsContext;
     NPT_Flags       m_Options;
 };
+#else
+class NPT_HttpTlsConnector : public NPT_HttpClient::Connector
+{
+public:
+    virtual ~NPT_HttpTlsConnector() {}
+    virtual NPT_Result Connect(const NPT_HttpUrl&           url,
+                               NPT_HttpClient&              client,
+                               const NPT_HttpProxyAddress*  proxy,
+                               bool                         reuse,
+                               NPT_HttpClient::Connection*& connection);
+};
+#endif
 
 /*----------------------------------------------------------------------
 |   Trust Anchors
@@ -296,7 +309,9 @@ private:
  * and the last element is a terminator element: the cert_data field is NULL
  * and the cert_size field is 0
  */ 
+#if defined(NPT_CONFIG_ENABLE_TLS)
 #include "NptTlsDefaultTrustAnchorsBase.h"
 #include "NptTlsDefaultTrustAnchorsExtended.h"
+#endif
 
 #endif // _NPT_TLS_H_

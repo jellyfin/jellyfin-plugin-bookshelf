@@ -259,7 +259,9 @@ typedef long NPT_PointerLong;
 
 /* Android */
 #if defined(ANDROID)
+#if !defined(NPT_CONFIG_NO_RTTI)
 #define NPT_CONFIG_NO_RTTI
+#endif
 #endif
 
 /* OSX and iOS */

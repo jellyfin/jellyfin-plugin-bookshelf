@@ -998,95 +998,6 @@ NPT_HttpResponse::Parse(NPT_BufferedInputStream& stream,
 }
 
 /*----------------------------------------------------------------------
-|   NPT_HttpSimpleConnection
-+---------------------------------------------------------------------*/
-class NPT_HttpSimpleConnection : public NPT_HttpClient::Connection
-{
-public:
-    virtual ~NPT_HttpSimpleConnection() {
-        NPT_HttpClient::ConnectionCanceller::Untrack(this);
-    }
-    virtual NPT_InputStreamReference&  GetInputStream() {
-        return m_InputStream;
-    }
-    virtual NPT_OutputStreamReference& GetOutputStream() {
-        return m_OutputStream;
-    }
-    virtual NPT_Result GetInfo(NPT_SocketInfo& info) {
-        return m_Socket->GetInfo(info);
-    }
-    virtual NPT_Result Abort() {
-        return m_Socket->Cancel();
-    }
-    
-    // members
-    NPT_SocketReference       m_Socket;
-    NPT_InputStreamReference  m_InputStream;
-    NPT_OutputStreamReference m_OutputStream;
-};
-
-/*----------------------------------------------------------------------
-|   NPT_HttpTcpConnector
-+---------------------------------------------------------------------*/
-class NPT_HttpTcpConnector : public NPT_HttpClient::Connector
-{
-    virtual NPT_Result Connect(const NPT_HttpUrl&           url,
-                               NPT_HttpClient&              client,
-                               const NPT_HttpProxyAddress*  proxy,
-                               bool                         reuse,
-                               NPT_HttpClient::Connection*& connection);
-};
-
-/*----------------------------------------------------------------------
-|   NPT_HttpTcpConnector::Connect
-+---------------------------------------------------------------------*/
-NPT_Result
-NPT_HttpTcpConnector::Connect(const NPT_HttpUrl&           url,
-                              NPT_HttpClient&              client,
-                              const NPT_HttpProxyAddress*  proxy,
-                              bool                         /* reuse */,
-                              NPT_HttpClient::Connection*& connection)
-{
-    // default values
-    connection = NULL;
-    
-    // decide which host we need to connect to
-    const char* server_hostname;
-    NPT_UInt16  server_port;
-    if (proxy) {
-        // the proxy is set
-        server_hostname = (const char*)proxy->GetHostName();
-        server_port = proxy->GetPort();
-    } else {
-        // no proxy: connect directly
-        server_hostname = (const char*)url.GetHost();
-        server_port = url.GetPort();
-    }
-
-    // get the address and port to which we need to connect
-    NPT_IpAddress address;
-    NPT_CHECK_FINE(address.ResolveName(server_hostname, client.GetConfig().m_NameResolverTimeout));
-
-    // connect to the server
-    NPT_LOG_FINE_2("TCP connector will connect to %s:%d", server_hostname, server_port);
-    NPT_TcpClientSocket* tcp_socket = new NPT_TcpClientSocket();
-    NPT_SocketReference socket(tcp_socket, true);
-    tcp_socket->SetReadTimeout(client.GetConfig().m_IoTimeout);
-    tcp_socket->SetWriteTimeout(client.GetConfig().m_IoTimeout);
-    NPT_SocketAddress socket_address(address, server_port);
-    NPT_CHECK_FINE(tcp_socket->Connect(socket_address, client.GetConfig().m_ConnectionTimeout));
-
-    // get the streams
-    NPT_HttpSimpleConnection* _connection = new NPT_HttpSimpleConnection();
-    _connection->m_Socket = socket;
-    connection = _connection;
-    tcp_socket->GetInputStream(_connection->m_InputStream);
-    tcp_socket->GetOutputStream(_connection->m_OutputStream);
-    
-    return NPT_SUCCESS;
-}
-
-/*----------------------------------------------------------------------
 |   NPT_HttpEnvProxySelector
 +---------------------------------------------------------------------*/
 class NPT_HttpEnvProxySelector : public NPT_HttpProxySelector
@@ -1376,8 +1287,12 @@ NPT_HttpConnectionManager::~NPT_HttpConnectionManager()
     // set abort flag and wait for thread to finish
     m_Aborted.SetValue(1);
     Wait();
-    
-    m_Connections.Apply(NPT_ObjectDeleter<Connection>());
+
+    // When using TLS, and because we have no control over the cleanup order
+    // of static objects, this can crash if the static NPT_HttpConnectionManager::Cleaner::AutomaticCleaner
+    // is destroyed after the static NPT_HttpTlsConnector::Cleanup::AutomaticCleaner.
+    // So for now, we leak until a better solution is found.
+    //m_Connections.Apply(NPT_ObjectDeleter<Connection>());
 }
 
 /*----------------------------------------------------------------------
@@ -1512,7 +1427,6 @@ NPT_HttpConnectionManager::Connection::Connection(NPT_HttpConnectionManager& man
 NPT_Result
 NPT_HttpConnectionManager::Connection::Recycle()
 {
-    NPT_HttpClient::ConnectionCanceller::GetInstance()->Untrack(this); 
     return m_Manager.Recycle(this);
 }
 
@@ -1594,6 +1508,7 @@ NPT_HttpClient::ConnectionCanceller::UntrackConnection(Connection* connection)
         
         // remove connection
         m_Clients.Erase(connection);
+        return NPT_SUCCESS;
     }
     
     return NPT_ERROR_NO_SUCH_ITEM;  
@@ -1642,11 +1557,7 @@ NPT_HttpClient::NPT_HttpClient(Connector* connector, bool transfer_ownership) :
     m_Aborted(false)
 {
     if (connector == NULL) {
-#if defined(NPT_CONFIG_ENABLE_TLS)
         m_Connector = new NPT_HttpTlsConnector();
-#else
-        m_Connector = new NPT_HttpTcpConnector();
-#endif
         m_ConnectorIsOwned = true;
     }
 }
@@ -1756,10 +1667,21 @@ NPT_HttpClient::SetUserAgent(const char* user_agent)
 } 
 
 /*----------------------------------------------------------------------
+|   NPT_HttpClient::TrackConnection
++---------------------------------------------------------------------*/
+NPT_Result
+NPT_HttpClient::TrackConnection(Connection* connection)
+{
+    NPT_AutoLock lock(m_AbortLock);
+    if (m_Aborted) return NPT_ERROR_CANCELLED;
+    return ConnectionCanceller::GetInstance()->Track(this, connection);
+}
+
+/*----------------------------------------------------------------------
 |   NPT_HttpClient::SendRequestOnce
 +---------------------------------------------------------------------*/
 NPT_Result
-NPT_HttpClient::SendRequestOnce(NPT_HttpRequest&        request, 
+NPT_HttpClient::SendRequestOnce(NPT_HttpRequest&        request,
                                 NPT_HttpResponse*&      response,
                                 NPT_HttpRequestContext* context /* = NULL */)
 {
@@ -1816,13 +1738,6 @@ NPT_HttpClient::SendRequestOnce(NPT_HttpRequest&        request,
             context->SetRemoteAddress(info.remote_address);
         }
         
-        // track connection so it can be aborted
-        {
-            NPT_AutoLock lock(m_AbortLock);
-            if (m_Aborted) continue;
-            ConnectionCanceller::GetInstance()->Track(this, connection);
-        }
-        
         NPT_HttpEntity* entity;
         NPT_InputStreamReference body_stream;
         
@@ -1856,13 +1771,13 @@ NPT_HttpClient::SendRequestOnce(NPT_HttpRequest&        request,
         result = WriteRequest(*output_stream.AsPointer(), request, should_persist, use_proxy);
 	    if (NPT_FAILED(result)) {
             NPT_LOG_FINE_1("failed to write request headers (%d)", result);
-            if (reconnect) {
+            if (reconnect && !m_Aborted) {
                 if (!body_stream.IsNull()) {
                     // go back to the start of the body so that we can resend
                     NPT_LOG_FINE("rewinding body stream in order to resend");
                     result = body_stream->Seek(0);
                     if (NPT_FAILED(result)) {
-                        return NPT_ERROR_HTTP_CANNOT_RESEND_BODY;
+                        NPT_CHECK_FINE(NPT_ERROR_HTTP_CANNOT_RESEND_BODY);
                     }
                 }
                 continue;
@@ -1878,7 +1793,7 @@ NPT_HttpClient::SendRequestOnce(NPT_HttpRequest&        request,
 					          &cref);
 		if (NPT_FAILED(result)) {
             NPT_LOG_FINE_1("failed to parse the response (%d)", result);
-		    if (reconnect /*&&
+		    if (reconnect && !m_Aborted /*&&
                 (result == NPT_ERROR_EOS                || 
                  result == NPT_ERROR_CONNECTION_ABORTED ||
                  result == NPT_ERROR_CONNECTION_RESET   ||
@@ -1889,7 +1804,7 @@ NPT_HttpClient::SendRequestOnce(NPT_HttpRequest&        request,
                     NPT_LOG_FINE("rewinding body stream in order to resend");
                     result = body_stream->Seek(0);
                     if (NPT_FAILED(result)) {
-                        return NPT_ERROR_HTTP_CANNOT_RESEND_BODY;
+                        NPT_CHECK_FINE(NPT_ERROR_HTTP_CANNOT_RESEND_BODY);
                     }
                 }
                 continue;
@@ -2209,7 +2124,6 @@ NPT_HttpClient::Abort()
 {
     NPT_AutoLock lock(m_AbortLock);
     m_Aborted = true;
-    m_Connector->Abort();
     
     NPT_HttpClient::ConnectionCanceller::GetInstance()->AbortConnections(this);
     return NPT_SUCCESS;
