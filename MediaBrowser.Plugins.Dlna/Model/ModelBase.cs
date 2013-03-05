@@ -28,6 +28,10 @@ namespace MediaBrowser.Plugins.Dlna.Model
         protected internal BaseItem MbItem { get; protected set; }
 
         protected internal abstract IEnumerable<ModelBase> Children { get; }
+        protected internal IEnumerable<ModelBase> GetChildren(int startingIndex, int requestedCount)
+        {
+            return this.Children.Skip(startingIndex).Take(requestedCount);
+        }
         protected internal IEnumerable<ModelBase> RecursiveChildren
         {
             get
@@ -41,6 +45,15 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 }));
             }
         }
+        
+        protected internal IEnumerable<ModelBase> GetChildrenRecursive(int startingIndex, int requestedCount)
+        {
+            if (this.Children.Count() >= (startingIndex + requestedCount))
+                return this.Children.Skip(startingIndex).Take(requestedCount);
+            else
+                return this.RecursiveChildren.Skip(startingIndex).Take(requestedCount);
+        }
+
         protected internal ModelBase GetChildRecursive(string id)
         {
             //if we can short cicuit this and find the item in our immediate children, then we don't have to
