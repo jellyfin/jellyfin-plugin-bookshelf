@@ -109,6 +109,7 @@ namespace MediaBrowser.Plugins.Dlna
         {
             Logger.Debug("BrowseMetadata Entered - Parameters: action:{0} object_id:\"{1}\" filter:\"{2}\" starting_index:{3} requested_count:{4} sort_criteria:\"{5}\" context:{6}",
                 action.ToLogString(), object_id, filter, starting_index, requested_count, sort_criteria, context.ToLogString());
+            this.LogUserActivity(context.Signature);
 
             //nothing much seems to call BrowseMetadata so far
             //but perhaps that is because we aren't handing out the correct info for the client to call .. I don't know
@@ -129,52 +130,31 @@ namespace MediaBrowser.Plugins.Dlna
             int itemCount = 0;
             var didl = Platinum.Didl.header;
 
-            if (objectIDMatch == null)
-            {
-                didl += Platinum.Didl.footer;
-
-                action.SetArgumentValue("Result", didl);
-                action.SetArgumentValue("NumberReturned", itemCount.ToString());
-                action.SetArgumentValue("TotalMatches", itemCount.ToString());
-
-                // update ID may be wrong here, it should be the one of the container?
-                action.SetArgumentValue("UpdateId", "1");
-
-                return NEP_Success;
-            }
-
             if (objectIDMatch != null)
             {
-                var children = objectIDMatch.Children;
-                if (children != null)
+                var urlPrefixes = GetHttpServerPrefixes(context);
+                using (var item = objectIDMatch.GetMediaObject(context, urlPrefixes))
                 {
-                    var urlPrefixes = GetHttpServerPrefixes(context);
-                    foreach (var child in children)
-                    {
-                        using (var item = child.GetMediaObject(context, urlPrefixes))
-                        {
-                            didl += item.ToDidl(filter);
-                            itemCount++;
-                        }
-                    }
-                    didl += Platinum.Didl.footer;
-
-                    action.SetArgumentValue("Result", didl);
-                    action.SetArgumentValue("NumberReturned", itemCount.ToString());
-                    action.SetArgumentValue("TotalMatches", itemCount.ToString());
-
-                    // update ID may be wrong here, it should be the one of the container?
-                    action.SetArgumentValue("UpdateId", "1");
-
-                    return NEP_Success;
+                    didl += item.ToDidl(filter);
+                    itemCount++;
                 }
             }
-            return NEP_Failure;
+            didl += Platinum.Didl.footer;
+
+            action.SetArgumentValue("Result", didl);
+            action.SetArgumentValue("NumberReturned", itemCount.ToString());
+            action.SetArgumentValue("TotalMatches", itemCount.ToString());
+
+            // update ID may be wrong here, it should be the one of the container?
+            action.SetArgumentValue("UpdateId", "1");
+
+            return NEP_Success;
         }
         private int server_BrowseDirectChildren(Platinum.Action action, String object_id, String filter, Int32 starting_index, Int32 requested_count, String sort_criteria, Platinum.HttpRequestContext context)
         {
             Logger.Debug("BrowseDirectChildren Entered - Parameters: action:{0} object_id:\"{1}\" filter:\"{2}\" starting_index:{3} requested_count:{4} sort_criteria:\"{5}\" context:{6}",
                 action.ToLogString(), object_id, filter, starting_index, requested_count, sort_criteria, context.ToLogString());
+            this.LogUserActivity(context.Signature);
 
             //WMP doesn't care how many results we return and what type they are
             //Xbox360 Music App is unknown, it calls SearchContainer and stops, not sure what will happen once we return it results
@@ -268,6 +248,7 @@ namespace MediaBrowser.Plugins.Dlna
         {
             Logger.Debug("ProcessFileRequest Entered - Parameters: context:{0} response:{1}",
                 context.ToLogString(), response);
+            this.LogUserActivity(context.Signature);
 
             Uri uri = context.Request.URI;
             var id = uri.AbsolutePath.TrimStart('/');
@@ -307,6 +288,7 @@ namespace MediaBrowser.Plugins.Dlna
         {
             Logger.Debug("SearchContainer Entered - Parameters: action:{0} object_id:\"{1}\" searchCriteria:\"{7}\" filter:\"{2}\" starting_index:{3} requested_count:{4} sort_criteria:\"{5}\" context:{6}",
                 action.ToLogString(), object_id, filter, starting_index, requested_count, sort_criteria, context.ToLogString(), searchCriteria);
+            this.LogUserActivity(context.Signature);
 
             //Doesn't call search at all:
             //  XBox360 Video App
@@ -437,7 +419,7 @@ namespace MediaBrowser.Plugins.Dlna
             result.Remove("127.0.0.1");
             result.Remove("127.0.0.1");
             result.Remove("127.0.0.1");
-            return result.Distinct();
+            return result.Distinct().OrderBy(i=>i);
         }
 
         /// <summary>
@@ -476,6 +458,11 @@ namespace MediaBrowser.Plugins.Dlna
                 }
                 return _CurrentUser;
             }
+        }
+
+        private void LogUserActivity(Platinum.DeviceSignature signature)
+        {
+            UserManager.LogUserActivity(this.CurrentUser, MediaBrowser.Model.Connectivity.ClientType.Dlna, signature.ToString()); 
         }
 
         #region "A Search Idea"

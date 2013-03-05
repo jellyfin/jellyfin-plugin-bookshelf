@@ -188,7 +188,7 @@ public enum class DeviceSignature
 	Unknown,
 	XBox,
 	PS3,
-	WMP,
+	WMP, 
 	Sonos,
 	Mac,
 	Windows,
@@ -249,7 +249,7 @@ private:
 
 	static DeviceSignature ParseDeviceSignature(PLT_DeviceSignature signature)
 	{
-		switch (signature)
+		switch (signature) 
 		{
 		case PLT_DEVICE_XBOX:
 			return DeviceSignature::XBox;

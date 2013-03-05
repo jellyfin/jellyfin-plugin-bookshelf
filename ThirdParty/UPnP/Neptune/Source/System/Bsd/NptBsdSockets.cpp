@@ -163,6 +163,7 @@ typedef SOCKET      SocketFd;
 #define NPT_BSD_SOCKET_IS_INVALID(_s)    ((_s) == INVALID_SOCKET)
 #define NPT_BSD_SOCKET_CALL_FAILED(_e)   ((_e) == SOCKET_ERROR)
 #define NPT_BSD_SOCKET_SELECT_FAILED(_e) ((_e) == SOCKET_ERROR)
+#define NPT_BSD_SOCKET_INVALID_HANDLE    INVALID_SOCKET
 
 /*----------------------------------------------------------------------
 |   Trimedia adaptation layer
@@ -177,6 +178,7 @@ typedef int         SocketFd;
 #define NPT_BSD_SOCKET_IS_INVALID(_s)    ((_s)  < 0)
 #define NPT_BSD_SOCKET_CALL_FAILED(_e)   ((_e)  < 0)
 #define NPT_BSD_SOCKET_SELECT_FAILED(_e) ((_e)  < 0)
+#define NPT_BSD_SOCKET_INVALID_HANDLE    (-1)
 
 /*----------------------------------------------------------------------
 |   PSP adaptation layer
@@ -253,6 +255,7 @@ typedef int         SocketFd;
 #define NPT_BSD_SOCKET_IS_INVALID(_s)    ((_s) < 0)
 #define NPT_BSD_SOCKET_CALL_FAILED(_e)   ((_e) < 0)
 #define NPT_BSD_SOCKET_SELECT_FAILED(_e) ((_e) < 0)
+#define NPT_BSD_SOCKET_INVALID_HANDLE    (-1)
 
 /*----------------------------------------------------------------------
 |   PS3 adaptation layer
@@ -296,6 +299,7 @@ typedef int          SocketFd;
 #define NPT_BSD_SOCKET_IS_INVALID(_s)    ((_s) < 0)
 #define NPT_BSD_SOCKET_CALL_FAILED(_e)   ((_e) < 0)
 #define NPT_BSD_SOCKET_SELECT_FAILED(_e) ((_e) < 0)
+#define NPT_BSD_SOCKET_INVALID_HANDLE    (-1)
 
 // network initializer 
 static struct NPT_Ps3NetworkInitializer {
@@ -323,6 +327,7 @@ typedef int         SocketFd;
 #define NPT_BSD_SOCKET_IS_INVALID(_s)    ((_s)  < 0)
 #define NPT_BSD_SOCKET_CALL_FAILED(_e)   ((_e)  < 0)
 #define NPT_BSD_SOCKET_SELECT_FAILED(_e) ((_e)  < 0)
+#define NPT_BSD_SOCKET_INVALID_HANDLE    (-1)
 
 #endif
 
@@ -366,8 +371,6 @@ MapErrorCode(int error)
             return NPT_ERROR_CONNECTION_RESET;
 
         case ECONNABORTED:
-        //case ENOTCONN:
-        //case ESHUTDOWN:
             return NPT_ERROR_CONNECTION_ABORTED;
 
         case ECONNREFUSED:
@@ -483,6 +486,66 @@ gethostbyname(const char* name)
 
 #endif // _XBOX
 
+#if defined(__WINSOCK__)
+/*----------------------------------------------------------------------
+|   socketpair
++---------------------------------------------------------------------*/
+static int
+socketpair(int, int, int, SOCKET sockets[2]) // we ignore the first two params: we only use this for a strictly limited case
+{
+	int result = 0;
+
+	// initialize with default values
+	sockets[0] = INVALID_SOCKET;
+	sockets[1] = INVALID_SOCKET;
+
+	// create a listener socket and bind to the loopback address, any port
+	SOCKET listener = socket(AF_INET, SOCK_STREAM, 0);
+	if (listener == INVALID_SOCKET) goto fail;
+
+	// bind the listener and listen for connections
+	struct sockaddr_in inet_address;
+	memset(&inet_address, 0, sizeof(inet_address));
+	inet_address.sin_family = AF_INET;
+	inet_address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+	int reuse = 1;
+	setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuse, sizeof(reuse));
+	result = bind(listener, (const sockaddr*)&inet_address, sizeof(inet_address));
+	if (result != 0) goto fail;
+	listen(listener, 1);
+
+	// read the port that was assigned to the listener socket
+    socklen_t name_length = sizeof(inet_address);
+    result = getsockname(listener, (struct sockaddr*)&inet_address, &name_length); 
+	if (result != 0) goto fail;
+
+	// create the first socket 
+	sockets[0] = socket(AF_INET, SOCK_STREAM, 0);
+	if (sockets[0] == INVALID_SOCKET) goto fail;
+
+	// connect the first socket
+	result = connect(sockets[0], (const sockaddr*)&inet_address, sizeof(inet_address));
+	if (result != 0) goto fail;
+
+	// accept the connection, resulting in the second socket
+	name_length = sizeof(inet_address);
+	sockets[1] = accept(listener, (sockaddr*)&inet_address, &name_length);
+	if (result != 0) goto fail;
+
+	// we don't need the listener anymore
+	closesocket(listener);
+	return 0;
+
+fail:
+	result = MapErrorCode(GetSocketError());
+	if (listener   != INVALID_SOCKET) closesocket(listener);
+	if (sockets[0] != INVALID_SOCKET) closesocket(sockets[0]);
+	if (sockets[1] != INVALID_SOCKET) closesocket(sockets[1]);
+	sockets[0] = sockets[1] = INVALID_SOCKET;
+	return result;
+}
+#endif
+
 /*----------------------------------------------------------------------
 |   NPT_IpAddress::ResolveName
 +---------------------------------------------------------------------*/
@@ -577,7 +640,6 @@ public:
         SetBlockingMode(false); 
         
         // cancellation support
-#if !defined(__WINSOCK__)
         if (flags & NPT_SOCKET_FLAG_CANCELLABLE) {
             int result = socketpair(AF_UNIX, SOCK_DGRAM, 0, m_CancelFds);
             if (result != 0) {
@@ -586,17 +648,14 @@ public:
                 m_Cancellable = false;
             }
         } else {
-            m_CancelFds[0] = m_CancelFds[1] = -1;
+            m_CancelFds[0] = m_CancelFds[1] = NPT_BSD_SOCKET_INVALID_HANDLE;
         }
-#endif
     }
     ~NPT_BsdSocketFd() {
-#if !defined(__WINSOCK__)
         if (m_Cancellable) {
-            close(m_CancelFds[0]);
-            close(m_CancelFds[1]);
+            if (!NPT_BSD_SOCKET_IS_INVALID(m_CancelFds[0])) closesocket(m_CancelFds[0]);
+            if (!NPT_BSD_SOCKET_IS_INVALID(m_CancelFds[1])) closesocket(m_CancelFds[1]);
         }
-#endif
         closesocket(m_SocketFd);
     }
 
@@ -613,9 +672,7 @@ public:
     NPT_Position      m_Position;
     volatile bool     m_Cancelled;
     bool              m_Cancellable;
-#if !defined(__WINSOCK__)
     SocketFd          m_CancelFds[2];
-#endif
 
 private:
     // methods
@@ -711,13 +768,11 @@ NPT_BsdSocketFd::WaitForCondition(bool        wait_for_readable,
     FD_ZERO(&except_set);
     FD_SET(m_SocketFd, &except_set);
 
-#if !defined(__WINSOCK__)
     // setup the cancel fd
     if (m_Cancellable && timeout) {
-        if (m_CancelFds[1] > max_fd) max_fd = m_CancelFds[1];
+        if ((int)m_CancelFds[1] > max_fd) max_fd = m_CancelFds[1];
         FD_SET(m_CancelFds[1], &read_set);
     }
-#endif
     
     struct timeval timeout_value;
     if (timeout != NPT_TIMEOUT_INFINITE) {
@@ -1324,15 +1379,11 @@ NPT_BsdSocket::Cancel(bool do_shutdown)
         }
     }
     
-#if !defined(__WINSOCK__)
     // unblock waiting selects
     if (m_SocketFdReference->m_Cancellable) {
         char dummy = 0;
         send(m_SocketFdReference->m_CancelFds[0], &dummy, 1, 0);
     }
-#else
-    closesocket(m_SocketFdReference->m_SocketFd);
-#endif
 
     return NPT_SUCCESS;
 }

@@ -400,14 +400,14 @@ public:
     
     class Connection {
     public:
-        virtual ~Connection() {}
+        virtual ~Connection() { NPT_HttpClient::ConnectionCanceller::Untrack(this); }
         virtual NPT_InputStreamReference&  GetInputStream()  = 0;
         virtual NPT_OutputStreamReference& GetOutputStream() = 0;
         virtual NPT_Result                 GetInfo(NPT_SocketInfo& info) = 0;
         virtual bool                       SupportsPersistence() { return false;                    }
         virtual bool                       IsRecycled()          { return false;                    }
         virtual NPT_Result                 Recycle()             { delete this; return NPT_SUCCESS; }
-        virtual NPT_Result                 Abort()               { return NPT_SUCCESS; }
+        virtual NPT_Result                 Abort()               { return NPT_ERROR_NOT_IMPLEMENTED; }
     };
 
     class ConnectionCanceller
@@ -456,11 +456,12 @@ public:
         virtual NPT_Result Connect(const NPT_HttpUrl&          url,
                                    NPT_HttpClient&             client,
                                    const NPT_HttpProxyAddress* proxy,
-                                   bool                        reuse, // wether we can reuse a connection or not
+                                   bool                        reuse, // whether we can reuse a connection or not
                                    Connection*&                connection) = 0;
-        virtual NPT_Result Abort() { return NPT_SUCCESS; }
         
     protected:
+        NPT_Result TrackConnection(NPT_HttpClient& client,
+                                   Connection*     connection) { return client.TrackConnection(connection); }
         Connector() {} // don't instantiate directly
     };
 
@@ -508,6 +509,7 @@ public:
     
 protected:
     // methods
+    NPT_Result TrackConnection(Connection* connection);
     NPT_Result SendRequestOnce(NPT_HttpRequest&        request,
                                NPT_HttpResponse*&      response,
                                NPT_HttpRequestContext* context = NULL);
@@ -518,7 +520,6 @@ protected:
     bool                   m_ProxySelectorIsOwned;
     Connector*             m_Connector;
     bool                   m_ConnectorIsOwned;
-    
     NPT_Mutex              m_AbortLock;
     bool                   m_Aborted;
 };
@@ -548,7 +549,7 @@ public:
                    NPT_SocketReference&       socket,
                    NPT_InputStreamReference   input_stream,
                    NPT_OutputStreamReference  output_stream);
-        virtual ~Connection() { NPT_HttpClient::ConnectionCanceller::Untrack(this); }
+        virtual ~Connection() {}
                    
         // NPT_HttpClient::Connection methods
         virtual NPT_InputStreamReference&  GetInputStream()      { return m_InputStream;           }
