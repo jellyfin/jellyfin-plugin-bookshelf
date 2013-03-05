@@ -216,7 +216,15 @@ namespace MediaBrowser.Plugins.Dlna
 
             if (objectIDMatch != null)
             {
-                var children = objectIDMatch.Children;
+                IEnumerable<Model.ModelBase> children = null;
+                //if they request zero children, they mean all children
+                if (requested_count == 0)
+                    children = objectIDMatch.Children;
+                else
+                    children = objectIDMatch.GetChildren(starting_index, requested_count);
+
+                var totalMatches = objectIDMatch.Children.Count();
+
                 if (children != null)
                 {
                     var urlPrefixes = GetHttpServerPrefixes(context);
@@ -234,7 +242,7 @@ namespace MediaBrowser.Plugins.Dlna
 
                     action.SetArgumentValue("Result", didl);
                     action.SetArgumentValue("NumberReturned", itemCount.ToString());
-                    action.SetArgumentValue("TotalMatches", itemCount.ToString());
+                    action.SetArgumentValue("TotalMatches", totalMatches.ToString());
 
                     // update ID may be wrong here, it should be the one of the container?
                     action.SetArgumentValue("UpdateId", "1");
@@ -351,8 +359,16 @@ namespace MediaBrowser.Plugins.Dlna
                 return NEP_Success;
             }
 
-            children = objectIDMatch.RecursiveChildren;
+            var totalMatches = 0;
+            //if they request zero children, they mean all children
+            if (requested_count == 0)
+                children = objectIDMatch.RecursiveChildren;
+            else
+                children = objectIDMatch.GetChildrenRecursive(starting_index, requested_count);
 
+            //until we implement search that actually searches, the total matches is ALL recursive children
+            totalMatches = objectIDMatch.RecursiveChildren.Count();
+            
             if (children != null)
             {
                 var urlPrefixes = GetHttpServerPrefixes(context);
@@ -370,7 +386,7 @@ namespace MediaBrowser.Plugins.Dlna
 
                 action.SetArgumentValue("Result", didl);
                 action.SetArgumentValue("NumberReturned", itemCount.ToString());
-                action.SetArgumentValue("TotalMatches", itemCount.ToString());
+                action.SetArgumentValue("TotalMatches", totalMatches.ToString());
 
                 // update ID may be wrong here, it should be the one of the container?
                 action.SetArgumentValue("UpdateId", "1");
