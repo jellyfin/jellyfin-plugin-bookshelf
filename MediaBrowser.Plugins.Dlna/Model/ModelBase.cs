@@ -614,7 +614,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
 
         protected internal override Platinum.MediaObject GetMediaObject(Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
         {
-            var result = PlatinumMediaObjectHelper.GetMediaObject(this);
+            var result = PlatinumMediaObjectHelper.GetMediaObject(this, context.Signature);
             foreach (var res in VideoItemPlatinumMediaResourceHelper.GetMediaResource(this, context, urlPrefixes))
             {
                 result.AddResource(res);
@@ -921,7 +921,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             return result;
         }
 
-        internal static Platinum.MediaItem GetMediaObject(VideoItem item)
+        internal static Platinum.MediaItem GetMediaObject(VideoItem item, Platinum.DeviceSignature signature)
         {
             var result = new Platinum.MediaItem();
 
@@ -935,7 +935,11 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 result.Class = new Platinum.ObjectClass("object.item.videoItem", "");
             else
             {
-                result.Class = new Platinum.ObjectClass("object.item.videoItem.videoBroadcast", "");
+                if (signature == Platinum.DeviceSignature.WMP)
+                    result.Class = new Platinum.ObjectClass("object.item.videoItem.videoBroadcast", "");
+                else
+                    result.Class = new Platinum.ObjectClass("object.item.videoItem", "");
+
                 if (episode.Season != null)
                     result.Title = string.Format("{0}-{1}", episode.Season.Name, result.Title);
                 if (episode.Series != null)
