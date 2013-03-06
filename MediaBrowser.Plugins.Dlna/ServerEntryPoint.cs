@@ -127,6 +127,9 @@ namespace MediaBrowser.Plugins.Dlna
 
             if (objectIDMatch != null)
             {
+                Logger.Debug("BrowseMetadata Found ObjectID:{0} MbItemName:{1}", 
+                    object_id,  objectIDMatch.MbItem == null ? "MbItem Null" : objectIDMatch.MbItem.Name); 
+
                 var urlPrefixes = GetHttpServerPrefixes(context);
                 using (var item = objectIDMatch.GetMediaObject(context, urlPrefixes))
                 {
@@ -143,6 +146,7 @@ namespace MediaBrowser.Plugins.Dlna
             // update ID may be wrong here, it should be the one of the container?
             action.SetArgumentValue("UpdateId", "1");
 
+            Logger.Debug("BrowseMetadata Returning - NumberReturned:{0} TotalMatches:{1} UpdateId:{2}", itemCount, itemCount, "1");
             return NEP_Success;
         }
         private int server_BrowseDirectChildren(Platinum.Action action, String object_id, String filter, Int32 starting_index, Int32 requested_count, String sort_criteria, Platinum.HttpRequestContext context)
@@ -207,6 +211,9 @@ namespace MediaBrowser.Plugins.Dlna
             var objectIDMatch = Model.NavigationHelper.GetObjectByID(this.CurrentUser, object_id);
             if (objectIDMatch != null)
             {
+                Logger.Debug("BrowseDirectChildren Found ObjectID:{0} MbItemName:{1}", 
+                    object_id, objectIDMatch.MbItem == null ? "MbItem Null" : objectIDMatch.MbItem.Name); 
+
                 var children = Model.NavigationHelper.GetChildren(objectIDMatch, starting_index, requested_count);
                 totalMatches = objectIDMatch.Children.Count();
 
@@ -233,6 +240,7 @@ namespace MediaBrowser.Plugins.Dlna
             // update ID may be wrong here, it should be the one of the container?
             action.SetArgumentValue("UpdateId", "1");
 
+            Logger.Debug("BrowseDirectChildren Returning - NumberReturned:{0} TotalMatches:{1} UpdateId:{2}", itemCount, totalMatches, "1");
             return NEP_Success;
         }
         private int server_ProcessFileRequest(Platinum.HttpRequestContext context, Platinum.HttpResponse response)
@@ -321,6 +329,9 @@ namespace MediaBrowser.Plugins.Dlna
             var objectIDMatch = Model.NavigationHelper.GetObjectByID(this.CurrentUser, object_id);
             if (objectIDMatch != null)
             {
+                Logger.Debug("SearchContainer Found ObjectID:{0} MbItemName:{1}",
+                    object_id, objectIDMatch.MbItem == null ? "MbItem Null" : objectIDMatch.MbItem.Name); 
+
                 var children = Model.NavigationHelper.GetRecursiveChildren(objectIDMatch, starting_index, requested_count);
 
                 //until we implement search that actually searches, the total matches is ALL recursive children
@@ -349,6 +360,7 @@ namespace MediaBrowser.Plugins.Dlna
             // update ID may be wrong here, it should be the one of the container?
             action.SetArgumentValue("UpdateId", "1");
 
+            Logger.Debug("SearchContainer Returning - NumberReturned:{0} TotalMatches:{1} UpdateId:{2}", itemCount, totalMatches, "1");
             return NEP_Success;
         }
 
