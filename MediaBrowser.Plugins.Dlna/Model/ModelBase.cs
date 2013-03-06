@@ -936,21 +936,24 @@ namespace MediaBrowser.Plugins.Dlna.Model
             else
             {
                 if (signature == Platinum.DeviceSignature.WMP)
+                {
                     result.Class = new Platinum.ObjectClass("object.item.videoItem.videoBroadcast", "");
+
+                    if (episode.Season != null)
+                        result.Title = string.Format("{0}-{1}", episode.Season.Name, result.Title);
+                    if (episode.Series != null)
+                        result.Title = string.Format("{0}-{1}", episode.Series.Name, result.Title);
+
+                    if (episode.IndexNumber.HasValue)
+                        result.Recorded.EpisodeNumber = (uint)item.MBItem.IndexNumber.Value;
+                    if (episode.Series != null)
+                        result.Recorded.SeriesTitle = episode.Series.Name == null ? string.Empty : episode.Series.Name;
+
+                    result.Recorded.ProgramTitle = episode.Name == null ? string.Empty : episode.Name;
+                }
                 else
                     result.Class = new Platinum.ObjectClass("object.item.videoItem", "");
 
-                if (episode.Season != null)
-                    result.Title = string.Format("{0}-{1}", episode.Season.Name, result.Title);
-                if (episode.Series != null)
-                    result.Title = string.Format("{0}-{1}", episode.Series.Name, result.Title);
-
-                if (episode.IndexNumber.HasValue)
-                    result.Recorded.EpisodeNumber = (uint)item.MBItem.IndexNumber.Value;
-                if (episode.Series != null)
-                    result.Recorded.SeriesTitle = episode.Series.Name == null ? string.Empty : episode.Series.Name;
-
-                result.Recorded.ProgramTitle = episode.Name == null ? string.Empty : episode.Name;
             }
             result.Date = item.MBItem.ProductionYear.ToString();
 
