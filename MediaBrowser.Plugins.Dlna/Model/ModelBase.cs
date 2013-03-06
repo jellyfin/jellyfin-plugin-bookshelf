@@ -13,7 +13,6 @@ namespace MediaBrowser.Plugins.Dlna.Model
 
     internal abstract class ModelBase
     {
-        internal ModelBase(User user, string id, string parentId) : this(user, null, id, parentId) { }
         internal ModelBase(User user, BaseItem mbItem, string id, string parentId)
         {
             this.User = user;
@@ -69,6 +68,15 @@ namespace MediaBrowser.Plugins.Dlna.Model
 
         protected internal abstract Platinum.MediaObject GetMediaObject(Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes);
     }
+    internal abstract class ModelBase<T> : ModelBase where T : BaseItem
+    {
+        internal ModelBase(User user, T mbItem, string parentId)
+            : base(user: user, mbItem: mbItem, id: mbItem.Id.ToString(), parentId: parentId)
+        {
+        }
+        protected internal T MBItem { get { return (T)base.MbItem; } }
+    }
+
     internal abstract class WellKnownContainerBase : ModelBase
     {
         internal WellKnownContainerBase(User user, Folder mbFolder, string id, string parentId, string title)
@@ -209,7 +217,8 @@ namespace MediaBrowser.Plugins.Dlna.Model
         {
             get
             {
-                return this.MbFolder.GetRecursiveChildren(this.User)
+                var asyncGenres = this.MbFolder.GetRecursiveChildren(this.User)
+                    .AsParallel()
                     .OfType<MediaBrowser.Controller.Entities.Audio.Audio>()
                     .SelectMany(audio =>
                     {
@@ -221,7 +230,16 @@ namespace MediaBrowser.Plugins.Dlna.Model
                     })
                     .DistinctBy(genre => genre, StringComparer.OrdinalIgnoreCase)
                     .OrderBy(genre => genre)
-                    .Select(genre => new MusicGenreContainer(this.User, genre, parentId: this.Id));
+                    .Select(genre => LibraryHelper.GetGenre(genre))
+                    .ToList();
+
+                var genres = asyncGenres
+                    .Where(i => i != null && !i.IsFaulted && i.IsCompleted)
+                    .Select(i => i.Result)
+                    .OrderBy(i => i.Name);
+
+                return genres.Select(i => new MusicGenreContainer(this.User, i, parentId: this.Id));
+
             }
         }
 
@@ -415,7 +433,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
         }
     }
 
-    internal class VideoSeriesContainer : ModelBaseItem<MediaBrowser.Controller.Entities.TV.Series>
+    internal class VideoSeriesContainer : ModelBase<MediaBrowser.Controller.Entities.TV.Series>
     {
         internal VideoSeriesContainer(User user, MediaBrowser.Controller.Entities.TV.Series mbItem, string parentId)
             : base(user, mbItem, parentId)
@@ -449,7 +467,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             return result;
         }
     }
-    internal class VideoFolderContainer : ModelBaseItem<Folder>
+    internal class VideoFolderContainer : ModelBase<Folder>
     {
         internal VideoFolderContainer(User user, Folder mbItem, string parentId)
             : base(user, mbItem, parentId)
@@ -482,53 +500,8 @@ namespace MediaBrowser.Plugins.Dlna.Model
     }
 
 
-    internal abstract class ModelBaseItem<T> : ModelBase where T : BaseItem
-    {
-        internal ModelBaseItem(User user, T mbItem, string parentId)
-            : base(user: user, mbItem: mbItem, id: mbItem.Id.ToString(), parentId: parentId)
-        {
-        }
-        protected internal T MBItem { get { return (T)base.MbItem; } }
-    }
 
-    //internal class VideoGenreContainer : ModelBase
-    //{
-    //    internal VideoGenreContainer(User user, string genre, string parentId)
-    //        : base(user, genre.GetMD5().ToString(), parentId)
-    //    {
-    //        this.Genre = genre;
-    //    }
-    //    protected internal string Genre { get; private set; }
-
-    //    protected internal override IEnumerable<ModelBase> Children
-    //    {
-    //        get
-    //        {
-    //            return this.User.RootFolder.GetRecursiveChildren(User)
-    //                .OfType<Video>()
-    //                .Where(i => (i.Genres != null) && i.Genres
-    //                    .Any(g => string.Equals(g, this.Genre, StringComparison.OrdinalIgnoreCase)))
-    //                .Select(i => new VideoItem(this.User, i, parentId: this.Id));
-    //        }
-    //    }
-
-    //    protected internal override Platinum.MediaObject GetMediaObject(Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
-    //    {
-    //        var result = PlatinumMediaObjectHelper.GetMediaObject(this);
-    //        foreach (var res in PlatinumMediaResourceHelper.GetMediaResource(this, context, urlPrefixes))
-    //        {
-    //            result.AddResource(res);
-    //        }
-
-    //        foreach (var art in PlatinumAlbumArtInfoHelper.GetAlbumArtInfo(this, context, urlPrefixes))
-    //        {
-    //            result.Extra.AddAlbumArtInfo(art);
-    //        }
-
-    //        return result;
-    //    }
-    //}
-    internal class VideoGenreContainer : ModelBaseItem<Genre>
+    internal class VideoGenreContainer : ModelBase<Genre>
     {
         internal VideoGenreContainer(User user, Genre mbItem, string parentId)
             : base(user, mbItem, parentId)
@@ -566,7 +539,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
         }
     }
 
-    internal class VideoActorContainer : ModelBaseItem<Person>
+    internal class VideoActorContainer : ModelBase<Person>
     {
         internal VideoActorContainer(User user, Person mbItem, string parentId)
             : base(user, mbItem, parentId)
@@ -603,7 +576,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             return result;
         }
     }
-    internal class VideoItem : ModelBaseItem<Video>
+    internal class VideoItem : ModelBase<Video>
     {
         internal VideoItem(User user, Video mbItem, string parentId)
             : base(user, mbItem, parentId)
@@ -630,7 +603,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
     }
 
 
-    internal class MusicItem : ModelBaseItem<MediaBrowser.Controller.Entities.Audio.Audio>
+    internal class MusicItem : ModelBase<MediaBrowser.Controller.Entities.Audio.Audio>
     {
         internal MusicItem(User user, MediaBrowser.Controller.Entities.Audio.Audio mbItem, string parentId)
             : base(user: user, mbItem: mbItem, parentId: parentId)
@@ -656,23 +629,23 @@ namespace MediaBrowser.Plugins.Dlna.Model
         }
 
     }
-    internal class MusicGenreContainer : ModelBase
+    internal class MusicGenreContainer : ModelBase<Genre>
     {
-        internal MusicGenreContainer(User user, string genre, string parentId)
-            : base(user, genre.GetMD5().ToString(), parentId)
+        internal MusicGenreContainer(User user, Genre mbItem, string parentId)
+            : base(user, mbItem, parentId)
         {
-            this.Genre = genre;
         }
-        protected internal string Genre { get; private set; }
 
         protected internal override IEnumerable<ModelBase> Children
         {
             get
             {
+                //unfortunately genre isn't a folder like you'd expect, 
+                //and it doesn't have children like you'd expect
+                //so we have to start at the root and filter everything ourselves
                 return this.User.RootFolder.GetRecursiveChildren(User)
                     .OfType<MediaBrowser.Controller.Entities.Audio.Audio>()
-                    .Where(i => (i != null) & (i.Genres != null) && (i.Genres
-                        .Any(g => (g != null) && string.Equals(g, this.Genre, StringComparison.OrdinalIgnoreCase))))
+                    .Where(i => (i.Genres != null) && i.Genres.Any(g => string.Equals(g, this.MBItem.Name, StringComparison.OrdinalIgnoreCase)))
                     .Select(i => new MusicItem(this.User, i, parentId: this.Id));
             }
         }
@@ -694,7 +667,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
         }
     }
 
-    internal class MusicArtistContainer : ModelBaseItem<MediaBrowser.Controller.Entities.Audio.MusicArtist>
+    internal class MusicArtistContainer : ModelBase<MediaBrowser.Controller.Entities.Audio.MusicArtist>
     {
         internal MusicArtistContainer(User user, MediaBrowser.Controller.Entities.Audio.MusicArtist mbItem, string parentId)
             : base(user: user, mbItem: mbItem, parentId: parentId)
@@ -728,7 +701,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             return result;
         }
     }
-    internal class MusicAlbumContainer : ModelBaseItem<MediaBrowser.Controller.Entities.Audio.MusicAlbum>
+    internal class MusicAlbumContainer : ModelBase<MediaBrowser.Controller.Entities.Audio.MusicAlbum>
     {
         internal MusicAlbumContainer(User user, MediaBrowser.Controller.Entities.Audio.MusicAlbum mbItem, string parentId)
             : base(user: user, mbItem: mbItem, parentId: parentId)
@@ -1040,9 +1013,9 @@ namespace MediaBrowser.Plugins.Dlna.Model
             result.ParentID = item.ParentId;
             result.Class = new Platinum.ObjectClass("object.container.genre.musicGenre", "");
             result.ChildrenCount = item.Children.Count();
-            result.Title = item.Genre == null ? string.Empty : item.Genre;
-            result.Description.DescriptionText = item.Genre == null ? string.Empty : item.Genre;
-            result.Description.LongDescriptionText = item.Genre == null ? string.Empty : item.Genre;
+            result.Title = item.MBItem.Name.EnsureNotNull();
+            result.Description.DescriptionText = item.MBItem.Name.EnsureNotNull();
+            result.Description.LongDescriptionText = item.MBItem.Name.EnsureNotNull();
             return result;
         }
 
@@ -1200,7 +1173,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             var result = new List<Platinum.AlbumArtInfo>();
             foreach (var prefix in urlPrefixes)
             {
-                result.Add(new Platinum.AlbumArtInfo(prefix + "Genre/" + item.Genre + "/Images/Primary"));
+                result.Add(new Platinum.AlbumArtInfo(prefix + "Genre/" + item.MBItem.Name + "/Images/Primary"));
             }
             return result;
         }
