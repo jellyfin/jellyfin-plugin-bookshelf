@@ -45,7 +45,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 }));
             }
         }
-        
+
         protected internal IEnumerable<ModelBase> GetChildrenRecursive(int startingIndex, int requestedCount)
         {
             if (this.Children.Count() >= (startingIndex + requestedCount))
@@ -78,7 +78,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
         }
         protected internal string Title { get; private set; }
         protected Folder MbFolder { get { return (Folder)this.MbItem; } }
-        
+
         protected override internal Platinum.MediaObject GetMediaObject(Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
         {
             var result = PlatinumMediaObjectHelper.GetMediaObject(this);
@@ -290,7 +290,8 @@ namespace MediaBrowser.Plugins.Dlna.Model
         {
             get
             {
-                return this.MbFolder.GetRecursiveChildren(this.User)
+                var asyncGenres = this.MbFolder.GetRecursiveChildren(this.User)
+                    .AsParallel()
                     .OfType<Video>()
                     .SelectMany(video =>
                     {
@@ -302,7 +303,15 @@ namespace MediaBrowser.Plugins.Dlna.Model
                     })
                     .DistinctBy(genre => genre, StringComparer.OrdinalIgnoreCase)
                     .OrderBy(genre => genre)
-                    .Select(genre => new VideoGenreContainer(this.User, genre, parentId: this.Id));
+                    .Select(genre => LibraryHelper.GetGenre(genre))
+                    .ToList();
+
+                var genres = asyncGenres
+                    .Where(i=> i != null && !i.IsFaulted && i.IsCompleted)
+                    .Select(i =>  i.Result)
+                    .OrderBy(person=>person.Name);
+
+                return genres.Select(i => new VideoGenreContainer(this.User, i, parentId: this.Id));
             }
         }
 
@@ -317,19 +326,26 @@ namespace MediaBrowser.Plugins.Dlna.Model
         {
             get
             {
-                return this.MbFolder.GetRecursiveChildren(this.User)
+                var asyncPeople = this.MbFolder.GetRecursiveChildren(this.User)
+                    .AsParallel()
                     .OfType<Video>()
                     .SelectMany(video =>
                     {
                         if (video.People == null)
-                        {
                             return new PersonInfo[] { };
-                        }
-                        return video.People.Where(p => string.Equals(p.Type, PersonType.Actor, StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(p.Name));
+                        else
+                            return video.People.Where(p => string.Equals(p.Type, PersonType.Actor, StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(p.Name));
                     })
+                    .Where(person => person != null)
                     .DistinctBy(person => person.Name, StringComparer.OrdinalIgnoreCase)
-                    .OrderBy(person => person.Name)
-                    .Select(i => new VideoActorContainer(this.User, i, parentId: this.Id));
+                    .Select(person => LibraryHelper.GetPerson(person))
+                    .ToList();
+
+                var people = asyncPeople
+                    .Where(i=> i != null && !i.IsFaulted && i.IsCompleted)
+                    .Select(i =>  i.Result)
+                    .OrderBy(person=>person.Name);
+                return people.Select(i => new VideoActorContainer(this.User, i, parentId: this.Id));
             }
         }
 
@@ -416,7 +432,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 return this.MBItem.RecursiveChildren.OfType<Video>().Select(i => (ModelBase)(new VideoItem(this.User, i, this.Id)));
             }
         }
-       
+
         protected override internal Platinum.MediaObject GetMediaObject(Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
         {
             var result = PlatinumMediaObjectHelper.GetMediaObject(this);
@@ -475,23 +491,60 @@ namespace MediaBrowser.Plugins.Dlna.Model
         protected internal T MBItem { get { return (T)base.MbItem; } }
     }
 
-    internal class VideoGenreContainer : ModelBase
+    //internal class VideoGenreContainer : ModelBase
+    //{
+    //    internal VideoGenreContainer(User user, string genre, string parentId)
+    //        : base(user, genre.GetMD5().ToString(), parentId)
+    //    {
+    //        this.Genre = genre;
+    //    }
+    //    protected internal string Genre { get; private set; }
+
+    //    protected internal override IEnumerable<ModelBase> Children
+    //    {
+    //        get
+    //        {
+    //            return this.User.RootFolder.GetRecursiveChildren(User)
+    //                .OfType<Video>()
+    //                .Where(i => (i.Genres != null) && i.Genres
+    //                    .Any(g => string.Equals(g, this.Genre, StringComparison.OrdinalIgnoreCase)))
+    //                .Select(i => new VideoItem(this.User, i, parentId: this.Id));
+    //        }
+    //    }
+
+    //    protected internal override Platinum.MediaObject GetMediaObject(Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
+    //    {
+    //        var result = PlatinumMediaObjectHelper.GetMediaObject(this);
+    //        foreach (var res in PlatinumMediaResourceHelper.GetMediaResource(this, context, urlPrefixes))
+    //        {
+    //            result.AddResource(res);
+    //        }
+
+    //        foreach (var art in PlatinumAlbumArtInfoHelper.GetAlbumArtInfo(this, context, urlPrefixes))
+    //        {
+    //            result.Extra.AddAlbumArtInfo(art);
+    //        }
+
+    //        return result;
+    //    }
+    //}
+    internal class VideoGenreContainer : ModelBaseItem<Genre>
     {
-        internal VideoGenreContainer(User user, string genre, string parentId)
-            : base(user, genre.GetMD5().ToString(), parentId)
+        internal VideoGenreContainer(User user, Genre mbItem, string parentId)
+            : base(user, mbItem, parentId)
         {
-            this.Genre = genre;
         }
-        protected internal string Genre { get; private set; }
 
         protected internal override IEnumerable<ModelBase> Children
         {
             get
             {
+                //unfortunately genre isn't a folder like you'd expect, 
+                //and it doesn't have children like you'd expect
+                //so we have to start at the root and filter everything ourselves
                 return this.User.RootFolder.GetRecursiveChildren(User)
                     .OfType<Video>()
-                    .Where(i => (i.Genres != null) && i.Genres
-                        .Any(g => string.Equals(g, this.Genre, StringComparison.OrdinalIgnoreCase)))
+                    .Where(i => (i.Genres != null) && i.Genres.Any(g => string.Equals(g, this.MBItem.Name, StringComparison.OrdinalIgnoreCase)))
                     .Select(i => new VideoItem(this.User, i, parentId: this.Id));
             }
         }
@@ -512,23 +565,24 @@ namespace MediaBrowser.Plugins.Dlna.Model
             return result;
         }
     }
-    internal class VideoActorContainer : ModelBase
+
+    internal class VideoActorContainer : ModelBaseItem<Person>
     {
-        internal VideoActorContainer(User user, PersonInfo item, string parentId)
-            : base(user, item.Name.GetMD5().ToString(), parentId)
+        internal VideoActorContainer(User user, Person mbItem, string parentId)
+            : base(user, mbItem, parentId)
         {
-            this.Person = item;
         }
-        protected internal PersonInfo Person { get; private set; }
 
         protected internal override IEnumerable<ModelBase> Children
         {
             get
             {
+                //unfortunately Person doesn't have a children like you'd expect
+                //so we have to start at Root and filter everything ourselves
                 return this.User.RootFolder.GetRecursiveChildren(User)
                     .OfType<Video>()
                     .Where(i => (i.People != null) && i.People
-                        .Any(p => string.Equals(p.Name, this.Person.Name, StringComparison.OrdinalIgnoreCase)))
+                        .Any(p => string.Equals(p.Name, this.MBItem.Name, StringComparison.OrdinalIgnoreCase) && string.Equals(p.Type, PersonType.Actor, StringComparison.OrdinalIgnoreCase)))
                     .Select(i => new VideoItem(this.User, i, parentId: this.Id));
             }
         }
@@ -691,7 +745,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
                     .Select(i => new MusicItem(this.User, i, this.Id));
             }
         }
-    
+
         protected internal override Platinum.MediaObject GetMediaObject(Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
         {
             var result = PlatinumMediaObjectHelper.GetMediaObject(this);
@@ -845,12 +899,13 @@ namespace MediaBrowser.Plugins.Dlna.Model
             result.Class = new Platinum.ObjectClass("object.container.genre.videoGenre", "");
             result.ChildrenCount = item.Children.Count();
 
-            result.Title = item.Genre == null ? string.Empty : item.Genre;
-            result.Description.DescriptionText = item.Genre == null ? string.Empty : item.Genre;
-            result.Description.LongDescriptionText = item.Genre == null ? string.Empty : item.Genre;
+            result.Title = item.MBItem.Name.EnsureNotNull();
+            result.Description.DescriptionText = item.MBItem.Name.EnsureNotNull();
+            result.Description.LongDescriptionText = item.MBItem.Name.EnsureNotNull();
 
             return result;
         }
+
         internal static Platinum.MediaContainer GetMediaObject(VideoActorContainer item)
         {
             var result = new Platinum.MediaContainer();
@@ -859,9 +914,9 @@ namespace MediaBrowser.Plugins.Dlna.Model
             result.Class = new Platinum.ObjectClass("object.container", "");
             result.ChildrenCount = item.Children.Count();
 
-            result.Title = item.Person.Name == null ? string.Empty : item.Person.Name;
-            result.Description.DescriptionText = string.Format("{0} {1} {2}", item.Person.Name, item.Person.Role, item.Person.Type);
-            result.Description.LongDescriptionText = string.Format("{0} {1} {2}", item.Person.Name, item.Person.Role, item.Person.Type);
+            result.Title = item.MBItem.Name == null ? string.Empty : item.MBItem.Name;
+            result.Description.DescriptionText = item.MBItem.Overview.EnsureNotNull();
+            result.Description.LongDescriptionText = item.MBItem.Overview.EnsureNotNull();
 
             return result;
         }
@@ -1103,24 +1158,33 @@ namespace MediaBrowser.Plugins.Dlna.Model
             return result;
         }
 
-
         internal static IEnumerable<Platinum.AlbumArtInfo> GetAlbumArtInfo(VideoActorContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
         {
             var result = new List<Platinum.AlbumArtInfo>();
-
-            //this api breaks if there are no images for the person
-            //foreach (var prefix in urlPrefixes)
-            //{
-            //    result.Add(new Platinum.AlbumArtInfo(prefix + "Persons/" + item.Person.Name + "/Images/Primary"));
-            //}
+            if (item.MBItem.Images != null)
+            {
+                foreach (var img in item.MBItem.Images)
+                {
+                    foreach (var prefix in urlPrefixes)
+                    {
+                        result.Add(new Platinum.AlbumArtInfo(new Uri(prefix + "Persons/" + item.MBItem.Name + "/Images/" + img.Key).ToString()));
+                    }
+                }
+            }
             return result;
         }
         internal static IEnumerable<Platinum.AlbumArtInfo> GetAlbumArtInfo(VideoGenreContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
         {
             var result = new List<Platinum.AlbumArtInfo>();
-            foreach (var prefix in urlPrefixes)
+            if (item.MBItem.Images != null)
             {
-                result.Add(new Platinum.AlbumArtInfo(prefix + "Genre/" + item.Genre + "/Images/Primary"));
+                foreach (var img in item.MBItem.Images)
+                {
+                    foreach (var prefix in urlPrefixes)
+                    {
+                        result.Add(new Platinum.AlbumArtInfo(new Uri(prefix + "Genres/" + item.MBItem.Name + "/Images/" + img.Key).ToString()));
+                    }
+                }
             }
             return result;
         }
@@ -1173,6 +1237,26 @@ namespace MediaBrowser.Plugins.Dlna.Model
 
             //var resource = new Platinum.MediaResource();
             return result;
+
+            //var result = new List<Platinum.MediaResource>();
+            //if (item == null)
+            //    return result;
+
+            //if (item.MBItem.Images != null)
+            //{
+            //    foreach (var img in item.MBItem.Images)
+            //    {
+            //        foreach (var prefix in urlPrefixes)
+            //        {
+            //            var resource = new Platinum.MediaResource();
+            //            resource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType("image/jpeg", true, context);
+            //            resource.URI = new Uri(prefix + "Persons/" + item.MBItem.Id.ToString() + "/Images/" + img.Key).ToString();
+                        
+            //            result.Add(resource);
+            //        }
+            //    }
+            //}
+            //return result;
         }
         internal static IEnumerable<Platinum.MediaResource> GetMediaResource(VideoGenreContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
         {
@@ -1226,7 +1310,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 foreach (var ext in exts)
                 {
                     var resource = GetBasicMediaResource((BaseItem)item.MBItem);
-                    
+
 
                     //I'm unclear what /stream actaully returns
                     //but its sure hard to find a mime type for it
@@ -1271,7 +1355,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
 
             return result;
         }
-        
+
         //private static IEnumerable<string> ValidUriExtensions
         //{
         //    get
@@ -1334,7 +1418,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
 
                     //http://25.62.100.208:8096/mediabrowser/Videos/7cb7f497-234f-05e3-64c0-926ff07d3fa6/stream.asf?audioChannels=2&audioBitrate=128000&videoBitrate=5000000&maxWidth=1920&maxHeight=1080&videoCodec=wmv&audioCodec=wma
                     //resource.URI = new Uri(prefix + "Videos/" + item.MBItem.Id.ToString() + "/stream" + opt.UriExtension).ToString();
-                    var uri = string.Format("{0}Videos/{1}/stream{2}?audioChannels={3}&audioBitrate={4}&videoBitrate={5}&maxWidth={6}&maxHeight={7}&videoCodec={8}&audioCodec={9}", 
+                    var uri = string.Format("{0}Videos/{1}/stream{2}?audioChannels={3}&audioBitrate={4}&videoBitrate={5}&maxWidth={6}&maxHeight={7}&videoCodec={8}&audioCodec={9}",
                                             prefix, item.MBItem.Id, opt.UriExtension, opt.AudioChannels, opt.AudioBitrate, opt.VideoBitrate, opt.MaxWidth, opt.MaxHeight, opt.VideoCodec, opt.AudioCodec);
                     resource.URI = new Uri(uri).ToString();
 
@@ -1444,7 +1528,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
 
             return result;
         }
-        
+
         private class VideoOptions
         {
             //audioChannels=2&audioBitrate=128000&videoBitrate=5000000&maxWidth=1920&maxHeight=1080&videoCodec=wmv&audioCodec=wma
@@ -1599,5 +1683,20 @@ namespace MediaBrowser.Plugins.Dlna.Model
             else
                 return item.GetChildrenRecursive(startingIndex, requestedCount);
         }
+    }
+
+    internal static class LibraryHelper
+    {
+        internal static MediaBrowser.Controller.Library.ILibraryManager LibraryManager { get; set; }
+
+        internal static async Task<Person> GetPerson(PersonInfo personInfo)
+        {
+            return await LibraryManager.GetPerson(personInfo.Name);
+        }
+        internal static async Task<Genre> GetGenre(string name)
+        {
+            return await LibraryManager.GetGenre(name);
+        }
+
     }
 }

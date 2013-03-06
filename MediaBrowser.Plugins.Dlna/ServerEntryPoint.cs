@@ -54,6 +54,7 @@ namespace MediaBrowser.Plugins.Dlna
         {
             await ExtractAssemblies().ConfigureAwait(false);
 
+            Model.LibraryHelper.LibraryManager = this.LibraryManager;
             SetupUPnPServer();
         }
 
