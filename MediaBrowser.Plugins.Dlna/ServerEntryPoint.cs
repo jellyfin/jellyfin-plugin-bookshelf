@@ -57,7 +57,7 @@ namespace MediaBrowser.Plugins.Dlna
             SetupUPnPServer();
         }
 
-        public void SetupUPnPServer()
+        internal void SetupUPnPServer()
         {
             _CurrentUser = null;
 
@@ -69,7 +69,7 @@ namespace MediaBrowser.Plugins.Dlna
                 _PlatinumServer = new Platinum.MediaConnect(Plugin.Instance.Configuration.FriendlyDlnaName, "MB3UPnP", Plugin.Instance.Configuration.DlnaPortNumber.Value);
             else
                 _PlatinumServer = new Platinum.MediaConnect(Plugin.Instance.Configuration.FriendlyDlnaName);
-
+            
             _PlatinumServer.BrowseMetadata += server_BrowseMetadata;
             _PlatinumServer.BrowseDirectChildren += server_BrowseDirectChildren;
             _PlatinumServer.ProcessFileRequest += server_ProcessFileRequest;
@@ -80,7 +80,7 @@ namespace MediaBrowser.Plugins.Dlna
             Logger.Info("UPnP Server Started");
         }
 
-        public void CleanupUPnPServer()
+        internal void CleanupUPnPServer()
         {
             Logger.Info("UPnP Server Stopping");
             if (_Upnp != null && _Upnp.Running)
@@ -119,13 +119,7 @@ namespace MediaBrowser.Plugins.Dlna
             //filter:@id,upnp:class,res,res@protocolInfo,res@av:authenticationUri,res@size,dc:title,upnp:albumArtURI,res@dlna:ifoFileURI,res@protection,res@bitrate,res@duration,res@sampleFrequency,res@bitsPerSample,res@nrAudioChannels,res@resolution,res@colorDepth,dc:date,av:dateTime,upnp:artist,upnp:album,upnp:genre,dc:contributer,upnp:storageFree,upnp:storageUsed,upnp:originalTrackNumber,dc:publisher,dc:language,dc:region,dc:description,upnp:toc,@childCount,upnp:albumArtURI@dlna:profileID,res@dlna:cleartextSize 
             //starting_index:0 requested_count:1 sort_criteria: context:HttpRequestContext LocalAddress:HttpRequestContext.SocketAddress IP:192.168.1.56 Port:1845 RemoteAddress:HttpRequestContext.SocketAddress IP:192.168.1.40 Port:49277 Request:http://192.168.1.56:1845/ContentDirectory/7c6b1b90-872b-2cda-3c5c-21a0e430ce5e/control.xml Signature:PS3
 
-            Model.ModelBase objectIDMatch = null;
-
-            var root = new Model.Root(CurrentUser);
-            if (string.Equals(object_id, "0", StringComparison.OrdinalIgnoreCase))
-                objectIDMatch = root;
-            else
-                objectIDMatch = root.GetChildRecursive(object_id);
+            var objectIDMatch = Model.NavigationHelper.GetObjectByID(this.CurrentUser, object_id);
 
             int itemCount = 0;
             var didl = Platinum.Didl.header;
@@ -206,30 +200,18 @@ namespace MediaBrowser.Plugins.Dlna
             2013-02-24 22:47:24.0908, Info, App, BrowseDirectChildren Entered - Parameters: action: { Name:"Browse", Description:" { Name:"Browse", Arguments:[ ] } ", Arguments:[ ] }  object_id:90a8b701-b1ca-325d-e00f-d3f60267584d filter:dc:title,res,res@protection,res@duration,res@bitrate,upnp:genre,upnp:actor,res@microsoft:codec starting_index:0 requested_count:1000 sort_criteria:+upnp:class,+dc:title context: { LocalAddress:{ IP:192.168.1.56, Port:1733 }, RemoteAddress:{ IP:192.168.1.27, Port:44378 }, Request:"http://192.168.1.56:1733/ContentDirectory/944ef00a-1bd9-d8f2-02ab-9a5de207da75/control.xml", Signature:XBox }
             */
 
-            Model.ModelBase objectIDMatch = null;
-
-            var root = new Model.Root(CurrentUser);
-            if (string.Equals(object_id, "0", StringComparison.OrdinalIgnoreCase))
-                objectIDMatch = root;
-            else
-                objectIDMatch = root.GetChildRecursive(object_id);
-
+            int itemCount = 0;
+            int totalMatches = 0;
+            var didl = Platinum.Didl.header;
+            var objectIDMatch = Model.NavigationHelper.GetObjectByID(this.CurrentUser, object_id);
             if (objectIDMatch != null)
             {
-                IEnumerable<Model.ModelBase> children = null;
-                //if they request zero children, they mean all children
-                if (requested_count == 0)
-                    children = objectIDMatch.Children;
-                else
-                    children = objectIDMatch.GetChildren(starting_index, requested_count);
-
-                var totalMatches = objectIDMatch.Children.Count();
+                var children = Model.NavigationHelper.GetChildren(objectIDMatch, starting_index, requested_count);
+                totalMatches = objectIDMatch.Children.Count();
 
                 if (children != null)
                 {
                     var urlPrefixes = GetHttpServerPrefixes(context);
-                    int itemCount = 0;
-                    var didl = Platinum.Didl.header;
                     foreach (var child in children)
                     {
                         using (var item = child.GetMediaObject(context, urlPrefixes))
@@ -238,19 +220,19 @@ namespace MediaBrowser.Plugins.Dlna
                             itemCount++;
                         }
                     }
-                    didl += Platinum.Didl.footer;
-
-                    action.SetArgumentValue("Result", didl);
-                    action.SetArgumentValue("NumberReturned", itemCount.ToString());
-                    action.SetArgumentValue("TotalMatches", totalMatches.ToString());
-
-                    // update ID may be wrong here, it should be the one of the container?
-                    action.SetArgumentValue("UpdateId", "1");
-
-                    return NEP_Success;
                 }
             }
-            return NEP_Failure;
+
+            didl += Platinum.Didl.footer;
+
+            action.SetArgumentValue("Result", didl);
+            action.SetArgumentValue("NumberReturned", itemCount.ToString());
+            action.SetArgumentValue("TotalMatches", totalMatches.ToString());
+
+            // update ID may be wrong here, it should be the one of the container?
+            action.SetArgumentValue("UpdateId", "1");
+
+            return NEP_Success;
         }
         private int server_ProcessFileRequest(Platinum.HttpRequestContext context, Platinum.HttpResponse response)
         {
@@ -331,70 +313,42 @@ namespace MediaBrowser.Plugins.Dlna
             //this means it wants albums put into containers, I thought Platinum might do this for us, but it doesn't
 
 
-            var didl = Platinum.Didl.header;
             int itemCount = 0;
-
-            IEnumerable<Model.ModelBase> children = null;
-            Model.ModelBase objectIDMatch;
-            // I need to ask someone on the MB team if there's a better way to do this, it seems like it 
-            //could get pretty expensive to get ALL children all the time
-            //if it's our only option perhaps we should cache results locally or something similar
-            var root = new Model.Root(CurrentUser);
-            if (string.Equals(object_id, "0", StringComparison.OrdinalIgnoreCase))
-                objectIDMatch = root;
-            else
-                objectIDMatch = root.GetChildRecursive(object_id);
-
-            if (objectIDMatch == null)
-            {
-                didl += Platinum.Didl.footer;
-
-                action.SetArgumentValue("Result", didl);
-                action.SetArgumentValue("NumberReturned", itemCount.ToString());
-                action.SetArgumentValue("TotalMatches", itemCount.ToString());
-
-                // update ID may be wrong here, it should be the one of the container?
-                action.SetArgumentValue("UpdateId", "1");
-
-                return NEP_Success;
-            }
-
             var totalMatches = 0;
-            //if they request zero children, they mean all children
-            if (requested_count == 0)
-                children = objectIDMatch.RecursiveChildren;
-            else
-                children = objectIDMatch.GetChildrenRecursive(starting_index, requested_count);
+            var didl = Platinum.Didl.header;
 
-            //until we implement search that actually searches, the total matches is ALL recursive children
-            totalMatches = objectIDMatch.RecursiveChildren.Count();
-            
-            if (children != null)
+            var objectIDMatch = Model.NavigationHelper.GetObjectByID(this.CurrentUser, object_id);
+            if (objectIDMatch != null)
             {
-                var urlPrefixes = GetHttpServerPrefixes(context);
+                var children = Model.NavigationHelper.GetRecursiveChildren(objectIDMatch, starting_index, requested_count);
 
-                foreach (var child in children)
+                //until we implement search that actually searches, the total matches is ALL recursive children
+                totalMatches = objectIDMatch.RecursiveChildren.Count();
+
+                if (children != null)
                 {
-                    using (var item = child.GetMediaObject(context, urlPrefixes))
+                    var urlPrefixes = GetHttpServerPrefixes(context);
+
+                    foreach (var child in children)
                     {
-                        didl += item.ToDidl(filter);
-                        itemCount++;
+                        using (var item = child.GetMediaObject(context, urlPrefixes))
+                        {
+                            didl += item.ToDidl(filter);
+                            itemCount++;
+                        }
                     }
                 }
-
-                didl += Platinum.Didl.footer;
-
-                action.SetArgumentValue("Result", didl);
-                action.SetArgumentValue("NumberReturned", itemCount.ToString());
-                action.SetArgumentValue("TotalMatches", totalMatches.ToString());
-
-                // update ID may be wrong here, it should be the one of the container?
-                action.SetArgumentValue("UpdateId", "1");
-
-                return NEP_Success;
             }
+            didl += Platinum.Didl.footer;
 
-            return NEP_Failure;
+            action.SetArgumentValue("Result", didl);
+            action.SetArgumentValue("NumberReturned", itemCount.ToString());
+            action.SetArgumentValue("TotalMatches", totalMatches.ToString());
+
+            // update ID may be wrong here, it should be the one of the container?
+            action.SetArgumentValue("UpdateId", "1");
+
+            return NEP_Success;
         }
 
         /// <summary>

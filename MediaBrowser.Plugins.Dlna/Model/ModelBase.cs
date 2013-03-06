@@ -1572,4 +1572,32 @@ namespace MediaBrowser.Plugins.Dlna.Model
             return item == null ? string.Empty : item;
         }
     }
+
+    internal static class NavigationHelper
+    {
+        internal static Model.ModelBase GetObjectByID(User currentUser, string object_id)
+        {
+            var root = new Model.Root(currentUser);
+            if (string.Equals(object_id, "0", StringComparison.OrdinalIgnoreCase))
+                return root;
+            else
+                return root.GetChildRecursive(object_id);
+        }
+        internal static IEnumerable<Model.ModelBase> GetChildren(Model.ModelBase item, int startingIndex, int requestedCount)
+        {
+            //if they request zero children, they mean all children
+            if (requestedCount == 0)
+                return item.Children;
+            else
+                return item.GetChildren(startingIndex, requestedCount);
+        }
+        internal static IEnumerable<Model.ModelBase> GetRecursiveChildren(Model.ModelBase item, int startingIndex, int requestedCount)
+        {
+            //if they request zero children, they mean all children
+            if (requestedCount == 0)
+                return item.RecursiveChildren;
+            else
+                return item.GetChildrenRecursive(startingIndex, requestedCount);
+        }
+    }
 }
