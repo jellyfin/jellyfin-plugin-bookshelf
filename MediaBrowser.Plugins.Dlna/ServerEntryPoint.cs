@@ -120,7 +120,7 @@ namespace MediaBrowser.Plugins.Dlna
             //filter:@id,upnp:class,res,res@protocolInfo,res@av:authenticationUri,res@size,dc:title,upnp:albumArtURI,res@dlna:ifoFileURI,res@protection,res@bitrate,res@duration,res@sampleFrequency,res@bitsPerSample,res@nrAudioChannels,res@resolution,res@colorDepth,dc:date,av:dateTime,upnp:artist,upnp:album,upnp:genre,dc:contributer,upnp:storageFree,upnp:storageUsed,upnp:originalTrackNumber,dc:publisher,dc:language,dc:region,dc:description,upnp:toc,@childCount,upnp:albumArtURI@dlna:profileID,res@dlna:cleartextSize 
             //starting_index:0 requested_count:1 sort_criteria: context:HttpRequestContext LocalAddress:HttpRequestContext.SocketAddress IP:192.168.1.56 Port:1845 RemoteAddress:HttpRequestContext.SocketAddress IP:192.168.1.40 Port:49277 Request:http://192.168.1.56:1845/ContentDirectory/7c6b1b90-872b-2cda-3c5c-21a0e430ce5e/control.xml Signature:PS3
 
-            var objectIDMatch = Model.NavigationHelper.GetObjectByID(this.CurrentUser, object_id);
+            var objectIDMatch = Model.NavigationHelper.GetObjectByPath(this.CurrentUser, object_id);
 
             int itemCount = 0;
             var didl = Platinum.Didl.header;
@@ -208,7 +208,7 @@ namespace MediaBrowser.Plugins.Dlna
             int itemCount = 0;
             int totalMatches = 0;
             var didl = Platinum.Didl.header;
-            var objectIDMatch = Model.NavigationHelper.GetObjectByID(this.CurrentUser, object_id);
+            var objectIDMatch = Model.NavigationHelper.GetObjectByPath(this.CurrentUser, object_id);
             if (objectIDMatch != null)
             {
                 Logger.Debug("BrowseDirectChildren Found ObjectID:{0} MbItemName:{1}", 
@@ -326,7 +326,7 @@ namespace MediaBrowser.Plugins.Dlna
             var totalMatches = 0;
             var didl = Platinum.Didl.header;
 
-            var objectIDMatch = Model.NavigationHelper.GetObjectByID(this.CurrentUser, object_id);
+            var objectIDMatch = Model.NavigationHelper.GetObjectByPath(this.CurrentUser, object_id);
             if (objectIDMatch != null)
             {
                 Logger.Debug("SearchContainer Found ObjectID:{0} MbItemName:{1}",
