@@ -472,10 +472,36 @@ namespace MediaBrowser.Plugins.Dlna.Model
         {
             get
             {
-                //var folderChildren = this.MBItem.GetChildren(this.User).OfType<Folder>().Select(i => (ModelBase)(new VideoFolderContainer(this.User, i, this.Id)));
-                //var videoChildren = this.MBItem.RecursiveChildren.OfType<Video>().Select(i => (ModelBase)(new VideoItem(this.User, i, this.Id)));
-                //return folderChildren.Union(videoChildren);
+                return this.MBItem.RecursiveChildren.OfType<MediaBrowser.Controller.Entities.TV.Season>().Select(i => (ModelBase)(new VideoSeasonContainer(this.User, mbItem: i, parent: this)));
+            }
+        }
 
+        protected override internal Platinum.MediaObject GetMediaObject(Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
+        {
+            var result = PlatinumMediaObjectHelper.GetMediaObject(this);
+            foreach (var res in PlatinumMediaResourceHelper.GetMediaResource(this, context, urlPrefixes))
+            {
+                result.AddResource(res);
+            }
+
+            foreach (var art in PlatinumAlbumArtInfoHelper.GetAlbumArtInfo(this, context, urlPrefixes))
+            {
+                result.Extra.AddAlbumArtInfo(art);
+            }
+
+            return result;
+        }
+    }
+    internal class VideoSeasonContainer : ModelBase<MediaBrowser.Controller.Entities.TV.Season>
+    {
+        internal VideoSeasonContainer(User user, MediaBrowser.Controller.Entities.TV.Season mbItem, ModelBase parent)
+            : base(user, mbItem, parent)
+        {
+        }
+        protected internal override IEnumerable<ModelBase> Children
+        {
+            get
+            {
                 return this.MBItem.RecursiveChildren.OfType<Video>().Select(i => (ModelBase)(new VideoItem(this.User, mbItem: i, parent: this)));
             }
         }
@@ -839,6 +865,60 @@ namespace MediaBrowser.Plugins.Dlna.Model
             }
             return result;
         }
+        internal static Platinum.MediaContainer GetMediaObject(VideoSeasonContainer item)
+        {
+            var result = new Platinum.MediaContainer();
+            result.ObjectID = item.Path;
+            result.ParentID = item.ParentPath;
+            result.Class = new Platinum.ObjectClass("object.container.album.videoAlbum", "");
+            result.Title = item.MbItem.Name;
+            result.ChildrenCount = item.Children.Count();
+
+            result.Description.Date = item.MbItem.PremiereDate.HasValue ? item.MbItem.PremiereDate.Value.ToString() : string.Empty;
+            result.Description.Language = item.MbItem.Language.EnsureNotNull();
+            result.Description.DescriptionText = item.MbItem.Overview.EnsureNotNull();
+            result.Description.LongDescriptionText = item.MbItem.Overview.EnsureNotNull();
+            result.Description.Rating = item.MbItem.CommunityRating.ToString();
+
+            result.Recorded.SeriesTitle = item.MBItem.Name.EnsureNotNull();
+
+            if (item.MbItem.Genres != null)
+            {
+                foreach (var genre in item.MbItem.Genres)
+                {
+                    result.Affiliation.AddGenre(genre);
+                }
+            }
+            if (item.MbItem.People != null)
+            {
+                foreach (var person in item.MbItem.People)
+                {
+                    if (string.Equals(person.Type, PersonType.Actor, StringComparison.OrdinalIgnoreCase))
+                        result.People.AddActor(new Platinum.PersonRole(person.Name, person.Role == null ? string.Empty : person.Role));
+                    else if (string.Equals(person.Type, PersonType.MusicArtist, StringComparison.OrdinalIgnoreCase))
+                    {
+                        result.People.AddArtist(new Platinum.PersonRole(person.Name, "MusicArtist"));
+                        result.People.AddArtist(new Platinum.PersonRole(person.Name, "artist"));
+                        result.People.AddArtist(new Platinum.PersonRole(person.Name, "Performer"));
+                    }
+                    else if (string.Equals(person.Type, PersonType.Composer, StringComparison.OrdinalIgnoreCase))
+                    {
+                        result.People.AddAuthors(new Platinum.PersonRole(person.Name, "Composer"));
+                        result.Creator = person.Name;
+                    }
+                    else if (string.Equals(person.Type, PersonType.Writer, StringComparison.OrdinalIgnoreCase))
+                        result.People.AddAuthors(new Platinum.PersonRole(person.Name, "Writer"));
+                    else if (string.Equals(person.Type, PersonType.Director, StringComparison.OrdinalIgnoreCase))
+                    {
+                        result.People.AddAuthors(new Platinum.PersonRole(person.Name, "Director"));
+                        result.People.Director = result.People.Director + " " + person.Name;
+                    }
+                    else
+                        result.People.AddArtist(new Platinum.PersonRole(person.Name, person.Type == null ? string.Empty : person.Type));
+                }
+            }
+            return result;
+        }
         internal static Platinum.MediaContainer GetMediaObject(VideoFolderContainer item)
         {
             var result = new Platinum.MediaContainer();
@@ -1129,6 +1209,10 @@ namespace MediaBrowser.Plugins.Dlna.Model
         {
             return GetAlbumArtInfo((ModelBase)item, context, urlPrefixes);
         }
+        internal static IEnumerable<Platinum.AlbumArtInfo> GetAlbumArtInfo(VideoSeasonContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
+        {
+            return GetAlbumArtInfo((ModelBase)item, context, urlPrefixes);
+        }
         internal static IEnumerable<Platinum.AlbumArtInfo> GetAlbumArtInfo(VideoFolderContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
         {
             return GetAlbumArtInfo((ModelBase)item, context, urlPrefixes);
@@ -1237,6 +1321,15 @@ namespace MediaBrowser.Plugins.Dlna.Model
             return result;
         }
         internal static IEnumerable<Platinum.MediaResource> GetMediaResource(VideoSeriesContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
+        {
+            var result = new List<Platinum.MediaResource>();
+            if (item == null)
+                return result;
+
+            //var resource = new Platinum.MediaResource();
+            return result;
+        }
+        internal static IEnumerable<Platinum.MediaResource> GetMediaResource(VideoSeasonContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
         {
             var result = new List<Platinum.MediaResource>();
             if (item == null)
