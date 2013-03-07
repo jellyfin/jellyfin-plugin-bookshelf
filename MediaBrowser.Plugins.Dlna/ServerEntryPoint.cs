@@ -56,6 +56,12 @@ namespace MediaBrowser.Plugins.Dlna
 
             Model.LibraryHelper.LibraryManager = this.LibraryManager;
             SetupUPnPServer();
+
+            //this is temporary code so that testers can try various combinations with their devices without needing a recompile all the time
+            Model.VideoItemPlatinumMediaResourceHelper.MimeType = Plugin.Instance.Configuration.VideoMimeType;
+            Model.VideoItemPlatinumMediaResourceHelper.UriFormatString = Plugin.Instance.Configuration.VideoUriFormatString;
+            Model.MusicItemPlatinumMediaResourceHelper.MimeType = Plugin.Instance.Configuration.AudioMimeType;
+            Model.MusicItemPlatinumMediaResourceHelper.UriFormatString = Plugin.Instance.Configuration.AudioUriFormatString;
         }
 
         internal void SetupUPnPServer()

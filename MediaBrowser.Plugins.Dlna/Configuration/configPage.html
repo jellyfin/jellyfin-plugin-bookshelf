@@ -33,6 +33,43 @@
                             </div>
                         </li>
                         <li>
+                            <label for="txtVideoMimeType">
+                                Video Mime Type:
+                            </label>
+                            <input id="txtVideoMimeType" name="txtVideoMimeType" />
+                            <div class="fieldDescription">
+                                The Mime Type to report for all video. This setting is here for quick testing iteration it’s not going to be a permanent fixture.
+                            </div>
+                        </li>
+                        <li>
+                            <label for="txtVideoUriFormatString">
+                                Video Uri Format String:
+                            </label>
+                            <input id="txtVideoUriFormatString" name="txtVideoUriFormatString" />
+                            <div class="fieldDescription">
+                                The format string to use to when constructing the all video Uris. This setting is here for quick testing iteration it’s not going to be a permanent fixture.
+                            </div>
+                        </li>
+                        <li>
+                            <label for="txtAudioMimeType">
+                                Audio Mime Type:
+                            </label>
+                            <input id="txtAudioMimeType" name="txtAudioMimeType" />
+                            <div class="fieldDescription">
+                                The Mime Type to report for all audio. This setting is here for quick testing iteration it’s not going to be a permanent fixture.
+                            </div>
+                        </li>
+                        <li>
+                            <label for="txtAudioUriFormatString">
+                                Audio Uri Format String:
+                            </label>
+                            <input id="txtAudioUriFormatString" name="txtAudioUriFormatString" />
+                            <div class="fieldDescription">
+                                The format string to use to when constructing the all audio Uris. This setting is here for quick testing iteration it’s not going to be a permanent fixture.
+                            </div>
+                        </li>
+
+                        <li>
                             <button type="submit" data-theme="b">Save</button>
                             <div class="fieldDescription">
                                 Saving will restart the dlna server.
@@ -62,6 +99,10 @@
                     $('#txtUserName', page).val(config.UserName);
                     $('#txtFriendlyDlnaName', page).val(config.FriendlyDlnaName);
                     $('#txtDlnaPortNumber', page).val(config.DlnaPortNumber || "");
+                    $('#txtVideoMimeType', page).val(config.VideoMimeType);
+                    $('#txtVideoUriFormatString', page).val(config.VideoUriFormatString);
+                    $('#txtAudioMimeType', page).val(config.AudioMimeType);
+                    $('#txtAudioUriFormatString', page).val(config.AudioUriFormatString);
 
                     Dashboard.hideLoadingMsg();
                 });
@@ -79,6 +120,10 @@
                     config.FriendlyDlnaName = $('#txtFriendlyDlnaName', form).val();
                     var dlnaPortNumber = $('#txtDlnaPortNumber', form).val();
                     config.DlnaPortNumber = dlnaPortNumber ? dlnaPortNumber : null;
+                    config.VideoMimeType = $('#txtVideoMimeType', form).val();
+                    config.VideoUriFormatString = $('#txtVideoUriFormatString', form).val();
+                    config.AudioMimeType = $('#txtAudioMimeType', form).val();
+                    config.AudioUriFormatString = $('#txtAudioUriFormatString', form).val();
 
                     ApiClient.updatePluginConfiguration(dlnaConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
                 });

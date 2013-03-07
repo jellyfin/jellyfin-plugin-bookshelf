@@ -1307,6 +1307,11 @@ namespace MediaBrowser.Plugins.Dlna.Model
     }
     internal static class MusicItemPlatinumMediaResourceHelper
     {
+        //this is temporary code so that testers can try various combinations with their devices without needing a recompile all the time
+        internal static string UriFormatString { get; set; }
+        internal static string MimeType { get; set; }
+
+
         internal static IEnumerable<Platinum.MediaResource> GetMediaResource(MusicItem item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
         {
             var result = new List<Platinum.MediaResource>();
@@ -1316,23 +1321,34 @@ namespace MediaBrowser.Plugins.Dlna.Model
             var exts = ValidUriExtensions;
             foreach (var prefix in urlPrefixes)
             {
-                foreach (var ext in exts)
-                {
-                    var resource = GetBasicMediaResource((BaseItem)item.MBItem);
+                //foreach (var ext in exts)
+                //{
+                //    var resource = GetBasicMediaResource((BaseItem)item.MBItem);
 
 
-                    //I'm unclear what /stream actaully returns
-                    //but its sure hard to find a mime type for it
-                    if (!string.IsNullOrWhiteSpace(ext))
-                    {
-                        var mimeType = MediaBrowser.Common.Net.MimeTypes.GetMimeType(ext);
-                        resource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType(mimeType, true, context);
-                    }
+                //    //I'm unclear what /stream actaully returns
+                //    //but its sure hard to find a mime type for it
+                //    if (!string.IsNullOrWhiteSpace(ext))
+                //    {
+                //        var mimeType = MediaBrowser.Common.Net.MimeTypes.GetMimeType(ext);
+                //        resource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType(mimeType, true, context);
+                //    }
 
-                    resource.URI = new Uri(prefix + "Audio/" + item.MBItem.Id.ToString() + "/stream" + ext).ToString();
+                //    resource.URI = new Uri(prefix + "Audio/" + item.MBItem.Id.ToString() + "/stream" + ext).ToString();
 
-                    result.Add(resource);
-                }
+                //    result.Add(resource);
+                //}
+
+                //this is temporary code so that testers can try various combinations with their devices without needing a recompile all the time
+                var resource = GetBasicMediaResource((BaseItem)item.MBItem);
+                resource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType(MimeType, true, context);
+
+                var uri = string.Format(UriFormatString,
+                                        prefix, item.MBItem.Id);
+                resource.URI = new Uri(uri).ToString();
+
+                result.Add(resource);
+
             }
 
             return result;
@@ -1382,58 +1398,73 @@ namespace MediaBrowser.Plugins.Dlna.Model
     }
     internal static class VideoItemPlatinumMediaResourceHelper
     {
+        //this is temporary code so that testers can try various combinations with their devices without needing a recompile all the time
+        internal static string UriFormatString { get; set; }
+        internal static string MimeType { get; set; }
+
         internal static IEnumerable<Platinum.MediaResource> GetMediaResource(VideoItem item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
         {
             var result = new List<Platinum.MediaResource>();
             if (item == null || item.MBItem == null)
                 return result;
 
-            var videoOptions = GetTestVideoOptions(item);
+            //var videoOptions = GetTestVideoOptions(item);
             foreach (var prefix in urlPrefixes)
             {
-                foreach (var opt in videoOptions)
-                {
-                    var resource = GetBasicMediaResource((BaseItem)item.MBItem);
-                    //VideoBitRate - The bitrate in bytes/second of the resource.
-                    resource.Bitrate = (uint)opt.VideoBitrate;
+                //    foreach (var opt in videoOptions)
+                //    {
+                //        var resource = GetBasicMediaResource((BaseItem)item.MBItem);
+                //        //VideoBitRate - The bitrate in bytes/second of the resource.
+                //        resource.Bitrate = (uint)opt.VideoBitrate;
 
-                    //ColourDepth - The color depth in bits of the resource (image or video).
-                    //result.ColorDepth
+                //        //ColourDepth - The color depth in bits of the resource (image or video).
+                //        //result.ColorDepth
 
-                    //AudioChannels - Number of audio channels of the resource, e.g. 1 for mono, 2 for stereo, 6 for Dolby surround, etc.
-                    resource.NbAudioChannels = (uint)opt.AudioChannels;
+                //        //AudioChannels - Number of audio channels of the resource, e.g. 1 for mono, 2 for stereo, 6 for Dolby surround, etc.
+                //        resource.NbAudioChannels = (uint)opt.AudioChannels;
 
-                    //Protection - Some statement of the protection type of the resource (not standardized).
-                    //result.Protection
+                //        //Protection - Some statement of the protection type of the resource (not standardized).
+                //        //result.Protection
 
-                    //Resolution - X*Y resolution of the resource (image or video).
-                    //The string pattern is restricted to strings of the form:
-                    //[0-9]+x[0-9]+
-                    //(one or more digits,'x', followed by one or more digits).
-                    //SampleFrequency - The sample frequency of the resource in Hz
-                    //result.Resolution
-                    resource.SampleFrequency = (uint)opt.SampleRate;
+                //        //Resolution - X*Y resolution of the resource (image or video).
+                //        //The string pattern is restricted to strings of the form:
+                //        //[0-9]+x[0-9]+
+                //        //(one or more digits,'x', followed by one or more digits).
+                //        //SampleFrequency - The sample frequency of the resource in Hz
+                //        //result.Resolution
+                //        resource.SampleFrequency = (uint)opt.SampleRate;
 
-                    //Size - size, in bytes, of the resource.
-                    //result.Size
+                //        //Size - size, in bytes, of the resource.
+                //        //result.Size
 
-                    //I'm unclear what /stream actaully returns
-                    //but its sure hard to find a mime type for it
-                    if (!string.IsNullOrWhiteSpace(opt.MimeExtension))
-                    {
-                        var mimeType = MediaBrowser.Common.Net.MimeTypes.GetMimeType(opt.MimeExtension);
-                        resource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType(mimeType, true, context);
-                    }
+                //        //I'm unclear what /stream actaully returns
+                //        //but its sure hard to find a mime type for it
+                //        if (!string.IsNullOrWhiteSpace(opt.MimeExtension))
+                //        {
+                //            var mimeType = MediaBrowser.Common.Net.MimeTypes.GetMimeType(opt.MimeExtension);
+                //            resource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType(mimeType, true, context);
+                //        }
 
-                    //http://25.62.100.208:8096/mediabrowser/Videos/7cb7f497-234f-05e3-64c0-926ff07d3fa6/stream.asf?audioChannels=2&audioBitrate=128000&videoBitrate=5000000&maxWidth=1920&maxHeight=1080&videoCodec=wmv&audioCodec=wma
-                    //resource.URI = new Uri(prefix + "Videos/" + item.MBItem.Id.ToString() + "/stream" + opt.UriExtension).ToString();
-                    var uri = string.Format("{0}Videos/{1}/stream{2}?audioChannels={3}&audioBitrate={4}&videoBitrate={5}&maxWidth={6}&maxHeight={7}&videoCodec={8}&audioCodec={9}",
-                                            prefix, item.MBItem.Id, opt.UriExtension, opt.AudioChannels, opt.AudioBitrate, opt.VideoBitrate, opt.MaxWidth, opt.MaxHeight, opt.VideoCodec, opt.AudioCodec);
-                    resource.URI = new Uri(uri).ToString();
+                //        //http://25.62.100.208:8096/mediabrowser/Videos/7cb7f497-234f-05e3-64c0-926ff07d3fa6/stream.asf?audioChannels=2&audioBitrate=128000&videoBitrate=5000000&maxWidth=1920&maxHeight=1080&videoCodec=wmv&audioCodec=wma
+                //        //resource.URI = new Uri(prefix + "Videos/" + item.MBItem.Id.ToString() + "/stream" + opt.UriExtension).ToString();
+                //        var uri = string.Format("{0}Videos/{1}/stream{2}?audioChannels={3}&audioBitrate={4}&videoBitrate={5}&maxWidth={6}&maxHeight={7}&videoCodec={8}&audioCodec={9}",
+                //                                prefix, item.MBItem.Id, opt.UriExtension, opt.AudioChannels, opt.AudioBitrate, opt.VideoBitrate, opt.MaxWidth, opt.MaxHeight, opt.VideoCodec, opt.AudioCodec);
+                //        resource.URI = new Uri(uri).ToString();
 
-                    result.Add(resource);
-                }
+                //        result.Add(resource);
+                //    }
+
+                //this is temporary code so that testers can try various combinations with their devices without needing a recompile all the time
+                var resource = GetBasicMediaResource((BaseItem)item.MBItem);
+                resource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType(MimeType, true, context);
+
+                var uri = string.Format(UriFormatString,
+                                        prefix, item.MBItem.Id);
+                resource.URI = new Uri(uri).ToString();
+
+                result.Add(resource);
             }
+
 
             return result;
         }
