@@ -1,6 +1,5 @@
 ﻿using System.Threading;
 using MediaBrowser.Common.Configuration;
-using MediaBrowser.Common.Kernel;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Plugins;
 using MediaBrowser.Model.Serialization;

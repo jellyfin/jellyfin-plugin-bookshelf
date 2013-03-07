@@ -1,5 +1,4 @@
-﻿using MediaBrowser.Common.Kernel;
-using MediaBrowser.Controller;
+﻿using MediaBrowser.Controller;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Library;
@@ -34,9 +33,9 @@ namespace MediaBrowser.Plugins.Dlna
         private ILogger Logger { get; set; }
         private IUserManager UserManager { get; set; }
         private ILibraryManager LibraryManager { get; set; }
-        private IKernel Kernel { get; set; }
+        private Kernel Kernel { get; set; }
 
-        public ServerEntryPoint(ILogManager logManager, IUserManager userManager, ILibraryManager libraryManager, IKernel kernel)
+        public ServerEntryPoint(ILogManager logManager, IUserManager userManager, ILibraryManager libraryManager, Kernel kernel)
         {
             Logger = logManager.GetLogger("DlnaServerPlugin");
 
