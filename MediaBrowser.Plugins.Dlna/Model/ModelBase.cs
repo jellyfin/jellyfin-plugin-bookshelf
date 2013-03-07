@@ -1825,8 +1825,14 @@ namespace MediaBrowser.Plugins.Dlna.Model
             }
             else
             {
-                //probably WMP asking for playlists, for now return null
-                return null;
+                //probably WMP asking directly for playlists
+                //Xbox360 Video App asks directly for 15 which is folders
+                var root = new Model.Root(currentUser);
+                var item = root.GetChildRecursive(object_id);
+                if (paths.Any())
+                    return GetObjectByPath(item, paths);
+                else
+                    return item;
             }
         }
         private static Model.ModelBase GetObjectByPath(Model.ModelBase parent, List<string> paths)
