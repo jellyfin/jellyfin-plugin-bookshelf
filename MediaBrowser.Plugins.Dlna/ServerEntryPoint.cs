@@ -126,6 +126,11 @@ namespace MediaBrowser.Plugins.Dlna
             //filter:@id,upnp:class,res,res@protocolInfo,res@av:authenticationUri,res@size,dc:title,upnp:albumArtURI,res@dlna:ifoFileURI,res@protection,res@bitrate,res@duration,res@sampleFrequency,res@bitsPerSample,res@nrAudioChannels,res@resolution,res@colorDepth,dc:date,av:dateTime,upnp:artist,upnp:album,upnp:genre,dc:contributer,upnp:storageFree,upnp:storageUsed,upnp:originalTrackNumber,dc:publisher,dc:language,dc:region,dc:description,upnp:toc,@childCount,upnp:albumArtURI@dlna:profileID,res@dlna:cleartextSize 
             //starting_index:0 requested_count:1 sort_criteria: context:HttpRequestContext LocalAddress:HttpRequestContext.SocketAddress IP:192.168.1.56 Port:1845 RemoteAddress:HttpRequestContext.SocketAddress IP:192.168.1.40 Port:49277 Request:http://192.168.1.56:1845/ContentDirectory/7c6b1b90-872b-2cda-3c5c-21a0e430ce5e/control.xml Signature:PS3
 
+            //Some temp code to enable the client to make a call to a url with a file extension
+            //so we can test whether or not this is the reason why artwork doesn't show up for many/most clients
+            Model.PlatinumAlbumArtInfoHelper.DlnaHttpServerPrefixes = GetDlnaHttpServerPrefixes(context);
+
+
             var objectIDMatch = Model.NavigationHelper.GetObjectByPath(this.CurrentUser, object_id);
 
             int itemCount = 0;
@@ -211,6 +216,11 @@ namespace MediaBrowser.Plugins.Dlna
             2013-02-24 22:47:24.0908, Info, App, BrowseDirectChildren Entered - Parameters: action: { Name:"Browse", Description:" { Name:"Browse", Arguments:[ ] } ", Arguments:[ ] }  object_id:90a8b701-b1ca-325d-e00f-d3f60267584d filter:dc:title,res,res@protection,res@duration,res@bitrate,upnp:genre,upnp:actor,res@microsoft:codec starting_index:0 requested_count:1000 sort_criteria:+upnp:class,+dc:title context: { LocalAddress:{ IP:192.168.1.56, Port:1733 }, RemoteAddress:{ IP:192.168.1.27, Port:44378 }, Request:"http://192.168.1.56:1733/ContentDirectory/944ef00a-1bd9-d8f2-02ab-9a5de207da75/control.xml", Signature:XBox }
             */
 
+
+            //Some temp code to enable the client to make a call to a url with a file extension
+            //so we can test whether or not this is the reason why artwork doesn't show up for many/most clients
+            Model.PlatinumAlbumArtInfoHelper.DlnaHttpServerPrefixes = GetDlnaHttpServerPrefixes(context);
+
             int itemCount = 0;
             int totalMatches = 0;
             var didl = Platinum.Didl.header;
@@ -255,10 +265,30 @@ namespace MediaBrowser.Plugins.Dlna
                 context.ToLogString(), response);
             this.LogUserActivity(context.Signature);
 
+            //Some temp code to enable the client to make a call to a url with a file extension
+            //so we can test whether or not this is the reason why artwork doesn't show up for many/most clients
             Uri uri = context.Request.URI;
+            var path = uri.AbsolutePath;
+            //http://192.168.10.24:1392/Artwork/06672f73-26da-39b0-70b4-4da25e90a376.jpg
+            if (path.StartsWith("/Artwork/"))
+            {
+                path = path.Replace("/Artwork/", "");
+                if (path.EndsWith(".png"))
+                    path = path.Replace(".png", "");
+                if (path.EndsWith(".jpg"))
+                    path = path.Replace(".jpg", "");
+
+                var item = Model.NavigationHelper.GetObjectByPath(CurrentUser, path);
+                if (item != null && item.MbItem != null && !string.IsNullOrWhiteSpace( item.MbItem.PrimaryImagePath))
+                    Platinum.MediaServer.SetResponseFilePath(context, response, item.MbItem.PrimaryImagePath);
+
+                return NEP_Success;
+            }
+
+
+            //drop into this old code that doesn't do much at the moment because nothing else is pointing here
             var id = uri.AbsolutePath.TrimStart('/');
             Guid itemID;
-
             if (Guid.TryParseExact(id, "D", out itemID))
             {
                 var item = CurrentUser.RootFolder.FindItemById(itemID, CurrentUser);
@@ -327,6 +357,9 @@ namespace MediaBrowser.Plugins.Dlna
             //When hitting the Album tab of the app it's searching criteria is object.container.album.musicAlbum
             //this means it wants albums put into containers, I thought Platinum might do this for us, but it doesn't
 
+            //Some temp code to enable the client to make a call to a url with a file extension
+            //so we can test whether or not this is the reason why artwork doesn't show up for many/most clients
+            Model.PlatinumAlbumArtInfoHelper.DlnaHttpServerPrefixes = GetDlnaHttpServerPrefixes(context);
 
             int itemCount = 0;
             var totalMatches = 0;
@@ -384,6 +417,19 @@ namespace MediaBrowser.Plugins.Dlna
                 result.Add(Kernel.HttpServerUrlPrefix.Replace("+", ip));
             }
             return result.OrderBy(i=>i);
+        }
+
+        //Some temp code to enable the client to make a call to a url with a file extension
+        //so we can test whether or not this is the reason why artwork doesn't show up for many/most clients
+        private IEnumerable<String> GetDlnaHttpServerPrefixes(Platinum.HttpRequestContext context)
+        {
+            var result = new List<string>();
+            var ips = GetUPnPIPAddresses(context);
+            foreach (var ip in ips)
+            {
+                result.Add("http://" + ip + ":" + context.LocalAddress.port + "/");
+            }
+            return result.OrderBy(i => i);
         }
 
         /// <summary>

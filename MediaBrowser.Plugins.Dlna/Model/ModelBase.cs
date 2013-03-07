@@ -1119,51 +1119,67 @@ namespace MediaBrowser.Plugins.Dlna.Model
     }
     internal static class PlatinumAlbumArtInfoHelper
     {
+        internal static IEnumerable<string> DlnaHttpServerPrefixes { get; set; }
+
         internal static IEnumerable<Platinum.AlbumArtInfo> GetAlbumArtInfo(WellKnownContainerBase item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
         {
-            return GetAlbumArtInfo(item.MbItem, context, urlPrefixes);
+            return GetAlbumArtInfo((ModelBase)item, context, urlPrefixes);
         }
         internal static IEnumerable<Platinum.AlbumArtInfo> GetAlbumArtInfo(VideoSeriesContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
         {
-            return GetAlbumArtInfo(item.MbItem, context, urlPrefixes);
+            return GetAlbumArtInfo((ModelBase)item, context, urlPrefixes);
         }
         internal static IEnumerable<Platinum.AlbumArtInfo> GetAlbumArtInfo(VideoFolderContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
         {
-            return GetAlbumArtInfo(item.MbItem, context, urlPrefixes);
+            return GetAlbumArtInfo((ModelBase)item, context, urlPrefixes);
         }
 
         internal static IEnumerable<Platinum.AlbumArtInfo> GetAlbumArtInfo(MusicItem item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
         {
-            return GetAlbumArtInfo(item.MBItem, context, urlPrefixes);
+            return GetAlbumArtInfo((ModelBase)item, context, urlPrefixes);
         }
         internal static IEnumerable<Platinum.AlbumArtInfo> GetAlbumArtInfo(MusicArtistContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
         {
-            return GetAlbumArtInfo(item.MBItem, context, urlPrefixes);
+            return GetAlbumArtInfo((ModelBase)item, context, urlPrefixes);
         }
         internal static IEnumerable<Platinum.AlbumArtInfo> GetAlbumArtInfo(MusicAlbumContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
         {
-            return GetAlbumArtInfo(item.MBItem, context, urlPrefixes);
+            return GetAlbumArtInfo((ModelBase)item, context, urlPrefixes);
         }
         internal static IEnumerable<Platinum.AlbumArtInfo> GetAlbumArtInfo(VideoItem item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
         {
-            return GetAlbumArtInfo(item.MBItem, context, urlPrefixes);
+            return GetAlbumArtInfo((ModelBase)item, context, urlPrefixes);
         }
-        private static IEnumerable<Platinum.AlbumArtInfo> GetAlbumArtInfo(BaseItem item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
+        private static IEnumerable<Platinum.AlbumArtInfo> GetAlbumArtInfo(ModelBase item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
         {
             var result = new List<Platinum.AlbumArtInfo>();
-            if (item == null || item.Images == null)
+            if (item == null || item.MbItem == null || item.MbItem.Images == null)
                 return result;
+
+
+            //Some temp code to enable the client to make a call to a url with a file extension
+            //so we can test whether or not this is the reason why artwork doesn't show up for many/most clients
+            if (DlnaHttpServerPrefixes != null)
+            {
+                foreach (var prefix in DlnaHttpServerPrefixes)
+                {
+                    result.Add(new Platinum.AlbumArtInfo(prefix + "Artwork/" + item.Path + ".png"));
+                    result.Add(new Platinum.AlbumArtInfo(prefix + "Artwork/" + item.Path + ".jpg"));
+                }
+            }
 
             //making the artwork a direct hit to the MediaBrowser server instead of via the DLNA plugin works for WMP
             //not sure it'll work for all other clients
             //Xbox360 Video App ignores it and askes for: video url + ?artwork=true
-            foreach (var img in item.Images)
+            foreach (var img in item.MbItem.Images)
             {
                 foreach (var prefix in urlPrefixes)
                 {
                     result.Add(new Platinum.AlbumArtInfo(prefix + "Items/" + item.Id.ToString() + "/Images/" + img.Key));
                 }
             }
+
+
             return result;
         }
 
