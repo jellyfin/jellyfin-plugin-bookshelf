@@ -57,7 +57,7 @@ namespace MediaBrowser.Plugins.Trailers.Providers
         /// <param name="item">The item.</param>
         /// <param name="force">if set to <c>true</c> [force].</param>
         /// <returns>Task{System.Boolean}.</returns>
-        protected override Task<bool> FetchAsyncInternal(BaseItem item, bool force, CancellationToken cancellationToken)
+        public override Task<bool> FetchAsync(BaseItem item, bool force, CancellationToken cancellationToken)
         {
             return Task.Run(() => Fetch((Trailer)item));
         }

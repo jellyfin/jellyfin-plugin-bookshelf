@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.IO;
+using System.Threading;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Plugins;
@@ -26,6 +27,41 @@ namespace MediaBrowser.Plugins.Trailers
             : base(applicationPaths, xmlSerializer)
         {
             Instance = this;
+        }
+
+        /// <summary>
+        /// The _download path
+        /// </summary>
+        private string _downloadPath;
+        /// <summary>
+        /// Gets the path to the trailer download directory
+        /// </summary>
+        /// <value>The download path.</value>
+        public string DownloadPath
+        {
+            get
+            {
+                if (_downloadPath == null)
+                {
+                    // Use 
+                    _downloadPath = Configuration.DownloadPath;
+
+                    if (string.IsNullOrWhiteSpace(_downloadPath))
+                    {
+                        _downloadPath = Path.Combine(ApplicationPaths.DataPath, Name);
+                    }
+
+                    if (!Directory.Exists(_downloadPath))
+                    {
+                        Directory.CreateDirectory(_downloadPath);
+                    }
+                }
+                return _downloadPath;
+            }
+            set
+            {
+                _downloadPath = value;
+            }
         }
 
         /// <summary>

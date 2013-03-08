@@ -21,45 +21,9 @@ namespace MediaBrowser.Plugins.Trailers
         public static ServerEntryPoint Instance { get; private set; }
 
         /// <summary>
-        /// The _application paths
-        /// </summary>
-        private readonly IApplicationPaths _applicationPaths;
-
-        /// <summary>
         /// The _task manager
         /// </summary>
-        private ITaskManager _taskManager;
-
-        /// <summary>
-        /// The _download path
-        /// </summary>
-        private string _downloadPath;
-        /// <summary>
-        /// Gets the path to the trailer download directory
-        /// </summary>
-        /// <value>The download path.</value>
-        public string DownloadPath
-        {
-            get
-            {
-                if (_downloadPath == null)
-                {
-                    // Use 
-                    _downloadPath = Plugin.Instance.Configuration.DownloadPath;
-
-                    if (string.IsNullOrWhiteSpace(_downloadPath))
-                    {
-                        _downloadPath = Path.Combine(_applicationPaths.DataPath, Plugin.Instance.Name);
-                    }
-
-                    if (!Directory.Exists(_downloadPath))
-                    {
-                        Directory.CreateDirectory(_downloadPath);
-                    }
-                }
-                return _downloadPath;
-            }
-        }
+        private readonly ITaskManager _taskManager;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ServerEntryPoint" /> class.
@@ -71,7 +35,6 @@ namespace MediaBrowser.Plugins.Trailers
             _taskManager = taskManager;
 
             Instance = this;
-            _applicationPaths = appPaths;
         }
 
         /// <summary>
@@ -96,7 +59,7 @@ namespace MediaBrowser.Plugins.Trailers
 
             if (pathChanged)
             {
-                _downloadPath = null;
+                Plugin.Instance.DownloadPath = null;
                 _taskManager.QueueScheduledTask<RefreshMediaLibraryTask>();
             }
         }

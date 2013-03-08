@@ -25,14 +25,13 @@ namespace MediaBrowser.Plugins.Trailers.Entities
         /// <value>The path.</value>
         public override string Path
         {
-            get { return ServerEntryPoint.Instance.DownloadPath; }
+            get { return Plugin.Instance.DownloadPath; }
         }
     }
 
     /// <summary>
     /// Class PluginFolderCreator
     /// </summary>
-   
     public class PluginFolderCreator : IVirtualFolderCreator
     {
         /// <summary>
