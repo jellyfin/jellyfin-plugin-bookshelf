@@ -10,4 +10,4 @@ By default this assumes you have the server repository side by side in a folder 
 
 ## More Information ##
 
-[https://github.com/MediaBrowser/MediaBrowser/wiki/How-to-build-a-Server-Plugin](https://github.com/MediaBrowser/MediaBrowser/wiki/How-to-build-a-Server-Plugin)
+[How to Build a Server Plugin](https://github.com/MediaBrowser/MediaBrowser/wiki/How-to-build-a-Server-Plugin)
