@@ -370,10 +370,13 @@ namespace MediaBrowser.Plugins.Dlna
                 Logger.Debug("SearchContainer Found ObjectID:{0} MbItemName:{1}",
                     object_id, objectIDMatch.MbItem == null ? "MbItem Null" : objectIDMatch.MbItem.Name); 
 
-                var children = Model.NavigationHelper.GetRecursiveChildren(objectIDMatch, starting_index, requested_count);
+                var children = Model.NavigationHelper.GetRecursiveChildren(objectIDMatch, starting_index, requested_count).ToList();
 
                 //until we implement search that actually searches, the total matches is ALL recursive children
-                totalMatches = objectIDMatch.RecursiveChildren.Count();
+                //totalMatches = objectIDMatch.RecursiveChildren.Count();
+                //on even a resonable sized library this RecursiveChildren.Count call can take too long
+                //apparently its acceptable to return zero for total matches if the actaul count can't be returned in a timely manner
+                totalMatches = 0;
 
                 if (children != null)
                 {
