@@ -69,12 +69,11 @@ namespace MediaBrowser.Plugins.Dlna
 
             Logger.Info("UPnP Server Starting");
             this._Upnp = new Platinum.UPnP();
-            // Will need a config setting to set the friendly name of the upnp server
-            //_PlatinumServer = new Platinum.MediaConnect("MB3 UPnP", "MB3UPnP", 1901);
+
             if (Plugin.Instance.Configuration.DlnaPortNumber.HasValue)
                 _PlatinumServer = new Platinum.MediaConnect(Plugin.Instance.Configuration.FriendlyDlnaName, "MB3UPnP", Plugin.Instance.Configuration.DlnaPortNumber.Value);
             else
-                _PlatinumServer = new Platinum.MediaConnect(Plugin.Instance.Configuration.FriendlyDlnaName);
+                _PlatinumServer = new Platinum.MediaConnect(Plugin.Instance.Configuration.FriendlyDlnaName, "MB3UPnP", 0); //Passing zero allows us to set the uuid but still have a randomised port number
             
             _PlatinumServer.BrowseMetadata += server_BrowseMetadata;
             _PlatinumServer.BrowseDirectChildren += server_BrowseDirectChildren;
@@ -323,7 +322,7 @@ namespace MediaBrowser.Plugins.Dlna
             Logger.Debug("SearchContainer Entered - Parameters: action:{0} object_id:\"{1}\" searchCriteria:\"{7}\" filter:\"{2}\" starting_index:{3} requested_count:{4} sort_criteria:\"{5}\" context:{6}",
                 action.ToLogString(), object_id, filter, starting_index, requested_count, sort_criteria, context.ToLogString(), searchCriteria);
             this.LogUserActivity(context.Signature);
-
+            
             //Doesn't call search at all:
             //  XBox360 Video App
 
@@ -376,6 +375,7 @@ namespace MediaBrowser.Plugins.Dlna
                 //totalMatches = objectIDMatch.RecursiveChildren.Count();
                 //on even a resonable sized library this RecursiveChildren.Count call can take too long
                 //apparently its acceptable to return zero for total matches if the actaul count can't be returned in a timely manner
+                //page 49 of the UPnP Content directory Spec
                 totalMatches = 0;
 
                 if (children != null)
