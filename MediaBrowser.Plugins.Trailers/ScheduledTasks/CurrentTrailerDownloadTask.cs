@@ -165,7 +165,16 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
                 Logger.Info("Downloading trailer: " + trailer.TrailerUrl);
 
                 // Fetch the video to a temp file because it's too big to put into a MemoryStream
-                videoTask = _httpClient.GetTempFile(trailer.TrailerUrl, Plugin.Instance.AppleTrailerVideos, cancellationToken, new Progress<double> { }, "QuickTime/7.6.2");
+                videoTask = _httpClient.GetTempFile(new HttpRequestOptions
+                {
+                    Url = trailer.TrailerUrl,
+                    ResourcePool = Plugin.Instance.AppleTrailerVideos,
+                    CancellationToken = cancellationToken,
+                    Progress = new Progress<double>(),
+                    UserAgent = "QuickTime/7.6.2",
+                    MaxResumeCount = 3
+                });
+
                 tasks.Add(videoTask);
             }
 
