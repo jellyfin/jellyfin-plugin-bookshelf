@@ -472,7 +472,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
         {
             get
             {
-                return this.MBItem.RecursiveChildren.OfType<MediaBrowser.Controller.Entities.TV.Season>().Select(i => (ModelBase)(new VideoSeasonContainer(this.User, mbItem: i, parent: this)));
+                return this.MBItem.GetRecursiveChildren(this.User).OfType<MediaBrowser.Controller.Entities.TV.Season>().Select(i => (ModelBase)(new VideoSeasonContainer(this.User, mbItem: i, parent: this)));
             }
         }
 
@@ -502,7 +502,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
         {
             get
             {
-                return this.MBItem.RecursiveChildren.OfType<Video>().Select(i => (ModelBase)(new VideoItem(this.User, mbItem: i, parent: this)));
+                return this.MBItem.GetRecursiveChildren(this.User).OfType<Video>().Select(i => (ModelBase)(new VideoItem(this.User, mbItem: i, parent: this)));
             }
         }
 
