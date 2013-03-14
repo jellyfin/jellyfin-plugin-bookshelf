@@ -13,7 +13,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
 
     internal abstract class ModelBase
     {
-        internal ModelBase(User user, BaseItem mbItem, string id, ModelBase parent)
+        internal ModelBase(User user, BaseItem mbItem, string id, ModelBase parent, string dlnaClass)
         {
             this.User = user;
             this.MbItem = mbItem;
@@ -30,6 +30,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
         protected internal string ParentId { get; private set; }
         protected internal BaseItem MbItem { get; protected set; }
         protected internal ModelBase Parent { get; private set; }
+        protected internal string DlnaClass { get; private set; }
 
         protected internal string Path
         {
@@ -93,15 +94,20 @@ namespace MediaBrowser.Plugins.Dlna.Model
         }
 
         protected internal abstract Platinum.MediaObject GetMediaObject(Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes);
+
+        protected internal bool IsDerivedFrom(string testDlnaClass)
+        {
+            return this.DlnaClass.Contains(testDlnaClass);
+        }
     }
     internal abstract class ModelBase<T> : ModelBase where T : BaseItem
     {
-        internal ModelBase(User user, T mbItem, ModelBase parent)
-            : base(user: user, mbItem: mbItem, id: mbItem.Id.ToString(), parent: parent)
+        internal ModelBase(User user, T mbItem, ModelBase parent, string dlnaClass)
+            : base(user: user, mbItem: mbItem, id: mbItem.Id.ToString(), parent: parent, dlnaClass: dlnaClass)
         {
         }
-        internal ModelBase(User user, T mbItem, string id, ModelBase parent)
-            : base(user: user, mbItem: mbItem, id: id, parent: parent)
+        internal ModelBase(User user, T mbItem, string id, ModelBase parent, string dlnaClass)
+            : base(user: user, mbItem: mbItem, id: id, parent: parent, dlnaClass: dlnaClass)
         {
         }
         protected internal T MBItem { get { return (T)base.MbItem; } }
@@ -110,7 +116,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
     internal abstract class WellKnownContainerBase : ModelBase<Folder>
     {
         internal WellKnownContainerBase(User user, Folder mbItem, string id, ModelBase parent, string title)
-            : base(user: user, mbItem: mbItem, id: id, parent: parent)
+            : base(user: user, mbItem: mbItem, id: id, parent: parent, dlnaClass: "object.container")
         {
             this.Title = title;
         }
@@ -465,7 +471,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
     internal class VideoSeriesContainer : ModelBase<MediaBrowser.Controller.Entities.TV.Series>
     {
         internal VideoSeriesContainer(User user, MediaBrowser.Controller.Entities.TV.Series mbItem, ModelBase parent)
-            : base(user, mbItem, parent)
+            : base(user, mbItem, parent, dlnaClass: "object.container.album.videoAlbum")
         {
         }
         protected internal override IEnumerable<ModelBase> Children
@@ -495,7 +501,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
     internal class VideoSeasonContainer : ModelBase<MediaBrowser.Controller.Entities.TV.Season>
     {
         internal VideoSeasonContainer(User user, MediaBrowser.Controller.Entities.TV.Season mbItem, ModelBase parent)
-            : base(user, mbItem, parent)
+            : base(user, mbItem, parent, dlnaClass: "object.container.album.videoAlbum")
         {
         }
         protected internal override IEnumerable<ModelBase> Children
@@ -525,7 +531,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
     internal class VideoFolderContainer : ModelBase<Folder>
     {
         internal VideoFolderContainer(User user, Folder mbItem, ModelBase parent)
-            : base(user, mbItem, parent)
+            : base(user, mbItem, parent, dlnaClass: "object.container.storageFolder")
         {
         }
         protected internal override IEnumerable<ModelBase> Children
@@ -559,7 +565,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
     internal class VideoGenreContainer : ModelBase<Genre>
     {
         internal VideoGenreContainer(User user, Genre mbItem, ModelBase parent)
-            : base(user, mbItem, parent)
+            : base(user, mbItem, parent, dlnaClass: "object.container.genre.videoGenre")
         {
         }
 
@@ -597,7 +603,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
     internal class VideoActorContainer : ModelBase<Person>
     {
         internal VideoActorContainer(User user, Person mbItem, ModelBase parent)
-            : base(user, mbItem, parent)
+            : base(user, mbItem, parent, dlnaClass: "object.container.album.videoAlbum")
         {
         }
 
@@ -634,7 +640,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
     internal class VideoItem : ModelBase<Video>
     {
         internal VideoItem(User user, Video mbItem, ModelBase parent)
-            : base(user, mbItem, parent)
+            : base(user, mbItem, parent, dlnaClass: "object.item.videoItem")
         {
 
         }
@@ -661,7 +667,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
     internal class MusicItem : ModelBase<MediaBrowser.Controller.Entities.Audio.Audio>
     {
         internal MusicItem(User user, MediaBrowser.Controller.Entities.Audio.Audio mbItem, ModelBase parent)
-            : base(user: user, mbItem: mbItem, parent: parent)
+            : base(user: user, mbItem: mbItem, parent: parent, dlnaClass: "object.item.audioItem.musicTrack")
         {
 
         }
@@ -687,7 +693,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
     internal class MusicGenreContainer : ModelBase<Genre>
     {
         internal MusicGenreContainer(User user, Genre mbItem, ModelBase parent)
-            : base(user, mbItem, parent)
+            : base(user, mbItem, parent, dlnaClass: "object.container.genre.musicGenre")
         {
         }
 
@@ -725,7 +731,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
     internal class MusicArtistContainer : ModelBase<MediaBrowser.Controller.Entities.Audio.MusicArtist>
     {
         internal MusicArtistContainer(User user, MediaBrowser.Controller.Entities.Audio.MusicArtist mbItem, ModelBase parent)
-            : base(user: user, mbItem: mbItem, parent: parent)
+            : base(user: user, mbItem: mbItem, parent: parent, dlnaClass: "object.container.person.musicArtist")
         {
 
         }
@@ -759,7 +765,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
     internal class MusicAlbumContainer : ModelBase<MediaBrowser.Controller.Entities.Audio.MusicAlbum>
     {
         internal MusicAlbumContainer(User user, MediaBrowser.Controller.Entities.Audio.MusicAlbum mbItem, ModelBase parent)
-            : base(user: user, mbItem: mbItem, parent: parent)
+            : base(user: user, mbItem: mbItem, parent: parent, dlnaClass: "object.container.album.musicAlbum")
         {
 
         }
@@ -993,7 +999,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             var result = new Platinum.MediaContainer();
             result.ObjectID = item.Path;
             result.ParentID = item.ParentPath;
-            result.Class = new Platinum.ObjectClass("object.container", "");
+            result.Class = new Platinum.ObjectClass("object.container.album.videoAlbum", "");
             result.ChildrenCount = item.Children.Count();
 
             result.Title = item.MBItem.Name == null ? string.Empty : item.MBItem.Name;
