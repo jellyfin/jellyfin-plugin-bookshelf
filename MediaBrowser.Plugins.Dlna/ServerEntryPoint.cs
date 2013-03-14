@@ -25,6 +25,7 @@ namespace MediaBrowser.Plugins.Dlna
         private const int NEP_Failure = -1;
         private const int NEP_NotImplemented = -2012;
         private const int NEP_Success = 0;
+        private const string UPnPServerUuid = "2a46a863-8431-4641-9f71-10a4ef65be49";
 
         private Platinum.UPnP _Upnp;
         private Platinum.MediaConnect _PlatinumServer;
@@ -71,9 +72,9 @@ namespace MediaBrowser.Plugins.Dlna
             this._Upnp = new Platinum.UPnP();
 
             if (Plugin.Instance.Configuration.DlnaPortNumber.HasValue)
-                _PlatinumServer = new Platinum.MediaConnect(Plugin.Instance.Configuration.FriendlyDlnaName, "MB3UPnP", Plugin.Instance.Configuration.DlnaPortNumber.Value);
+                _PlatinumServer = new Platinum.MediaConnect(Plugin.Instance.Configuration.FriendlyDlnaName, UPnPServerUuid, Plugin.Instance.Configuration.DlnaPortNumber.Value);
             else
-                _PlatinumServer = new Platinum.MediaConnect(Plugin.Instance.Configuration.FriendlyDlnaName, "MB3UPnP", 0); //Passing zero allows us to set the uuid but still have a randomised port number
+                _PlatinumServer = new Platinum.MediaConnect(Plugin.Instance.Configuration.FriendlyDlnaName, UPnPServerUuid, 0); //Passing zero allows us to set the uuid but still have a randomised port number
             
             _PlatinumServer.BrowseMetadata += server_BrowseMetadata;
             _PlatinumServer.BrowseDirectChildren += server_BrowseDirectChildren;
