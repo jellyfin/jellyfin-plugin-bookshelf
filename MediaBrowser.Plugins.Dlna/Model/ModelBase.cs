@@ -1601,14 +1601,49 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 //    }
 
                 //this is temporary code so that testers can try various combinations with their devices without needing a recompile all the time
-                var resource = GetBasicMediaResource((BaseItem)item.MBItem);
-                resource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType(MimeType, true, context);
+                if (!string.IsNullOrWhiteSpace(MimeType) & !string.IsNullOrWhiteSpace(UriFormatString))
+                {
+                    var userSpecifiedResource = GetBasicMediaResource((BaseItem)item.MBItem);
+                    userSpecifiedResource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType(MimeType, true, context);
 
-                var uri = string.Format(UriFormatString,
-                                        prefix, item.MBItem.Id);
-                resource.URI = new Uri(uri).ToString();
+                    var uri = string.Format(UriFormatString,
+                                            prefix, item.MBItem.Id);
+                    userSpecifiedResource.URI = new Uri(uri).ToString();
 
-                result.Add(resource);
+                    result.Add(userSpecifiedResource);
+                }
+
+
+                //test case to get some static serving done
+                //not this can possibly ask for urls that the API doesn't support like stream.mov
+                //so this code is definitaly not staying here for ever
+                if ((item.MBItem.DefaultVideoStream != null) && 
+                    (!string.IsNullOrWhiteSpace(item.MBItem.Path)) && 
+                    (System.IO.File.Exists(item.MBItem.Path)) && 
+                    (System.IO.Path.HasExtension(item.MBItem.Path)))
+                {
+                    var staticResource = GetBasicMediaResource((BaseItem)item.MBItem);
+
+                    if (item.MBItem.DefaultVideoStream.BitRate.HasValue)
+                        staticResource.Bitrate = (uint)item.MBItem.DefaultVideoStream.BitRate.Value;
+                    if (item.MBItem.DefaultVideoStream.Channels.HasValue)
+                        staticResource.NbAudioChannels = (uint)item.MBItem.DefaultVideoStream.Channels.Value;
+                    if (item.MBItem.DefaultVideoStream.SampleRate.HasValue)
+                        staticResource.SampleFrequency = (uint)item.MBItem.DefaultVideoStream.SampleRate.Value;
+
+                    var file = new System.IO.FileInfo(item.MBItem.Path);
+                    staticResource.Size = (ulong)file.Length;
+
+                    var extension = System.IO.Path.GetExtension(item.MBItem.Path);
+                    var mimeType = MediaBrowser.Common.Net.MimeTypes.GetMimeType(extension);
+                    staticResource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType(mimeType, true, context);
+
+                    var staticUri = string.Format("{0}Videos/{1}/stream{2}?static=true",
+                        prefix, item.MBItem.Id, extension);
+                    staticResource.URI = new Uri(staticUri).ToString();
+
+                    result.Add(staticResource);
+                }
             }
 
 
