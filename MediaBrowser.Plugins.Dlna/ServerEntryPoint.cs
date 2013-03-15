@@ -368,16 +368,27 @@ namespace MediaBrowser.Plugins.Dlna
             if (objectIDMatch != null)
             {
                 Logger.Debug("SearchContainer Found ObjectID:{0} MbItemName:{1}",
-                    object_id, objectIDMatch.MbItem == null ? "MbItem Null" : objectIDMatch.MbItem.Name); 
+                    object_id, objectIDMatch.MbItem == null ? "MbItem Null" : objectIDMatch.MbItem.Name);
 
-                var children = Model.NavigationHelper.GetRecursiveChildren(objectIDMatch, starting_index, requested_count).ToList();
-
-                //until we implement search that actually searches, the total matches is ALL recursive children
-                //totalMatches = objectIDMatch.RecursiveChildren.Count();
-                //on even a resonable sized library this RecursiveChildren.Count call can take too long
-                //apparently its acceptable to return zero for total matches if the actaul count can't be returned in a timely manner
-                //page 49 of the UPnP Content directory Spec
-                totalMatches = 0;
+                var searchUpnpClasses = GetClassFromCritera(searchCriteria);
+                IEnumerable<Model.ModelBase> children;
+                if (searchUpnpClasses.Any())
+                {
+                    Logger.Debug("SearchContainer Searching for: \"{0}\" items", searchUpnpClasses.First());
+                    children = Model.NavigationHelper.GetRecursiveChildren(objectIDMatch, searchUpnpClasses, starting_index, requested_count).ToList();
+                    //this call gets the top hundred thousand items or less - that should be enough head room
+                    //just gotta see if its quick enough on a large library
+                    totalMatches = Model.NavigationHelper.GetRecursiveChildren(objectIDMatch, searchUpnpClasses).Count();
+                }
+                else
+                {
+                    Logger.Debug("SearchContainer Ignoring search critera and returning all recursive children");
+                    children = Model.NavigationHelper.GetRecursiveChildren(objectIDMatch, starting_index, requested_count).ToList();
+                    //on even a resonable sized library this RecursiveChildren.Count call can take too long
+                    //apparently its acceptable to return zero for total matches if the actaul count can't be returned in a timely manner
+                    //page 49 of the UPnP Content directory Spec
+                    totalMatches = 0;
+                }
 
                 if (children != null)
                 {
@@ -503,7 +514,45 @@ namespace MediaBrowser.Plugins.Dlna
             UserManager.LogUserActivity(this.CurrentUser, MediaBrowser.Model.Connectivity.ClientType.Dlna, signature.ToString()); 
         }
 
-        #region "A Search Idea"
+        #region "Search Ideas"
+        private static IEnumerable<string> GetClassFromCritera(string searchCritera)
+        {
+            return GetClassDerivedFromFromCritera(searchCritera).Union(GetClassEqualsFromCritera(searchCritera));
+        }
+        private static IEnumerable<string> GetClassDerivedFromFromCritera(string searchCritera)
+        {
+            var index = searchCritera.IndexOf("upnp:class derivedfrom", StringComparison.OrdinalIgnoreCase);
+            if (index >= 0)
+            {
+                //for the moment we only support 1 derived from class because no client has ever passed 2
+                var temp = searchCritera.Substring(index + "upnp:class derivedfrom".Length).Trim();
+                temp = temp.TrimStart(new char[] {'\\', '"'});
+                var endIndex = temp.IndexOf('\"');
+                temp = temp.Substring(0, endIndex);
+                temp =  temp.TrimEnd(new char[] {'\\', '"'});
+                return new List<string>() {temp};
+            }
+            else
+                return new List<string>();
+        }
+        private static IEnumerable<string> GetClassEqualsFromCritera(string searchCritera)
+        {
+            var index = searchCritera.IndexOf("upnp:class =", StringComparison.OrdinalIgnoreCase);
+            if (index >= 0)
+            {
+                //for the moment we only support 1 derived from class because no client has ever passed 2
+                var temp = searchCritera.Substring(index + "upnp:class =".Length).Trim();
+                temp = temp.TrimStart(new char[] { '\\', '"' });
+                var endIndex = temp.IndexOf('\"');
+                temp = temp.Substring(0, endIndex);
+                temp = temp.TrimEnd(new char[] { '\\', '"' });
+                return new List<string>() { temp };
+            }
+            else
+                return new List<string>();
+        }
+
+
         //this is just an idea of how we might do some search
         //it's a bit lackluster in places and might be overkill in others
         //all in all it might not be a good idea, but I thought I'd see how it felt

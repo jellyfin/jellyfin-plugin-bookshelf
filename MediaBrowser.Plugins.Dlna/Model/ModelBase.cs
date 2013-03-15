@@ -23,6 +23,8 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 this.ParentId = string.Empty;
             else
                 this.ParentId = this.Parent.Id;
+
+            this.DlnaClass = dlnaClass;
         }
 
         protected internal User User { get; private set; }
@@ -58,6 +60,13 @@ namespace MediaBrowser.Plugins.Dlna.Model
         {
             return this.Children.Skip(startingIndex).Take(requestedCount);
         }
+        protected internal IEnumerable<ModelBase> GetChildren(IEnumerable<string> derivedFrom, int startingIndex, int requestedCount)
+        {
+            return this.Children
+                .Where(i=>i.DlnaClass.StartsWith(derivedFrom.First(), StringComparison.OrdinalIgnoreCase))
+                .Skip(startingIndex)
+                .Take(requestedCount);
+        }
         protected internal IEnumerable<ModelBase> RecursiveChildren
         {
             get
@@ -72,12 +81,34 @@ namespace MediaBrowser.Plugins.Dlna.Model
             }
         }
 
+         
         protected internal IEnumerable<ModelBase> GetChildrenRecursive(int startingIndex, int requestedCount)
         {
             if (this.Children.Count() >= (startingIndex + requestedCount))
                 return this.Children.Skip(startingIndex).Take(requestedCount);
             else
                 return this.RecursiveChildren.Skip(startingIndex).Take(requestedCount);
+        }
+        protected internal IEnumerable<ModelBase> GetChildrenRecursive(IEnumerable<string> derivedFrom, int startingIndex, int requestedCount)
+        {
+            var children = this.GetChildren(derivedFrom, startingIndex, requestedCount);
+            if (children.Count() >= (startingIndex + requestedCount))
+                return children.Skip(startingIndex).Take(requestedCount);
+            else
+            {
+                //theres scope for major improvements in efficency here
+                var recursiveChildern = children.Union(this.Children.SelectMany(i =>
+                {
+                    if (i == null)
+                        return new List<ModelBase>();
+                    else
+                        return i.RecursiveChildren;
+                }));
+                return this.RecursiveChildren
+                    .Where(i => i.DlnaClass.StartsWith(derivedFrom.First(), StringComparison.OrdinalIgnoreCase))
+                    .Skip(startingIndex)
+                    .Take(requestedCount);
+            }
         }
 
         protected internal ModelBase GetChildRecursive(string id)
@@ -1867,6 +1898,18 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 return item.RecursiveChildren;
             else
                 return item.GetChildrenRecursive(startingIndex, requestedCount);
+        }
+        internal static IEnumerable<Model.ModelBase> GetRecursiveChildren(Model.ModelBase item, IEnumerable<string> derivedFrom)
+        {
+            return GetRecursiveChildren(item, derivedFrom, 0, 100000);
+        }
+        internal static IEnumerable<Model.ModelBase> GetRecursiveChildren(Model.ModelBase item, IEnumerable<string> derivedFrom, int startingIndex, int requestedCount)
+        {
+            //if they request zero children, they mean all children
+            if (requestedCount == 0)
+                return item.RecursiveChildren;
+            else
+                return item.GetChildrenRecursive(derivedFrom, startingIndex, requestedCount);
         }
     }
 
