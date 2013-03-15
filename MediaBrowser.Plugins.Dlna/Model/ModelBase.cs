@@ -38,20 +38,25 @@ namespace MediaBrowser.Plugins.Dlna.Model
         {
             get
             {
-                if (this.Parent == null)
-                    return this.Id;
-                else
-                    return this.ParentPath + "." + this.Id;
+                //if (this.Parent == null)
+                //    return this.Id;
+                //else
+                //    return this.ParentPath + "." + this.Id;
+                return this.Id;
             }
         }
         protected internal string ParentPath
         {
             get
             {
+                //if (this.Parent == null)
+                //    return string.Empty;
+                //else
+                //    return this.Parent.Path;
                 if (this.Parent == null)
                     return string.Empty;
                 else
-                    return this.Parent.Path;
+                    return this.Parent.Id;
             }
         }
 
@@ -1880,43 +1885,43 @@ namespace MediaBrowser.Plugins.Dlna.Model
 
     internal static class NavigationHelper
     {
-        internal static Model.ModelBase GetObjectByPath(User currentUser, string object_id)
-        {
-            var paths = object_id.Split('.').ToList();
-            //technically path should ALWAYS start with root, "0"
-            //but WMP has prior knowledge of the well known container IDs so it asks for "13" All Playlists directly
-            var nextId = paths.First();
-            paths.Remove(nextId);
-            if (string.Equals(nextId, "0", StringComparison.OrdinalIgnoreCase))
-            {
-                var root = new Model.Root(currentUser);
-                if (paths.Any())
-                    return GetObjectByPath(root, paths);
-                else
-                    return root;
-            }
-            else
-            {
-                //probably WMP asking directly for playlists
-                //Xbox360 Video App asks directly for 15 which is folders
-                var root = new Model.Root(currentUser);
-                var item = root.GetChildRecursive(object_id);
-                if (paths.Any())
-                    return GetObjectByPath(item, paths);
-                else
-                    return item;
-            }
-        }
-        private static Model.ModelBase GetObjectByPath(Model.ModelBase parent, List<string> paths)
-        {
-            var nextId = paths.First();
-            paths.Remove(nextId);
-            var nextItem = parent.GetChildRecursive(nextId);
-            if (paths.Any())
-                return GetObjectByPath(nextItem, paths);
-            else
-                return nextItem;
-        }
+        //internal static Model.ModelBase GetObjectByPath(User currentUser, string object_id)
+        //{
+        //    var paths = object_id.Split('.').ToList();
+        //    //technically path should ALWAYS start with root, "0"
+        //    //but WMP has prior knowledge of the well known container IDs so it asks for "13" All Playlists directly
+        //    var nextId = paths.First();
+        //    paths.Remove(nextId);
+        //    if (string.Equals(nextId, "0", StringComparison.OrdinalIgnoreCase))
+        //    {
+        //        var root = new Model.Root(currentUser);
+        //        if (paths.Any())
+        //            return GetObjectByPath(root, paths);
+        //        else
+        //            return root;
+        //    }
+        //    else
+        //    {
+        //        //probably WMP asking directly for playlists
+        //        //Xbox360 Video App asks directly for 15 which is folders
+        //        var root = new Model.Root(currentUser);
+        //        var item = root.GetChildRecursive(object_id);
+        //        if (paths.Any())
+        //            return GetObjectByPath(item, paths);
+        //        else
+        //            return item;
+        //    }
+        //}
+        //private static Model.ModelBase GetObjectByPath(Model.ModelBase parent, List<string> paths)
+        //{
+        //    var nextId = paths.First();
+        //    paths.Remove(nextId);
+        //    var nextItem = parent.GetChildRecursive(nextId);
+        //    if (paths.Any())
+        //        return GetObjectByPath(nextItem, paths);
+        //    else
+        //        return nextItem;
+        //}
 
         internal static IEnumerable<Model.ModelBase> GetChildren(Model.ModelBase item, int startingIndex, int requestedCount)
         {
