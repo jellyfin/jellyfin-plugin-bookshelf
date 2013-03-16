@@ -499,7 +499,7 @@ namespace MediaBrowser.Plugins.Dlna
 
         private void LogUserActivity(Platinum.DeviceSignature signature)
         {
-            UserManager.LogUserActivity(this.CurrentUser, MediaBrowser.Model.Connectivity.ClientType.Dlna, signature.ToString()); 
+            UserManager.LogUserActivity(this.CurrentUser, MediaBrowser.Model.Connectivity.ClientType.Dlna, signature.ToString(), signature.ToString()); 
         }
 
         #region "A Search Idea"
