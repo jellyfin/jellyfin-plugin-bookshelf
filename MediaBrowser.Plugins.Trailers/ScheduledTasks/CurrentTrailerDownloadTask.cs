@@ -171,8 +171,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
                     ResourcePool = Plugin.Instance.AppleTrailerVideos,
                     CancellationToken = cancellationToken,
                     Progress = new Progress<double>(),
-                    UserAgent = "QuickTime/7.6.2",
-                    MaxResumeCount = 3
+                    UserAgent = "QuickTime/7.6.2"
                 });
 
                 tasks.Add(videoTask);
