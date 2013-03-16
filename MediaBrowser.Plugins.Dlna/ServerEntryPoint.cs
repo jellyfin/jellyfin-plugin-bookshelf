@@ -19,12 +19,13 @@ namespace MediaBrowser.Plugins.Dlna
     public class ServerEntryPoint : IServerEntryPoint
     {
         public static ServerEntryPoint Instance { get; private set; }
-        
+
         //these are Neptune values, they probably belong in the managed wrapper somewhere, but they aren't
         //techincally theres 50 to 100 of these values, but these 3 seem to be the most useful
         private const int NEP_Failure = -1;
         private const int NEP_NotImplemented = -2012;
         private const int NEP_Success = 0;
+        private const string UPnPServerUuid = "2a46a863-8431-4641-9f71-10a4ef65be49";
 
         private Platinum.UPnP _Upnp;
         private Platinum.MediaConnect _PlatinumServer;
@@ -66,15 +67,16 @@ namespace MediaBrowser.Plugins.Dlna
         internal void SetupUPnPServer()
         {
             _CurrentUser = null;
+            _ItemMap = new Dictionary<string, List<string>>();
 
             Logger.Info("UPnP Server Starting");
             this._Upnp = new Platinum.UPnP();
 
             if (Plugin.Instance.Configuration.DlnaPortNumber.HasValue)
-                _PlatinumServer = new Platinum.MediaConnect(Plugin.Instance.Configuration.FriendlyDlnaName, "MB3UPnP", Plugin.Instance.Configuration.DlnaPortNumber.Value);
+                _PlatinumServer = new Platinum.MediaConnect(Plugin.Instance.Configuration.FriendlyDlnaName, UPnPServerUuid, Plugin.Instance.Configuration.DlnaPortNumber.Value);
             else
-                _PlatinumServer = new Platinum.MediaConnect(Plugin.Instance.Configuration.FriendlyDlnaName, "MB3UPnP", 0); //Passing zero allows us to set the uuid but still have a randomised port number
-            
+                _PlatinumServer = new Platinum.MediaConnect(Plugin.Instance.Configuration.FriendlyDlnaName, UPnPServerUuid, 0); //Passing zero allows us to set the uuid but still have a randomised port number
+
             _PlatinumServer.BrowseMetadata += server_BrowseMetadata;
             _PlatinumServer.BrowseDirectChildren += server_BrowseDirectChildren;
             _PlatinumServer.ProcessFileRequest += server_ProcessFileRequest;
@@ -107,6 +109,11 @@ namespace MediaBrowser.Plugins.Dlna
                 _Upnp.Dispose();
                 _Upnp = null;
             }
+            if (_ItemMap != null)
+            {
+                _ItemMap.Clear();
+                _ItemMap = null;
+            }
             Logger.Info("UPnP Server Stopped");
         }
 
@@ -129,15 +136,16 @@ namespace MediaBrowser.Plugins.Dlna
             Model.PlatinumAlbumArtInfoHelper.DlnaHttpServerPrefixes = GetDlnaHttpServerPrefixes(context);
 
 
-            var objectIDMatch = Model.NavigationHelper.GetObjectByPath(this.CurrentUser, object_id);
+            //var objectIDMatch = Model.NavigationHelper.GetObjectByPath(this.CurrentUser, object_id);
+            var objectIDMatch = GetItemFromID(object_id);
 
             int itemCount = 0;
             var didl = Platinum.Didl.header;
 
             if (objectIDMatch != null)
             {
-                Logger.Debug("BrowseMetadata Found ObjectID:{0} MbItemName:{1}", 
-                    object_id,  objectIDMatch.MbItem == null ? "MbItem Null" : objectIDMatch.MbItem.Name); 
+                Logger.Debug("BrowseMetadata Found ObjectID:{0} MbItemName:{1}",
+                    object_id, objectIDMatch.MbItem == null ? "MbItem Null" : objectIDMatch.MbItem.Name);
 
                 var urlPrefixes = GetHttpServerPrefixes(context);
                 using (var item = objectIDMatch.GetMediaObject(context, urlPrefixes))
@@ -222,11 +230,13 @@ namespace MediaBrowser.Plugins.Dlna
             int itemCount = 0;
             int totalMatches = 0;
             var didl = Platinum.Didl.header;
-            var objectIDMatch = Model.NavigationHelper.GetObjectByPath(this.CurrentUser, object_id);
+            //var objectIDMatch = Model.NavigationHelper.GetObjectByPath(this.CurrentUser, object_id);
+            var objectIDMatch = GetItemFromID(object_id);
+
             if (objectIDMatch != null)
             {
-                Logger.Debug("BrowseDirectChildren Found ObjectID:{0} MbItemName:{1}", 
-                    object_id, objectIDMatch.MbItem == null ? "MbItem Null" : objectIDMatch.MbItem.Name); 
+                Logger.Debug("BrowseDirectChildren Found ObjectID:{0} MbItemName:{1}",
+                    object_id, objectIDMatch.MbItem == null ? "MbItem Null" : objectIDMatch.MbItem.Name);
 
                 var children = Model.NavigationHelper.GetChildren(objectIDMatch, starting_index, requested_count);
                 totalMatches = objectIDMatch.Children.Count();
@@ -236,6 +246,7 @@ namespace MediaBrowser.Plugins.Dlna
                     var urlPrefixes = GetHttpServerPrefixes(context);
                     foreach (var child in children)
                     {
+                        AddItemToMap(child);
                         using (var item = child.GetMediaObject(context, urlPrefixes))
                         {
                             didl += item.ToDidl(filter);
@@ -276,10 +287,19 @@ namespace MediaBrowser.Plugins.Dlna
                 if (path.EndsWith(".jpg"))
                     path = path.Replace(".jpg", "");
 
-                var item = Model.NavigationHelper.GetObjectByPath(CurrentUser, path);
-                if (item != null && item.MbItem != null && !string.IsNullOrWhiteSpace( item.MbItem.PrimaryImagePath))
+                //var item = Model.NavigationHelper.GetObjectByPath(CurrentUser, path);
+                Logger.Debug("ProcessFileRequest Getting Item by ID");
+                var item = GetItemFromID(path);
+                if (item == null)
+                    Logger.Debug("ProcessFileRequest Item NOT found");
+                else 
+                    Logger.Debug("ProcessFileRequest Item found");
+
+
+                if (item != null && item.MbItem != null && !string.IsNullOrWhiteSpace(item.MbItem.PrimaryImagePath))
                     Platinum.MediaServer.SetResponseFilePath(context, response, item.MbItem.PrimaryImagePath);
 
+                Logger.Debug("ProcessFileRequest Returning success");
                 return NEP_Success;
             }
 
@@ -312,9 +332,11 @@ namespace MediaBrowser.Plugins.Dlna
                     //this does not work for WMP
                     //Platinum.MediaServer.SetResponseFilePath(context, response, Kernel.HttpServerUrlPrefix.Replace("+", context.LocalAddress.ip) + "/api/video.ts?id=" + item.Id.ToString());
 
+                    Logger.Debug("ProcessFileRequest Returning success");
                     return NEP_Success;
                 }
             }
+            Logger.Debug("ProcessFileRequest Returning Failure");
             return NEP_Failure;
         }
         private int server_SearchContainer(Platinum.Action action, string object_id, string searchCriteria, string filter, int starting_index, int requested_count, string sort_criteria, Platinum.HttpRequestContext context)
@@ -322,7 +344,7 @@ namespace MediaBrowser.Plugins.Dlna
             Logger.Debug("SearchContainer Entered - Parameters: action:{0} object_id:\"{1}\" searchCriteria:\"{7}\" filter:\"{2}\" starting_index:{3} requested_count:{4} sort_criteria:\"{5}\" context:{6}",
                 action.ToLogString(), object_id, filter, starting_index, requested_count, sort_criteria, context.ToLogString(), searchCriteria);
             this.LogUserActivity(context.Signature);
-            
+
             //Doesn't call search at all:
             //  XBox360 Video App
 
@@ -363,20 +385,33 @@ namespace MediaBrowser.Plugins.Dlna
             var totalMatches = 0;
             var didl = Platinum.Didl.header;
 
-            var objectIDMatch = Model.NavigationHelper.GetObjectByPath(this.CurrentUser, object_id);
+            //var objectIDMatch = Model.NavigationHelper.GetObjectByPath(this.CurrentUser, object_id);
+            var objectIDMatch = GetItemFromID(object_id);
+
             if (objectIDMatch != null)
             {
                 Logger.Debug("SearchContainer Found ObjectID:{0} MbItemName:{1}",
-                    object_id, objectIDMatch.MbItem == null ? "MbItem Null" : objectIDMatch.MbItem.Name); 
+                    object_id, objectIDMatch.MbItem == null ? "MbItem Null" : objectIDMatch.MbItem.Name);
 
-                var children = Model.NavigationHelper.GetRecursiveChildren(objectIDMatch, starting_index, requested_count).ToList();
-
-                //until we implement search that actually searches, the total matches is ALL recursive children
-                //totalMatches = objectIDMatch.RecursiveChildren.Count();
-                //on even a resonable sized library this RecursiveChildren.Count call can take too long
-                //apparently its acceptable to return zero for total matches if the actaul count can't be returned in a timely manner
-                //page 49 of the UPnP Content directory Spec
-                totalMatches = 0;
+                var searchUpnpClasses = GetClassFromCritera(searchCriteria);
+                IEnumerable<Model.ModelBase> children;
+                if (searchUpnpClasses.Any())
+                {
+                    Logger.Debug("SearchContainer Searching for: \"{0}\" items", searchUpnpClasses.First());
+                    children = Model.NavigationHelper.GetRecursiveChildren(objectIDMatch, searchUpnpClasses, starting_index, requested_count).ToList();
+                    //this call gets the top hundred thousand items or less - that should be enough head room
+                    //just gotta see if its quick enough on a large library
+                    totalMatches = Model.NavigationHelper.GetRecursiveChildren(objectIDMatch, searchUpnpClasses).Count();
+                }
+                else
+                {
+                    Logger.Debug("SearchContainer Ignoring search critera and returning all recursive children");
+                    children = Model.NavigationHelper.GetRecursiveChildren(objectIDMatch, starting_index, requested_count).ToList();
+                    //on even a resonable sized library this RecursiveChildren.Count call can take too long
+                    //apparently its acceptable to return zero for total matches if the actaul count can't be returned in a timely manner
+                    //page 49 of the UPnP Content directory Spec
+                    totalMatches = 0;
+                }
 
                 if (children != null)
                 {
@@ -384,6 +419,7 @@ namespace MediaBrowser.Plugins.Dlna
 
                     foreach (var child in children)
                     {
+                        AddItemToMap(child);
                         using (var item = child.GetMediaObject(context, urlPrefixes))
                         {
                             didl += item.ToDidl(filter);
@@ -391,7 +427,8 @@ namespace MediaBrowser.Plugins.Dlna
                         }
                     }
                 }
-            }
+            }         
+
             didl += Platinum.Didl.footer;
 
             action.SetArgumentValue("Result", didl);
@@ -403,6 +440,65 @@ namespace MediaBrowser.Plugins.Dlna
 
             Logger.Debug("SearchContainer Returning - NumberReturned:{0} TotalMatches:{1} UpdateId:{2}", itemCount, totalMatches, "1");
             return NEP_Success;
+        }
+
+        private Dictionary<string, List<string>> _ItemMap;
+        private void AddItemToMap(Model.ModelBase item)
+        {
+            if (item == null || string.IsNullOrWhiteSpace(item.Id)) return;
+
+            AddItemToMap(item.Parent);
+
+            List<string> parentList;
+            if (_ItemMap.ContainsKey(item.Id))
+                parentList = _ItemMap[item.Id];
+            else
+            {
+                parentList = new List<string>();
+                _ItemMap.Add(item.Id, parentList);
+            }
+
+            if (!parentList.Contains(item.ParentId))
+                parentList.Add(item.ParentId);
+        }
+        private Model.ModelBase GetItemFromID(string id)
+        {
+            if  (string.Equals(id, "0", StringComparison.OrdinalIgnoreCase))
+            {
+                return new Model.Root(CurrentUser);
+            }
+
+            if (_ItemMap.ContainsKey(id))
+            {
+                IEnumerable<string> parentList;
+                //the order by length is a trick to make sure we avoid using the All Videos All Music folder if possible
+                parentList = _ItemMap[id].OrderByDescending(i=>i.Length);
+                Model.ModelBase result = null;
+                foreach (var parentID in parentList)
+                {
+                    var parentItem = GetItemFromID(parentID);
+                    if (parentItem != null)
+                    {
+                        result = parentItem.Children.FirstOrDefault(i => string.Equals(i.Id, id, StringComparison.OrdinalIgnoreCase));
+                        if (result != null)
+                            break;
+                    }
+                }
+
+                //this shouldn't happen, if the item is in the map, it should exist
+                if (result == null)
+                    Logger.Debug("GetItemFromID couldn't find parent for item: {0}", id);
+                
+                return result;
+            }
+            else
+            {
+                //find it the slow way by recursing through the object model
+                var result = new Model.Root(CurrentUser).GetChildRecursive(id);
+                //add it to the map so next time we don't have to find it this way
+                AddItemToMap(result);
+                return result;
+            }
         }
 
         /// <summary>
@@ -418,7 +514,7 @@ namespace MediaBrowser.Plugins.Dlna
             {
                 result.Add(Kernel.HttpServerUrlPrefix.Replace("+", ip));
             }
-            return result.OrderBy(i=>i);
+            return result.OrderBy(i => i);
         }
 
         //Some temp code to enable the client to make a call to a url with a file extension
@@ -456,7 +552,7 @@ namespace MediaBrowser.Plugins.Dlna
             result.Remove("127.0.0.1");
             result.Remove("127.0.0.1");
             result.Remove("127.0.0.1");
-            return result.Distinct().OrderBy(i=>i);
+            return result.Distinct().OrderBy(i => i);
         }
 
         /// <summary>
@@ -499,10 +595,49 @@ namespace MediaBrowser.Plugins.Dlna
 
         private void LogUserActivity(Platinum.DeviceSignature signature)
         {
-            UserManager.LogUserActivity(this.CurrentUser, MediaBrowser.Model.Connectivity.ClientType.Dlna, signature.ToString(), signature.ToString()); 
+            // TODO: Device Id, Name?
+            UserManager.LogUserActivity(this.CurrentUser, MediaBrowser.Model.Connectivity.ClientType.Dlna, signature.ToString(), signature.ToString());
         }
 
-        #region "A Search Idea"
+        #region "Search Ideas"
+        private static IEnumerable<string> GetClassFromCritera(string searchCritera)
+        {
+            return GetClassDerivedFromFromCritera(searchCritera).Union(GetClassEqualsFromCritera(searchCritera));
+        }
+        private static IEnumerable<string> GetClassDerivedFromFromCritera(string searchCritera)
+        {
+            var index = searchCritera.IndexOf("upnp:class derivedfrom", StringComparison.OrdinalIgnoreCase);
+            if (index >= 0)
+            {
+                //for the moment we only support 1 derived from class because no client has ever passed 2
+                var temp = searchCritera.Substring(index + "upnp:class derivedfrom".Length).Trim();
+                temp = temp.TrimStart(new char[] { '\\', '"' });
+                var endIndex = temp.IndexOf('\"');
+                temp = temp.Substring(0, endIndex);
+                temp = temp.TrimEnd(new char[] { '\\', '"' });
+                return new List<string>() { temp };
+            }
+            else
+                return new List<string>();
+        }
+        private static IEnumerable<string> GetClassEqualsFromCritera(string searchCritera)
+        {
+            var index = searchCritera.IndexOf("upnp:class =", StringComparison.OrdinalIgnoreCase);
+            if (index >= 0)
+            {
+                //for the moment we only support 1 derived from class because no client has ever passed 2
+                var temp = searchCritera.Substring(index + "upnp:class =".Length).Trim();
+                temp = temp.TrimStart(new char[] { '\\', '"' });
+                var endIndex = temp.IndexOf('\"');
+                temp = temp.Substring(0, endIndex);
+                temp = temp.TrimEnd(new char[] { '\\', '"' });
+                return new List<string>() { temp };
+            }
+            else
+                return new List<string>();
+        }
+
+
         //this is just an idea of how we might do some search
         //it's a bit lackluster in places and might be overkill in others
         //all in all it might not be a good idea, but I thought I'd see how it felt
@@ -625,7 +760,7 @@ namespace MediaBrowser.Plugins.Dlna
             }
         }
         #endregion
-        
+
         /// <summary>
         /// Extracts the assemblies.
         /// </summary>

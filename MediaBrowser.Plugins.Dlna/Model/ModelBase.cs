@@ -13,7 +13,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
 
     internal abstract class ModelBase
     {
-        internal ModelBase(User user, BaseItem mbItem, string id, ModelBase parent)
+        internal ModelBase(User user, BaseItem mbItem, string id, ModelBase parent, string dlnaClass)
         {
             this.User = user;
             this.MbItem = mbItem;
@@ -23,6 +23,8 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 this.ParentId = string.Empty;
             else
                 this.ParentId = this.Parent.Id;
+
+            this.DlnaClass = dlnaClass;
         }
 
         protected internal User User { get; private set; }
@@ -30,25 +32,31 @@ namespace MediaBrowser.Plugins.Dlna.Model
         protected internal string ParentId { get; private set; }
         protected internal BaseItem MbItem { get; protected set; }
         protected internal ModelBase Parent { get; private set; }
+        protected internal string DlnaClass { get; private set; }
 
         protected internal string Path
         {
             get
             {
-                if (this.Parent == null)
-                    return this.Id;
-                else
-                    return this.ParentPath + "." + this.Id;
+                //if (this.Parent == null)
+                //    return this.Id;
+                //else
+                //    return this.ParentPath + "." + this.Id;
+                return this.Id;
             }
         }
         protected internal string ParentPath
         {
             get
             {
+                //if (this.Parent == null)
+                //    return string.Empty;
+                //else
+                //    return this.Parent.Path;
                 if (this.Parent == null)
                     return string.Empty;
                 else
-                    return this.Parent.Path;
+                    return this.Parent.Id;
             }
         }
 
@@ -56,6 +64,13 @@ namespace MediaBrowser.Plugins.Dlna.Model
         protected internal IEnumerable<ModelBase> GetChildren(int startingIndex, int requestedCount)
         {
             return this.Children.Skip(startingIndex).Take(requestedCount);
+        }
+        protected internal IEnumerable<ModelBase> GetChildren(IEnumerable<string> derivedFrom, int startingIndex, int requestedCount)
+        {
+            return this.Children
+                .Where(i=>i.DlnaClass.StartsWith(derivedFrom.First(), StringComparison.OrdinalIgnoreCase))
+                .Skip(startingIndex)
+                .Take(requestedCount);
         }
         protected internal IEnumerable<ModelBase> RecursiveChildren
         {
@@ -71,12 +86,34 @@ namespace MediaBrowser.Plugins.Dlna.Model
             }
         }
 
+         
         protected internal IEnumerable<ModelBase> GetChildrenRecursive(int startingIndex, int requestedCount)
         {
             if (this.Children.Count() >= (startingIndex + requestedCount))
                 return this.Children.Skip(startingIndex).Take(requestedCount);
             else
                 return this.RecursiveChildren.Skip(startingIndex).Take(requestedCount);
+        }
+        protected internal IEnumerable<ModelBase> GetChildrenRecursive(IEnumerable<string> derivedFrom, int startingIndex, int requestedCount)
+        {
+            var children = this.GetChildren(derivedFrom, startingIndex, requestedCount);
+            if (children.Count() >= (startingIndex + requestedCount))
+                return children.Skip(startingIndex).Take(requestedCount);
+            else
+            {
+                //theres scope for major improvements in efficency here
+                var recursiveChildern = children.Union(this.Children.SelectMany(i =>
+                {
+                    if (i == null)
+                        return new List<ModelBase>();
+                    else
+                        return i.RecursiveChildren;
+                }));
+                return this.RecursiveChildren
+                    .Where(i => i.DlnaClass.StartsWith(derivedFrom.First(), StringComparison.OrdinalIgnoreCase))
+                    .Skip(startingIndex)
+                    .Take(requestedCount);
+            }
         }
 
         protected internal ModelBase GetChildRecursive(string id)
@@ -93,15 +130,20 @@ namespace MediaBrowser.Plugins.Dlna.Model
         }
 
         protected internal abstract Platinum.MediaObject GetMediaObject(Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes);
+
+        protected internal bool IsDerivedFrom(string testDlnaClass)
+        {
+            return this.DlnaClass.Contains(testDlnaClass);
+        }
     }
     internal abstract class ModelBase<T> : ModelBase where T : BaseItem
     {
-        internal ModelBase(User user, T mbItem, ModelBase parent)
-            : base(user: user, mbItem: mbItem, id: mbItem.Id.ToString(), parent: parent)
+        internal ModelBase(User user, T mbItem, ModelBase parent, string dlnaClass)
+            : base(user: user, mbItem: mbItem, id: mbItem.Id.ToString(), parent: parent, dlnaClass: dlnaClass)
         {
         }
-        internal ModelBase(User user, T mbItem, string id, ModelBase parent)
-            : base(user: user, mbItem: mbItem, id: id, parent: parent)
+        internal ModelBase(User user, T mbItem, string id, ModelBase parent, string dlnaClass)
+            : base(user: user, mbItem: mbItem, id: id, parent: parent, dlnaClass: dlnaClass)
         {
         }
         protected internal T MBItem { get { return (T)base.MbItem; } }
@@ -110,7 +152,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
     internal abstract class WellKnownContainerBase : ModelBase<Folder>
     {
         internal WellKnownContainerBase(User user, Folder mbItem, string id, ModelBase parent, string title)
-            : base(user: user, mbItem: mbItem, id: id, parent: parent)
+            : base(user: user, mbItem: mbItem, id: id, parent: parent, dlnaClass: "object.container")
         {
             this.Title = title;
         }
@@ -465,7 +507,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
     internal class VideoSeriesContainer : ModelBase<MediaBrowser.Controller.Entities.TV.Series>
     {
         internal VideoSeriesContainer(User user, MediaBrowser.Controller.Entities.TV.Series mbItem, ModelBase parent)
-            : base(user, mbItem, parent)
+            : base(user, mbItem, parent, dlnaClass: "object.container.album.videoAlbum")
         {
         }
         protected internal override IEnumerable<ModelBase> Children
@@ -495,7 +537,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
     internal class VideoSeasonContainer : ModelBase<MediaBrowser.Controller.Entities.TV.Season>
     {
         internal VideoSeasonContainer(User user, MediaBrowser.Controller.Entities.TV.Season mbItem, ModelBase parent)
-            : base(user, mbItem, parent)
+            : base(user, mbItem, parent, dlnaClass: "object.container.album.videoAlbum")
         {
         }
         protected internal override IEnumerable<ModelBase> Children
@@ -525,7 +567,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
     internal class VideoFolderContainer : ModelBase<Folder>
     {
         internal VideoFolderContainer(User user, Folder mbItem, ModelBase parent)
-            : base(user, mbItem, parent)
+            : base(user, mbItem, parent, dlnaClass: "object.container.storageFolder")
         {
         }
         protected internal override IEnumerable<ModelBase> Children
@@ -559,7 +601,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
     internal class VideoGenreContainer : ModelBase<Genre>
     {
         internal VideoGenreContainer(User user, Genre mbItem, ModelBase parent)
-            : base(user, mbItem, parent)
+            : base(user, mbItem, parent, dlnaClass: "object.container.genre.videoGenre")
         {
         }
 
@@ -597,7 +639,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
     internal class VideoActorContainer : ModelBase<Person>
     {
         internal VideoActorContainer(User user, Person mbItem, ModelBase parent)
-            : base(user, mbItem, parent)
+            : base(user, mbItem, parent, dlnaClass: "object.container.album.videoAlbum")
         {
         }
 
@@ -634,7 +676,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
     internal class VideoItem : ModelBase<Video>
     {
         internal VideoItem(User user, Video mbItem, ModelBase parent)
-            : base(user, mbItem, parent)
+            : base(user, mbItem, parent, dlnaClass: "object.item.videoItem")
         {
 
         }
@@ -661,7 +703,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
     internal class MusicItem : ModelBase<MediaBrowser.Controller.Entities.Audio.Audio>
     {
         internal MusicItem(User user, MediaBrowser.Controller.Entities.Audio.Audio mbItem, ModelBase parent)
-            : base(user: user, mbItem: mbItem, parent: parent)
+            : base(user: user, mbItem: mbItem, parent: parent, dlnaClass: "object.item.audioItem.musicTrack")
         {
 
         }
@@ -687,7 +729,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
     internal class MusicGenreContainer : ModelBase<Genre>
     {
         internal MusicGenreContainer(User user, Genre mbItem, ModelBase parent)
-            : base(user, mbItem, parent)
+            : base(user, mbItem, parent, dlnaClass: "object.container.genre.musicGenre")
         {
         }
 
@@ -725,7 +767,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
     internal class MusicArtistContainer : ModelBase<MediaBrowser.Controller.Entities.Audio.MusicArtist>
     {
         internal MusicArtistContainer(User user, MediaBrowser.Controller.Entities.Audio.MusicArtist mbItem, ModelBase parent)
-            : base(user: user, mbItem: mbItem, parent: parent)
+            : base(user: user, mbItem: mbItem, parent: parent, dlnaClass: "object.container.person.musicArtist")
         {
 
         }
@@ -759,7 +801,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
     internal class MusicAlbumContainer : ModelBase<MediaBrowser.Controller.Entities.Audio.MusicAlbum>
     {
         internal MusicAlbumContainer(User user, MediaBrowser.Controller.Entities.Audio.MusicAlbum mbItem, ModelBase parent)
-            : base(user: user, mbItem: mbItem, parent: parent)
+            : base(user: user, mbItem: mbItem, parent: parent, dlnaClass: "object.container.album.musicAlbum")
         {
 
         }
@@ -993,7 +1035,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             var result = new Platinum.MediaContainer();
             result.ObjectID = item.Path;
             result.ParentID = item.ParentPath;
-            result.Class = new Platinum.ObjectClass("object.container", "");
+            result.Class = new Platinum.ObjectClass("object.container.album.videoAlbum", "");
             result.ChildrenCount = item.Children.Count();
 
             result.Title = item.MBItem.Name == null ? string.Empty : item.MBItem.Name;
@@ -1564,14 +1606,49 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 //    }
 
                 //this is temporary code so that testers can try various combinations with their devices without needing a recompile all the time
-                var resource = GetBasicMediaResource((BaseItem)item.MBItem);
-                resource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType(MimeType, true, context);
+                if (!string.IsNullOrWhiteSpace(MimeType) & !string.IsNullOrWhiteSpace(UriFormatString))
+                {
+                    var userSpecifiedResource = GetBasicMediaResource((BaseItem)item.MBItem);
+                    userSpecifiedResource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType(MimeType, true, context);
 
-                var uri = string.Format(UriFormatString,
-                                        prefix, item.MBItem.Id);
-                resource.URI = new Uri(uri).ToString();
+                    var uri = string.Format(UriFormatString,
+                                            prefix, item.MBItem.Id);
+                    userSpecifiedResource.URI = new Uri(uri).ToString();
 
-                result.Add(resource);
+                    result.Add(userSpecifiedResource);
+                }
+
+
+                //test case to get some static serving done
+                //not this can possibly ask for urls that the API doesn't support like stream.mov
+                //so this code is definitaly not staying here for ever
+                if ((item.MBItem.DefaultVideoStream != null) && 
+                    (!string.IsNullOrWhiteSpace(item.MBItem.Path)) && 
+                    (System.IO.File.Exists(item.MBItem.Path)) && 
+                    (System.IO.Path.HasExtension(item.MBItem.Path)))
+                {
+                    var staticResource = GetBasicMediaResource((BaseItem)item.MBItem);
+
+                    if (item.MBItem.DefaultVideoStream.BitRate.HasValue)
+                        staticResource.Bitrate = (uint)item.MBItem.DefaultVideoStream.BitRate.Value;
+                    if (item.MBItem.DefaultVideoStream.Channels.HasValue)
+                        staticResource.NbAudioChannels = (uint)item.MBItem.DefaultVideoStream.Channels.Value;
+                    if (item.MBItem.DefaultVideoStream.SampleRate.HasValue)
+                        staticResource.SampleFrequency = (uint)item.MBItem.DefaultVideoStream.SampleRate.Value;
+
+                    var file = new System.IO.FileInfo(item.MBItem.Path);
+                    staticResource.Size = (ulong)file.Length;
+
+                    var extension = System.IO.Path.GetExtension(item.MBItem.Path);
+                    var mimeType = MediaBrowser.Common.Net.MimeTypes.GetMimeType(extension);
+                    staticResource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType(mimeType, true, context);
+
+                    var staticUri = string.Format("{0}Videos/{1}/stream{2}?static=true",
+                        prefix, item.MBItem.Id, extension);
+                    staticResource.URI = new Uri(staticUri).ToString();
+
+                    result.Add(staticResource);
+                }
             }
 
 
@@ -1808,43 +1885,43 @@ namespace MediaBrowser.Plugins.Dlna.Model
 
     internal static class NavigationHelper
     {
-        internal static Model.ModelBase GetObjectByPath(User currentUser, string object_id)
-        {
-            var paths = object_id.Split('.').ToList();
-            //technically path should ALWAYS start with root, "0"
-            //but WMP has prior knowledge of the well known container IDs so it asks for "13" All Playlists directly
-            var nextId = paths.First();
-            paths.Remove(nextId);
-            if (string.Equals(nextId, "0", StringComparison.OrdinalIgnoreCase))
-            {
-                var root = new Model.Root(currentUser);
-                if (paths.Any())
-                    return GetObjectByPath(root, paths);
-                else
-                    return root;
-            }
-            else
-            {
-                //probably WMP asking directly for playlists
-                //Xbox360 Video App asks directly for 15 which is folders
-                var root = new Model.Root(currentUser);
-                var item = root.GetChildRecursive(object_id);
-                if (paths.Any())
-                    return GetObjectByPath(item, paths);
-                else
-                    return item;
-            }
-        }
-        private static Model.ModelBase GetObjectByPath(Model.ModelBase parent, List<string> paths)
-        {
-            var nextId = paths.First();
-            paths.Remove(nextId);
-            var nextItem = parent.GetChildRecursive(nextId);
-            if (paths.Any())
-                return GetObjectByPath(nextItem, paths);
-            else
-                return nextItem;
-        }
+        //internal static Model.ModelBase GetObjectByPath(User currentUser, string object_id)
+        //{
+        //    var paths = object_id.Split('.').ToList();
+        //    //technically path should ALWAYS start with root, "0"
+        //    //but WMP has prior knowledge of the well known container IDs so it asks for "13" All Playlists directly
+        //    var nextId = paths.First();
+        //    paths.Remove(nextId);
+        //    if (string.Equals(nextId, "0", StringComparison.OrdinalIgnoreCase))
+        //    {
+        //        var root = new Model.Root(currentUser);
+        //        if (paths.Any())
+        //            return GetObjectByPath(root, paths);
+        //        else
+        //            return root;
+        //    }
+        //    else
+        //    {
+        //        //probably WMP asking directly for playlists
+        //        //Xbox360 Video App asks directly for 15 which is folders
+        //        var root = new Model.Root(currentUser);
+        //        var item = root.GetChildRecursive(object_id);
+        //        if (paths.Any())
+        //            return GetObjectByPath(item, paths);
+        //        else
+        //            return item;
+        //    }
+        //}
+        //private static Model.ModelBase GetObjectByPath(Model.ModelBase parent, List<string> paths)
+        //{
+        //    var nextId = paths.First();
+        //    paths.Remove(nextId);
+        //    var nextItem = parent.GetChildRecursive(nextId);
+        //    if (paths.Any())
+        //        return GetObjectByPath(nextItem, paths);
+        //    else
+        //        return nextItem;
+        //}
 
         internal static IEnumerable<Model.ModelBase> GetChildren(Model.ModelBase item, int startingIndex, int requestedCount)
         {
@@ -1861,6 +1938,18 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 return item.RecursiveChildren;
             else
                 return item.GetChildrenRecursive(startingIndex, requestedCount);
+        }
+        internal static IEnumerable<Model.ModelBase> GetRecursiveChildren(Model.ModelBase item, IEnumerable<string> derivedFrom)
+        {
+            return GetRecursiveChildren(item, derivedFrom, 0, 100000);
+        }
+        internal static IEnumerable<Model.ModelBase> GetRecursiveChildren(Model.ModelBase item, IEnumerable<string> derivedFrom, int startingIndex, int requestedCount)
+        {
+            //if they request zero children, they mean all children
+            if (requestedCount == 0)
+                return item.RecursiveChildren;
+            else
+                return item.GetChildrenRecursive(derivedFrom, startingIndex, requestedCount);
         }
     }
 
