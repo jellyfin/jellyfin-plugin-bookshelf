@@ -1607,7 +1607,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 //    }
 
                 //this is temporary code so that testers can try various combinations with their devices without needing a recompile all the time
-                if (!string.IsNullOrWhiteSpace(MimeType) & !string.IsNullOrWhiteSpace(UriFormatString))
+                if (!string.IsNullOrWhiteSpace(MimeType) && !string.IsNullOrWhiteSpace(UriFormatString))
                 {
                     var userSpecifiedResource = GetBasicMediaResource((BaseItem)item.MBItem);
                     userSpecifiedResource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType(MimeType, true, context);
