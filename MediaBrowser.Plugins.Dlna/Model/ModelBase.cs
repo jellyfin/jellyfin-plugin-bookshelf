@@ -300,14 +300,13 @@ namespace MediaBrowser.Plugins.Dlna.Model
                         return audio.Genres.Where(genre => !string.IsNullOrWhiteSpace(genre));
                     })
                     .DistinctBy(genre => genre, StringComparer.OrdinalIgnoreCase)
-                    .OrderBy(genre => genre)
                     .Select(genre => LibraryHelper.GetGenre(genre))
                     .ToList();
 
                 var genres = asyncGenres
                     .Where(i => i != null && !i.IsFaulted && i.IsCompleted)
                     .Select(i => i.Result)
-                    .OrderBy(i => i.Name);
+                    .OrderBy(i => i.SortName);
 
                 return genres.Select(i => new MusicGenreContainer(this.User, i, parent: this));
 
@@ -327,9 +326,9 @@ namespace MediaBrowser.Plugins.Dlna.Model
             {
                 return this.MBItem.GetRecursiveChildren(this.User)
                     .OfType<MediaBrowser.Controller.Entities.Audio.MusicArtist>()
-                    .DistinctBy(person => person.Name, StringComparer.OrdinalIgnoreCase)
-                    .OrderBy(person => person.Name)
-                    .Select(i => new MusicArtistContainer(this.User, i, parent: this));
+                    .DistinctBy(artist => artist.Name, StringComparer.OrdinalIgnoreCase)
+                    .OrderBy(artist => artist.SortName)
+                    .Select(artist => new MusicArtistContainer(this.User, artist, parent: this));
             }
         }
 
@@ -347,7 +346,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 return this.MBItem.GetRecursiveChildren(this.User)
                     .OfType<MediaBrowser.Controller.Entities.Audio.MusicAlbum>()
                     .DistinctBy(album => album.Name, StringComparer.OrdinalIgnoreCase)
-                    .OrderBy(album => album.Name)
+                    .OrderBy(album => album.SortName)
                     .Select(album => new MusicAlbumContainer(this.User, album, parent: this));
             }
         }
@@ -391,14 +390,13 @@ namespace MediaBrowser.Plugins.Dlna.Model
                         return video.Genres.Where(genre => !string.IsNullOrWhiteSpace(genre));
                     })
                     .DistinctBy(genre => genre, StringComparer.OrdinalIgnoreCase)
-                    .OrderBy(genre => genre)
                     .Select(genre => LibraryHelper.GetGenre(genre))
                     .ToList();
 
                 var genres = asyncGenres
                     .Where(i => i != null && !i.IsFaulted && i.IsCompleted)
                     .Select(i => i.Result)
-                    .OrderBy(person => person.Name);
+                    .OrderBy(person => person.SortName);
 
                 return genres.Select(i => new VideoGenreContainer(this.User, i, parent: this));
             }
@@ -433,7 +431,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 var people = asyncPeople
                     .Where(i => i != null && !i.IsFaulted && i.IsCompleted)
                     .Select(i => i.Result)
-                    .OrderBy(person => person.Name);
+                    .OrderBy(person => person.SortName);
                 return people.Select(i => new VideoActorContainer(this.User, i, parent: this));
             }
         }
@@ -452,7 +450,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 return this.MBItem.GetRecursiveChildren(this.User)
                     .OfType<MediaBrowser.Controller.Entities.TV.Series>()
                     .DistinctBy(series => series.Name, StringComparer.OrdinalIgnoreCase)
-                    .OrderBy(series => series.Name)
+                    .OrderBy(series => series.SortName)
                     .Select(series => new VideoSeriesContainer(this.User, series, parent: this));
             }
         }
@@ -544,7 +542,10 @@ namespace MediaBrowser.Plugins.Dlna.Model
         {
             get
             {
-                return this.MBItem.GetRecursiveChildren(this.User).OfType<Video>().Select(i => (ModelBase)(new VideoItem(this.User, mbItem: i, parent: this)));
+                return this.MBItem.GetRecursiveChildren(this.User)
+                    .OfType<Video>()
+                    .OrderBy(i=> i.SortName)
+                    .Select(i => (ModelBase)(new VideoItem(this.User, mbItem: i, parent: this)));
             }
         }
 
@@ -775,10 +776,10 @@ namespace MediaBrowser.Plugins.Dlna.Model
         {
             get
             {
-                return this.User.RootFolder.GetRecursiveChildren(this.User)
-                    .OfType<MediaBrowser.Controller.Entities.Audio.Audio>()
-                    .Where(i => string.Equals(i.Artist, this.MBItem.Name, StringComparison.OrdinalIgnoreCase))
-                    .Select(i => new MusicItem(this.User, i, this));
+                return this.MBItem.GetRecursiveChildren(this.User)
+                    .OfType<MediaBrowser.Controller.Entities.Audio.MusicAlbum>()
+                    .OrderBy(album => album.SortName)
+                    .Select(album => new MusicAlbumContainer(this.User, album, parent: this));
             }
         }
 
@@ -809,10 +810,10 @@ namespace MediaBrowser.Plugins.Dlna.Model
         {
             get
             {
-                return this.User.RootFolder.GetRecursiveChildren(this.User)
+                return this.MBItem.GetRecursiveChildren(this.User)
                     .OfType<MediaBrowser.Controller.Entities.Audio.Audio>()
-                    .Where(i => string.Equals(i.Album, this.MBItem.Name, StringComparison.OrdinalIgnoreCase))
-                    .Select(i => new MusicItem(this.User, i, this));
+                    .OrderBy(track => track.SortName)
+                    .Select(track => new MusicItem(this.User, track, parent: this));
             }
         }
 
