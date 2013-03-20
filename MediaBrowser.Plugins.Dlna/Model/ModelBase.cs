@@ -870,7 +870,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             result.Description.Rating = item.MbItem.CommunityRating.ToString();
 
             result.Recorded.SeriesTitle = item.MBItem.Name;
-
+            
             if (item.MbItem.Genres != null)
             {
                 foreach (var genre in item.MbItem.Genres)
@@ -1054,7 +1054,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             result.ParentID = item.ParentPath;
             result.Title = item.MBItem.Name.EnsureNotNull();
 
-
+            
             var episode = item.MBItem as MediaBrowser.Controller.Entities.TV.Episode;
             if (episode == null)
                 result.Class = new Platinum.ObjectClass("object.item.videoItem", "");
@@ -1291,7 +1291,9 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 foreach (var prefix in DlnaHttpServerPrefixes)
                 {
                     result.Add(new Platinum.AlbumArtInfo(prefix + "Artwork/" + item.Path + ".png"));
+                    result.Add(new Platinum.AlbumArtInfo(prefix + "Artwork/" + item.Path + ".png", "PNG_TN"));
                     result.Add(new Platinum.AlbumArtInfo(prefix + "Artwork/" + item.Path + ".jpg"));
+                    result.Add(new Platinum.AlbumArtInfo(prefix + "Artwork/" + item.Path + ".jpg", "JPEG_TN"));
                 }
             }
 
@@ -1350,6 +1352,56 @@ namespace MediaBrowser.Plugins.Dlna.Model
             return result;
         }
 
+
+        internal static IEnumerable<Platinum.MediaResource> GetThumbnailResources(ModelBase item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
+        {
+            var result = new List<Platinum.MediaResource>();
+            if (item == null || item.MbItem == null || item.MbItem.Images == null)
+                return result;
+
+
+            //Some temp code to enable the client to make a call to a url with a file extension
+            //so we can test whether or not this is the reason why artwork doesn't show up for many/most clients
+            if (DlnaHttpServerPrefixes != null)
+            {
+                foreach (var prefix in DlnaHttpServerPrefixes)
+                {
+                    var pngResource = new Platinum.MediaResource();
+                    pngResource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType("image/png", true, context);
+                    var pngUri = string.Format("{0}Artwork/{1}.png",
+                        prefix, item.Path);
+                    pngResource.URI = new Uri(pngUri).ToString();
+                    result.Add(pngResource);
+
+                    var jpgResource = new Platinum.MediaResource();
+                    jpgResource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType("image/jpeg", true, context);
+                    var jpgUri = string.Format("{0}Artwork/{1}.jpg",
+                        prefix, item.Path);
+                    jpgResource.URI = new Uri(jpgUri).ToString();
+                    result.Add(jpgResource);
+                }
+            }
+
+            //making the artwork a direct hit to the MediaBrowser server instead of via the DLNA plugin works for WMP
+            //not sure it'll work for all other clients
+            //Xbox360 Video App ignores it and askes for: video url + ?artwork=true
+            foreach (var img in item.MbItem.Images)
+            {
+                foreach (var prefix in urlPrefixes)
+                {
+                    var thumbnailResource = new Platinum.MediaResource();
+                    thumbnailResource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType("image/png", true, context);
+
+                    var thumnailUri = string.Format("{0}Items/{1}/Images/{2}",
+                        prefix, item.MbItem.Id, img.Key);
+                    thumbnailResource.URI = new Uri(thumnailUri).ToString();
+
+                    result.Add(thumbnailResource);
+                }
+            }
+
+            return result;
+        }
     }
 
     internal static class PlatinumMediaResourceHelper
@@ -1469,7 +1521,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             var result = new List<Platinum.MediaResource>();
             if (item == null || item.MBItem == null)
                 return result;
-
+            
             var exts = ValidUriExtensions;
             foreach (var prefix in urlPrefixes)
             {
@@ -1652,10 +1704,9 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 }
             }
 
-
+            result.AddRange(PlatinumAlbumArtInfoHelper.GetThumbnailResources(item, context, urlPrefixes));
             return result;
         }
-
 
         ///// <summary>
         ///// returns a set of VideoOptions which all have their various BitRates, AudioChannels etc set to the same as the original file

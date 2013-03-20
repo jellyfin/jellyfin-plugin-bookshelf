@@ -81,7 +81,7 @@ namespace MediaBrowser.Plugins.Dlna
             _PlatinumServer.BrowseDirectChildren += server_BrowseDirectChildren;
             _PlatinumServer.ProcessFileRequest += server_ProcessFileRequest;
             _PlatinumServer.SearchContainer += server_SearchContainer;
-
+            
             _Upnp.AddDeviceHost(_PlatinumServer);
             _Upnp.Start();
             Logger.Info("UPnP Server Started");
@@ -134,7 +134,6 @@ namespace MediaBrowser.Plugins.Dlna
             //Some temp code to enable the client to make a call to a url with a file extension
             //so we can test whether or not this is the reason why artwork doesn't show up for many/most clients
             Model.PlatinumAlbumArtInfoHelper.DlnaHttpServerPrefixes = GetDlnaHttpServerPrefixes(context);
-
 
             //var objectIDMatch = Model.NavigationHelper.GetObjectByPath(this.CurrentUser, object_id);
             var objectIDMatch = GetItemFromID(object_id);
@@ -430,6 +429,8 @@ namespace MediaBrowser.Plugins.Dlna
             }         
 
             didl += Platinum.Didl.footer;
+
+            Logger.Debug(didl);
 
             action.SetArgumentValue("Result", didl);
             action.SetArgumentValue("NumberReturned", itemCount.ToString());
