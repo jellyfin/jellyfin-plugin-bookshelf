@@ -1,11 +1,11 @@
 ﻿using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.ScheduledTasks;
+using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Plugins;
-using MediaBrowser.Controller.ScheduledTasks;
 using MediaBrowser.Plugins.Trailers.Configuration;
 using MediaBrowser.Plugins.Trailers.ScheduledTasks;
 using System;
-using System.IO;
+using System.Threading;
 
 namespace MediaBrowser.Plugins.Trailers
 {
@@ -25,14 +25,17 @@ namespace MediaBrowser.Plugins.Trailers
         /// </summary>
         private readonly ITaskManager _taskManager;
 
+        private readonly ILibraryManager _libraryManager;
+        
         /// <summary>
         /// Initializes a new instance of the <see cref="ServerEntryPoint" /> class.
         /// </summary>
         /// <param name="taskManager">The task manager.</param>
         /// <param name="appPaths">The app paths.</param>
-        public ServerEntryPoint(ITaskManager taskManager, IApplicationPaths appPaths)
+        public ServerEntryPoint(ITaskManager taskManager, IApplicationPaths appPaths, ILibraryManager libraryManager)
         {
             _taskManager = taskManager;
+            _libraryManager = libraryManager;
 
             Instance = this;
         }
@@ -60,7 +63,7 @@ namespace MediaBrowser.Plugins.Trailers
             if (pathChanged)
             {
                 Plugin.Instance.DownloadPath = null;
-                _taskManager.QueueScheduledTask<RefreshMediaLibraryTask>();
+                _libraryManager.ValidateMediaLibrary(new Progress<double>(), CancellationToken.None);
             }
         }
 
