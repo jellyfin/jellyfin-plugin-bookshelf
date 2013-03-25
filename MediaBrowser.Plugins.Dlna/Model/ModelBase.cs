@@ -68,7 +68,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
         protected internal IEnumerable<ModelBase> GetChildren(IEnumerable<string> derivedFrom, int startingIndex, int requestedCount)
         {
             return this.Children
-                .Where(i=>i.DlnaClass.StartsWith(derivedFrom.First(), StringComparison.OrdinalIgnoreCase))
+                .Where(i => i.DlnaClass.StartsWith(derivedFrom.First(), StringComparison.OrdinalIgnoreCase))
                 .Skip(startingIndex)
                 .Take(requestedCount);
         }
@@ -86,7 +86,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             }
         }
 
-         
+
         protected internal IEnumerable<ModelBase> GetChildrenRecursive(int startingIndex, int requestedCount)
         {
             if (this.Children.Count() >= (startingIndex + requestedCount))
@@ -544,7 +544,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             {
                 return this.MBItem.GetRecursiveChildren(this.User)
                     .OfType<Video>()
-                    .OrderBy(i=> i.SortName)
+                    .OrderBy(i => i.SortName)
                     .Select(i => (ModelBase)(new VideoItem(this.User, mbItem: i, parent: this)));
             }
         }
@@ -627,12 +627,16 @@ namespace MediaBrowser.Plugins.Dlna.Model
             {
                 result.AddResource(res);
             }
+            foreach (var res in PlatinumAlbumArtInfoHelper.GetThumbnailResources(this, context, urlPrefixes))
+            {
+                result.AddResource(res);
+            }
 
             foreach (var art in PlatinumAlbumArtInfoHelper.GetAlbumArtInfo(this, context, urlPrefixes))
             {
                 result.Extra.AddAlbumArtInfo(art);
             }
-
+            
             return result;
         }
     }
@@ -755,6 +759,10 @@ namespace MediaBrowser.Plugins.Dlna.Model
             {
                 result.AddResource(res);
             }
+            foreach (var res in PlatinumAlbumArtInfoHelper.GetThumbnailResources(this, context, urlPrefixes))
+            {
+                result.AddResource(res);
+            }
 
             foreach (var art in PlatinumAlbumArtInfoHelper.GetAlbumArtInfo(this, context, urlPrefixes))
             {
@@ -870,7 +878,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             result.Description.Rating = item.MbItem.CommunityRating.ToString();
 
             result.Recorded.SeriesTitle = item.MBItem.Name;
-            
+
             if (item.MbItem.Genres != null)
             {
                 foreach (var genre in item.MbItem.Genres)
@@ -1054,7 +1062,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             result.ParentID = item.ParentPath;
             result.Title = item.MBItem.Name.EnsureNotNull();
 
-            
+
             var episode = item.MBItem as MediaBrowser.Controller.Entities.TV.Episode;
             if (episode == null)
                 result.Class = new Platinum.ObjectClass("object.item.videoItem", "");
@@ -1063,11 +1071,6 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 if (signature == Platinum.DeviceSignature.WMP)
                 {
                     result.Class = new Platinum.ObjectClass("object.item.videoItem.videoBroadcast", "");
-
-                    if (episode.Season != null)
-                        result.Title = string.Format("{0}-{1}", episode.Season.Name, result.Title);
-                    if (episode.Series != null)
-                        result.Title = string.Format("{0}-{1}", episode.Series.Name, result.Title);
 
                     if (episode.IndexNumber.HasValue)
                         result.Recorded.EpisodeNumber = (uint)item.MBItem.IndexNumber.Value;
@@ -1078,6 +1081,13 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 }
                 else
                     result.Class = new Platinum.ObjectClass("object.item.videoItem", "");
+
+
+                if (episode.Season != null)
+                    result.Title = string.Format("{0}-{1}", episode.Season.Name, result.Title);
+                if (episode.Series != null)
+                    result.Title = string.Format("{0}-{1}", episode.Series.Name, result.Title);
+
 
             }
             result.Date = item.MBItem.ProductionYear.ToString();
@@ -1242,7 +1252,15 @@ namespace MediaBrowser.Plugins.Dlna.Model
     }
     internal static class PlatinumAlbumArtInfoHelper
     {
+        private static List<Platinum.ProtocolInfo> _ThumbnailProtocolInfos = new List<Platinum.ProtocolInfo>() 
+        {
+            new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_TN;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000"),
+            new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_TN;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000")
+        };
+        private static IEnumerable<Platinum.ProtocolInfo> ThumbnailProtocolInfos { get { return _ThumbnailProtocolInfos; } }
+
         internal static IEnumerable<string> DlnaHttpServerPrefixes { get; set; }
+
 
         internal static IEnumerable<Platinum.AlbumArtInfo> GetAlbumArtInfo(WellKnownContainerBase item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
         {
@@ -1297,111 +1315,220 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 }
             }
 
+            result.AddRange(GetAlbumArtInfo(item.MbItem, context, urlPrefixes));
+            return result;
+        }
+        private static IEnumerable<Platinum.AlbumArtInfo> GetAlbumArtInfo(BaseItem mbItem, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
+        {
+            var result = new List<Platinum.AlbumArtInfo>();
+            if (mbItem == null || mbItem.Images == null)
+                return result;
+
             //making the artwork a direct hit to the MediaBrowser server instead of via the DLNA plugin works for WMP
             //not sure it'll work for all other clients
             //Xbox360 Video App ignores it and askes for: video url + ?artwork=true
-            foreach (var img in item.MbItem.Images)
+            foreach (var img in mbItem.Images)
             {
                 foreach (var prefix in urlPrefixes)
                 {
-                    result.Add(new Platinum.AlbumArtInfo(prefix + "Items/" + item.Id.ToString() + "/Images/" + img.Key));
-                }
-            }
-
-
-            return result;
-        }
-
-        internal static IEnumerable<Platinum.AlbumArtInfo> GetAlbumArtInfo(VideoActorContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
-        {
-            var result = new List<Platinum.AlbumArtInfo>();
-            if (item.MBItem.Images != null)
-            {
-                foreach (var img in item.MBItem.Images)
-                {
-                    foreach (var prefix in urlPrefixes)
-                    {
-                        result.Add(new Platinum.AlbumArtInfo(new Uri(prefix + "Persons/" + item.MBItem.Name + "/Images/" + img.Key).ToString()));
-                    }
+                    result.Add(new Platinum.AlbumArtInfo(GetItemUri(prefix, mbItem, img.Key)));
                 }
             }
             return result;
         }
-        internal static IEnumerable<Platinum.AlbumArtInfo> GetAlbumArtInfo(VideoGenreContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
-        {
-            var result = new List<Platinum.AlbumArtInfo>();
-            if (item.MBItem.Images != null)
-            {
-                foreach (var img in item.MBItem.Images)
-                {
-                    foreach (var prefix in urlPrefixes)
-                    {
-                        result.Add(new Platinum.AlbumArtInfo(new Uri(prefix + "Genres/" + item.MBItem.Name + "/Images/" + img.Key).ToString()));
-                    }
-                }
-            }
-            return result;
-        }
-        internal static IEnumerable<Platinum.AlbumArtInfo> GetAlbumArtInfo(MusicGenreContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
-        {
-            var result = new List<Platinum.AlbumArtInfo>();
-            foreach (var prefix in urlPrefixes)
-            {
-                result.Add(new Platinum.AlbumArtInfo(prefix + "Genre/" + item.MBItem.Name + "/Images/Primary"));
-            }
-            return result;
-        }
 
-
-        internal static IEnumerable<Platinum.MediaResource> GetThumbnailResources(ModelBase item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
+        internal static IEnumerable<Platinum.MediaResource> GetThumbnailResources(MusicItem item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
+        {
+            return GetThumbnailResources((ModelBase)item, context, urlPrefixes);
+        }
+        internal static IEnumerable<Platinum.MediaResource> GetThumbnailResources(VideoItem item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
+        {
+            return GetThumbnailResources((ModelBase)item, context, urlPrefixes);
+        }
+        private static IEnumerable<Platinum.MediaResource> GetThumbnailResources(ModelBase item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
         {
             var result = new List<Platinum.MediaResource>();
-            if (item == null || item.MbItem == null || item.MbItem.Images == null)
+            if (item == null)
+                return result;
+            else
+                return GetThumbnailResources(item.MbItem, context, urlPrefixes);
+        }
+        private static IEnumerable<Platinum.MediaResource> GetThumbnailResources(BaseItem mbItem, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
+        {
+            var result = new List<Platinum.MediaResource>();
+            if (mbItem == null || mbItem.Images == null)
                 return result;
 
-
-            //Some temp code to enable the client to make a call to a url with a file extension
-            //so we can test whether or not this is the reason why artwork doesn't show up for many/most clients
+            //temp code to see if the PS3 needs file extensions or not
             if (DlnaHttpServerPrefixes != null)
             {
                 foreach (var prefix in DlnaHttpServerPrefixes)
                 {
-                    var pngResource = new Platinum.MediaResource();
-                    pngResource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType("image/png", true, context);
-                    var pngUri = string.Format("{0}Artwork/{1}.png",
-                        prefix, item.Path);
-                    pngResource.URI = new Uri(pngUri).ToString();
-                    result.Add(pngResource);
+                    var pngThumbnailResource = new Platinum.MediaResource();
+                    pngThumbnailResource.ProtoInfo = new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_TN;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000");
+                    pngThumbnailResource.URI = prefix + "Artwork/" + mbItem.Id + ".png";
+                    result.Add(pngThumbnailResource);
 
-                    var jpgResource = new Platinum.MediaResource();
-                    jpgResource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType("image/jpeg", true, context);
-                    var jpgUri = string.Format("{0}Artwork/{1}.jpg",
-                        prefix, item.Path);
-                    jpgResource.URI = new Uri(jpgUri).ToString();
-                    result.Add(jpgResource);
+                    var jpgThumbnailResource = new Platinum.MediaResource();
+                    jpgThumbnailResource.ProtoInfo = new Platinum.ProtocolInfo("http-get:*:image/jpg:DLNA.ORG_PN=JPEG_TN;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000");
+                    jpgThumbnailResource.URI = prefix + "Artwork/" + mbItem.Id + ".jpg";
+                    result.Add(jpgThumbnailResource);
                 }
             }
 
             //making the artwork a direct hit to the MediaBrowser server instead of via the DLNA plugin works for WMP
             //not sure it'll work for all other clients
             //Xbox360 Video App ignores it and askes for: video url + ?artwork=true
-            foreach (var img in item.MbItem.Images)
+            foreach (var img in mbItem.Images)
             {
                 foreach (var prefix in urlPrefixes)
                 {
-                    var thumbnailResource = new Platinum.MediaResource();
-                    thumbnailResource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType("image/png", true, context);
-
-                    var thumnailUri = string.Format("{0}Items/{1}/Images/{2}",
-                        prefix, item.MbItem.Id, img.Key);
-                    thumbnailResource.URI = new Uri(thumnailUri).ToString();
-
-                    result.Add(thumbnailResource);
+                    foreach (var proto in ThumbnailProtocolInfos)
+                    {
+                        var thumbnailResource = new Platinum.MediaResource();
+                        thumbnailResource.ProtoInfo = proto;
+                        thumbnailResource.URI = GetItemUri(prefix, mbItem, img.Key);
+                        result.Add(thumbnailResource);
+                    }
                 }
             }
 
             return result;
         }
+
+        private static string GetItemUri(string uriPrefix, BaseItem mbItem, string imageType)
+        {
+            return uriPrefix + "Items/" + mbItem.Id.ToString() + "/Images/" + imageType;
+        }
+
+
+        internal static IEnumerable<Platinum.AlbumArtInfo> GetAlbumArtInfo(VideoActorContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
+        {
+            var result = new List<Platinum.AlbumArtInfo>();
+            if (item == null)
+                return result;
+            else
+                return GetAlbumArtInfo(item.MBItem, context, urlPrefixes);
+        }
+        private static IEnumerable<Platinum.AlbumArtInfo> GetAlbumArtInfo(Person mbItem, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
+        {
+            var result = new List<Platinum.AlbumArtInfo>();
+            if (mbItem == null || mbItem.Images == null)
+                return result; 
+            
+            foreach (var img in mbItem.Images)
+            {
+                foreach (var prefix in urlPrefixes)
+                {
+                    result.Add(new Platinum.AlbumArtInfo(GetImageUri(prefix, mbItem, img.Key)));
+                }
+            }
+            return result;
+        }
+        internal static IEnumerable<Platinum.MediaResource> GetThumbnailResources(VideoActorContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
+        {
+            var result = new List<Platinum.MediaResource>();
+            if (item == null)
+                return result;
+            else
+                return GetThumbnailResources(item.MBItem, context, urlPrefixes);
+        }
+        private static IEnumerable<Platinum.MediaResource> GetThumbnailResources(Person mbItem, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
+        {
+            var result = new List<Platinum.MediaResource>();
+            if (mbItem == null || mbItem.Images == null)
+                return result;
+
+            foreach (var img in mbItem.Images)
+            {
+                foreach (var prefix in urlPrefixes)
+                {
+                    foreach (var proto in ThumbnailProtocolInfos)
+                    {
+                        var thumbnailResource = new Platinum.MediaResource();
+                        thumbnailResource.ProtoInfo = proto;
+                        thumbnailResource.URI = GetImageUri(prefix, mbItem, img.Key);
+                        result.Add(thumbnailResource);
+                    }
+                }
+            }
+            return result;
+        }
+        
+        private static string GetImageUri(string uriPrefix, Person mbItem, string imageType)
+        {
+            return new Uri(uriPrefix + "Persons/" + mbItem.Name + "/Images/" + imageType).ToString();
+        }
+
+
+        internal static IEnumerable<Platinum.AlbumArtInfo> GetAlbumArtInfo(VideoGenreContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
+        {
+            return GetAlbumArtInfo(item.MBItem, context, urlPrefixes);
+        }
+        internal static IEnumerable<Platinum.AlbumArtInfo> GetAlbumArtInfo(MusicGenreContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
+        {
+            return GetAlbumArtInfo(item.MBItem, context, urlPrefixes);
+        }
+        private static IEnumerable<Platinum.AlbumArtInfo> GetAlbumArtInfo(Genre mbItem, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
+        {
+            var result = new List<Platinum.AlbumArtInfo>();
+
+            if (mbItem != null && mbItem.Images != null)
+            {
+                foreach (var img in mbItem.Images)
+                {
+                    foreach (var prefix in urlPrefixes)
+                    {
+                        result.Add(new Platinum.AlbumArtInfo(GetImageUri(prefix, mbItem, img.Key)));
+                    }
+                }
+            }
+            return result;
+        }
+        
+        internal static IEnumerable<Platinum.MediaResource> GetThumbnailResources(VideoGenreContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
+        {
+            var result = new List<Platinum.MediaResource>();
+            if (item == null)
+                return result;
+            else
+                return GetThumbnailResources(item.MBItem, context, urlPrefixes);
+        }
+        internal static IEnumerable<Platinum.MediaResource> GetThumbnailResources(MusicGenreContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
+        {
+            var result = new List<Platinum.MediaResource>();
+            if (item == null)
+                return result;
+            else
+                return GetThumbnailResources(item.MBItem, context, urlPrefixes);
+        }
+        private static IEnumerable<Platinum.MediaResource> GetThumbnailResources(Genre mbItem, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
+        {
+            var result = new List<Platinum.MediaResource>();
+            if (mbItem == null || mbItem.Images == null)
+                return result;
+
+            foreach (var img in mbItem.Images)
+            {
+                foreach (var prefix in urlPrefixes)
+                {
+                    foreach (var proto in ThumbnailProtocolInfos)
+                    {
+                        var thumbnailResource = new Platinum.MediaResource();
+                        thumbnailResource.ProtoInfo = proto;
+                        thumbnailResource.URI = GetImageUri(prefix, mbItem, img.Key);
+                        result.Add(thumbnailResource);
+                    }
+                }
+            }
+            return result;
+        }
+        
+        private static string GetImageUri(string uriPrefix, Genre mbItem, string imageType)
+        {
+            return uriPrefix + "Genre/" + mbItem.Name + "/Images/" + imageType;
+        }
+
     }
 
     internal static class PlatinumMediaResourceHelper
@@ -1448,28 +1575,10 @@ namespace MediaBrowser.Plugins.Dlna.Model
             if (item == null)
                 return result;
 
-            //var resource = new Platinum.MediaResource();
+            //add the thumbnail resources
+            result.AddRange(PlatinumAlbumArtInfoHelper.GetThumbnailResources(item, context, urlPrefixes));
+
             return result;
-
-            //var result = new List<Platinum.MediaResource>();
-            //if (item == null)
-            //    return result;
-
-            //if (item.MBItem.Images != null)
-            //{
-            //    foreach (var img in item.MBItem.Images)
-            //    {
-            //        foreach (var prefix in urlPrefixes)
-            //        {
-            //            var resource = new Platinum.MediaResource();
-            //            resource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType("image/jpeg", true, context);
-            //            resource.URI = new Uri(prefix + "Persons/" + item.MBItem.Id.ToString() + "/Images/" + img.Key).ToString();
-
-            //            result.Add(resource);
-            //        }
-            //    }
-            //}
-            //return result;
         }
         internal static IEnumerable<Platinum.MediaResource> GetMediaResource(VideoGenreContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
         {
@@ -1477,7 +1586,9 @@ namespace MediaBrowser.Plugins.Dlna.Model
             if (item == null)
                 return result;
 
-            //var resource = new Platinum.MediaResource();
+            //add the thumbnail resources
+            result.AddRange(PlatinumAlbumArtInfoHelper.GetThumbnailResources(item, context, urlPrefixes));
+
             return result;
         }
 
@@ -1487,7 +1598,9 @@ namespace MediaBrowser.Plugins.Dlna.Model
             if (item == null)
                 return result;
 
-            //var resource = new Platinum.MediaResource();
+            //add the thumbnail resources
+            result.AddRange(PlatinumAlbumArtInfoHelper.GetThumbnailResources(item, context, urlPrefixes));
+
             return result;
         }
         internal static IEnumerable<Platinum.MediaResource> GetMediaResource(MusicArtistContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
@@ -1521,7 +1634,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             var result = new List<Platinum.MediaResource>();
             if (item == null || item.MBItem == null)
                 return result;
-            
+
             var exts = ValidUriExtensions;
             foreach (var prefix in urlPrefixes)
             {
@@ -1554,7 +1667,8 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 result.Add(resource);
 
             }
-
+            //add the thumbnail resources
+            result.AddRange(PlatinumAlbumArtInfoHelper.GetThumbnailResources(item, context, urlPrefixes));
             return result;
         }
 
@@ -1675,9 +1789,9 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 //test case to get some static serving done
                 //not this can possibly ask for urls that the API doesn't support like stream.mov
                 //so this code is definitaly not staying here for ever
-                if ((item.MBItem.DefaultVideoStream != null) && 
-                    (!string.IsNullOrWhiteSpace(item.MBItem.Path)) && 
-                    (System.IO.File.Exists(item.MBItem.Path)) && 
+                if ((item.MBItem.DefaultVideoStream != null) &&
+                    (!string.IsNullOrWhiteSpace(item.MBItem.Path)) &&
+                    (System.IO.File.Exists(item.MBItem.Path)) &&
                     (System.IO.Path.HasExtension(item.MBItem.Path)))
                 {
                     var staticResource = GetBasicMediaResource((BaseItem)item.MBItem);
@@ -1704,6 +1818,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 }
             }
 
+            //add the thumbnail resources
             result.AddRange(PlatinumAlbumArtInfoHelper.GetThumbnailResources(item, context, urlPrefixes));
             return result;
         }

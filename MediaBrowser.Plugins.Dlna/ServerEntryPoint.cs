@@ -430,7 +430,7 @@ namespace MediaBrowser.Plugins.Dlna
 
             didl += Platinum.Didl.footer;
 
-            Logger.Debug(didl);
+            //Logger.Debug(didl);
 
             action.SetArgumentValue("Result", didl);
             action.SetArgumentValue("NumberReturned", itemCount.ToString());

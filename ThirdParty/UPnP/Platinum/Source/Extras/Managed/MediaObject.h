@@ -452,6 +452,12 @@ public:
     {
 		*m_pHandle = PLT_ProtocolInfo(protocol_info);
 	}
+
+    ProtocolInfo(String^ protocol_info) :
+        ManagedWrapper<PLT_ProtocolInfo>()
+    {
+		*m_pHandle = PLT_ProtocolInfo(StringConv(protocol_info));
+	}
 };
 
 }
