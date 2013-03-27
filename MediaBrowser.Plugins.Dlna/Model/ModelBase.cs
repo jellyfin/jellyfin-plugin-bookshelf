@@ -636,7 +636,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             {
                 result.Extra.AddAlbumArtInfo(art);
             }
-            
+
             return result;
         }
     }
@@ -853,7 +853,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             result.Title = item.Title;
             result.ChildrenCount = item.Children.Count();
 
-            result.Description.Date = item.MbItem.PremiereDate.HasValue ? item.MbItem.PremiereDate.Value.ToString() : string.Empty;
+            result.Description.Date = item.MbItem.PremiereDate.HasValue ? item.MbItem.PremiereDate.Value.ToString("yyyy-MM-dd") : string.Empty;
             result.Description.Language = item.MbItem.Language == null ? string.Empty : item.MbItem.Language;
             result.Description.DescriptionText = "this is DescriptionText";
             result.Description.LongDescriptionText = item.MbItem.Overview == null ? string.Empty : item.MbItem.Overview;
@@ -871,7 +871,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             result.Title = item.MbItem.Name;
             result.ChildrenCount = item.Children.Count();
 
-            result.Description.Date = item.MbItem.PremiereDate.HasValue ? item.MbItem.PremiereDate.Value.ToString() : string.Empty;
+            result.Description.Date = item.MbItem.PremiereDate.HasValue ? item.MbItem.PremiereDate.Value.ToString("yyyy-MM-dd") : string.Empty;
             result.Description.Language = item.MbItem.Language == null ? string.Empty : item.MbItem.Language;
             result.Description.DescriptionText = "this is DescriptionText";
             result.Description.LongDescriptionText = item.MbItem.Overview == null ? string.Empty : item.MbItem.Overview;
@@ -925,7 +925,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             result.Title = item.MbItem.Name;
             result.ChildrenCount = item.Children.Count();
 
-            result.Description.Date = item.MbItem.PremiereDate.HasValue ? item.MbItem.PremiereDate.Value.ToString() : string.Empty;
+            result.Description.Date = item.MbItem.PremiereDate.HasValue ? item.MbItem.PremiereDate.Value.ToString("yyyy-MM-dd") : string.Empty;
             result.Description.Language = item.MbItem.Language.EnsureNotNull();
             result.Description.DescriptionText = item.MbItem.Overview.EnsureNotNull();
             result.Description.LongDescriptionText = item.MbItem.Overview.EnsureNotNull();
@@ -979,7 +979,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             result.Title = item.MbItem.Name;
             result.ChildrenCount = item.Children.Count();
 
-            result.Description.Date = item.MbItem.PremiereDate.HasValue ? item.MbItem.PremiereDate.Value.ToString() : string.Empty;
+            result.Description.Date = item.MbItem.PremiereDate.HasValue ? item.MbItem.PremiereDate.Value.ToString("yyyy-MM-dd") : string.Empty;
             result.Description.Language = item.MbItem.Language == null ? string.Empty : item.MbItem.Language;
             result.Description.DescriptionText = "this is DescriptionText";
             result.Description.LongDescriptionText = item.MbItem.Overview == null ? string.Empty : item.MbItem.Overview;
@@ -1092,7 +1092,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             }
             result.Date = item.MBItem.ProductionYear.ToString();
 
-            result.Description.Date = item.MBItem.PremiereDate.HasValue ? item.MBItem.PremiereDate.Value.ToString() : string.Empty;
+            result.Description.Date = item.MBItem.PremiereDate.HasValue ? item.MBItem.PremiereDate.Value.ToString("yyyy-MM-dd") : string.Empty;
             result.Description.Language = item.MBItem.Language == null ? string.Empty : item.MBItem.Language;
             result.Description.DescriptionText = item.MBItem.Overview == null ? string.Empty : item.MBItem.Overview;
             result.Description.LongDescriptionText = item.MBItem.Overview == null ? string.Empty : item.MBItem.Overview;
@@ -1191,7 +1191,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             result.Class = new Platinum.ObjectClass("object.item.audioItem.musicTrack", "");
             result.Date = item.MBItem.ProductionYear.ToString();
 
-            result.Description.Date = item.MBItem.PremiereDate.HasValue ? item.MBItem.PremiereDate.Value.ToString() : string.Empty;
+            result.Description.Date = item.MBItem.PremiereDate.HasValue ? item.MBItem.PremiereDate.Value.ToString("yyyy-MM-dd") : string.Empty;
             result.Description.Language = item.MBItem.Language == null ? string.Empty : item.MBItem.Language;
             result.Description.DescriptionText = item.MBItem.Overview == null ? string.Empty : item.MBItem.Overview;
             result.Description.LongDescriptionText = item.MBItem.Overview == null ? string.Empty : item.MBItem.Overview;
@@ -1414,8 +1414,8 @@ namespace MediaBrowser.Plugins.Dlna.Model
         {
             var result = new List<Platinum.AlbumArtInfo>();
             if (mbItem == null || mbItem.Images == null)
-                return result; 
-            
+                return result;
+
             foreach (var img in mbItem.Images)
             {
                 foreach (var prefix in urlPrefixes)
@@ -1454,7 +1454,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             }
             return result;
         }
-        
+
         private static string GetImageUri(string uriPrefix, Person mbItem, string imageType)
         {
             return new Uri(uriPrefix + "Persons/" + mbItem.Name + "/Images/" + imageType).ToString();
@@ -1485,7 +1485,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             }
             return result;
         }
-        
+
         internal static IEnumerable<Platinum.MediaResource> GetThumbnailResources(VideoGenreContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
         {
             var result = new List<Platinum.MediaResource>();
@@ -1523,7 +1523,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             }
             return result;
         }
-        
+
         private static string GetImageUri(string uriPrefix, Genre mbItem, string imageType)
         {
             return uriPrefix + "Genre/" + mbItem.Name + "/Images/" + imageType;
@@ -1726,51 +1726,55 @@ namespace MediaBrowser.Plugins.Dlna.Model
             if (item == null || item.MBItem == null)
                 return result;
 
-            //var videoOptions = GetTestVideoOptions(item);
+            //add the static url(s)
+            result.AddRange(GetStaticUriResource(item.MBItem, context, urlPrefixes));
+
+            var videoOptions = GetVideoOptions(item);
             foreach (var prefix in urlPrefixes)
             {
-                //    foreach (var opt in videoOptions)
-                //    {
-                //        var resource = GetBasicMediaResource((BaseItem)item.MBItem);
-                //        //VideoBitRate - The bitrate in bytes/second of the resource.
-                //        resource.Bitrate = (uint)opt.VideoBitrate;
+                foreach (var opt in videoOptions)
+                {
+                    var resource = GetBasicMediaResource((BaseItem)item.MBItem);
+                    //VideoBitRate - The bitrate in bytes/second of the resource.
+                    resource.Bitrate = (uint)opt.VideoBitrate;
 
-                //        //ColourDepth - The color depth in bits of the resource (image or video).
-                //        //result.ColorDepth
+                    //ColourDepth - The color depth in bits of the resource (image or video).
+                    //result.ColorDepth
 
-                //        //AudioChannels - Number of audio channels of the resource, e.g. 1 for mono, 2 for stereo, 6 for Dolby surround, etc.
-                //        resource.NbAudioChannels = (uint)opt.AudioChannels;
+                    //AudioChannels - Number of audio channels of the resource, e.g. 1 for mono, 2 for stereo, 6 for Dolby surround, etc.
+                    resource.NbAudioChannels = (uint)opt.AudioChannels;
 
-                //        //Protection - Some statement of the protection type of the resource (not standardized).
-                //        //result.Protection
+                    //Protection - Some statement of the protection type of the resource (not standardized).
+                    //result.Protection
 
-                //        //Resolution - X*Y resolution of the resource (image or video).
-                //        //The string pattern is restricted to strings of the form:
-                //        //[0-9]+x[0-9]+
-                //        //(one or more digits,'x', followed by one or more digits).
-                //        //SampleFrequency - The sample frequency of the resource in Hz
-                //        //result.Resolution
-                //        resource.SampleFrequency = (uint)opt.SampleRate;
+                    //Resolution - X*Y resolution of the resource (image or video).
+                    //The string pattern is restricted to strings of the form:
+                    //[0-9]+x[0-9]+
+                    //(one or more digits,'x', followed by one or more digits).
+                    resource.Resolution = string.Format("{0}x{1}", opt.MaxWidth, opt.MaxHeight);
 
-                //        //Size - size, in bytes, of the resource.
-                //        //result.Size
+                    //SampleFrequency - The sample frequency of the resource in Hz
+                    resource.SampleFrequency = (uint)opt.SampleRate;
 
-                //        //I'm unclear what /stream actaully returns
-                //        //but its sure hard to find a mime type for it
-                //        if (!string.IsNullOrWhiteSpace(opt.MimeExtension))
-                //        {
-                //            var mimeType = MediaBrowser.Common.Net.MimeTypes.GetMimeType(opt.MimeExtension);
-                //            resource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType(mimeType, true, context);
-                //        }
+                    //Size - size, in bytes, of the resource.
+                    //result.Size
 
-                //        //http://25.62.100.208:8096/mediabrowser/Videos/7cb7f497-234f-05e3-64c0-926ff07d3fa6/stream.asf?audioChannels=2&audioBitrate=128000&videoBitrate=5000000&maxWidth=1920&maxHeight=1080&videoCodec=wmv&audioCodec=wma
-                //        //resource.URI = new Uri(prefix + "Videos/" + item.MBItem.Id.ToString() + "/stream" + opt.UriExtension).ToString();
-                //        var uri = string.Format("{0}Videos/{1}/stream{2}?audioChannels={3}&audioBitrate={4}&videoBitrate={5}&maxWidth={6}&maxHeight={7}&videoCodec={8}&audioCodec={9}",
-                //                                prefix, item.MBItem.Id, opt.UriExtension, opt.AudioChannels, opt.AudioBitrate, opt.VideoBitrate, opt.MaxWidth, opt.MaxHeight, opt.VideoCodec, opt.AudioCodec);
-                //        resource.URI = new Uri(uri).ToString();
+                    //I'm unclear what /stream actaully returns
+                    //but its sure hard to find a mime type for it
+                    if (!string.IsNullOrWhiteSpace(opt.MimeExtension))
+                    {
+                        var mimeType = MediaBrowser.Common.Net.MimeTypes.GetMimeType(opt.MimeExtension);
+                        resource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType(mimeType, true, context);
+                    }
 
-                //        result.Add(resource);
-                //    }
+                    //http://25.62.100.208:8096/mediabrowser/Videos/7cb7f497-234f-05e3-64c0-926ff07d3fa6/stream.asf?audioChannels=2&audioBitrate=128000&videoBitrate=5000000&maxWidth=1920&maxHeight=1080&videoCodec=wmv&audioCodec=wma
+                    //resource.URI = new Uri(prefix + "Videos/" + item.MBItem.Id.ToString() + "/stream" + opt.UriExtension).ToString();
+                    var uri = string.Format("{0}Videos/{1}/stream{2}?audioChannels={3}&audioBitrate={4}&videoBitrate={5}&maxWidth={6}&maxHeight={7}&videoCodec={8}&audioCodec={9}",
+                                            prefix, item.MBItem.Id, opt.UriExtension, opt.AudioChannels, opt.AudioBitrate, opt.VideoBitrate, opt.MaxWidth, opt.MaxHeight, opt.VideoCodec, opt.AudioCodec);
+                    resource.URI = new Uri(uri).ToString();
+
+                    result.Add(resource);
+                }
 
                 //this is temporary code so that testers can try various combinations with their devices without needing a recompile all the time
                 if (!string.IsNullOrWhiteSpace(MimeType) && !string.IsNullOrWhiteSpace(UriFormatString))
@@ -1784,42 +1788,50 @@ namespace MediaBrowser.Plugins.Dlna.Model
 
                     result.Add(userSpecifiedResource);
                 }
-
-
-                //test case to get some static serving done
-                //not this can possibly ask for urls that the API doesn't support like stream.mov
-                //so this code is definitaly not staying here for ever
-                if ((item.MBItem.DefaultVideoStream != null) &&
-                    (!string.IsNullOrWhiteSpace(item.MBItem.Path)) &&
-                    (System.IO.File.Exists(item.MBItem.Path)) &&
-                    (System.IO.Path.HasExtension(item.MBItem.Path)))
-                {
-                    var staticResource = GetBasicMediaResource((BaseItem)item.MBItem);
-
-                    if (item.MBItem.DefaultVideoStream.BitRate.HasValue)
-                        staticResource.Bitrate = (uint)item.MBItem.DefaultVideoStream.BitRate.Value;
-                    if (item.MBItem.DefaultVideoStream.Channels.HasValue)
-                        staticResource.NbAudioChannels = (uint)item.MBItem.DefaultVideoStream.Channels.Value;
-                    if (item.MBItem.DefaultVideoStream.SampleRate.HasValue)
-                        staticResource.SampleFrequency = (uint)item.MBItem.DefaultVideoStream.SampleRate.Value;
-
-                    var file = new System.IO.FileInfo(item.MBItem.Path);
-                    staticResource.Size = (ulong)file.Length;
-
-                    var extension = System.IO.Path.GetExtension(item.MBItem.Path);
-                    var mimeType = MediaBrowser.Common.Net.MimeTypes.GetMimeType(extension);
-                    staticResource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType(mimeType, true, context);
-
-                    var staticUri = string.Format("{0}Videos/{1}/stream{2}?static=true",
-                        prefix, item.MBItem.Id, extension);
-                    staticResource.URI = new Uri(staticUri).ToString();
-
-                    result.Add(staticResource);
-                }
             }
-
             //add the thumbnail resources
             result.AddRange(PlatinumAlbumArtInfoHelper.GetThumbnailResources(item, context, urlPrefixes));
+            return result;
+        }
+
+        private static IEnumerable<Platinum.MediaResource> GetStaticUriResource(Video mbItem, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
+        {
+            var result = new List<Platinum.MediaResource>();
+
+            if ((mbItem.DefaultVideoStream != null) &&
+                (!string.IsNullOrWhiteSpace(mbItem.Path)) &&
+                (System.IO.File.Exists(mbItem.Path)) &&
+                (System.IO.Path.HasExtension(mbItem.Path)))
+            {
+                var extension = System.IO.Path.GetExtension(mbItem.Path);
+                if (ValidStaticStreamUriExtensions.Any(i=> string.Equals(i, extension, StringComparison.OrdinalIgnoreCase)))
+                {
+                    foreach (var prefix in urlPrefixes)
+                    {
+                        var staticResource = GetBasicMediaResource((BaseItem)mbItem);
+
+                        if (mbItem.DefaultVideoStream.BitRate.HasValue)
+                            staticResource.Bitrate = (uint)mbItem.DefaultVideoStream.BitRate.Value;
+                        if (mbItem.DefaultVideoStream.Channels.HasValue)
+                            staticResource.NbAudioChannels = (uint)mbItem.DefaultVideoStream.Channels.Value;
+                        if (mbItem.DefaultVideoStream.SampleRate.HasValue)
+                            staticResource.SampleFrequency = (uint)mbItem.DefaultVideoStream.SampleRate.Value;
+
+                        var file = new System.IO.FileInfo(mbItem.Path);
+                        staticResource.Size = (ulong)file.Length;
+
+
+                        var mimeType = MediaBrowser.Common.Net.MimeTypes.GetMimeType(extension);
+                        staticResource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType(mimeType, true, context);
+
+                        var staticUri = string.Format("{0}Videos/{1}/stream{2}?static=true",
+                            prefix, mbItem.Id, extension);
+                        staticResource.URI = new Uri(staticUri).ToString();
+
+                        result.Add(staticResource);
+                    }
+                }
+            }
             return result;
         }
 
@@ -1863,7 +1875,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
         //    }
         //    return result;
         //}
-        private static IEnumerable<VideoOptions> GetTestVideoOptions(VideoItem item)
+        private static IEnumerable<VideoOptions> GetVideoOptions(VideoItem item)
         {
             var result = new List<VideoOptions>();
             if (item == null || item.MBItem == null || item.MBItem.DefaultVideoStream == null)
@@ -2032,11 +2044,18 @@ namespace MediaBrowser.Plugins.Dlna.Model
         //.ogv maps to a mime type of "video/ogg" in MB which Platinum will NOT to map to a protocol
         //.ts maps to a mime type of "video/mp2t" in MB which Platinum will NOT map to a protocol
 
-        private static IEnumerable<string> ValidUriExtensions
+        private static IEnumerable<string> ValidStreamUriExtensions
         {
             get
             {
                 return new List<string>() { ".mkv", ".mpeg", ".avi", ".asf", ".wmv", ".mp4" };
+            }
+        }
+        private static IEnumerable<string> ValidStaticStreamUriExtensions
+        {
+            get
+            {
+                return new List<string>() { ".mkv", ".mpeg", ".avi", ".asf", ".wmv", ".mp4", ".m2ts", ".ts", ".ogv", ".m4v", ".webm" };
             }
         }
     }
