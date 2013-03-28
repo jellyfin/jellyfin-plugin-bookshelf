@@ -7,6 +7,7 @@ using MediaBrowser.Model.Entities;
 using MediaBrowser.Controller.Entities;
 using MoreLinq;
 using MediaBrowser.Common.Extensions;
+using System.Collections.Specialized;
 
 namespace MediaBrowser.Plugins.Dlna.Model
 {
@@ -853,6 +854,8 @@ namespace MediaBrowser.Plugins.Dlna.Model
             result.Title = item.Title;
             result.ChildrenCount = item.Children.Count();
 
+            result.Date = item.MbItem.PremiereDate.HasValue ? item.MbItem.PremiereDate.Value.ToString("yyyy-MM-dd") : string.Empty;
+
             result.Description.Date = item.MbItem.PremiereDate.HasValue ? item.MbItem.PremiereDate.Value.ToString("yyyy-MM-dd") : string.Empty;
             result.Description.Language = item.MbItem.Language == null ? string.Empty : item.MbItem.Language;
             result.Description.DescriptionText = "this is DescriptionText";
@@ -1090,7 +1093,8 @@ namespace MediaBrowser.Plugins.Dlna.Model
 
 
             }
-            result.Date = item.MBItem.ProductionYear.ToString();
+            //result.Date = item.MBItem.ProductionYear.ToString();
+            result.Date = item.MBItem.PremiereDate.HasValue ? item.MBItem.PremiereDate.Value.ToString("yyyy-MM-dd") : string.Empty;
 
             result.Description.Date = item.MBItem.PremiereDate.HasValue ? item.MBItem.PremiereDate.Value.ToString("yyyy-MM-dd") : string.Empty;
             result.Description.Language = item.MBItem.Language == null ? string.Empty : item.MBItem.Language;
@@ -1252,12 +1256,29 @@ namespace MediaBrowser.Plugins.Dlna.Model
     }
     internal static class PlatinumAlbumArtInfoHelper
     {
-        private static List<Platinum.ProtocolInfo> _ThumbnailProtocolInfos = new List<Platinum.ProtocolInfo>() 
+        private class ProtocolData
         {
-            new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_TN;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000"),
-            new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_TN;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000")
+            internal Platinum.ProtocolInfo ProtocolInfo { get; set; }
+            internal int? MinHeight { get; set; }
+            internal int? MinWidth { get; set; }
+            internal NameValueCollection QueryItems { get; set; }
+        }
+        private static List<ProtocolData> _ThumbnailProtocolInfos = new List<ProtocolData>()
+        {
+            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_SM_ICO;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000"),  QueryItems=new NameValueCollection() {{"MaxHeight", "48"}, {"MaxWidth", "48"} }},
+            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_LRG_ICO;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000"),  QueryItems=new NameValueCollection() {{"MaxHeight", "120"}, {"MaxWidth", "120"} }},
+            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_TN;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000"),  QueryItems=new NameValueCollection() {{"MaxHeight", "160"}, {"MaxWidth", "160"} }},
+            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_SM;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000"),  QueryItems=new NameValueCollection() {{"MaxHeight", "500"}, {"MaxWidth", "500"} }},
+            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_MED;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000"),  QueryItems=new NameValueCollection() {{"MaxHeight", "768"}, {"MaxWidth", "1024"} }},
+            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_LRG;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000"), MinHeight=4096, MinWidth=4096},
+            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_SM_ICO;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000"),  QueryItems=new NameValueCollection() {{"MaxHeight", "48"}, {"MaxWidth", "48"} }},
+            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_LRG_ICO;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000"),  QueryItems=new NameValueCollection() {{"MaxHeight", "120"}, {"MaxWidth", "120"} }},
+            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_TN;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000"),  QueryItems=new NameValueCollection() {{"MaxHeight", "160"}, {"MaxWidth", "160"} }},
+            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_SM;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000"),  QueryItems=new NameValueCollection() {{"MaxHeight", "500"}, {"MaxWidth", "500"} }},
+            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_MED;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000"), QueryItems=new NameValueCollection() {{"MaxHeight", "768"}, {"MaxWidth", "1024"} }},
+            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_LRG;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000"), MinHeight=4096, MinWidth=4096},
         };
-        private static IEnumerable<Platinum.ProtocolInfo> ThumbnailProtocolInfos { get { return _ThumbnailProtocolInfos; } }
+        private static IEnumerable<ProtocolData> ThumbnailProtocolInfos { get { return _ThumbnailProtocolInfos; } }
 
         internal static IEnumerable<string> DlnaHttpServerPrefixes { get; set; }
 
@@ -1331,7 +1352,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             {
                 foreach (var prefix in urlPrefixes)
                 {
-                    result.Add(new Platinum.AlbumArtInfo(GetItemUri(prefix, mbItem, img.Key)));
+                    result.Add(new Platinum.AlbumArtInfo(GetItemUri(prefix, mbItem, img.Key, null)));
                 }
             }
             return result;
@@ -1383,11 +1404,11 @@ namespace MediaBrowser.Plugins.Dlna.Model
             {
                 foreach (var prefix in urlPrefixes)
                 {
-                    foreach (var proto in ThumbnailProtocolInfos)
+                    foreach (var protoData in ThumbnailProtocolInfos)
                     {
                         var thumbnailResource = new Platinum.MediaResource();
-                        thumbnailResource.ProtoInfo = proto;
-                        thumbnailResource.URI = GetItemUri(prefix, mbItem, img.Key);
+                        thumbnailResource.ProtoInfo = protoData.ProtocolInfo;
+                        thumbnailResource.URI = GetItemUri(prefix, mbItem, img.Key, protoData.QueryItems);
                         result.Add(thumbnailResource);
                     }
                 }
@@ -1396,9 +1417,9 @@ namespace MediaBrowser.Plugins.Dlna.Model
             return result;
         }
 
-        private static string GetItemUri(string uriPrefix, BaseItem mbItem, string imageType)
+        private static string GetItemUri(string uriPrefix, BaseItem mbItem, string imageType, NameValueCollection queryItems)
         {
-            return uriPrefix + "Items/" + mbItem.Id.ToString() + "/Images/" + imageType;
+            return uriPrefix + "Items/" + mbItem.Id.ToString() + "/Images/" + imageType + queryItems.ToQueryString();
         }
 
 
@@ -1420,7 +1441,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             {
                 foreach (var prefix in urlPrefixes)
                 {
-                    result.Add(new Platinum.AlbumArtInfo(GetImageUri(prefix, mbItem, img.Key)));
+                    result.Add(new Platinum.AlbumArtInfo(GetImageUri(prefix, mbItem, img.Key, null)));
                 }
             }
             return result;
@@ -1443,11 +1464,11 @@ namespace MediaBrowser.Plugins.Dlna.Model
             {
                 foreach (var prefix in urlPrefixes)
                 {
-                    foreach (var proto in ThumbnailProtocolInfos)
+                    foreach (var protoData in ThumbnailProtocolInfos)
                     {
                         var thumbnailResource = new Platinum.MediaResource();
-                        thumbnailResource.ProtoInfo = proto;
-                        thumbnailResource.URI = GetImageUri(prefix, mbItem, img.Key);
+                        thumbnailResource.ProtoInfo = protoData.ProtocolInfo;
+                        thumbnailResource.URI = GetImageUri(prefix, mbItem, img.Key, protoData.QueryItems);
                         result.Add(thumbnailResource);
                     }
                 }
@@ -1455,9 +1476,9 @@ namespace MediaBrowser.Plugins.Dlna.Model
             return result;
         }
 
-        private static string GetImageUri(string uriPrefix, Person mbItem, string imageType)
+        private static string GetImageUri(string uriPrefix, Person mbItem, string imageType, NameValueCollection queryItems)
         {
-            return new Uri(uriPrefix + "Persons/" + mbItem.Name + "/Images/" + imageType).ToString();
+            return new Uri(uriPrefix + "Persons/" + mbItem.Name + "/Images/" + imageType + queryItems.ToQueryString()).ToString();
         }
 
 
@@ -1479,7 +1500,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 {
                     foreach (var prefix in urlPrefixes)
                     {
-                        result.Add(new Platinum.AlbumArtInfo(GetImageUri(prefix, mbItem, img.Key)));
+                        result.Add(new Platinum.AlbumArtInfo(GetImageUri(prefix, mbItem, img.Key, null)));
                     }
                 }
             }
@@ -1512,11 +1533,11 @@ namespace MediaBrowser.Plugins.Dlna.Model
             {
                 foreach (var prefix in urlPrefixes)
                 {
-                    foreach (var proto in ThumbnailProtocolInfos)
+                    foreach (var protoData in ThumbnailProtocolInfos)
                     {
                         var thumbnailResource = new Platinum.MediaResource();
-                        thumbnailResource.ProtoInfo = proto;
-                        thumbnailResource.URI = GetImageUri(prefix, mbItem, img.Key);
+                        thumbnailResource.ProtoInfo = protoData.ProtocolInfo;
+                        thumbnailResource.URI = GetImageUri(prefix, mbItem, img.Key, protoData.QueryItems);
                         result.Add(thumbnailResource);
                     }
                 }
@@ -1524,9 +1545,9 @@ namespace MediaBrowser.Plugins.Dlna.Model
             return result;
         }
 
-        private static string GetImageUri(string uriPrefix, Genre mbItem, string imageType)
+        private static string GetImageUri(string uriPrefix, Genre mbItem, string imageType, NameValueCollection queryItems)
         {
-            return uriPrefix + "Genre/" + mbItem.Name + "/Images/" + imageType;
+            return uriPrefix + "Genre/" + mbItem.Name + "/Images/" + imageType + queryItems.ToQueryString();
         }
 
     }
@@ -1759,13 +1780,15 @@ namespace MediaBrowser.Plugins.Dlna.Model
                     //Size - size, in bytes, of the resource.
                     //result.Size
 
-                    //I'm unclear what /stream actaully returns
-                    //but its sure hard to find a mime type for it
-                    if (!string.IsNullOrWhiteSpace(opt.MimeExtension))
-                    {
-                        var mimeType = MediaBrowser.Common.Net.MimeTypes.GetMimeType(opt.MimeExtension);
-                        resource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType(mimeType, true, context);
-                    }
+                    ////I'm unclear what /stream actaully returns
+                    ////but its sure hard to find a mime type for it
+                    //if (!string.IsNullOrWhiteSpace(opt.MimeExtension))
+                    //{
+                    //    var mimeType = MediaBrowser.Common.Net.MimeTypes.GetMimeType(opt.MimeExtension);
+                    //    resource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType(mimeType, true, context);
+                    //}
+
+                    resource.ProtoInfo = opt.ProtocolInfo;
 
                     //http://25.62.100.208:8096/mediabrowser/Videos/7cb7f497-234f-05e3-64c0-926ff07d3fa6/stream.asf?audioChannels=2&audioBitrate=128000&videoBitrate=5000000&maxWidth=1920&maxHeight=1080&videoCodec=wmv&audioCodec=wma
                     //resource.URI = new Uri(prefix + "Videos/" + item.MBItem.Id.ToString() + "/stream" + opt.UriExtension).ToString();
@@ -1804,7 +1827,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 (System.IO.Path.HasExtension(mbItem.Path)))
             {
                 var extension = System.IO.Path.GetExtension(mbItem.Path);
-                if (ValidStaticStreamUriExtensions.Any(i=> string.Equals(i, extension, StringComparison.OrdinalIgnoreCase)))
+                if (ValidStaticStreamUriExtensions.Any(i => string.Equals(i, extension, StringComparison.OrdinalIgnoreCase)))
                 {
                     foreach (var prefix in urlPrefixes)
                     {
@@ -1897,6 +1920,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             asfOptions.UriExtension = ".asf";
             asfOptions.VideoCodec = "h264";
             asfOptions.AudioCodec = "aac";
+            asfOptions.ProtocolInfo = new Platinum.ProtocolInfo("http-get:*:video/x-ms-asf:DLNA.ORG_OP=01;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=01500000000000000000000000000000");
             result.Add(asfOptions);
 
             //audioChannels=2&audioBitrate=128000&videoBitrate=5000000&maxWidth=1920&maxHeight=1080&videoCodec=wmv&audioCodec=wma
@@ -1905,6 +1929,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             wmvOptions.UriExtension = ".wmv";
             wmvOptions.VideoCodec = "wmv";
             wmvOptions.AudioCodec = "wma";
+            wmvOptions.ProtocolInfo = new Platinum.ProtocolInfo("http-get:*:video/x-ms-wmv:DLNA.ORG_PN=WMVHIGH_BASE;DLNA.ORG_OP=01;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=01500000000000000000000000000000");
             result.Add(wmvOptions);
 
             //http://localhost:8096/mediabrowser/Videos/<id>/stream.webm?audioChannels=2&audioBitrate=128000&videoBitrate=5000000&maxWidth=1920&maxHeight=1080&videoCodec=vpx&audioCodec=Vorbis
@@ -1913,6 +1938,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             webmOptions.UriExtension = ".webm";
             webmOptions.VideoCodec = "vpx";
             webmOptions.AudioCodec = "vorbis";
+            webmOptions.ProtocolInfo = new Platinum.ProtocolInfo("http-get:*:video/webm:*:DLNA.ORG_OP=01;DLNA.ORG_CI=1");
             result.Add(webmOptions);
 
             ////http://localhost:8096/mediabrowser/Videos/<id>/stream.webm?audioChannels=2&audioBitrate=128000&videoBitrate=5000000&maxWidth=1920&maxHeight=1080&videoCodec=vpx&audioCodec=Vorbis
@@ -1947,6 +1973,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             internal int AudioBitrate { get; set; }
             internal int AudioChannels { get; set; }
             internal string AudioCodec { get; set; }
+            internal Platinum.ProtocolInfo ProtocolInfo { get; set; }
 
             internal VideoOptions Clone()
             {
@@ -1965,7 +1992,8 @@ namespace MediaBrowser.Plugins.Dlna.Model
                     SampleRate = item.SampleRate,
                     AudioBitrate = item.AudioBitrate,
                     AudioChannels = item.AudioChannels,
-                    AudioCodec = item.AudioCodec
+                    AudioCodec = item.AudioCodec, 
+                    ProtocolInfo = item.ProtocolInfo
                 };
             }
         }
@@ -2066,6 +2094,13 @@ namespace MediaBrowser.Plugins.Dlna.Model
         internal static string EnsureNotNull(this string item)
         {
             return item == null ? string.Empty : item;
+        }
+        internal static string ToQueryString(this System.Collections.Specialized.NameValueCollection nvc)
+        {
+            if (nvc != null && nvc.Count > 0)
+                return "?" + string.Join("&", Array.ConvertAll(nvc.AllKeys, key => string.Format("{0}={1}", key, nvc[key])));
+            else
+                return string.Empty;
         }
     }
 
