@@ -77,15 +77,37 @@ namespace MediaBrowser.Plugins.Dlna
             else
                 _PlatinumServer = new Platinum.MediaConnect(Plugin.Instance.Configuration.FriendlyDlnaName, UPnPServerUuid, 0); //Passing zero allows us to set the uuid but still have a randomised port number
 
+
             _PlatinumServer.BrowseMetadata += server_BrowseMetadata;
             _PlatinumServer.BrowseDirectChildren += server_BrowseDirectChildren;
             _PlatinumServer.ProcessFileRequest += server_ProcessFileRequest;
             _PlatinumServer.SearchContainer += server_SearchContainer;
-            
+            //AddIcons(_PlatinumServer);
+
             _Upnp.AddDeviceHost(_PlatinumServer);
             _Upnp.Start();
             Logger.Info("UPnP Server Started");
         }
+
+        //private void AddIcons(Platinum.MediaConnect server)
+        //{
+        //    AddIcon(server, "MediaBrowser.Plugins.Dlna.Images.logo-120.jpeg", "image/jpeg", 120, 120, 24, "images/logo-120.jpeg");
+        //    AddIcon(server, "MediaBrowser.Plugins.Dlna.Images.logo-48.jpeg", "image/jpeg", 48, 48, 24, "images/logo-48.jpeg");
+        //    AddIcon(server, "MediaBrowser.Plugins.Dlna.Images.logo-120.jpeg", "image/png", 120, 120, 24, "images/logo-120.png");
+        //    AddIcon(server, "MediaBrowser.Plugins.Dlna.Images.logo-48.jpeg", "image/png", 48, 48, 24, "images/logo-48.png");
+        //}
+        //private void AddIcon(Platinum.MediaConnect server, string resourceName, string mimeType, int width, int height, int depth,string urlPath)
+        //{
+        //    byte[] icon;
+        //    using (var source = GetType().Assembly.GetManifestResourceStream(resourceName))
+        //    {
+        //        var length = (int)source.Length;
+        //        icon = new byte[length];
+        //        source.Read(icon, 0, length-1);
+        //        source.Close();
+        //    }
+        //    server.AddIcon(new Platinum.DeviceIcon(mimeType, width, height, depth, urlPath), icon);
+        //}
 
         internal void CleanupUPnPServer()
         {
@@ -291,7 +313,7 @@ namespace MediaBrowser.Plugins.Dlna
                 var item = GetItemFromID(path);
                 if (item == null)
                     Logger.Debug("ProcessFileRequest Item NOT found");
-                else 
+                else
                     Logger.Debug("ProcessFileRequest Item found");
 
 
@@ -426,7 +448,7 @@ namespace MediaBrowser.Plugins.Dlna
                         }
                     }
                 }
-            }         
+            }
 
             didl += Platinum.Didl.footer;
 
@@ -464,7 +486,7 @@ namespace MediaBrowser.Plugins.Dlna
         }
         private Model.ModelBase GetItemFromID(string id)
         {
-            if  (string.Equals(id, "0", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(id, "0", StringComparison.OrdinalIgnoreCase))
             {
                 return new Model.Root(CurrentUser);
             }
@@ -473,7 +495,7 @@ namespace MediaBrowser.Plugins.Dlna
             {
                 IEnumerable<string> parentList;
                 //the order by length is a trick to make sure we avoid using the All Videos All Music folder if possible
-                parentList = _ItemMap[id].OrderByDescending(i=>i.Length);
+                parentList = _ItemMap[id].OrderByDescending(i => i.Length);
                 Model.ModelBase result = null;
                 foreach (var parentID in parentList)
                 {
@@ -489,7 +511,7 @@ namespace MediaBrowser.Plugins.Dlna
                 //this shouldn't happen, if the item is in the map, it should exist
                 if (result == null)
                     Logger.Debug("GetItemFromID couldn't find parent for item: {0}", id);
-                
+
                 return result;
             }
             else
@@ -804,6 +826,34 @@ namespace MediaBrowser.Plugins.Dlna
                 }
             }
         }
+
+        ///// <summary>
+        ///// Extracts the assemblies.
+        ///// </summary>
+        ///// <returns>Task.</returns>
+        //private async Task ExtractImages()
+        //{
+
+        //    var runningDirectory = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
+
+        //    var files = new[] { "logo-120.jpeg", "logo-120.png", "logo-48.jpeg", "logo-48.png" };
+
+        //    foreach (var file in files)
+        //    {
+        //        var outputFile = Path.Combine(runningDirectory, file);
+
+        //        if (!File.Exists(outputFile))
+        //        {
+        //            using (var source = GetType().Assembly.GetManifestResourceStream("MediaBrowser.Plugins.Dlna.Images." + file))
+        //            {
+        //                using (var fileStream = new FileStream(outputFile, FileMode.Create, FileAccess.Write, FileShare.Read, 4096, true))
+        //                {
+        //                    await source.CopyToAsync(fileStream).ConfigureAwait(false);
+        //                }
+        //            }
+        //        }
+        //    }
+        //}
 
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
