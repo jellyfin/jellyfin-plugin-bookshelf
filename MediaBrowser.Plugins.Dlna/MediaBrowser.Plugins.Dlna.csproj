@@ -83,6 +83,12 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Images\logo-120.jpeg" />
+    <EmbeddedResource Include="Images\logo-120.png" />
+    <EmbeddedResource Include="Images\logo-48.jpeg" />
+    <EmbeddedResource Include="Images\logo-48.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy "$(TargetPath)" "$(SolutionDir)\..\MediaBrowser\ProgramData-Server\Plugins\" /y</PostBuildEvent>
