@@ -171,6 +171,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             {
                 result.Extra.AddAlbumArtInfo(art);
             }
+            result.Description.IconUri = PlatinumAlbumArtInfoHelper.GetItemIconUri(this.MBItem, urlPrefixes);
 
             return result;
         }
@@ -529,6 +530,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             {
                 result.Extra.AddAlbumArtInfo(art);
             }
+            result.Description.IconUri = PlatinumAlbumArtInfoHelper.GetItemIconUri(this.MBItem, urlPrefixes);
 
             return result;
         }
@@ -562,6 +564,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             {
                 result.Extra.AddAlbumArtInfo(art);
             }
+            result.Description.IconUri = PlatinumAlbumArtInfoHelper.GetItemIconUri(this.MBItem, urlPrefixes);
 
             return result;
         }
@@ -593,6 +596,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             {
                 result.Extra.AddAlbumArtInfo(art);
             }
+            result.Description.IconUri = PlatinumAlbumArtInfoHelper.GetItemIconUri(this.MBItem, urlPrefixes);
 
             return result;
         }
@@ -638,6 +642,8 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 result.Extra.AddAlbumArtInfo(art);
             }
 
+            result.Description.IconUri = PlatinumAlbumArtInfoHelper.GetItemIconUri(this.MBItem, urlPrefixes);
+
             return result;
         }
     }
@@ -671,10 +677,17 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 result.AddResource(res);
             }
 
+            foreach (var res in PlatinumAlbumArtInfoHelper.GetThumbnailResources(this, context, urlPrefixes))
+            {
+                result.AddResource(res);
+            }
+
             foreach (var art in PlatinumAlbumArtInfoHelper.GetAlbumArtInfo(this, context, urlPrefixes))
             {
                 result.Extra.AddAlbumArtInfo(art);
             }
+
+            result.Description.IconUri = PlatinumAlbumArtInfoHelper.GetItemIconUri(this.MBItem, urlPrefixes);
 
             return result;
         }
@@ -700,6 +713,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             {
                 result.Extra.AddAlbumArtInfo(art);
             }
+            result.Description.IconUri = PlatinumAlbumArtInfoHelper.GetItemIconUri(this.MBItem, urlPrefixes);
 
             return result;
         }
@@ -727,6 +741,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             {
                 result.Extra.AddAlbumArtInfo(art);
             }
+            result.Description.IconUri = PlatinumAlbumArtInfoHelper.GetItemIconUri(this.MBItem, urlPrefixes);
 
             return result;
         }
@@ -760,15 +775,11 @@ namespace MediaBrowser.Plugins.Dlna.Model
             {
                 result.AddResource(res);
             }
-            foreach (var res in PlatinumAlbumArtInfoHelper.GetThumbnailResources(this, context, urlPrefixes))
-            {
-                result.AddResource(res);
-            }
-
             foreach (var art in PlatinumAlbumArtInfoHelper.GetAlbumArtInfo(this, context, urlPrefixes))
             {
                 result.Extra.AddAlbumArtInfo(art);
             }
+            result.Description.IconUri = PlatinumAlbumArtInfoHelper.GetItemIconUri(this.MBItem, urlPrefixes);
 
             return result;
         }
@@ -804,6 +815,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             {
                 result.Extra.AddAlbumArtInfo(art);
             }
+            result.Description.IconUri = PlatinumAlbumArtInfoHelper.GetItemIconUri(this.MBItem, urlPrefixes);
 
             return result;
         }
@@ -838,6 +850,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             {
                 result.Extra.AddAlbumArtInfo(art);
             }
+            result.Description.IconUri = PlatinumAlbumArtInfoHelper.GetItemIconUri(this.MBItem, urlPrefixes);
 
             return result;
         }
@@ -1054,6 +1067,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             result.Description.DescriptionText = item.MBItem.Overview.EnsureNotNull();
             result.Description.LongDescriptionText = item.MBItem.Overview.EnsureNotNull();
 
+            
             return result;
         }
 
@@ -1250,7 +1264,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             //When restricted="true", the ability to change or delete the
             //Container or Person is restricted.            
             //result.Restricted
-
+            
             return result;
         }
     }
@@ -1259,25 +1273,34 @@ namespace MediaBrowser.Plugins.Dlna.Model
         private class ProtocolData
         {
             internal Platinum.ProtocolInfo ProtocolInfo { get; set; }
-            internal int? MinHeight { get; set; }
-            internal int? MinWidth { get; set; }
+            //internal int? MinHeight { get; set; }
+            //internal int? MinWidth { get; set; }
+            internal string ResolutionToReport { get; set; }
             internal NameValueCollection QueryItems { get; set; }
         }
         private static List<ProtocolData> _ThumbnailProtocolInfos = new List<ProtocolData>()
         {
-            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_SM_ICO;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000"),  QueryItems=new NameValueCollection() {{"MaxHeight", "48"}, {"MaxWidth", "48"} }},
-            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_LRG_ICO;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000"),  QueryItems=new NameValueCollection() {{"MaxHeight", "120"}, {"MaxWidth", "120"} }},
-            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_TN;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000"),  QueryItems=new NameValueCollection() {{"MaxHeight", "160"}, {"MaxWidth", "160"} }},
-            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_SM;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000"),  QueryItems=new NameValueCollection() {{"MaxHeight", "500"}, {"MaxWidth", "500"} }},
-            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_MED;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000"),  QueryItems=new NameValueCollection() {{"MaxHeight", "768"}, {"MaxWidth", "1024"} }},
-            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_LRG;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000"), MinHeight=4096, MinWidth=4096},
-            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_SM_ICO;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000"),  QueryItems=new NameValueCollection() {{"MaxHeight", "48"}, {"MaxWidth", "48"} }},
-            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_LRG_ICO;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000"),  QueryItems=new NameValueCollection() {{"MaxHeight", "120"}, {"MaxWidth", "120"} }},
-            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_TN;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000"),  QueryItems=new NameValueCollection() {{"MaxHeight", "160"}, {"MaxWidth", "160"} }},
-            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_SM;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000"),  QueryItems=new NameValueCollection() {{"MaxHeight", "500"}, {"MaxWidth", "500"} }},
-            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_MED;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000"), QueryItems=new NameValueCollection() {{"MaxHeight", "768"}, {"MaxWidth", "1024"} }},
-            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_LRG;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000"), MinHeight=4096, MinWidth=4096},
+            //the spec says PNG_TN must be 160x160
+            //the PS3 requires both PNG_TN (or JPEG_TN) and the resolution to be reported at 160x160
+            //if we actaully return larger images 800x800 they work and look much crisper
+            //according to the spec, JPEG_LRG and PNG_LRG are for images greater than 4096 x 4096 - we shouldn't ever have any of those
+            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_PN=PNG_TN"),  QueryItems=new NameValueCollection() {{"MaxHeight", "800"}, {"MaxWidth", "800"} }, ResolutionToReport="160x160" } ,
+            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_OP=01"),  QueryItems=new NameValueCollection() {{"MaxHeight", "160"}, {"MaxWidth", "160"} }},
+            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_SM_ICO"),  QueryItems=new NameValueCollection() {{"MaxHeight", "48"}, {"MaxWidth", "48"} }},
+            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_LRG_ICO"),  QueryItems=new NameValueCollection() {{"MaxHeight", "120"}, {"MaxWidth", "120"} }},
+            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_TN"),  QueryItems=new NameValueCollection() {{"MaxHeight", "800"}, {"MaxWidth", "800"} }},
+            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_SM"),  QueryItems=new NameValueCollection() {{"MaxHeight", "500"}, {"MaxWidth", "500"} }},
+            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_MED"),  QueryItems=new NameValueCollection() {{"MaxHeight", "768"}, {"MaxWidth", "1024"} }},
+            //new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_LRG"), MinHeight=4096, MinWidth=4096},
+            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_OP=01"),  QueryItems=new NameValueCollection() {{"MaxHeight", "160"}, {"MaxWidth", "160"} }},
+            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_SM_ICO"),  QueryItems=new NameValueCollection() {{"MaxHeight", "48"}, {"MaxWidth", "48"} }},
+            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_LRG_ICO"),  QueryItems=new NameValueCollection() {{"MaxHeight", "120"}, {"MaxWidth", "120"} }},
+            //new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_TN"),  QueryItems=new NameValueCollection() {{"MaxHeight", "160"}, {"MaxWidth", "160"} }},
+            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_SM"),  QueryItems=new NameValueCollection() {{"MaxHeight", "500"}, {"MaxWidth", "500"} }},
+            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_MED"), QueryItems=new NameValueCollection() {{"MaxHeight", "768"}, {"MaxWidth", "1024"} }},
+            //new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_LRG"), MinHeight=4096, MinWidth=4096},
         };
+
         private static IEnumerable<ProtocolData> ThumbnailProtocolInfos { get { return _ThumbnailProtocolInfos; } }
 
         internal static IEnumerable<string> DlnaHttpServerPrefixes { get; set; }
@@ -1314,7 +1337,8 @@ namespace MediaBrowser.Plugins.Dlna.Model
         }
         internal static IEnumerable<Platinum.AlbumArtInfo> GetAlbumArtInfo(VideoItem item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
         {
-            return GetAlbumArtInfo((ModelBase)item, context, urlPrefixes);
+            return new List<Platinum.AlbumArtInfo>();
+            //return GetAlbumArtInfo((ModelBase)item, context, urlPrefixes);
         }
         private static IEnumerable<Platinum.AlbumArtInfo> GetAlbumArtInfo(ModelBase item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
         {
@@ -1358,7 +1382,32 @@ namespace MediaBrowser.Plugins.Dlna.Model
             return result;
         }
 
+        internal static IEnumerable<Platinum.MediaResource> GetThumbnailResources(WellKnownContainerBase item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
+        {
+            return GetThumbnailResources((ModelBase)item, context, urlPrefixes);
+        }
+        internal static IEnumerable<Platinum.MediaResource> GetThumbnailResources(VideoSeriesContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
+        {
+            return GetThumbnailResources((ModelBase)item, context, urlPrefixes);
+        }
+        internal static IEnumerable<Platinum.MediaResource> GetThumbnailResources(VideoSeasonContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
+        {
+            return GetThumbnailResources((ModelBase)item, context, urlPrefixes);
+        }
+        internal static IEnumerable<Platinum.MediaResource> GetThumbnailResources(VideoFolderContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
+        {
+            return GetThumbnailResources((ModelBase)item, context, urlPrefixes);
+        }
+
         internal static IEnumerable<Platinum.MediaResource> GetThumbnailResources(MusicItem item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
+        {
+            return GetThumbnailResources((ModelBase)item, context, urlPrefixes);
+        }
+        internal static IEnumerable<Platinum.MediaResource> GetThumbnailResources(MusicArtistContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
+        {
+            return GetThumbnailResources((ModelBase)item, context, urlPrefixes);
+        }
+        internal static IEnumerable<Platinum.MediaResource> GetThumbnailResources(MusicAlbumContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
         {
             return GetThumbnailResources((ModelBase)item, context, urlPrefixes);
         }
@@ -1380,22 +1429,37 @@ namespace MediaBrowser.Plugins.Dlna.Model
             if (mbItem == null || mbItem.Images == null)
                 return result;
 
-            //temp code to see if the PS3 needs file extensions or not
-            if (DlnaHttpServerPrefixes != null)
-            {
-                foreach (var prefix in DlnaHttpServerPrefixes)
-                {
-                    var pngThumbnailResource = new Platinum.MediaResource();
-                    pngThumbnailResource.ProtoInfo = new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_TN;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000");
-                    pngThumbnailResource.URI = prefix + "Artwork/" + mbItem.Id + ".png";
-                    result.Add(pngThumbnailResource);
+            ////temp code to see if the PS3 needs file extensions or not
+            //if (DlnaHttpServerPrefixes != null)
+            //{
+            //    foreach (var prefix in DlnaHttpServerPrefixes)
+            //    {
+            //        var pngThumbnailResource = new Platinum.MediaResource();
+            //        //pngThumbnailResource.ProtoInfo = new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_TN;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000");
+            //        pngThumbnailResource.ProtoInfo = new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_TN;DLNA.ORG_OP=01");
+            //        pngThumbnailResource.URI = prefix + "Artwork/" + mbItem.Id + ".png";
+            //        result.Add(pngThumbnailResource);
 
-                    var jpgThumbnailResource = new Platinum.MediaResource();
-                    jpgThumbnailResource.ProtoInfo = new Platinum.ProtocolInfo("http-get:*:image/jpg:DLNA.ORG_PN=JPEG_TN;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000");
-                    jpgThumbnailResource.URI = prefix + "Artwork/" + mbItem.Id + ".jpg";
-                    result.Add(jpgThumbnailResource);
-                }
-            }
+            //        var jpgThumbnailResource = new Platinum.MediaResource();
+            //        //jpgThumbnailResource.ProtoInfo = new Platinum.ProtocolInfo("http-get:*:image/jpg:DLNA.ORG_PN=JPEG_TN;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000");
+            //        jpgThumbnailResource.ProtoInfo = new Platinum.ProtocolInfo("http-get:*:image/jpg:DLNA.ORG_PN=JPEG_TN;DLNA.ORG_OP=01");
+            //        jpgThumbnailResource.URI = prefix + "Artwork/" + mbItem.Id + ".jpg";
+            //        result.Add(jpgThumbnailResource);
+
+            //        foreach (var protoData in ThumbnailProtocolInfos)
+            //        {
+            //            var thumbnailResource = new Platinum.MediaResource();
+            //            thumbnailResource.ProtoInfo = protoData.ProtocolInfo;
+            //            //Resolution - X*Y resolution of the resource (image or video).
+            //            //The string pattern is restricted to strings of the form:
+            //            //[0-9]+x[0-9]+
+            //            //(one or more digits,'x', followed by one or more digits).
+            //            thumbnailResource.Resolution = string.Format("{0}x{1}", 160, 160);
+            //            thumbnailResource.URI = prefix + "Artwork/" + mbItem.Id + ".png";
+            //            result.Add(thumbnailResource);
+            //        }
+            //    }
+            //}
 
             //making the artwork a direct hit to the MediaBrowser server instead of via the DLNA plugin works for WMP
             //not sure it'll work for all other clients
@@ -1408,6 +1472,13 @@ namespace MediaBrowser.Plugins.Dlna.Model
                     {
                         var thumbnailResource = new Platinum.MediaResource();
                         thumbnailResource.ProtoInfo = protoData.ProtocolInfo;
+                        //Resolution - X*Y resolution of the resource (image or video).
+                        //The string pattern is restricted to strings of the form:
+                        //[0-9]+x[0-9]+
+                        //(one or more digits,'x', followed by one or more digits).
+                        if (!string.IsNullOrWhiteSpace(protoData.ResolutionToReport))
+                            thumbnailResource.Resolution = protoData.ResolutionToReport;
+
                         thumbnailResource.URI = GetItemUri(prefix, mbItem, img.Key, protoData.QueryItems);
                         result.Add(thumbnailResource);
                     }
@@ -1420,6 +1491,32 @@ namespace MediaBrowser.Plugins.Dlna.Model
         private static string GetItemUri(string uriPrefix, BaseItem mbItem, string imageType, NameValueCollection queryItems)
         {
             return uriPrefix + "Items/" + mbItem.Id.ToString() + "/Images/" + imageType + queryItems.ToQueryString();
+        }
+        private static NameValueCollection _ItemIconUriQueryItems = new NameValueCollection() {{"MaxHeight", "120"}, {"MaxWidth", "120"} };
+        private static NameValueCollection ItemIconUriQueryItems { get { return _ItemIconUriQueryItems; } }
+        internal static string GetItemIconUri(BaseItem mbItem, IEnumerable<string> urlPrefixes)
+        {
+            var urlPrefix = urlPrefixes.FirstOrDefault(i => i.StartsWith("192", StringComparison.OrdinalIgnoreCase));
+            if (urlPrefix == null)
+                urlPrefix = urlPrefixes.FirstOrDefault();
+
+            return GetItemIconUri(mbItem, urlPrefix);
+        }
+        private static string GetItemIconUri(BaseItem mbItem, string uriPrefix)
+        {
+            if (mbItem.HasImage(ImageType.Logo))
+                return GetItemUri(uriPrefix, mbItem, ImageType.Logo.ToString(), ItemIconUriQueryItems);
+            if (mbItem.HasImage(ImageType.Thumb))
+                return GetItemUri(uriPrefix, mbItem, ImageType.Thumb.ToString(), ItemIconUriQueryItems);
+            if (mbItem.HasImage(ImageType.Primary))
+                return GetItemUri(uriPrefix, mbItem, ImageType.Primary.ToString(), ItemIconUriQueryItems);
+            if (mbItem.HasImage(ImageType.Menu))
+                return GetItemUri(uriPrefix, mbItem, ImageType.Menu.ToString(), ItemIconUriQueryItems);
+            //the object model doesn't seem to like us even asking the question about Backdrops
+            //if (mbItem.HasImage(ImageType.Backdrop))
+            //    return GetItemIconUri(uriPrefix, mbItem, ImageType.Backdrop.ToString(), ItemIconUriQueryItems);
+
+            return string.Empty;
         }
 
 
@@ -1468,6 +1565,13 @@ namespace MediaBrowser.Plugins.Dlna.Model
                     {
                         var thumbnailResource = new Platinum.MediaResource();
                         thumbnailResource.ProtoInfo = protoData.ProtocolInfo;
+                        //Resolution - X*Y resolution of the resource (image or video).
+                        //The string pattern is restricted to strings of the form:
+                        //[0-9]+x[0-9]+
+                        //(one or more digits,'x', followed by one or more digits).
+                        if (!string.IsNullOrWhiteSpace(protoData.ResolutionToReport))
+                            thumbnailResource.Resolution = protoData.ResolutionToReport;
+
                         thumbnailResource.URI = GetImageUri(prefix, mbItem, img.Key, protoData.QueryItems);
                         result.Add(thumbnailResource);
                     }
@@ -1479,6 +1583,21 @@ namespace MediaBrowser.Plugins.Dlna.Model
         private static string GetImageUri(string uriPrefix, Person mbItem, string imageType, NameValueCollection queryItems)
         {
             return new Uri(uriPrefix + "Persons/" + mbItem.Name + "/Images/" + imageType + queryItems.ToQueryString()).ToString();
+        }
+        internal static string GetImageUri(string uriPrefix, Person mbItem)
+        {
+            if (mbItem.HasImage(ImageType.Logo))
+                return GetImageUri(uriPrefix, mbItem, ImageType.Logo.ToString(), ItemIconUriQueryItems);
+            if (mbItem.HasImage(ImageType.Thumb))
+                return GetImageUri(uriPrefix, mbItem, ImageType.Thumb.ToString(), ItemIconUriQueryItems);
+            if (mbItem.HasImage(ImageType.Primary))
+                return GetImageUri(uriPrefix, mbItem, ImageType.Primary.ToString(), ItemIconUriQueryItems);
+            if (mbItem.HasImage(ImageType.Menu))
+                return GetImageUri(uriPrefix, mbItem, ImageType.Menu.ToString(), ItemIconUriQueryItems);
+            //if (mbItem.HasImage(ImageType.Backdrop))
+            //    return GetImageUri(uriPrefix, mbItem, ImageType.Backdrop.ToString(), ItemIconUriQueryItems);
+
+            return string.Empty;
         }
 
 
@@ -1537,6 +1656,13 @@ namespace MediaBrowser.Plugins.Dlna.Model
                     {
                         var thumbnailResource = new Platinum.MediaResource();
                         thumbnailResource.ProtoInfo = protoData.ProtocolInfo;
+                        //Resolution - X*Y resolution of the resource (image or video).
+                        //The string pattern is restricted to strings of the form:
+                        //[0-9]+x[0-9]+
+                        //(one or more digits,'x', followed by one or more digits).
+                        if (!string.IsNullOrWhiteSpace(protoData.ResolutionToReport))
+                            thumbnailResource.Resolution = protoData.ResolutionToReport;
+                        
                         thumbnailResource.URI = GetImageUri(prefix, mbItem, img.Key, protoData.QueryItems);
                         result.Add(thumbnailResource);
                     }
@@ -1560,7 +1686,8 @@ namespace MediaBrowser.Plugins.Dlna.Model
             if (item == null)
                 return result;
 
-            //var resource = new Platinum.MediaResource();
+            //add the thumbnail resources
+            result.AddRange(PlatinumAlbumArtInfoHelper.GetThumbnailResources(item, context, urlPrefixes));
             return result;
         }
         internal static IEnumerable<Platinum.MediaResource> GetMediaResource(VideoSeriesContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
@@ -1569,7 +1696,8 @@ namespace MediaBrowser.Plugins.Dlna.Model
             if (item == null)
                 return result;
 
-            //var resource = new Platinum.MediaResource();
+            //add the thumbnail resources
+            result.AddRange(PlatinumAlbumArtInfoHelper.GetThumbnailResources(item, context, urlPrefixes));
             return result;
         }
         internal static IEnumerable<Platinum.MediaResource> GetMediaResource(VideoSeasonContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
@@ -1578,7 +1706,8 @@ namespace MediaBrowser.Plugins.Dlna.Model
             if (item == null)
                 return result;
 
-            //var resource = new Platinum.MediaResource();
+            //add the thumbnail resources
+            result.AddRange(PlatinumAlbumArtInfoHelper.GetThumbnailResources(item, context, urlPrefixes));
             return result;
         }
         internal static IEnumerable<Platinum.MediaResource> GetMediaResource(VideoFolderContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
@@ -1587,7 +1716,8 @@ namespace MediaBrowser.Plugins.Dlna.Model
             if (item == null)
                 return result;
 
-            //var resource = new Platinum.MediaResource();
+            //add the thumbnail resources
+            result.AddRange(PlatinumAlbumArtInfoHelper.GetThumbnailResources(item, context, urlPrefixes));
             return result;
         }
         internal static IEnumerable<Platinum.MediaResource> GetMediaResource(VideoActorContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
@@ -1598,7 +1728,6 @@ namespace MediaBrowser.Plugins.Dlna.Model
 
             //add the thumbnail resources
             result.AddRange(PlatinumAlbumArtInfoHelper.GetThumbnailResources(item, context, urlPrefixes));
-
             return result;
         }
         internal static IEnumerable<Platinum.MediaResource> GetMediaResource(VideoGenreContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
@@ -1609,7 +1738,6 @@ namespace MediaBrowser.Plugins.Dlna.Model
 
             //add the thumbnail resources
             result.AddRange(PlatinumAlbumArtInfoHelper.GetThumbnailResources(item, context, urlPrefixes));
-
             return result;
         }
 
@@ -1621,7 +1749,6 @@ namespace MediaBrowser.Plugins.Dlna.Model
 
             //add the thumbnail resources
             result.AddRange(PlatinumAlbumArtInfoHelper.GetThumbnailResources(item, context, urlPrefixes));
-
             return result;
         }
         internal static IEnumerable<Platinum.MediaResource> GetMediaResource(MusicArtistContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
@@ -1630,7 +1757,8 @@ namespace MediaBrowser.Plugins.Dlna.Model
             if (item == null)
                 return result;
 
-            //var resource = new Platinum.MediaResource();
+            //add the thumbnail resources
+            result.AddRange(PlatinumAlbumArtInfoHelper.GetThumbnailResources(item, context, urlPrefixes));
             return result;
         }
         internal static IEnumerable<Platinum.MediaResource> GetMediaResource(MusicAlbumContainer item, Platinum.HttpRequestContext context, IEnumerable<string> urlPrefixes)
@@ -1639,7 +1767,8 @@ namespace MediaBrowser.Plugins.Dlna.Model
             if (item == null)
                 return result;
 
-            //var resource = new Platinum.MediaResource();
+            //add the thumbnail resources
+            result.AddRange(PlatinumAlbumArtInfoHelper.GetThumbnailResources(item, context, urlPrefixes));
             return result;
         }
     }
@@ -1788,6 +1917,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
                     //    resource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType(mimeType, true, context);
                     //}
 
+                    
                     resource.ProtoInfo = opt.ProtocolInfo;
 
                     //http://25.62.100.208:8096/mediabrowser/Videos/7cb7f497-234f-05e3-64c0-926ff07d3fa6/stream.asf?audioChannels=2&audioBitrate=128000&videoBitrate=5000000&maxWidth=1920&maxHeight=1080&videoCodec=wmv&audioCodec=wma
@@ -1799,18 +1929,18 @@ namespace MediaBrowser.Plugins.Dlna.Model
                     result.Add(resource);
                 }
 
-                //this is temporary code so that testers can try various combinations with their devices without needing a recompile all the time
-                if (!string.IsNullOrWhiteSpace(MimeType) && !string.IsNullOrWhiteSpace(UriFormatString))
-                {
-                    var userSpecifiedResource = GetBasicMediaResource((BaseItem)item.MBItem);
-                    userSpecifiedResource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType(MimeType, true, context);
+                ////this is temporary code so that testers can try various combinations with their devices without needing a recompile all the time
+                //if (!string.IsNullOrWhiteSpace(MimeType) && !string.IsNullOrWhiteSpace(UriFormatString))
+                //{
+                //    var userSpecifiedResource = GetBasicMediaResource((BaseItem)item.MBItem);
+                //    userSpecifiedResource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType(MimeType, true, context);
 
-                    var uri = string.Format(UriFormatString,
-                                            prefix, item.MBItem.Id);
-                    userSpecifiedResource.URI = new Uri(uri).ToString();
+                //    var uri = string.Format(UriFormatString,
+                //                            prefix, item.MBItem.Id);
+                //    userSpecifiedResource.URI = new Uri(uri).ToString();
 
-                    result.Add(userSpecifiedResource);
-                }
+                //    result.Add(userSpecifiedResource);
+                //}
             }
             //add the thumbnail resources
             result.AddRange(PlatinumAlbumArtInfoHelper.GetThumbnailResources(item, context, urlPrefixes));
@@ -1829,6 +1959,11 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 var extension = System.IO.Path.GetExtension(mbItem.Path);
                 if (ValidStaticStreamUriExtensions.Any(i => string.Equals(i, extension, StringComparison.OrdinalIgnoreCase)))
                 {
+                    var mimeType = MediaBrowser.Common.Net.MimeTypes.GetMimeType(extension);
+                    var protoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType(mimeType, true, context);
+                    var file = new System.IO.FileInfo(mbItem.Path);
+                    var fileSize = (ulong)file.Length;
+
                     foreach (var prefix in urlPrefixes)
                     {
                         var staticResource = GetBasicMediaResource((BaseItem)mbItem);
@@ -1840,12 +1975,9 @@ namespace MediaBrowser.Plugins.Dlna.Model
                         if (mbItem.DefaultVideoStream.SampleRate.HasValue)
                             staticResource.SampleFrequency = (uint)mbItem.DefaultVideoStream.SampleRate.Value;
 
-                        var file = new System.IO.FileInfo(mbItem.Path);
-                        staticResource.Size = (ulong)file.Length;
+                        staticResource.Size = fileSize;
 
-
-                        var mimeType = MediaBrowser.Common.Net.MimeTypes.GetMimeType(extension);
-                        staticResource.ProtoInfo = Platinum.ProtocolInfo.GetProtocolInfoFromMimeType(mimeType, true, context);
+                        staticResource.ProtoInfo = protoInfo;
 
                         var staticUri = string.Format("{0}Videos/{1}/stream{2}?static=true",
                             prefix, mbItem.Id, extension);
@@ -1914,14 +2046,23 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 MaxHeight = 1080,
             };
 
-            //http://192.168.1.56:8096/mediabrowser/Videos/7cb7f497-234f-05e3-64c0-926ff07d3fa6/stream.asf?audioChannels=2&audioBitrate=128000&videoBitrate=5000000&maxWidth=1920&maxHeight=1080&videoCodec=h264&audioCodec=aac
-            var asfOptions = originalVideoOptions.Clone();
-            asfOptions.MimeExtension = ".asf";
-            asfOptions.UriExtension = ".asf";
-            asfOptions.VideoCodec = "h264";
-            asfOptions.AudioCodec = "aac";
-            asfOptions.ProtocolInfo = new Platinum.ProtocolInfo("http-get:*:video/x-ms-asf:DLNA.ORG_OP=01;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=01500000000000000000000000000000");
-            result.Add(asfOptions);
+            ////http://192.168.1.56:8096/mediabrowser/Videos/7cb7f497-234f-05e3-64c0-926ff07d3fa6/stream.mp4?audioChannels=2&audioBitrate=128000&videoBitrate=5000000&maxWidth=1920&maxHeight=1080&videoCodec=h264&audioCodec=mp3
+            //var mp4Options = originalVideoOptions.Clone();
+            //mp4Options.MimeExtension = ".mp4";
+            //mp4Options.UriExtension = ".mp4";
+            //mp4Options.VideoCodec = "h264";
+            //mp4Options.AudioCodec = "mp3";
+            //mp4Options.ProtocolInfo = new Platinum.ProtocolInfo("http-get:*:video/mp4:DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01500000000000000000000000000000");
+            //result.Add(mp4Options);
+
+            ////http://192.168.1.56:8096/mediabrowser/Videos/7cb7f497-234f-05e3-64c0-926ff07d3fa6/stream.asf?audioChannels=2&audioBitrate=128000&videoBitrate=5000000&maxWidth=1920&maxHeight=1080&videoCodec=h264&audioCodec=aac
+            //var asfOptions = originalVideoOptions.Clone();
+            //asfOptions.MimeExtension = ".asf";
+            //asfOptions.UriExtension = ".asf";
+            //asfOptions.VideoCodec = "h264";
+            //asfOptions.AudioCodec = "aac";
+            //asfOptions.ProtocolInfo = new Platinum.ProtocolInfo("http-get:*:video/x-ms-asf:DLNA.ORG_OP=01;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=01500000000000000000000000000000");
+            //result.Add(asfOptions);
 
             //audioChannels=2&audioBitrate=128000&videoBitrate=5000000&maxWidth=1920&maxHeight=1080&videoCodec=wmv&audioCodec=wma
             var wmvOptions = originalVideoOptions.Clone();
@@ -1929,17 +2070,17 @@ namespace MediaBrowser.Plugins.Dlna.Model
             wmvOptions.UriExtension = ".wmv";
             wmvOptions.VideoCodec = "wmv";
             wmvOptions.AudioCodec = "wma";
-            wmvOptions.ProtocolInfo = new Platinum.ProtocolInfo("http-get:*:video/x-ms-wmv:DLNA.ORG_PN=WMVHIGH_BASE;DLNA.ORG_OP=01;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=01500000000000000000000000000000");
+            wmvOptions.ProtocolInfo = new Platinum.ProtocolInfo("http-get:*:video/x-ms-wmv:DLNA.ORG_PN=WMVHIGH_BASE;DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01500000000000000000000000000000");
             result.Add(wmvOptions);
 
-            //http://localhost:8096/mediabrowser/Videos/<id>/stream.webm?audioChannels=2&audioBitrate=128000&videoBitrate=5000000&maxWidth=1920&maxHeight=1080&videoCodec=vpx&audioCodec=Vorbis
-            var webmOptions = originalVideoOptions.Clone();
-            webmOptions.MimeExtension = ".webm";
-            webmOptions.UriExtension = ".webm";
-            webmOptions.VideoCodec = "vpx";
-            webmOptions.AudioCodec = "vorbis";
-            webmOptions.ProtocolInfo = new Platinum.ProtocolInfo("http-get:*:video/webm:*:DLNA.ORG_OP=01;DLNA.ORG_CI=1");
-            result.Add(webmOptions);
+            ////http://localhost:8096/mediabrowser/Videos/<id>/stream.webm?audioChannels=2&audioBitrate=128000&videoBitrate=5000000&maxWidth=1920&maxHeight=1080&videoCodec=vpx&audioCodec=Vorbis
+            //var webmOptions = originalVideoOptions.Clone();
+            //webmOptions.MimeExtension = ".webm";
+            //webmOptions.UriExtension = ".webm";
+            //webmOptions.VideoCodec = "vpx";
+            //webmOptions.AudioCodec = "vorbis";
+            //webmOptions.ProtocolInfo = new Platinum.ProtocolInfo("http-get:*:video/webm:*:DLNA.ORG_OP=01;DLNA.ORG_CI=1");
+            //result.Add(webmOptions);
 
             ////http://localhost:8096/mediabrowser/Videos/<id>/stream.webm?audioChannels=2&audioBitrate=128000&videoBitrate=5000000&maxWidth=1920&maxHeight=1080&videoCodec=vpx&audioCodec=Vorbis
             //var webmMkvOptions = originalVideoOptions.Clone();
@@ -1949,13 +2090,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             //webmMkvOptions.AudioCodec = "vorbis";
             //result.Add(webmMkvOptions);
 
-            ////http://192.168.1.56:8096/mediabrowser/Videos/7cb7f497-234f-05e3-64c0-926ff07d3fa6/stream.asf?audioChannels=2&audioBitrate=128000&videoBitrate=5000000&maxWidth=1920&maxHeight=1080&videoCodec=h264&audioCodec=aac
-            //var mp4Options = originalVideoOptions.Clone();
-            //mp4Options.MimeExtension = ".mp4";
-            //mp4Options.UriExtension = ".mp4";
-            //mp4Options.VideoCodec = "h264";
-            //mp4Options.AudioCodec = "aac";
-            //result.Add(mp4Options);
+
 
             return result;
         }
