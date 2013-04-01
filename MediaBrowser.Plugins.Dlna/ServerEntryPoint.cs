@@ -58,8 +58,12 @@ namespace MediaBrowser.Plugins.Dlna
             SetupUPnPServer();
 
             //this is temporary code so that testers can try various combinations with their devices without needing a recompile all the time
-            Model.VideoItemPlatinumMediaResourceHelper.MimeType = Plugin.Instance.Configuration.VideoMimeType;
-            Model.VideoItemPlatinumMediaResourceHelper.UriFormatString = Plugin.Instance.Configuration.VideoUriFormatString;
+            Model.VideoItemPlatinumMediaResourceHelper.VideoCustomUriFormatString = Plugin.Instance.Configuration.VideoCustomUriFormatString;
+            Model.VideoItemPlatinumMediaResourceHelper.VideoCustomProtocolInfoString = Plugin.Instance.Configuration.VideoCustomProtocolInfoString;
+            Model.VideoItemPlatinumMediaResourceHelper.VideoExtensionsToServeCustom = Plugin.Instance.Configuration.VideoExtensionsToServeCustom;
+            Model.VideoItemPlatinumMediaResourceHelper.VideoExtensionsToServeStatic= Plugin.Instance.Configuration.VideoExtensionsToServeStatic;
+            Model.VideoItemPlatinumMediaResourceHelper.VideoExtensionsToServeWithDefaultTranscoding = Plugin.Instance.Configuration.VideoExtensionsToServeWithDefaultTranscoding;
+
             Model.MusicItemPlatinumMediaResourceHelper.MimeType = Plugin.Instance.Configuration.AudioMimeType;
             Model.MusicItemPlatinumMediaResourceHelper.UriFormatString = Plugin.Instance.Configuration.AudioUriFormatString;
         }

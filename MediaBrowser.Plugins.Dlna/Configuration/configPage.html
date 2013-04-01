@@ -32,7 +32,7 @@
                                 If specified, the Dlna server will use this port, otherwise the Dlna server will use a random port
                             </div>
                         </li>
-                        <li>
+   <!--                     <li>
                             <label for="txtVideoMimeType">
                                 Video Mime Type:
                             </label>
@@ -40,14 +40,50 @@
                             <div class="fieldDescription">
                                 The Mime Type to report for all video. This setting is here for quick testing iteration it’s not going to be a permanent fixture.
                             </div>
+                        </li>-->
+                        <li>
+                            <label for="txtCustomVideoUriFormatString">
+                                Custom Video Uri Format String:
+                            </label>
+                            <input id="txtCustomVideoUriFormatString" name="txtCustomVideoUriFormatString" />
+                            <div class="fieldDescription">
+                                The format string to use to when constructing Custom Video Uris. This setting is here for quick testing iteration it’s not going to be a permanent fixture.
+                            </div>
                         </li>
                         <li>
-                            <label for="txtVideoUriFormatString">
-                                Video Uri Format String:
+                            <label for="txtVideoCustomProtocolInfoString">
+                                Custom Dlna Protocol Information String:
                             </label>
-                            <input id="txtVideoUriFormatString" name="txtVideoUriFormatString" />
+                            <input id="txtVideoCustomProtocolInfoString" name="txtVideoCustomProtocolInfoString" />
                             <div class="fieldDescription">
-                                The format string to use to when constructing the all video Uris. This setting is here for quick testing iteration it’s not going to be a permanent fixture.
+                                Custom Protocol Information to provide with Custom URL. This setting is here for quick testing iteration it’s not going to be a permanent fixture.
+                            </div>
+                        </li>
+                        <li>
+                            <label for="txtVideoExtensionsToServeCustom">
+                                Custom Video Uri Format String:
+                            </label>
+                            <input id="txtVideoExtensionsToServeCustom" name="txtVideoExtensionsToServeCustom" />
+                            <div class="fieldDescription">
+                                Extensions or file types of original source material to serve with Custom url and prototype information. This setting is here for quick testing iteration it’s not going to be a permanent fixture.
+                            </div>
+                        </li>
+                        <li>
+                            <label for="txtVideoExtensionsToServeStatic">
+                                Custom Video Uri Format String:
+                            </label>
+                            <input id="txtVideoExtensionsToServeStatic" name="txtVideoExtensionsToServeStatic" />
+                            <div class="fieldDescription">
+                                Extensions or file types of original source material to serve as static (serve original file). Valid options are .mkv, .mpeg, .avi, .asf, .wmv, .mp4, .m2ts, .ts, .ogv, .m4v, .webm. This setting is here for quick testing iteration it’s not going to be a permanent fixture.
+                            </div>
+                        </li>
+                        <li>
+                            <label for="txtVideoExtensionsToServeWithDefaultTranscoding">
+                                Custom Video Uri Format String:
+                            </label>
+                            <input id="txtVideoExtensionsToServeWithDefaultTranscoding" name="txtVideoExtensionsToServeWithDefaultTranscoding" />
+                            <div class="fieldDescription">
+                                Extensions or file types to transcode source material into. All source, no matter what its type will be allowed to transcode into any of these options. Valid options are .mkv, .asf, .wmv, .mp4, .webm. This setting is here for quick testing iteration it’s not going to be a permanent fixture.
                             </div>
                         </li>
                         <li>
@@ -99,8 +135,11 @@
                     $('#txtUserName', page).val(config.UserName);
                     $('#txtFriendlyDlnaName', page).val(config.FriendlyDlnaName);
                     $('#txtDlnaPortNumber', page).val(config.DlnaPortNumber || "");
-                    $('#txtVideoMimeType', page).val(config.VideoMimeType);
-                    $('#txtVideoUriFormatString', page).val(config.VideoUriFormatString);
+                    $('#txtCustomVideoUriFormatString', page).val(config.CustomVideoUriFormatString);
+                    $('#txtVideoCustomProtocolInfoString', page).val(config.VideoCustomProtocolInfoString);
+                    $('#txtVideoExtensionsToServeCustom', page).val(config.VideoExtensionsToServeCustom);
+                    $('#txtVideoExtensionsToServeStatic', page).val(config.VideoExtensionsToServeStatic);
+                    $('#txtVideoExtensionsToServeWithDefaultTranscoding', page).val(config.VideoExtensionsToServeWithDefaultTranscoding);
                     $('#txtAudioMimeType', page).val(config.AudioMimeType);
                     $('#txtAudioUriFormatString', page).val(config.AudioUriFormatString);
 
@@ -120,8 +159,11 @@
                     config.FriendlyDlnaName = $('#txtFriendlyDlnaName', form).val();
                     var dlnaPortNumber = $('#txtDlnaPortNumber', form).val();
                     config.DlnaPortNumber = dlnaPortNumber ? dlnaPortNumber : null;
-                    config.VideoMimeType = $('#txtVideoMimeType', form).val();
-                    config.VideoUriFormatString = $('#txtVideoUriFormatString', form).val();
+                    config.CustomVideoUriFormatString = $('#txtCustomVideoUriFormatString', form).val();
+                    config.VideoCustomProtocolInfoString = $('#txtVideoCustomProtocolInfoString', form).val();
+                    config.VideoExtensionsToServeCustom = $('#txtVideoExtensionsToServeCustom', form).val();
+                    config.VideoExtensionsToServeStatic = $('#txtVideoExtensionsToServeStatic', form).val();
+                    config.VideoExtensionsToServeWithDefaultTranscoding = $('#txtVideoExtensionsToServeWithDefaultTranscoding', form).val();
                     config.AudioMimeType = $('#txtAudioMimeType', form).val();
                     config.AudioUriFormatString = $('#txtAudioUriFormatString', form).val();
 
