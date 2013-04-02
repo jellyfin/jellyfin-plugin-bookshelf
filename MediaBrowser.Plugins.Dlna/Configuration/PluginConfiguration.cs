@@ -81,11 +81,11 @@ namespace MediaBrowser.Plugins.Dlna.Configuration
             //this.VideoMimeType = "video/x-ms-asf";
             //this.VideoUriFormatString = "{0}Videos/{1}/stream.asf?audioChannels=2&audioBitrate=128000&videoBitrate=5000000&maxWidth=1920&maxHeight=1080&videoCodec=h264&audioCodec=aac";
 
-            this.VideoCustomUriFormatString = "{0}Videos/{1}/stream.asf?audioChannels=2&audioBitrate=128000&videoBitrate=5000000&maxWidth=1920&maxHeight=1080&videoCodec=h264&audioCodec=aac";
-            this.VideoCustomProtocolInfoString = "{0}Videos/{1}/stream.asf?audioChannels=2&audioBitrate=128000&videoBitrate=5000000&maxWidth=1920&maxHeight=1080&videoCodec=h264&audioCodec=aac";
-            this.VideoExtensionsToServeCustom = ".mkv, .mpeg, .avi, .asf, .wmv, .mp4, .m2ts, .ts, .ogv, .m4v, .webm";
+            this.VideoCustomUriFormatString = "{0}Videos/{1}/stream.m2ts?audioChannels=2&audioBitrate=128000&videoBitrate=5000000&maxWidth=1920&maxHeight=1080&videoCodec=h264&audioCodec=mp3";
+            this.VideoCustomProtocolInfoString = "http-get:*:video/mp2t:DLNA.ORG_OP=01;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=01500000000000000000000000000000";
+            this.VideoExtensionsToServeCustom = "*";
             this.VideoExtensionsToServeStatic = ".mkv, .mpeg, .avi, .asf, .wmv, .mp4, .m2ts, .ts, .ogv, .m4v, .webm";
-            this.VideoExtensionsToServeWithDefaultTranscoding = ".mkv, .mpeg, .avi, .asf, .wmv, .mp4, .m2ts, .ts, .ogv, .m4v, .webm";
+            this.VideoExtensionsToServeWithDefaultTranscoding = ".mkv, .asf, .wmv, .mp4, .webm";
             this.AudioMimeType = "audio/mpeg";
             this.AudioUriFormatString = "{0}Audio/{1}/stream.mp3";
         }

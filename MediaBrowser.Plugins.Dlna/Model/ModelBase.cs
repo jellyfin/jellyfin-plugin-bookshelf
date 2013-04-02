@@ -1284,21 +1284,22 @@ namespace MediaBrowser.Plugins.Dlna.Model
             //the PS3 requires both PNG_TN (or JPEG_TN) and the resolution to be reported at 160x160
             //if we actaully return larger images 800x800 they work and look much crisper
             //according to the spec, JPEG_LRG and PNG_LRG are for images greater than 4096 x 4096 - we shouldn't ever have any of those
-            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_PN=PNG_TN"),  QueryItems=new NameValueCollection() {{"MaxHeight", "800"}, {"MaxWidth", "800"} }, ResolutionToReport="160x160" } ,
-            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_OP=01"),  QueryItems=new NameValueCollection() {{"MaxHeight", "160"}, {"MaxWidth", "160"} }},
-            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_SM_ICO"),  QueryItems=new NameValueCollection() {{"MaxHeight", "48"}, {"MaxWidth", "48"} }},
-            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_LRG_ICO"),  QueryItems=new NameValueCollection() {{"MaxHeight", "120"}, {"MaxWidth", "120"} }},
-            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_TN"),  QueryItems=new NameValueCollection() {{"MaxHeight", "800"}, {"MaxWidth", "800"} }},
-            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_SM"),  QueryItems=new NameValueCollection() {{"MaxHeight", "500"}, {"MaxWidth", "500"} }},
-            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_MED"),  QueryItems=new NameValueCollection() {{"MaxHeight", "768"}, {"MaxWidth", "1024"} }},
-            //new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_LRG"), MinHeight=4096, MinWidth=4096},
-            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_OP=01"),  QueryItems=new NameValueCollection() {{"MaxHeight", "160"}, {"MaxWidth", "160"} }},
-            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_SM_ICO"),  QueryItems=new NameValueCollection() {{"MaxHeight", "48"}, {"MaxWidth", "48"} }},
-            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_LRG_ICO"),  QueryItems=new NameValueCollection() {{"MaxHeight", "120"}, {"MaxWidth", "120"} }},
-            //new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_TN"),  QueryItems=new NameValueCollection() {{"MaxHeight", "160"}, {"MaxWidth", "160"} }},
-            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_SM"),  QueryItems=new NameValueCollection() {{"MaxHeight", "500"}, {"MaxWidth", "500"} }},
-            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_MED"), QueryItems=new NameValueCollection() {{"MaxHeight", "768"}, {"MaxWidth", "1024"} }},
-            //new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_LRG"), MinHeight=4096, MinWidth=4096},
+            //("http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_TN;DLNA.ORG_OP=00;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=00D00000000000000000000000000000"),  QueryItems=new NameValueCollection() {{"MaxHeight", "160"}, {"MaxWidth", "160"} }},
+            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_TN;DLNA.ORG_OP=00;DLNA.ORG_CI=1"),  QueryItems=new NameValueCollection() {{"MaxHeight", "800"}, {"MaxWidth", "800"} }, ResolutionToReport="160x160" } ,
+            //new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_OP=01"),  QueryItems=new NameValueCollection() {{"MaxHeight", "160"}, {"MaxWidth", "160"} }},
+            //new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_SM_ICO"),  QueryItems=new NameValueCollection() {{"MaxHeight", "48"}, {"MaxWidth", "48"} }},
+            //new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_LRG_ICO"),  QueryItems=new NameValueCollection() {{"MaxHeight", "120"}, {"MaxWidth", "120"} }},
+            new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_TN;DLNA.ORG_OP=00;DLNA.ORG_CI=1"),  QueryItems=new NameValueCollection() {{"MaxHeight", "800"}, {"MaxWidth", "800"} }, ResolutionToReport="160x160" },
+            //new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_SM"),  QueryItems=new NameValueCollection() {{"MaxHeight", "500"}, {"MaxWidth", "500"} }},
+            //new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_MED"),  QueryItems=new NameValueCollection() {{"MaxHeight", "768"}, {"MaxWidth", "1024"} }},
+            ////new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_LRG"), MinHeight=4096, MinWidth=4096},
+            //new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_OP=01"),  QueryItems=new NameValueCollection() {{"MaxHeight", "160"}, {"MaxWidth", "160"} }},
+            //new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_SM_ICO"),  QueryItems=new NameValueCollection() {{"MaxHeight", "48"}, {"MaxWidth", "48"} }},
+            //new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_LRG_ICO"),  QueryItems=new NameValueCollection() {{"MaxHeight", "120"}, {"MaxWidth", "120"} }},
+            ////new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_TN"),  QueryItems=new NameValueCollection() {{"MaxHeight", "160"}, {"MaxWidth", "160"} }},
+            //new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_SM"),  QueryItems=new NameValueCollection() {{"MaxHeight", "500"}, {"MaxWidth", "500"} }},
+            //new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_MED"), QueryItems=new NameValueCollection() {{"MaxHeight", "768"}, {"MaxWidth", "1024"} }},
+            ////new ProtocolData() { ProtocolInfo =  new Platinum.ProtocolInfo("http-get:*:image/png:DLNA.ORG_PN=PNG_LRG"), MinHeight=4096, MinWidth=4096},
         };
 
         private static IEnumerable<ProtocolData> ThumbnailProtocolInfos { get { return _ThumbnailProtocolInfos; } }
@@ -1891,6 +1892,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
 
             //add the thumbnail resources
             result.AddRange(PlatinumAlbumArtInfoHelper.GetThumbnailResources(item, context, urlPrefixes));
+
             return result;
         }
 
@@ -1907,7 +1909,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 //check to see if its something we can actually stream statically
                 if (ValidStaticStreamUriExtensions.Any(i => string.Equals(i, extension, StringComparison.OrdinalIgnoreCase)))
                 {
-                    var customisedValidStaticExtensions = VideoExtensionsToServeStatic.Split(',');
+                    var customisedValidStaticExtensions = VideoExtensionsToServeStatic.Split(',').Select(i=>i.Trim());
                     if (customisedValidStaticExtensions.Any(i => string.Equals(i, extension, StringComparison.OrdinalIgnoreCase)))
                     {
                         var mimeType = MediaBrowser.Common.Net.MimeTypes.GetMimeType(extension);
@@ -1946,7 +1948,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             //this is temporary code so that testers can try various combinations with their devices without needing a recompile all the time
             var result = new List<Platinum.MediaResource>();
 
-            var customisedValidTranscodeExtensions = VideoExtensionsToServeWithDefaultTranscoding.Split(',');
+            var customisedValidTranscodeExtensions = VideoExtensionsToServeWithDefaultTranscoding.Split(',').Select(i=>i.Trim());
 
             var videoOptions = GetVideoOptions(context.Signature);
             foreach (var prefix in urlPrefixes)
@@ -2015,8 +2017,9 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 !string.IsNullOrWhiteSpace(VideoCustomProtocolInfoString))
             {
                 var extension = System.IO.Path.GetExtension(mbItem.Path);
-                var customisedValidTranscodeExtensions = VideoExtensionsToServeCustom.Split(',');
-                if (customisedValidTranscodeExtensions.Any(i => string.Equals(i, extension, StringComparison.OrdinalIgnoreCase)))
+                var customisedValidTranscodeExtensions = VideoExtensionsToServeCustom.Split(',').Select(i=>i.Trim());
+                if (string.Equals("*", VideoExtensionsToServeCustom, StringComparison.OrdinalIgnoreCase) ||
+                    customisedValidTranscodeExtensions.Any(i => string.Equals(i, extension, StringComparison.OrdinalIgnoreCase)))
                 {
                     foreach (var prefix in urlPrefixes)
                     {
@@ -2126,16 +2129,16 @@ namespace MediaBrowser.Plugins.Dlna.Model
             webmOptions.UriExtension = ".webm";
             webmOptions.VideoCodec = "vpx";
             webmOptions.AudioCodec = "vorbis";
-            webmOptions.ProtocolInfo = new Platinum.ProtocolInfo("http-get:*:video/webm:*:DLNA.ORG_OP=01;DLNA.ORG_CI=1");
+            webmOptions.ProtocolInfo = new Platinum.ProtocolInfo("http-get:*:video/webm:DLNA.ORG_OP=01;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=01500000000000000000000000000000");
             result.Add(webmOptions);
 
             //http://localhost:8096/mediabrowser/Videos/<id>/stream.webm?audioChannels=2&audioBitrate=128000&videoBitrate=5000000&maxWidth=1920&maxHeight=1080&videoCodec=vpx&audioCodec=Vorbis
             var webmMkvOptions = originalVideoOptions.Clone();
             webmMkvOptions.MimeExtension = ".mkv";
-            webmMkvOptions.UriExtension = ".webm";
+            webmMkvOptions.UriExtension = ".mkv";
             webmMkvOptions.VideoCodec = "vpx";
             webmMkvOptions.AudioCodec = "vorbis";
-            webmMkvOptions.ProtocolInfo = new Platinum.ProtocolInfo("DLNA.ORG_OP=01;DLNA.ORG_CI=1");
+            webmMkvOptions.ProtocolInfo = new Platinum.ProtocolInfo("http-get:*:video/x-matroska:DLNA.ORG_OP=01;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=01500000000000000000000000000000");
             result.Add(webmMkvOptions);
 
 

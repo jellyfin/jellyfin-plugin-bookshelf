@@ -42,12 +42,13 @@
                             </div>
                         </li>-->
                         <li>
-                            <label for="txtCustomVideoUriFormatString">
+                            <label for="txtVideoCustomUriFormatString">
                                 Custom Video Uri Format String:
                             </label>
-                            <input id="txtCustomVideoUriFormatString" name="txtCustomVideoUriFormatString" />
+                            <input id="txtVideoCustomUriFormatString" name="txtVideoCustomUriFormatString" />
                             <div class="fieldDescription">
-                                The format string to use to when constructing Custom Video Uris. This setting is here for quick testing iteration it’s not going to be a permanent fixture.
+                                The format string to use to when constructing Custom Video Uris. <br /> 
+                                This setting is here for quick testing iteration it’s not going to be a permanent fixture.
                             </div>
                         </li>
                         <li>
@@ -56,34 +57,42 @@
                             </label>
                             <input id="txtVideoCustomProtocolInfoString" name="txtVideoCustomProtocolInfoString" />
                             <div class="fieldDescription">
-                                Custom Protocol Information to provide with Custom URL. This setting is here for quick testing iteration it’s not going to be a permanent fixture.
+                                Custom Protocol Information to provide with Custom URL. <br /> 
+                                This setting is here for quick testing iteration it’s not going to be a permanent fixture.
                             </div>
                         </li>
                         <li>
                             <label for="txtVideoExtensionsToServeCustom">
-                                Custom Video Uri Format String:
+                                Source file extensions to serve custom video transcode options for:
                             </label>
                             <input id="txtVideoExtensionsToServeCustom" name="txtVideoExtensionsToServeCustom" />
                             <div class="fieldDescription">
-                                Extensions or file types of original source material to serve with Custom url and prototype information. This setting is here for quick testing iteration it’s not going to be a permanent fixture.
+                                Extensions or file types of original source material to serve with Custom url and prototype information. <br /> 
+                                Valid values are * or a comma seperated list of any file extensions you have on disk. <br /> 
+                                This setting is here for quick testing iteration it’s not going to be a permanent fixture.
                             </div>
                         </li>
                         <li>
                             <label for="txtVideoExtensionsToServeStatic">
-                                Custom Video Uri Format String:
+                                Source file extensions to serve static options for:
                             </label>
                             <input id="txtVideoExtensionsToServeStatic" name="txtVideoExtensionsToServeStatic" />
                             <div class="fieldDescription">
-                                Extensions or file types of original source material to serve as static (serve original file). Valid options are .mkv, .mpeg, .avi, .asf, .wmv, .mp4, .m2ts, .ts, .ogv, .m4v, .webm. This setting is here for quick testing iteration it’s not going to be a permanent fixture.
+                                Extensions or file types of original source material to serve as static (serve original file). <br /> 
+                                Valid options are .mkv, .mpeg, .avi, .asf, .wmv, .mp4, .m2ts, .ts, .ogv, .m4v, .webm. <br /> 
+                                This setting is here for quick testing iteration it’s not going to be a permanent fixture.
                             </div>
                         </li>
                         <li>
                             <label for="txtVideoExtensionsToServeWithDefaultTranscoding">
-                                Custom Video Uri Format String:
+                                Transcode extensions to use default transcode options for:
                             </label>
                             <input id="txtVideoExtensionsToServeWithDefaultTranscoding" name="txtVideoExtensionsToServeWithDefaultTranscoding" />
                             <div class="fieldDescription">
-                                Extensions or file types to transcode source material into. All source, no matter what its type will be allowed to transcode into any of these options. Valid options are .mkv, .asf, .wmv, .mp4, .webm. This setting is here for quick testing iteration it’s not going to be a permanent fixture.
+                                Extensions or file types to transcode source material into. <br /> 
+                                All source, no matter what its type will be allowed to transcode into any of these options. <br /> 
+                                Valid options are .mkv, .asf, .wmv, .mp4, .webm. <br /> 
+                                This setting is here for quick testing iteration it’s not going to be a permanent fixture.
                             </div>
                         </li>
                         <li>
@@ -92,7 +101,8 @@
                             </label>
                             <input id="txtAudioMimeType" name="txtAudioMimeType" />
                             <div class="fieldDescription">
-                                The Mime Type to report for all audio. This setting is here for quick testing iteration it’s not going to be a permanent fixture.
+                                The Mime Type to report for all audio. <br /> 
+                                This setting is here for quick testing iteration it’s not going to be a permanent fixture.
                             </div>
                         </li>
                         <li>
@@ -101,7 +111,8 @@
                             </label>
                             <input id="txtAudioUriFormatString" name="txtAudioUriFormatString" />
                             <div class="fieldDescription">
-                                The format string to use to when constructing the all audio Uris. This setting is here for quick testing iteration it’s not going to be a permanent fixture.
+                                The format string to use to when constructing the all audio Uris. <br /> 
+                                This setting is here for quick testing iteration it’s not going to be a permanent fixture.
                             </div>
                         </li>
 
@@ -135,7 +146,7 @@
                     $('#txtUserName', page).val(config.UserName);
                     $('#txtFriendlyDlnaName', page).val(config.FriendlyDlnaName);
                     $('#txtDlnaPortNumber', page).val(config.DlnaPortNumber || "");
-                    $('#txtCustomVideoUriFormatString', page).val(config.CustomVideoUriFormatString);
+                    $('#txtVideoCustomUriFormatString', page).val(config.VideoCustomUriFormatString);
                     $('#txtVideoCustomProtocolInfoString', page).val(config.VideoCustomProtocolInfoString);
                     $('#txtVideoExtensionsToServeCustom', page).val(config.VideoExtensionsToServeCustom);
                     $('#txtVideoExtensionsToServeStatic', page).val(config.VideoExtensionsToServeStatic);
