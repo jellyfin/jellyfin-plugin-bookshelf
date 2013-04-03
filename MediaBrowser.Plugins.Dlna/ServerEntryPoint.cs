@@ -334,7 +334,7 @@ namespace MediaBrowser.Plugins.Dlna
             Guid itemID;
             if (Guid.TryParseExact(id, "D", out itemID))
             {
-                var item = CurrentUser.RootFolder.FindItemById(itemID, CurrentUser);
+                var item = LibraryManager.GetItemById(itemID);
 
                 if (item != null)
                 {

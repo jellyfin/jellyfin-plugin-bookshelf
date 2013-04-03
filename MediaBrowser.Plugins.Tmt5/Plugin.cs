@@ -2,14 +2,13 @@
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Plugins;
 using MediaBrowser.Model.Serialization;
-using System;
 
 namespace MediaBrowser.Plugins.Tmt5
 {
     /// <summary>
     /// Class Plugin
     /// </summary>
-    public class Plugin : BasePlugin<BasePluginConfiguration>, IUIPlugin
+    public class Plugin : BasePlugin<BasePluginConfiguration>
     {
         public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer)
             : base(applicationPaths, xmlSerializer)
@@ -23,15 +22,6 @@ namespace MediaBrowser.Plugins.Tmt5
         public override string Name
         {
             get { return "TMT5 Integration"; }
-        }
-
-        /// <summary>
-        /// Gets the minimum required UI version.
-        /// </summary>
-        /// <value>The minimum required UI version.</value>
-        public Version MinimumRequiredUIVersion
-        {
-            get { return new Version("2.9.4782.23738"); }
         }
     }
 }
