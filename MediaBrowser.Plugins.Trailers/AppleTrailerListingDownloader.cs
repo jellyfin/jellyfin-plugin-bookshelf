@@ -181,7 +181,7 @@ namespace MediaBrowser.Plugins.Trailers
                         {
                             var directors = reader.ReadStringSafe() ?? string.Empty;
 
-                            foreach (var director in directors.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                            foreach (var director in Split(directors, ',', StringSplitOptions.RemoveEmptyEntries))
                             {
                                 var name = director.Trim();
 
@@ -200,6 +200,18 @@ namespace MediaBrowser.Plugins.Trailers
                         break;
                 }
             }
+        }
+
+        /// <summary>
+        /// Provides an additional overload for string.split
+        /// </summary>
+        /// <param name="val">The val.</param>
+        /// <param name="separator">The separator.</param>
+        /// <param name="options">The options.</param>
+        /// <returns>System.String[][].</returns>
+        private static string[] Split(string val, char separator, StringSplitOptions options)
+        {
+            return val.Split(new[] { separator }, options);
         }
 
         /// <summary>
