@@ -156,7 +156,7 @@ namespace MediaBrowser.Plugins.Trailers
 
                             if (DateTime.TryParse(reader.ReadStringSafe(), USCulture, DateTimeStyles.None, out date))
                             {
-                                info.PostDate = date;
+                                info.PostDate = date.ToUniversalTime();
                             }
                             break;
                         }
@@ -170,7 +170,7 @@ namespace MediaBrowser.Plugins.Trailers
 
                                 if (DateTime.TryParse(val, USCulture, DateTimeStyles.None, out date))
                                 {
-                                    info.Video.PremiereDate = date;
+                                    info.Video.PremiereDate = date.ToUniversalTime();
                                     info.Video.ProductionYear = date.Year;
                                 }
                             }

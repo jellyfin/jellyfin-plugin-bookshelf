@@ -134,7 +134,7 @@ namespace MediaBrowser.Plugins.Trailers.Providers
 
             if (source.PremiereDate.HasValue)
             {
-                target.PremiereDate = source.PremiereDate;
+                target.PremiereDate = source.PremiereDate.Value.ToUniversalTime();
             }
 
             if (source.ProductionYear.HasValue)
