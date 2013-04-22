@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Controller.Entities;
 using MoreLinq;
@@ -908,12 +909,6 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 {
                     if (string.Equals(person.Type, PersonType.Actor, StringComparison.OrdinalIgnoreCase))
                         result.People.AddActor(new Platinum.PersonRole(person.Name, person.Role == null ? string.Empty : person.Role));
-                    else if (string.Equals(person.Type, PersonType.MusicArtist, StringComparison.OrdinalIgnoreCase))
-                    {
-                        result.People.AddArtist(new Platinum.PersonRole(person.Name, "MusicArtist"));
-                        result.People.AddArtist(new Platinum.PersonRole(person.Name, "artist"));
-                        result.People.AddArtist(new Platinum.PersonRole(person.Name, "Performer"));
-                    }
                     else if (string.Equals(person.Type, PersonType.Composer, StringComparison.OrdinalIgnoreCase))
                     {
                         result.People.AddAuthors(new Platinum.PersonRole(person.Name, "Composer"));
@@ -962,12 +957,6 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 {
                     if (string.Equals(person.Type, PersonType.Actor, StringComparison.OrdinalIgnoreCase))
                         result.People.AddActor(new Platinum.PersonRole(person.Name, person.Role == null ? string.Empty : person.Role));
-                    else if (string.Equals(person.Type, PersonType.MusicArtist, StringComparison.OrdinalIgnoreCase))
-                    {
-                        result.People.AddArtist(new Platinum.PersonRole(person.Name, "MusicArtist"));
-                        result.People.AddArtist(new Platinum.PersonRole(person.Name, "artist"));
-                        result.People.AddArtist(new Platinum.PersonRole(person.Name, "Performer"));
-                    }
                     else if (string.Equals(person.Type, PersonType.Composer, StringComparison.OrdinalIgnoreCase))
                     {
                         result.People.AddAuthors(new Platinum.PersonRole(person.Name, "Composer"));
@@ -1016,12 +1005,6 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 {
                     if (string.Equals(person.Type, PersonType.Actor, StringComparison.OrdinalIgnoreCase))
                         result.People.AddActor(new Platinum.PersonRole(person.Name, person.Role == null ? string.Empty : person.Role));
-                    else if (string.Equals(person.Type, PersonType.MusicArtist, StringComparison.OrdinalIgnoreCase))
-                    {
-                        result.People.AddArtist(new Platinum.PersonRole(person.Name, "MusicArtist"));
-                        result.People.AddArtist(new Platinum.PersonRole(person.Name, "artist"));
-                        result.People.AddArtist(new Platinum.PersonRole(person.Name, "Performer"));
-                    }
                     else if (string.Equals(person.Type, PersonType.Composer, StringComparison.OrdinalIgnoreCase))
                     {
                         result.People.AddAuthors(new Platinum.PersonRole(person.Name, "Composer"));
@@ -1130,12 +1113,6 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 {
                     if (string.Equals(person.Type, PersonType.Actor, StringComparison.OrdinalIgnoreCase))
                         result.People.AddActor(new Platinum.PersonRole(person.Name, person.Role == null ? string.Empty : person.Role));
-                    else if (string.Equals(person.Type, PersonType.MusicArtist, StringComparison.OrdinalIgnoreCase))
-                    {
-                        result.People.AddArtist(new Platinum.PersonRole(person.Name, "MusicArtist"));
-                        result.People.AddArtist(new Platinum.PersonRole(person.Name, "artist"));
-                        result.People.AddArtist(new Platinum.PersonRole(person.Name, "Performer"));
-                    }
                     else if (string.Equals(person.Type, PersonType.Composer, StringComparison.OrdinalIgnoreCase))
                     {
                         result.People.AddAuthors(new Platinum.PersonRole(person.Name, "Composer"));
@@ -1223,8 +1200,11 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(item.MBItem.Artist))
-                result.People.AddArtist(new Platinum.PersonRole(item.MBItem.Artist));
+            foreach (var artist in item.MBItem.Artists)
+            {
+                result.People.AddArtist(new Platinum.PersonRole(artist));
+            }
+
             result.People.Contributor = item.MBItem.AlbumArtist.EnsureNotNull();
             result.Affiliation.Album = item.MBItem.Album.EnsureNotNull();
 
@@ -1236,12 +1216,6 @@ namespace MediaBrowser.Plugins.Dlna.Model
                     {
                         if (string.Equals(person.Type, PersonType.Actor, StringComparison.OrdinalIgnoreCase))
                             result.People.AddActor(new Platinum.PersonRole(person.Name, person.Role == null ? string.Empty : person.Role));
-                        else if (string.Equals(person.Type, PersonType.MusicArtist, StringComparison.OrdinalIgnoreCase))
-                        {
-                            result.People.AddArtist(new Platinum.PersonRole(person.Name, "MusicArtist"));
-                            result.People.AddArtist(new Platinum.PersonRole(person.Name, "artist"));
-                            result.People.AddArtist(new Platinum.PersonRole(person.Name, "Performer"));
-                        }
                         else if (string.Equals(person.Type, PersonType.Composer, StringComparison.OrdinalIgnoreCase))
                         {
                             result.People.AddAuthors(new Platinum.PersonRole(person.Name, "Composer"));
@@ -1259,6 +1233,13 @@ namespace MediaBrowser.Plugins.Dlna.Model
                     }
                 }
             }
+            foreach (var artist in item.MBItem.Artists)
+            {
+                result.People.AddArtist(new Platinum.PersonRole(artist, "MusicArtist"));
+                result.People.AddArtist(new Platinum.PersonRole(artist, "artist"));
+                result.People.AddArtist(new Platinum.PersonRole(artist, "Performer"));
+            }
+
 
             //'restricted' attribute (true, false, 1, 0).
             //When restricted="true", the ability to change or delete the

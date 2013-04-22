@@ -156,7 +156,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
 
             // Create tasks to download each of them, if we don't already have them
             Task<string> videoTask = null;
-            Task<MemoryStream> imageTask = null;
+            Task<Stream> imageTask = null;
 
             var tasks = new List<Task>();
 
@@ -181,7 +181,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
             {
                 // Fetch the image to a memory stream
                 Logger.Info("Downloading trailer image: " + imageUrl);
-                imageTask = _httpClient.GetMemoryStream(imageUrl, Plugin.Instance.AppleTrailerImages, cancellationToken);
+                imageTask = _httpClient.Get(imageUrl, Plugin.Instance.AppleTrailerImages, cancellationToken);
                 tasks.Add(imageTask);
             }
 
