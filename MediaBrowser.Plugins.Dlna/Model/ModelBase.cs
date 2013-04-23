@@ -1200,10 +1200,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 }
             }
 
-            foreach (var artist in item.MBItem.Artists)
-            {
-                result.People.AddArtist(new Platinum.PersonRole(artist));
-            }
+            result.People.AddArtist(new Platinum.PersonRole(item.MBItem.Artist));
 
             result.People.Contributor = item.MBItem.AlbumArtist.EnsureNotNull();
             result.Affiliation.Album = item.MBItem.Album.EnsureNotNull();
@@ -1233,12 +1230,9 @@ namespace MediaBrowser.Plugins.Dlna.Model
                     }
                 }
             }
-            foreach (var artist in item.MBItem.Artists)
-            {
-                result.People.AddArtist(new Platinum.PersonRole(artist, "MusicArtist"));
-                result.People.AddArtist(new Platinum.PersonRole(artist, "artist"));
-                result.People.AddArtist(new Platinum.PersonRole(artist, "Performer"));
-            }
+            result.People.AddArtist(new Platinum.PersonRole(item.MBItem.Artist, "MusicArtist"));
+            result.People.AddArtist(new Platinum.PersonRole(item.MBItem.Artist, "artist"));
+            result.People.AddArtist(new Platinum.PersonRole(item.MBItem.Artist, "Performer"));
 
 
             //'restricted' attribute (true, false, 1, 0).
