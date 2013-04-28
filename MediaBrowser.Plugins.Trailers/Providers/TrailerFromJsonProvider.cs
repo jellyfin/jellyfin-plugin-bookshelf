@@ -1,5 +1,6 @@
 ﻿using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.IO;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
@@ -21,6 +22,12 @@ namespace MediaBrowser.Plugins.Trailers.Providers
         /// </summary>
         private readonly IJsonSerializer _jsonSerializer;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TrailerFromJsonProvider"/> class.
+        /// </summary>
+        /// <param name="logManager">The log manager.</param>
+        /// <param name="configurationManager">The configuration manager.</param>
+        /// <param name="jsonSerializer">The json serializer.</param>
         public TrailerFromJsonProvider(ILogManager logManager, IServerConfigurationManager configurationManager, IJsonSerializer jsonSerializer)
             : base(logManager, configurationManager)
         {
@@ -48,7 +55,7 @@ namespace MediaBrowser.Plugins.Trailers.Providers
         protected override DateTime CompareDate(BaseItem item)
         {
             var entry = item.ResolveArgs.GetMetaFileByPath(Path.Combine(item.MetaLocation, "trailer.json"));
-            return entry != null ? entry.Value.LastWriteTimeUtc : DateTime.MinValue;
+            return entry != null ? FileSystem.GetLastWriteTimeUtc(entry, Logger) : DateTime.MinValue;
         }
 
         /// <summary>
@@ -56,6 +63,7 @@ namespace MediaBrowser.Plugins.Trailers.Providers
         /// </summary>
         /// <param name="item">The item.</param>
         /// <param name="force">if set to <c>true</c> [force].</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>Task{System.Boolean}.</returns>
         public override Task<bool> FetchAsync(BaseItem item, bool force, CancellationToken cancellationToken)
         {
@@ -71,9 +79,9 @@ namespace MediaBrowser.Plugins.Trailers.Providers
         {
             var metadataFile = item.ResolveArgs.GetMetaFileByPath(Path.Combine(item.MetaLocation, "trailer.json"));
 
-            if (metadataFile.HasValue)
+            if (metadataFile != null)
             {
-                var tempTrailer = _jsonSerializer.DeserializeFromFile<Trailer>(metadataFile.Value.Path);
+                var tempTrailer = _jsonSerializer.DeserializeFromFile<Trailer>(metadataFile.FullName);
 
                 ImportMetdata(tempTrailer, item);
 
@@ -129,7 +137,12 @@ namespace MediaBrowser.Plugins.Trailers.Providers
 
             if (source.People != null)
             {
-                target.AddPeople(source.People);
+                target.People.Clear();
+
+                foreach (var person in source.People)
+                {
+                    target.AddPerson(person);
+                }
             }
 
             if (source.PremiereDate.HasValue)

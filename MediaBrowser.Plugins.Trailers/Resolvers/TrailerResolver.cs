@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Controller;
+﻿using System.IO;
+using MediaBrowser.Controller;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Resolvers;
@@ -49,11 +50,11 @@ namespace MediaBrowser.Plugins.Trailers.Resolvers
         {
             // Loop through each child file/folder and see if we find a video
             return args.FileSystemChildren
-                .Where(c => !c.IsDirectory)
+                .Where(c => !c.Attributes.HasFlag(FileAttributes.Directory))
                 .Select(child => base.Resolve(new ItemResolveArgs(_applicationPaths)
                 {
                     FileInfo = child,
-                    Path = child.Path
+                    Path = child.FullName
                 }))
                 .FirstOrDefault(i => i != null);
         }

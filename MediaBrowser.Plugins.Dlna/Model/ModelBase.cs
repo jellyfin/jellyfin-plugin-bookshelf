@@ -1352,7 +1352,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             {
                 foreach (var prefix in urlPrefixes)
                 {
-                    result.Add(new Platinum.AlbumArtInfo(GetItemUri(prefix, mbItem, img.Key, null)));
+                    result.Add(new Platinum.AlbumArtInfo(GetItemUri(prefix, mbItem, img.Key.ToString(), null)));
                 }
             }
             return result;
@@ -1455,7 +1455,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
                         if (!string.IsNullOrWhiteSpace(protoData.ResolutionToReport))
                             thumbnailResource.Resolution = protoData.ResolutionToReport;
 
-                        thumbnailResource.URI = GetItemUri(prefix, mbItem, img.Key, protoData.QueryItems);
+                        thumbnailResource.URI = GetItemUri(prefix, mbItem, img.Key.ToString(), protoData.QueryItems);
                         result.Add(thumbnailResource);
                     }
                 }
@@ -1514,7 +1514,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
             {
                 foreach (var prefix in urlPrefixes)
                 {
-                    result.Add(new Platinum.AlbumArtInfo(GetImageUri(prefix, mbItem, img.Key, null)));
+                    result.Add(new Platinum.AlbumArtInfo(GetImageUri(prefix, mbItem, img.Key.ToString(), null)));
                 }
             }
             return result;
@@ -1548,7 +1548,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
                         if (!string.IsNullOrWhiteSpace(protoData.ResolutionToReport))
                             thumbnailResource.Resolution = protoData.ResolutionToReport;
 
-                        thumbnailResource.URI = GetImageUri(prefix, mbItem, img.Key, protoData.QueryItems);
+                        thumbnailResource.URI = GetImageUri(prefix, mbItem, img.Key.ToString(), protoData.QueryItems);
                         result.Add(thumbnailResource);
                     }
                 }
@@ -1595,7 +1595,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
                 {
                     foreach (var prefix in urlPrefixes)
                     {
-                        result.Add(new Platinum.AlbumArtInfo(GetImageUri(prefix, mbItem, img.Key, null)));
+                        result.Add(new Platinum.AlbumArtInfo(GetImageUri(prefix, mbItem, img.Key.ToString(), null)));
                     }
                 }
             }
@@ -1639,7 +1639,7 @@ namespace MediaBrowser.Plugins.Dlna.Model
                         if (!string.IsNullOrWhiteSpace(protoData.ResolutionToReport))
                             thumbnailResource.Resolution = protoData.ResolutionToReport;
 
-                        thumbnailResource.URI = GetImageUri(prefix, mbItem, img.Key, protoData.QueryItems);
+                        thumbnailResource.URI = GetImageUri(prefix, mbItem, img.Key.ToString(), protoData.QueryItems);
                         result.Add(thumbnailResource);
                     }
                 }
