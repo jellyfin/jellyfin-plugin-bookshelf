@@ -1,11 +1,6 @@
-﻿using MediaBrowser.Common.Configuration;
-using MediaBrowser.Common.ScheduledTasks;
-using MediaBrowser.Controller.Library;
+﻿using MediaBrowser.Common.ScheduledTasks;
 using MediaBrowser.Controller.Plugins;
-using MediaBrowser.Plugins.Trailers.Configuration;
 using MediaBrowser.Plugins.Trailers.ScheduledTasks;
-using System;
-using System.Threading;
 
 namespace MediaBrowser.Plugins.Trailers
 {
@@ -25,17 +20,13 @@ namespace MediaBrowser.Plugins.Trailers
         /// </summary>
         private readonly ITaskManager _taskManager;
 
-        private readonly ILibraryManager _libraryManager;
-        
         /// <summary>
         /// Initializes a new instance of the <see cref="ServerEntryPoint" /> class.
         /// </summary>
         /// <param name="taskManager">The task manager.</param>
-        /// <param name="appPaths">The app paths.</param>
-        public ServerEntryPoint(ITaskManager taskManager, IApplicationPaths appPaths, ILibraryManager libraryManager)
+        public ServerEntryPoint(ITaskManager taskManager)
         {
             _taskManager = taskManager;
-            _libraryManager = libraryManager;
 
             Instance = this;
         }
@@ -48,22 +39,6 @@ namespace MediaBrowser.Plugins.Trailers
             if (Plugin.Instance.IsFirstRun)
             {
                 _taskManager.QueueScheduledTask<CurrentTrailerDownloadTask>();
-            }
-        }
-
-        /// <summary>
-        /// Called when [configuration updated].
-        /// </summary>
-        /// <param name="oldConfig">The old config.</param>
-        /// <param name="newConfig">The new config.</param>
-        public void OnConfigurationUpdated(PluginConfiguration oldConfig, PluginConfiguration newConfig)
-        {
-            var pathChanged = !string.Equals(oldConfig.DownloadPath, newConfig.DownloadPath, StringComparison.OrdinalIgnoreCase);
-
-            if (pathChanged)
-            {
-                Plugin.Instance.DownloadPath = null;
-                _libraryManager.ValidateMediaLibrary(new Progress<double>(), CancellationToken.None);
             }
         }
 

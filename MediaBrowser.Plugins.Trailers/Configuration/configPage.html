@@ -31,18 +31,6 @@
                             <label for="chkDeleteOldTrailers">Delete trailers older than the max age</label>
                         </li>
                         <li>
-                            <label for="txtDownloadPath">
-                                Download path:
-                            </label>
-                            <div style="display: inline-block; width:92%;">
-                                <input id="txtDownloadPath" name="txtDownloadPath" data-inline="true" />
-                            </div>
-                            <button type="button" data-icon="folder-close" data-iconpos="notext" data-inline="true" onclick="TrailersConfigurationPage.selectDirectory();">Select Directory</button>
-                            <div class="fieldDescription">
-                                By default, trailers are downloaded to an internal data directory. Using a different location may make it easier to share over your network.
-                            </div>
-                        </li>
-                        <li>
                             <button type="submit" data-theme="b">Save</button>
                             <button type="button" onclick="history.back();">Cancel</button>
                         </li>
@@ -55,23 +43,7 @@
         <script type="text/javascript">
 
             var TrailersConfigurationPage = {
-                pluginUniqueId: "986a7283-205a-4436-862d-23135c067f8a",
-
-                selectDirectory: function () {
-
-                    Dashboard.selectDirectory({
-                        callback: function (path) {
-
-                            if (path) {
-                                $('#txtDownloadPath', $.mobile.activePage).val(path);
-                            }
-                            $('#popupDirectoryPicker', $.mobile.activePage).popup("close");
-                        },
-
-                        header: "Select Trailer Path"
-                    });
-
-                }
+                pluginUniqueId: "986a7283-205a-4436-862d-23135c067f8a"
             };
 
             $('#trailersConfigurationPage').on('pageshow', function (event) {
@@ -82,7 +54,6 @@
 
                 ApiClient.getPluginConfiguration(TrailersConfigurationPage.pluginUniqueId).done(function (config) {
 
-                    $('#txtDownloadPath', page).val(config.DownloadPath);
                     $('#txtFolderName', page).val(config.FolderName);
                     $('#txtMaxTrailerAge', page).val(config.MaxTrailerAge || "");
                     $('#chkDeleteOldTrailers', page).checked(config.DeleteOldTrailers).checkboxradio("refresh");
@@ -99,7 +70,6 @@
 
                 ApiClient.getPluginConfiguration(TrailersConfigurationPage.pluginUniqueId).done(function (config) {
 
-                    config.DownloadPath = $('#txtDownloadPath', form).val();
                     config.FolderName = $('#txtFolderName', form).val();
                     var maxTrailerAge = $('#txtMaxTrailerAge', form).val();
 

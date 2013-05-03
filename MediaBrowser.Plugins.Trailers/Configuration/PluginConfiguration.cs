@@ -20,13 +20,6 @@ namespace MediaBrowser.Plugins.Trailers.Configuration
         public int? MaxTrailerAge { get; set; }
 
         /// <summary>
-        /// Gets the path to where trailers should be downloaded.
-        /// If not supplied then programdata/cache/trailers will be used.
-        /// </summary>
-        /// <value>The download path.</value>
-        public string DownloadPath { get; set; }
-
-        /// <summary>
         /// Gets or sets a value indicating whether [delete old trailers].
         /// </summary>
         /// <value><c>true</c> if [delete old trailers]; otherwise, <c>false</c>.</value>

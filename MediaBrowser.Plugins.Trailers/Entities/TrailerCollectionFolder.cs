@@ -18,15 +18,6 @@ namespace MediaBrowser.Plugins.Trailers.Entities
                 return Plugin.Instance.Configuration.FolderName;
             }
         }
-
-        /// <summary>
-        /// Gets the path.
-        /// </summary>
-        /// <value>The path.</value>
-        public override string Path
-        {
-            get { return Plugin.Instance.DownloadPath; }
-        }
     }
 
     /// <summary>

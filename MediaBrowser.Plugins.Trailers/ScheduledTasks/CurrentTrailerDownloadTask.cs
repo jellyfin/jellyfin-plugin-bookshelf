@@ -1,10 +1,13 @@
-﻿using MediaBrowser.Common.IO;
+﻿using MediaBrowser.Common.Extensions;
+using MediaBrowser.Common.IO;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Common.ScheduledTasks;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.IO;
 using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Providers;
+using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Net;
 using MediaBrowser.Model.Serialization;
@@ -33,25 +36,45 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
         /// </summary>
         private readonly IJsonSerializer _jsonSerializer;
 
+        /// <summary>
+        /// Gets or sets the logger.
+        /// </summary>
+        /// <value>The logger.</value>
         private ILogger Logger { get; set;}
+        /// <summary>
+        /// Gets or sets the kernel.
+        /// </summary>
+        /// <value>The kernel.</value>
         private Kernel Kernel { get; set; }
+        /// <summary>
+        /// Gets or sets the library manager.
+        /// </summary>
+        /// <value>The library manager.</value>
         private ILibraryManager LibraryManager { get; set; }
+
+        /// <summary>
+        /// Gets or sets the provider manager.
+        /// </summary>
+        /// <value>The provider manager.</value>
+        private IProviderManager ProviderManager { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CurrentTrailerDownloadTask" /> class.
         /// </summary>
         /// <param name="kernel">The kernel.</param>
         /// <param name="libraryManager">The library manager.</param>
+        /// <param name="providerManager">The provider manager.</param>
         /// <param name="httpClient">The HTTP client.</param>
         /// <param name="jsonSerializer">The json serializer.</param>
         /// <param name="logger">The logger.</param>
-        public CurrentTrailerDownloadTask(Kernel kernel, ILibraryManager libraryManager, IHttpClient httpClient, IJsonSerializer jsonSerializer, ILogger logger)
+        public CurrentTrailerDownloadTask(Kernel kernel, ILibraryManager libraryManager, IProviderManager providerManager, IHttpClient httpClient, IJsonSerializer jsonSerializer, ILogger logger)
         {
             _jsonSerializer = jsonSerializer;
             _httpClient = httpClient;
             Logger = logger;
             Kernel = kernel;
             LibraryManager = libraryManager;
+            ProviderManager = providerManager;
         }
 
         /// <summary>
@@ -76,43 +99,38 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
 
             progress.Report(1);
 
-            var trailersToDownload = trailers.Where(t => !IsOldTrailer(t.Video)).ToList();
+            var trailerFolder = LibraryManager.RootFolder.Children.OfType<TrailerCollectionFolder>().First();
+
+            var trailersToDownload = trailers
+                .Where(t => !IsOldTrailer(t.Video))
+                .ToList();
 
             cancellationToken.ThrowIfCancellationRequested();
 
             var numComplete = 0;
 
-            // Fetch them all in parallel
-            var tasks = trailersToDownload.Select(t => Task.Run(async () =>
+            foreach (var trailer in trailersToDownload)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 try
                 {
-                    await DownloadTrailer(t, cancellationToken).ConfigureAwait(false);
+                    await DownloadTrailer(trailer, trailerFolder, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
-                    Logger.ErrorException("Error downloading {0}", ex, t.TrailerUrl);
+                    Logger.ErrorException("Error downloading information for {0}", ex, trailer.Video.Name);
                 }
 
                 // Update progress
-                lock (progress)
-                {
-                    numComplete++;
-                    double percent = numComplete;
-                    percent /= trailersToDownload.Count;
+                numComplete++;
+                double percent = numComplete;
+                percent /= trailersToDownload.Count;
 
-                    // Leave 1% for DeleteOldTrailers
-                    progress.Report((99 * percent) + 1);
-                }
-            }));
+                progress.Report(100 * percent);
+            }
 
-            cancellationToken.ThrowIfCancellationRequested();
-            
-            await Task.WhenAll(tasks).ConfigureAwait(false);
-
-            cancellationToken.ThrowIfCancellationRequested();
+            await LibraryManager.SaveChildren(trailerFolder.Id, trailerFolder.Children, cancellationToken).ConfigureAwait(false);
             
             if (Plugin.Instance.Configuration.DeleteOldTrailers)
             {
@@ -124,139 +142,48 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
         }
 
         /// <summary>
-        /// Downloads a single trailer into the trailers directory
+        /// Downloads the trailer.
         /// </summary>
         /// <param name="trailer">The trailer.</param>
+        /// <param name="trailerFolder">The trailer folder.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>Task.</returns>
-        private async Task DownloadTrailer(TrailerInfo trailer, CancellationToken cancellationToken)
+        private async Task DownloadTrailer(TrailerInfo trailer, Folder trailerFolder, CancellationToken cancellationToken)
         {
-            // Construct the trailer foldername
-            var folderName = FileSystem.GetValidFilename(trailer.Video.Name);
+            var video = trailer.Video;
 
-            if (trailer.Video.ProductionYear.HasValue)
+            var existing = trailerFolder
+                .Children
+                .OfType<Trailer>()
+                .FirstOrDefault(i => string.Equals(i.Path, trailer.TrailerUrl, StringComparison.OrdinalIgnoreCase));
+
+            if (existing != null)
             {
-                folderName += string.Format(" ({0})", trailer.Video.ProductionYear);
+                video = existing;
             }
+            else
+            {
+                video.Path = trailer.TrailerUrl;
 
-            var folderPath = Path.Combine(Plugin.Instance.DownloadPath, folderName);
+                video.Id = video.Path.GetMBId(typeof(Trailer));
+
+                trailerFolder.Children.Add(video);
+
+                await LibraryManager.CreateItem(video, cancellationToken).ConfigureAwait(false);
+            }
 
             // Figure out which image we're going to download
             var imageUrl = trailer.HdImageUrl ?? trailer.ImageUrl;
 
-            // Construct the video filename (to match the folder name)
-            var videoFileName = Path.ChangeExtension(folderName, Path.GetExtension(trailer.TrailerUrl));
-
-            // Construct the image filename (folder + original extension)
-            var imageFileName = Path.ChangeExtension("folder", Path.GetExtension(imageUrl));
-
-            // Construct full paths
-            var videoFilePath = Path.Combine(folderPath, videoFileName);
-            var imageFilePath = Path.Combine(folderPath, imageFileName);
-
-            // Create tasks to download each of them, if we don't already have them
-            Task<string> videoTask = null;
-            Task<Stream> imageTask = null;
-
-            var tasks = new List<Task>();
-
-            if (!File.Exists(videoFilePath))
+            if (!video.HasImage(ImageType.Primary) && !string.IsNullOrEmpty(imageUrl))
             {
-                Logger.Info("Downloading trailer: " + trailer.TrailerUrl);
+                var path = await
+                    ProviderManager.DownloadAndSaveImage(video, imageUrl, "folder.jpg", false, Plugin.Instance.AppleTrailers, cancellationToken)
+                                   .ConfigureAwait(false);
 
-                // Fetch the video to a temp file because it's too big to put into a MemoryStream
-                videoTask = _httpClient.GetTempFile(new HttpRequestOptions
-                {
-                    Url = trailer.TrailerUrl,
-                    ResourcePool = Plugin.Instance.AppleTrailerVideos,
-                    CancellationToken = cancellationToken,
-                    Progress = new Progress<double>(),
-                    UserAgent = "QuickTime/7.6.2"
-                });
+                video.SetImage(ImageType.Primary, path);
 
-                tasks.Add(videoTask);
-            }
-
-            if (!string.IsNullOrWhiteSpace(imageUrl) && !File.Exists(imageFilePath))
-            {
-                // Fetch the image to a memory stream
-                Logger.Info("Downloading trailer image: " + imageUrl);
-                imageTask = _httpClient.Get(imageUrl, Plugin.Instance.AppleTrailerImages, cancellationToken);
-                tasks.Add(imageTask);
-            }
-
-            try
-            {
-                // Wait for both downloads to finish
-                await Task.WhenAll(tasks).ConfigureAwait(false);
-            }
-            catch (HttpException ex)
-            {
-                Logger.ErrorException("Error downloading trailer file or image", ex);
-            }
-
-            var videoFailed = false;
-            var directoryEnsured = false;
-
-            // Proces the video file task result
-            if (videoTask != null)
-            {
-                if (videoTask.Status == TaskStatus.RanToCompletion)
-                {
-                    EnsureDirectory(folderPath);
-
-                    directoryEnsured = true;
-
-                    // Move the temp file to the final destination
-                    try
-                    {
-                        File.Move(videoTask.Result, videoFilePath);
-                    }
-                    catch (IOException ex)
-                    {
-                        Logger.ErrorException("Error moving temp file", ex);
-                        File.Delete(videoTask.Result);
-                        videoFailed = true;
-                    }
-                }
-                else
-                {
-                    Logger.Info("Trailer download failed: " + trailer.TrailerUrl);
-
-                    // Don't bother with the image if the video download failed
-                    videoFailed = true;
-                }
-            }
-
-            // Process the image file task result
-            if (imageTask != null && !videoFailed && imageTask.Status == TaskStatus.RanToCompletion)
-            {
-                if (!directoryEnsured)
-                {
-                    EnsureDirectory(folderPath);
-                }
-
-                try
-                {
-                    // Save the image to the file system
-                    using (var fs = new FileStream(imageFilePath, FileMode.Create, FileAccess.Write, FileShare.Read, StreamDefaults.DefaultFileStreamBufferSize, FileOptions.Asynchronous))
-                    {
-                        using (var sourceStream = imageTask.Result)
-                        {
-                            await sourceStream.CopyToAsync(fs).ConfigureAwait(false);
-                        }
-                    }
-                }
-                catch (IOException ex)
-                {
-                    Logger.ErrorException("Error saving image to file system", ex);
-                }
-            }
-
-            // Save metadata only if the video was downloaded
-            if (!videoFailed && videoTask != null)
-            {
-                _jsonSerializer.SerializeToFile(trailer.Video, Path.Combine(folderPath, "trailer.json"));
+                await LibraryManager.UpdateItem(video, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -301,18 +228,6 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
                 Logger.Info("Deleting old trailer: " + trailer.Name);
 
                 Directory.Delete(Path.GetDirectoryName(trailer.Path), true);
-            }
-        }
-
-        /// <summary>
-        /// Ensures the directory.
-        /// </summary>
-        /// <param name="path">The path.</param>
-        private void EnsureDirectory(string path)
-        {
-            if (!Directory.Exists(path))
-            {
-                Directory.CreateDirectory(path);
             }
         }
 
