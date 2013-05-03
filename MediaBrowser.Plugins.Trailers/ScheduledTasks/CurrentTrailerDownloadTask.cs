@@ -135,7 +135,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
             if (Plugin.Instance.Configuration.DeleteOldTrailers)
             {
                 // Enforce MaxTrailerAge
-                DeleteOldTrailers();
+                await DeleteOldTrailers(cancellationToken).ConfigureAwait(false);
             }
 
             progress.Report(100);
@@ -167,9 +167,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
 
                 video.Id = video.Path.GetMBId(typeof(Trailer));
 
-                trailerFolder.Children.Add(video);
-
-                await LibraryManager.CreateItem(video, cancellationToken).ConfigureAwait(false);
+                await trailerFolder.AddChild(video, cancellationToken).ConfigureAwait(false);
             }
 
             // Figure out which image we're going to download
@@ -219,7 +217,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
         /// <summary>
         /// Deletes trailers that are older than the supplied date
         /// </summary>
-        private void DeleteOldTrailers()
+        private async Task DeleteOldTrailers(CancellationToken cancellationToken)
         {
             var collectionFolder = (Folder)LibraryManager.RootFolder.Children.First(c => c.GetType().Name.Equals(typeof(TrailerCollectionFolder).Name));
 
@@ -227,7 +225,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
             {
                 Logger.Info("Deleting old trailer: " + trailer.Name);
 
-                Directory.Delete(Path.GetDirectoryName(trailer.Path), true);
+                await collectionFolder.RemoveChild(trailer, cancellationToken).ConfigureAwait(false);
             }
         }
 
