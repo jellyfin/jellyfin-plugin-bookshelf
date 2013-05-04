@@ -83,7 +83,12 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
         /// <returns>IEnumerable{BaseTaskTrigger}.</returns>
         public IEnumerable<ITaskTrigger> GetDefaultTriggers()
         {
-            return new[] { new DailyTrigger { TimeOfDay = TimeSpan.FromHours(2) } };
+            return new ITaskTrigger[]
+                {
+                    new DailyTrigger { TimeOfDay = TimeSpan.FromHours(2) },
+
+                    new IntervalTrigger { Interval = TimeSpan.FromHours(3) }
+                };
         }
 
         /// <summary>
@@ -235,7 +240,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
         /// <value>The name.</value>
         public string Name
         {
-            get { return "Find current trailers"; }
+            get { return "Refresh trailers"; }
         }
 
         /// <summary>
@@ -256,7 +261,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
         /// <value>The description.</value>
         public string Description
         {
-            get { return "Searches the web for upcoming movie trailers, and downloads them based on your Trailer plugin settings."; }
+            get { return "Searches the web for upcoming movie trailers."; }
         }
     }
 }
