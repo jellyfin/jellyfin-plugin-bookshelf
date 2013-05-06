@@ -147,8 +147,9 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
             progress.Report(72);
 
             numComplete = 0;
-            
-            foreach (var trailer in trailerFolder.Children)
+            var children = trailerFolder.Children.ToList();
+
+            foreach (var trailer in children)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -164,7 +165,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
                 // Update progress
                 numComplete++;
                 double percent = numComplete;
-                percent /= trailersToDownload.Count;
+                percent /= children.Count;
 
                 progress.Report((28 * percent) + 72);
             }
