@@ -27,7 +27,14 @@ namespace MediaBrowser.Plugins.Trailers
         /// <returns>Task{List{TrailerInfo}}.</returns>
         public static async Task<List<TrailerInfo>> GetTrailerList(IHttpClient httpClient, CancellationToken cancellationToken)
         {
-            var stream = await httpClient.Get(TrailerFeedUrl, Plugin.Instance.AppleTrailers, cancellationToken).ConfigureAwait(false);
+            var stream = await httpClient.Get(new HttpRequestOptions
+            {
+                Url = TrailerFeedUrl,
+                CancellationToken = cancellationToken,
+                ResourcePool = Plugin.Instance.AppleTrailers,
+                EnableResponseCache = true
+
+            }).ConfigureAwait(false);
 
             var list = new List<TrailerInfo>();
 
