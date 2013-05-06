@@ -132,15 +132,41 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
                 double percent = numComplete;
                 percent /= trailersToDownload.Count;
 
-                progress.Report(100 * percent);
+                progress.Report(70 * percent);
             }
 
             await LibraryManager.SaveChildren(trailerFolder.Id, trailerFolder.Children, cancellationToken).ConfigureAwait(false);
+
+            progress.Report(71);
             
             if (Plugin.Instance.Configuration.DeleteOldTrailers)
             {
                 // Enforce MaxTrailerAge
                 await DeleteOldTrailers(cancellationToken).ConfigureAwait(false);
+            }
+            progress.Report(72);
+
+            numComplete = 0;
+            
+            foreach (var trailer in trailerFolder.Children)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                try
+                {
+                    await trailer.RefreshMetadata(cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    Logger.ErrorException("Error refreshing metadata for {0}", ex, trailer.Name);
+                }
+
+                // Update progress
+                numComplete++;
+                double percent = numComplete;
+                percent /= trailersToDownload.Count;
+
+                progress.Report((28 * percent) + 72);
             }
 
             progress.Report(100);
