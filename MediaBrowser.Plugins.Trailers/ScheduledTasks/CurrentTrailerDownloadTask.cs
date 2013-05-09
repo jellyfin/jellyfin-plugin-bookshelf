@@ -137,13 +137,6 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
 
             await LibraryManager.SaveChildren(trailerFolder.Id, trailerFolder.Children, cancellationToken).ConfigureAwait(false);
 
-            progress.Report(71);
-            
-            if (Plugin.Instance.Configuration.DeleteOldTrailers)
-            {
-                // Enforce MaxTrailerAge
-                await DeleteOldTrailers(cancellationToken).ConfigureAwait(false);
-            }
             progress.Report(72);
 
             numComplete = 0;
@@ -170,6 +163,12 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
                 progress.Report((28 * percent) + 72);
             }
 
+            if (Plugin.Instance.Configuration.DeleteOldTrailers)
+            {
+                // Enforce MaxTrailerAge
+                await DeleteOldTrailers(cancellationToken).ConfigureAwait(false);
+            }
+            
             progress.Report(100);
         }
 

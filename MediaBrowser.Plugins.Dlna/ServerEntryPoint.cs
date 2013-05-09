@@ -3,6 +3,7 @@ using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Plugins;
+using MediaBrowser.Controller.Session;
 using MediaBrowser.Model.Logging;
 using System;
 using System.Collections.Generic;
@@ -33,11 +34,13 @@ namespace MediaBrowser.Plugins.Dlna
 
         private ILogger Logger { get; set; }
         private IUserManager UserManager { get; set; }
+        private ISessionManager SessionManager { get; set; }
         private ILibraryManager LibraryManager { get; set; }
         private Kernel Kernel { get; set; }
 
-        public ServerEntryPoint(ILogManager logManager, IUserManager userManager, ILibraryManager libraryManager, Kernel kernel)
+        public ServerEntryPoint(ILogManager logManager, IUserManager userManager, ILibraryManager libraryManager, Kernel kernel, ISessionManager sessionManager)
         {
+            SessionManager = sessionManager;
             Logger = logManager.GetLogger("DlnaServerPlugin");
 
             UserManager = userManager;
@@ -623,7 +626,7 @@ namespace MediaBrowser.Plugins.Dlna
         private void LogUserActivity(Platinum.DeviceSignature signature)
         {
             // TODO: Device Id, Name?
-            UserManager.LogUserActivity(this.CurrentUser, "Dlna", signature.ToString(), signature.ToString());
+            SessionManager.LogConnectionActivity("Dlna", signature.ToString(), signature.ToString(), CurrentUser);
         }
 
         #region "Search Ideas"
