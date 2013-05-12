@@ -349,6 +349,14 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
                 await FetchRottenTomatoesId(item, apiKey, cancellationToken).ConfigureAwait(false);
             }
 
+            // If still empty we can't continue
+            if (string.IsNullOrEmpty(item.GetProviderId(MetadataProviders.RottenTomatoes)))
+            {
+                data.Data = GetComparisonData(imdbId);
+                data.LastRefreshStatus = ProviderRefreshStatus.Success;
+                return;
+            }
+            
             RequestHistory.Add(DateTime.UtcNow);
             
             using (var stream = await HttpClient.Get(new HttpRequestOptions
