@@ -39,7 +39,10 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
                 "gecbjvjka5may65qmqrczk97",
 
                 // MB Theater
-                "4wku9pfehuvwrrt5fyjgbert"
+                //"4wku9pfehuvwrrt5fyjgbert",
+
+                // MB Classic
+                //"t579r22wuq9399ra8u7cevs7"
             };
 
         private const string BasicUrl = @"http://api.rottentomatoes.com/api/public/v1.0/";

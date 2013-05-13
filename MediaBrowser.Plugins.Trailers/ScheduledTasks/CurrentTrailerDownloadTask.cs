@@ -1,20 +1,15 @@
-﻿using MediaBrowser.Common.Extensions;
-using MediaBrowser.Common.IO;
-using MediaBrowser.Common.Net;
+﻿using MediaBrowser.Common.Net;
 using MediaBrowser.Common.ScheduledTasks;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.IO;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
-using MediaBrowser.Model.Net;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Plugins.Trailers.Entities;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -195,8 +190,6 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
             else
             {
                 video.Path = trailer.TrailerUrl;
-
-                video.Id = video.Path.GetMBId(typeof(Trailer));
 
                 await trailerFolder.AddChild(video, cancellationToken).ConfigureAwait(false);
             }
