@@ -445,7 +445,7 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
         {
             var index = Environment.MachineName.GetHashCode()%_apiKeys.Length;
 
-            return _apiKeys[index];
+            return _apiKeys[Math.Abs(index)];
         }
 
         // Data contract classes for use with the Rotten Tomatoes API
