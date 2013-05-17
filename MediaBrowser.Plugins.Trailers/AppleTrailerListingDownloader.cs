@@ -138,7 +138,7 @@ namespace MediaBrowser.Plugins.Trailers
 
                                 if (TimeSpan.TryParse(runtime, USCulture, out runtimeTimeSpan))
                                 {
-                                    info.Video.RunTimeTicks = runtimeTimeSpan.Ticks;
+                                    info.Video.OriginalRunTimeTicks = runtimeTimeSpan.Ticks;
                                 }
                             }
                             break;
