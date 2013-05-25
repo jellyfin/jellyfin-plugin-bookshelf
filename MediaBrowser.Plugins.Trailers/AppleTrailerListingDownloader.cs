@@ -31,8 +31,7 @@ namespace MediaBrowser.Plugins.Trailers
             {
                 Url = TrailerFeedUrl,
                 CancellationToken = cancellationToken,
-                ResourcePool = Plugin.Instance.AppleTrailers,
-                EnableResponseCache = true
+                ResourcePool = Plugin.Instance.AppleTrailers
 
             }).ConfigureAwait(false);
 
@@ -104,7 +103,7 @@ namespace MediaBrowser.Plugins.Trailers
             return trailerInfo;
         }
 
-        private static readonly CultureInfo USCulture = new CultureInfo("en-US");
+        private static readonly CultureInfo UsCulture = new CultureInfo("en-US");
         
         /// <summary>
         /// Fetches from the info node
@@ -136,7 +135,7 @@ namespace MediaBrowser.Plugins.Trailers
 
                                 TimeSpan runtimeTimeSpan;
 
-                                if (TimeSpan.TryParse(runtime, USCulture, out runtimeTimeSpan))
+                                if (TimeSpan.TryParse(runtime, UsCulture, out runtimeTimeSpan))
                                 {
                                     info.Video.OriginalRunTimeTicks = runtimeTimeSpan.Ticks;
                                 }
@@ -160,7 +159,7 @@ namespace MediaBrowser.Plugins.Trailers
                         {
                             DateTime date;
 
-                            if (DateTime.TryParse(reader.ReadStringSafe(), USCulture, DateTimeStyles.None, out date))
+                            if (DateTime.TryParse(reader.ReadStringSafe(), UsCulture, DateTimeStyles.None, out date))
                             {
                                 info.PostDate = date.ToUniversalTime();
                             }
@@ -174,7 +173,7 @@ namespace MediaBrowser.Plugins.Trailers
                             {
                                 DateTime date;
 
-                                if (DateTime.TryParse(val, USCulture, DateTimeStyles.None, out date))
+                                if (DateTime.TryParse(val, UsCulture, DateTimeStyles.None, out date))
                                 {
                                     info.Video.PremiereDate = date.ToUniversalTime();
                                     info.Video.ProductionYear = date.Year;

@@ -18,12 +18,6 @@ namespace MediaBrowser.Plugins.Trailers.Configuration
         /// </summary>
         /// <value>The max trailer age.</value>
         public int? MaxTrailerAge { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether [delete old trailers].
-        /// </summary>
-        /// <value><c>true</c> if [delete old trailers]; otherwise, <c>false</c>.</value>
-        public bool DeleteOldTrailers { get; set; }
         
         /// <summary>
         /// Initializes a new instance of the <see cref="PluginConfiguration" /> class.

@@ -101,8 +101,28 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
 
             var trailerFolder = LibraryManager.RootFolder.Children.OfType<TrailerCollectionFolder>().First();
 
+            var now = DateTime.UtcNow;
+
             var trailersToDownload = trailers
-                .Where(t => !IsOldTrailer(t.Video))
+                .Where(trailer =>
+                {
+                    if (!Plugin.Instance.Configuration.MaxTrailerAge.HasValue)
+                    {
+                        return true;
+                    }
+
+                    var video = trailer.Video;
+
+                    // Not old if it still hasn't premiered.
+                    if (!video.PremiereDate.HasValue || now < video.PremiereDate.Value)
+                    {
+                        return true;
+                    }
+
+                    return (now - video.PremiereDate.Value).TotalDays <=
+                           Plugin.Instance.Configuration.MaxTrailerAge.Value;
+
+                })
                 .ToList();
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -158,11 +178,8 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
                 progress.Report((28 * percent) + 72);
             }
 
-            if (Plugin.Instance.Configuration.DeleteOldTrailers)
-            {
-                // Enforce MaxTrailerAge
-                await DeleteOldTrailers(cancellationToken).ConfigureAwait(false);
-            }
+            // Enforce MaxTrailerAge
+            await DeleteOldTrailers(cancellationToken).ConfigureAwait(false);
             
             progress.Report(100);
         }
@@ -221,20 +238,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
                 return false;
             }
 
-            if (!trailer.PremiereDate.HasValue)
-            {
-                return false;
-            }
-
-            var now = DateTime.UtcNow;
-
-            // Not old if it still hasn't premiered.
-            if (now < trailer.PremiereDate.Value)
-            {
-                return false;
-            }
-
-            return (DateTime.UtcNow - trailer.PremiereDate.Value).TotalDays >
+            return (DateTime.UtcNow - trailer.DateCreated).TotalDays >
                    Plugin.Instance.Configuration.MaxTrailerAge.Value;
         }
 

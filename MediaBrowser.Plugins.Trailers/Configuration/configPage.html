@@ -23,12 +23,8 @@
                             </label>
                             <input type="number" id="txtMaxTrailerAge" name="txtMaxTrailerAge" pattern="[0-9]*" min="1" />
                             <div class="fieldDescription">
-                                If specified, trailers older than this will not be downloaded
+                                If specified, trailers older than this will not be presented
                             </div>
-                        </li>
-                        <li>
-                            <input type="checkbox" id="chkDeleteOldTrailers" name="chkDeleteOldTrailers" />
-                            <label for="chkDeleteOldTrailers">Delete trailers older than the max age</label>
                         </li>
                         <li>
                             <button type="submit" data-theme="b">Save</button>
@@ -56,7 +52,6 @@
 
                     $('#txtFolderName', page).val(config.FolderName);
                     $('#txtMaxTrailerAge', page).val(config.MaxTrailerAge || "");
-                    $('#chkDeleteOldTrailers', page).checked(config.DeleteOldTrailers).checkboxradio("refresh");
 
                     Dashboard.hideLoadingMsg();
                 });
@@ -74,8 +69,6 @@
                     var maxTrailerAge = $('#txtMaxTrailerAge', form).val();
 
                     config.MaxTrailerAge = maxTrailerAge ? maxTrailerAge : null;
-
-                    config.DeleteOldTrailers = $('#chkDeleteOldTrailers', form).checked();
 
                     ApiClient.updatePluginConfiguration(TrailersConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
                 });

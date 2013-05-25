@@ -26,13 +26,19 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
     {
         // http://developer.rottentomatoes.com/iodocs
 
-        private const int DailyRefreshLimit = 200;
+        private const int DailyRefreshLimit = 300;
 
         private const string MoviesReviews = @"movies/{1}/reviews.json?review_type=top_critic&page_limit=10&page=1&country=us&apikey={0}";
 
         private readonly string[] _apiKeys =
             {
-                // MB Server key
+                // MB Server key (listed 3x because we have a 30k limit)
+                "x9wjnvv39ntjmt9zs95nm7bg",
+
+                // MB Server key (listed 3x because we have a 30k limit)
+                "x9wjnvv39ntjmt9zs95nm7bg",
+
+                // MB Server key (listed 3x because we have a 30k limit)
                 "x9wjnvv39ntjmt9zs95nm7bg",
 
                 // Donated by Redshirt
