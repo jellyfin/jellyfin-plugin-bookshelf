@@ -306,7 +306,7 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
             {
                 _refreshResourcePool.Release();
                 
-                Logger.Debug("Skipping {0} because daily request limit has been reached. Tomorrow's refresh will retrieve it.", item.Name);
+                //Logger.Debug("Skipping {0} because daily request limit has been reached. Tomorrow's refresh will retrieve it.", item.Name);
 
                 return false;
             }
