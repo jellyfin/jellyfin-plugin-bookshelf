@@ -306,7 +306,7 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
             {
                 _refreshResourcePool.Release();
                 
-                //Logger.Debug("Skipping {0} because daily request limit has been reached. Tomorrow's refresh will retrieve it.", item.Name);
+                Logger.Debug("Skipping {0} because daily request limit has been reached. Tomorrow's refresh will retrieve it.", item.Name);
 
                 return false;
             }
@@ -372,8 +372,7 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
             {
                 Url = GetMovieReviewsUrl(item.GetProviderId(MetadataProviders.RottenTomatoes), apiKey),
                 ResourcePool = _rottenTomatoesResourcePool,
-                CancellationToken = cancellationToken,
-                EnableResponseCache = true
+                CancellationToken = cancellationToken
 
             }).ConfigureAwait(false))
             {
@@ -417,8 +416,7 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
             {
                 Url = GetMovieImdbUrl(imdbId, apiKey),
                 ResourcePool = _rottenTomatoesResourcePool,
-                CancellationToken = cancellationToken,
-                EnableResponseCache = true
+                CancellationToken = cancellationToken
 
             }).ConfigureAwait(false))
             {
