@@ -35,7 +35,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
         /// Gets or sets the logger.
         /// </summary>
         /// <value>The logger.</value>
-        private ILogger Logger { get; set;}
+        private ILogger Logger { get; set; }
         /// <summary>
         /// Gets or sets the kernel.
         /// </summary>
@@ -147,7 +147,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
                 double percent = numComplete;
                 percent /= trailersToDownload.Count;
 
-                progress.Report(70 * percent);
+                progress.Report(1 + 69 * percent);
             }
 
             await LibraryManager.SaveChildren(trailerFolder.Id, trailerFolder.Children, cancellationToken).ConfigureAwait(false);
@@ -180,7 +180,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
 
             // Enforce MaxTrailerAge
             await DeleteOldTrailers(cancellationToken).ConfigureAwait(false);
-            
+
             progress.Report(100);
         }
 
