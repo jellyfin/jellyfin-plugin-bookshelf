@@ -1,6 +1,5 @@
 ﻿using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Extensions;
 using MediaBrowser.Model.Entities;
 using System;
 using System.Collections.Generic;
@@ -8,6 +7,7 @@ using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using MediaBrowser.Plugins.Trailers.Extensions;
 
 namespace MediaBrowser.Plugins.Trailers
 {
