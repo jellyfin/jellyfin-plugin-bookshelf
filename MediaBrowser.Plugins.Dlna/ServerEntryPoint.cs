@@ -542,7 +542,8 @@ namespace MediaBrowser.Plugins.Dlna
             var ips = GetUPnPIPAddresses(context);
             foreach (var ip in ips)
             {
-                result.Add(Kernel.HttpServerUrlPrefix.Replace("+", ip));
+                // TODO: fix this
+                //result.Add(Kernel.HttpServerUrlPrefix.Replace("+", ip));
             }
             return result.OrderBy(i => i);
         }
