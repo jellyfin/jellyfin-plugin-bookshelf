@@ -150,8 +150,6 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
                 progress.Report(1 + 69 * percent);
             }
 
-            await LibraryManager.SaveChildren(trailerFolder.Id, trailerFolder.Children, cancellationToken).ConfigureAwait(false);
-
             progress.Report(72);
 
             numComplete = 0;

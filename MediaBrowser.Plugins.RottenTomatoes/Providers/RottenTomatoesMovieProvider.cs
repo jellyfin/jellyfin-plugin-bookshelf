@@ -248,16 +248,6 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
         }
 
         /// <summary>
-        /// Gets the comparison data.
-        /// </summary>
-        /// <param name="imdbId">The imdb id.</param>
-        /// <returns>Guid.</returns>
-        private Guid GetComparisonData(string imdbId)
-        {
-            return string.IsNullOrEmpty(imdbId) ? Guid.Empty : imdbId.GetMD5();
-        }
-
-        /// <summary>
         /// Gets the priority.
         /// </summary>
         /// <value>The priority.</value>
@@ -268,23 +258,6 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
                 // Run after moviedb and xml providers
                 return MetadataProviderPriority.Last;
             }
-        }
-
-        /// <summary>
-        /// Needses the refresh internal.
-        /// </summary>
-        /// <param name="item">The item.</param>
-        /// <param name="providerInfo">The provider info.</param>
-        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
-        protected override bool NeedsRefreshInternal(BaseItem item, BaseProviderInfo providerInfo)
-        {
-            // Refresh if rt id has changed
-            if (providerInfo.Data != GetComparisonData(item.GetProviderId(MetadataProviders.Imdb)))
-            {
-                return true;
-            }
-
-            return base.NeedsRefreshInternal(item, providerInfo);
         }
 
         /// <summary>
@@ -346,7 +319,6 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
 
             if (string.IsNullOrEmpty(imdbId))
             {
-                data.Data = GetComparisonData(imdbId);
                 data.LastRefreshStatus = ProviderRefreshStatus.Success;
                 return;
             }
@@ -361,7 +333,6 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
             // If still empty we can't continue
             if (string.IsNullOrEmpty(item.GetProviderId(MetadataProviders.RottenTomatoes)))
             {
-                data.Data = GetComparisonData(imdbId);
                 data.LastRefreshStatus = ProviderRefreshStatus.Success;
                 return;
             }
@@ -393,7 +364,6 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
                 await _itemRepo.SaveCriticReviews(item.Id, criticReviews).ConfigureAwait(false);
             }
 
-            data.Data = GetComparisonData(item.GetProviderId(MetadataProviders.Imdb));
             data.LastRefreshStatus = ProviderRefreshStatus.Success;
             SetLastRefreshed(item, DateTime.UtcNow);
         }
