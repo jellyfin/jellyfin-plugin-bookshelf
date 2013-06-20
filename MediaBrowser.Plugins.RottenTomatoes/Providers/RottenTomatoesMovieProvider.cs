@@ -1,5 +1,4 @@
 ﻿using MediaBrowser.Common.Configuration;
-using MediaBrowser.Common.Extensions;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
@@ -26,7 +25,7 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
     {
         // http://developer.rottentomatoes.com/iodocs
 
-        private const int DailyRefreshLimit = 300;
+        private const int DailyRefreshLimit = 200;
 
         private const string MoviesReviews = @"movies/{1}/reviews.json?review_type=top_critic&page_limit=10&page=1&country=us&apikey={0}";
 
