@@ -100,9 +100,16 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 });
         }
 
-        public bool Supports(BaseItem item)
+        public bool IsEnabledFor(BaseItem item, ItemUpdateType updateType)
         {
-            return item is Series && item.LocationType == LocationType.FileSystem;
+            // If new metadata has been downloaded or metadata was manually edited, proceed
+            if ((updateType & ItemUpdateType.MetadataDownload) == ItemUpdateType.MetadataDownload
+                || (updateType & ItemUpdateType.MetadataEdit) == ItemUpdateType.MetadataEdit)
+            {
+                return item is Series;
+            }
+
+            return false;
         }
     }
 }

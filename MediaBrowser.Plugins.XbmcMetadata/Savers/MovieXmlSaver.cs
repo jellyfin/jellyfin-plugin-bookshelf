@@ -44,9 +44,23 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 });
         }
 
-        public bool Supports(BaseItem item)
+        public bool IsEnabledFor(BaseItem item, ItemUpdateType updateType)
         {
-            return item is Movie && item.LocationType == LocationType.FileSystem;
+            // If new metadata has been downloaded or metadata was manually edited, proceed
+            if ((updateType & ItemUpdateType.MetadataDownload) == ItemUpdateType.MetadataDownload
+                || (updateType & ItemUpdateType.MetadataEdit) == ItemUpdateType.MetadataEdit)
+            {
+                var trailer = item as Trailer;
+
+                if (trailer != null)
+                {
+                    return !trailer.IsLocalTrailer;
+                }
+
+                return item is Movie || item is MusicVideo;
+            }
+
+            return false;
         }
     }
 }
