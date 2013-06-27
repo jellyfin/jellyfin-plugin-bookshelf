@@ -220,7 +220,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
 
                 video.SetImage(ImageType.Primary, path);
 
-                await LibraryManager.UpdateItem(video, cancellationToken).ConfigureAwait(false);
+                await LibraryManager.UpdateItem(video, ItemUpdateType.ImageUpdate, cancellationToken).ConfigureAwait(false);
             }
         }
 
