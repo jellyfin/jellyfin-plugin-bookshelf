@@ -214,11 +214,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
 
             if (!video.HasImage(ImageType.Primary) && !string.IsNullOrEmpty(imageUrl))
             {
-                var path = await
-                    ProviderManager.DownloadAndSaveImage(video, imageUrl, "folder.jpg", false, Plugin.Instance.AppleTrailers, cancellationToken)
-                                   .ConfigureAwait(false);
-
-                video.SetImage(ImageType.Primary, path);
+                await ProviderManager.SaveImage(video, imageUrl, Plugin.Instance.AppleTrailers, ImageType.Primary, null, cancellationToken).ConfigureAwait(false);
 
                 await LibraryManager.UpdateItem(video, ItemUpdateType.ImageUpdate, cancellationToken).ConfigureAwait(false);
             }
