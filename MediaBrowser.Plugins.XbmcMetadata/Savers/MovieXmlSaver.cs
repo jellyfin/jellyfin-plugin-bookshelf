@@ -35,7 +35,9 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
         {
             var builder = new StringBuilder();
 
-            builder.Append("<movie>");
+            var tag = item is MusicVideo ? "musicvideo" : "movie";
+
+            builder.Append("<" + tag + ">");
 
             XmlSaverHelpers.AddCommonNodes(item, builder);
 
@@ -48,7 +50,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             XmlSaverHelpers.AddMediaInfo((Video)item, builder);
 
-            builder.Append("</movie>");
+            builder.Append("</" + tag + ">");
 
             var xmlFilePath = GetSavePath(item);
 
