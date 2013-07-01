@@ -1,11 +1,11 @@
 ﻿using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Serialization;
-using MediaBrowser.Plugins.Tmt5.Configuration;
+using MediaBrowser.Plugins.Weather.Configuration;
 using MediaBrowser.Theater.Interfaces.Plugins;
 using System;
 
-namespace MediaBrowser.Plugins.Tmt5
+namespace MediaBrowser.Plugins.Weather
 {
     /// <summary>
     /// Class Plugin
@@ -23,12 +23,12 @@ namespace MediaBrowser.Plugins.Tmt5
         /// <value>The name.</value>
         public override string Name
         {
-            get { return "TMT5 Integration"; }
+            get { return "Weather"; }
         }
 
         public Uri ThumbUri
         {
-            get { return new Uri("pack://application:,,,/MediaBrowser.Plugins.Tmt5;component/Resources/tile.png", UriKind.Absolute); }
+            get { return new Uri("pack://application:,,,/MediaBrowser.Plugins.Weather;component/Resources/tile.png", UriKind.Absolute); }
         }
     }
 }

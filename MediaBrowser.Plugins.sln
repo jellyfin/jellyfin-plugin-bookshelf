@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.Rotten
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.XbmcMetadata", "MediaBrowser.Plugins.XbmcMetadata\MediaBrowser.Plugins.XbmcMetadata.csproj", "{67F2EC37-873B-4381-A8AB-FAE57A94760C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.Weather", "MediaBrowser.Plugins.Weather\MediaBrowser.Plugins.Weather.csproj", "{0B005794-3D28-423F-BFC2-69DE1AF90693}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +59,12 @@ Global
 		{67F2EC37-873B-4381-A8AB-FAE57A94760C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{67F2EC37-873B-4381-A8AB-FAE57A94760C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{67F2EC37-873B-4381-A8AB-FAE57A94760C}.Release|x86.ActiveCfg = Release|Any CPU
+		{0B005794-3D28-423F-BFC2-69DE1AF90693}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B005794-3D28-423F-BFC2-69DE1AF90693}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B005794-3D28-423F-BFC2-69DE1AF90693}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0B005794-3D28-423F-BFC2-69DE1AF90693}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B005794-3D28-423F-BFC2-69DE1AF90693}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B005794-3D28-423F-BFC2-69DE1AF90693}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
