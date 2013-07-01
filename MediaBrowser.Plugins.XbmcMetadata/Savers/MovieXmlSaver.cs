@@ -16,6 +16,14 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
         public string GetSavePath(BaseItem item)
         {
+            if (item.ResolveArgs.IsDirectory)
+            {
+                var video = (Video)item;
+                var path = video.VideoType == VideoType.VideoFile || video.VideoType == VideoType.Iso ? Path.GetDirectoryName(item.Path) : item.Path;
+
+                return Path.Combine(path, "movie.nfo");
+            }
+
             return Path.ChangeExtension(item.Path, ".nfo");
         }
 
@@ -33,6 +41,8 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             {
                 builder.Append("<id>" + SecurityElement.Escape(imdb) + "</id>");
             }
+
+            XmlSaverHelpers.AddMediaInfo((Video)item, builder);
             
             builder.Append("</movie>");
 
@@ -57,7 +67,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                     return !trailer.IsLocalTrailer;
                 }
 
-                return item is Movie || item is MusicVideo;
+                return item is Movie;
             }
 
             return false;

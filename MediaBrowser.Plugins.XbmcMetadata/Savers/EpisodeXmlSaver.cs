@@ -42,6 +42,8 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 builder.Append("<aired>" + SecurityElement.Escape(item.PremiereDate.Value.ToShortDateString()) + "</aired>");
             }
 
+            XmlSaverHelpers.AddMediaInfo((Episode)item, builder);
+
             builder.Append("</episodedetails>");
 
             var xmlFilePath = GetSavePath(item);

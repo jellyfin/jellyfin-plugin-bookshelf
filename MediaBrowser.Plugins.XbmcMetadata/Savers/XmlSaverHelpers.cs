@@ -57,7 +57,13 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                     "runtime",
                     "actor",
                     "criticratingsummary",
-                    "criticrating"
+                    "criticrating",
+                    "fileinfo",
+                    "director",
+                    "writer",
+                    "trailer",
+                    "premiered",
+                    "releasedate"
                 });
 
                 var position = xml.ToString().LastIndexOf("</", StringComparison.OrdinalIgnoreCase);
@@ -127,7 +133,112 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             return string.Join(Environment.NewLine, nodes);
         }
-        
+
+        public static void AddMediaInfo<T>(T item, StringBuilder builder)
+            where T : BaseItem, IHasMediaStreams
+        {
+            builder.Append("<fileinfo>");
+            builder.Append("<streamdetails>");
+
+            foreach (var stream in item.MediaStreams)
+            {
+                builder.Append("<" + stream.Type.ToString().ToLower() + ">");
+
+                if (!string.IsNullOrEmpty(stream.Codec))
+                {
+                    builder.Append("<codec>" + SecurityElement.Escape(stream.Codec) + "</codec>");
+                    builder.Append("<micodec>" + SecurityElement.Escape(stream.Codec) + "</micodec>");
+                }
+
+                if (stream.BitRate.HasValue)
+                {
+                    builder.Append("<bitrate>" + stream.BitRate.Value.ToString(UsCulture) + "</bitrate>");
+                }
+
+                if (stream.Width.HasValue)
+                {
+                    builder.Append("<width>" + stream.Width.Value.ToString(UsCulture) + "</width>");
+                }
+
+                if (stream.Height.HasValue)
+                {
+                    builder.Append("<height>" + stream.Height.Value.ToString(UsCulture) + "</height>");
+                }
+
+                if (!string.IsNullOrEmpty(stream.AspectRatio))
+                {
+                    builder.Append("<aspectratio>" + SecurityElement.Escape(stream.AspectRatio) + "</aspectratio>");
+                }
+
+                var framerate = stream.AverageFrameRate ?? stream.RealFrameRate;
+
+                if (framerate.HasValue)
+                {
+                    builder.Append("<framerate>" + framerate.Value.ToString(UsCulture) + "</framerate>");
+                }
+
+                if (!string.IsNullOrEmpty(stream.Language))
+                {
+                    builder.Append("<language>" + SecurityElement.Escape(stream.Language) + "</language>");
+                }
+
+                if (!string.IsNullOrEmpty(stream.ScanType))
+                {
+                    builder.Append("<scantype>" + SecurityElement.Escape(stream.ScanType) + "</scantype>");
+                }
+
+                if (stream.Channels.HasValue)
+                {
+                    builder.Append("<channels>" + stream.Channels.Value.ToString(UsCulture) + "</channels>");
+                }
+
+                if (stream.SampleRate.HasValue)
+                {
+                    builder.Append("<samplingrate>" + stream.SampleRate.Value.ToString(UsCulture) + "</samplingrate>");
+                }
+
+                builder.Append("<default>" + SecurityElement.Escape(stream.IsDefault.ToString()) + "</default>");
+                builder.Append("<forced>" + SecurityElement.Escape(stream.IsForced.ToString()) + "</forced>");
+
+                if (stream.Type == MediaStreamType.Video)
+                {
+                    if (item.RunTimeTicks.HasValue)
+                    {
+                        var timespan = TimeSpan.FromTicks(item.RunTimeTicks.Value);
+
+                        builder.Append("<duration>" + Convert.ToInt32(timespan.TotalMinutes).ToString(UsCulture) + "</duration>");
+                        builder.Append("<durationinseconds>" + Convert.ToInt32(timespan.TotalSeconds).ToString(UsCulture) + "</durationinseconds>");
+                    }
+
+                    var video = item as Video;
+
+                    if (video != null && video.Video3DFormat.HasValue)
+                    {
+                        switch (video.Video3DFormat.Value)
+                        {
+                            case Video3DFormat.FullSideBySide:
+                                builder.Append("<3DFormat>FSBS</3DFormat>");
+                                break;
+                            case Video3DFormat.FullTopAndBottom:
+                                builder.Append("<3DFormat>FTAB</3DFormat>");
+                                break;
+                            case Video3DFormat.HalfSideBySide:
+                                builder.Append("<3DFormat>HSBS</3DFormat>");
+                                break;
+                            case Video3DFormat.HalfTopAndBottom:
+                                builder.Append("<3DFormat>HTAB</3DFormat>");
+                                break;
+                        }
+                    }
+                }
+
+                builder.Append("</" + stream.Type.ToString().ToLower() + ">");
+            }
+
+            builder.Append("</streamdetails>");
+            builder.Append("</fileinfo>");
+        }
+
         /// <summary>
         /// Adds the common nodes.
         /// </summary>
@@ -164,7 +275,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             {
                 builder.Append("<trailer>" + SecurityElement.Escape(trailer.Url) + "</trailer>");
             }
-            
+
             if (item.CommunityRating.HasValue)
             {
                 builder.Append("<rating>" + SecurityElement.Escape(item.CommunityRating.Value.ToString(UsCulture)) + "</rating>");
@@ -236,6 +347,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             if (item.PremiereDate.HasValue && !(item is Episode))
             {
                 builder.Append("<premiered>" + SecurityElement.Escape(item.PremiereDate.Value.ToShortDateString()) + "</premiered>");
+                builder.Append("<releasedate>" + SecurityElement.Escape(item.PremiereDate.Value.ToShortDateString()) + "</releasedate>");
             }
 
             if (item.CriticRating.HasValue)
@@ -247,7 +359,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             {
                 builder.Append("<criticratingsummary><![CDATA[" + item.Overview + "]]></criticratingsummary>");
             }
-            
+
             if (item.Budget.HasValue)
             {
                 builder.Append("<budget>" + SecurityElement.Escape(item.Budget.Value.ToString(UsCulture)) + "</budget>");
@@ -268,40 +380,24 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 builder.Append("<runtime>" + Convert.ToInt32(timespan.TotalMinutes).ToString(UsCulture) + "</runtime>");
             }
 
-            if (item.Taglines.Count > 0)
+            foreach (var tagline in item.Taglines)
             {
-                foreach (var tagline in item.Taglines)
-                {
-                    builder.Append("<tagline>" + SecurityElement.Escape(tagline) + "</tagline>");
-                }
+                builder.Append("<tagline>" + SecurityElement.Escape(tagline) + "</tagline>");
             }
 
-            if (item.Genres.Count > 0)
+            foreach (var genre in item.Genres)
             {
-                foreach (var genre in item.Genres)
-                {
-                    builder.Append("<genre>" + SecurityElement.Escape(genre) + "</genre>");
-                }
+                builder.Append("<genre>" + SecurityElement.Escape(genre) + "</genre>");
             }
 
-            if (item.Studios.Count > 0)
+            foreach (var studio in item.Studios)
             {
-                foreach (var studio in item.Studios)
-                {
-                    builder.Append("<studio>" + SecurityElement.Escape(studio) + "</studio>");
-                }
+                builder.Append("<studio>" + SecurityElement.Escape(studio) + "</studio>");
             }
 
-            if (item.Tags.Count > 0)
+            foreach (var tag in item.Tags)
             {
-                builder.Append("<tags>");
-
-                foreach (var tag in item.Tags)
-                {
-                    builder.Append("<tag>" + SecurityElement.Escape(tag) + "</tag>");
-                }
-
-                builder.Append("</tags>");
+                builder.Append("<tag>" + SecurityElement.Escape(tag) + "</tag>");
             }
 
             foreach (var person in item.People
