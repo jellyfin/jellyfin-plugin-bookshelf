@@ -21,6 +21,10 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 var video = (Video)item;
                 var path = video.VideoType == VideoType.VideoFile || video.VideoType == VideoType.Iso ? Path.GetDirectoryName(item.Path) : item.Path;
 
+                if (item is MusicVideo)
+                {
+                    return Path.Combine(path, Path.GetFileName(path) + ".nfo");
+                }
                 return Path.Combine(path, "movie.nfo");
             }
 
@@ -43,7 +47,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             }
 
             XmlSaverHelpers.AddMediaInfo((Video)item, builder);
-            
+
             builder.Append("</movie>");
 
             var xmlFilePath = GetSavePath(item);
@@ -67,7 +71,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                     return !trailer.IsLocalTrailer;
                 }
 
-                return item is Movie;
+                return item is Movie || item is MusicVideo;
             }
 
             return false;
