@@ -151,15 +151,6 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
                 LazyInitializer.EnsureInitialized(ref _requestHistory, ref _requestHistoryInitialized, ref _requestHistorySyncLock, LoadRequestHistory);
                 return _requestHistory;
             }
-            private set
-            {
-                _requestHistory = value;
-
-                if (value == null)
-                {
-                    _requestHistoryInitialized = false;
-                }
-            }
         }
 
         /// <summary>
@@ -335,6 +326,13 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
                 data.LastRefreshStatus = ProviderRefreshStatus.Success;
                 return;
             }
+
+            var existingReviews = await _itemRepo.GetCriticReviews(item.Id).ConfigureAwait(false);
+            if (existingReviews.Any())
+            {
+                data.LastRefreshStatus = ProviderRefreshStatus.Success;
+                return;
+            }
             
             RequestHistory.Add(DateTime.UtcNow);
             
@@ -395,7 +393,13 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
                 {
                     // Got a result
                     item.CriticRatingSummary = hit.critics_consensus;
-                    item.CriticRating = float.Parse(hit.ratings.critics_score);
+
+                    var rating = float.Parse(hit.ratings.critics_score);
+
+                    if (rating > 0)
+                    {
+                        item.CriticRating = rating;
+                    }
 
                     item.SetProviderId(MetadataProviders.RottenTomatoes, hit.id);
                 }

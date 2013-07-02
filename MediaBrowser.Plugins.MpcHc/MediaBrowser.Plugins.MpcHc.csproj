@@ -47,11 +47,11 @@
     </Reference>
     <Reference Include="MediaBrowser.Theater.Interfaces, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\MediaBrowser.Theater.3.0.41\lib\net45\MediaBrowser.Theater.Interfaces.dll</HintPath>
+      <HintPath>..\packages\MediaBrowser.Theater.3.0.48\lib\net45\MediaBrowser.Theater.Interfaces.dll</HintPath>
     </Reference>
     <Reference Include="MediaBrowser.Theater.Presentation, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\MediaBrowser.Theater.3.0.41\lib\net45\MediaBrowser.Theater.Presentation.dll</HintPath>
+      <HintPath>..\packages\MediaBrowser.Theater.3.0.48\lib\net45\MediaBrowser.Theater.Presentation.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Threading.Tasks, Version=1.0.12.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -75,6 +75,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration\PluginConfiguration.cs" />
+    <Compile Include="MpcHcExternalPlayer.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
