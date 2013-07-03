@@ -1,11 +1,11 @@
 ﻿using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Serialization;
-using MediaBrowser.Plugins.MpcHc.Configuration;
+using MediaBrowser.Plugins.Kylo.Configuration;
 using MediaBrowser.Theater.Interfaces.Plugins;
 using System;
 
-namespace MediaBrowser.Plugins.MpcHc
+namespace MediaBrowser.Plugins.Kylo
 {
     /// <summary>
     /// Class Plugin
@@ -23,7 +23,7 @@ namespace MediaBrowser.Plugins.MpcHc
         /// <value>The name.</value>
         public override string Name
         {
-            get { return "MPC-HC Integration"; }
+            get { return "Kylo Integration"; }
         }
 
         public Uri ThumbUri
@@ -33,7 +33,7 @@ namespace MediaBrowser.Plugins.MpcHc
 
         public static Uri GetThumbUri()
         {
-            return new Uri("pack://application:,,,/MediaBrowser.Plugins.MpcHc;component/Resources/tile.png", UriKind.Absolute);
+            return new Uri("pack://application:,,,/MediaBrowser.Plugins.Kylo;component/Resources/tile.png", UriKind.Absolute);
         }
     }
 }

@@ -82,15 +82,6 @@ namespace MediaBrowser.Plugins.Tmt5
             }
         }
 
-        private long? _currentPositionTicks;
-        public override long? CurrentPositionTicks
-        {
-            get
-            {
-                return _currentPositionTicks;
-            }
-        }
-
         public override string Name
         {
             get
@@ -100,7 +91,6 @@ namespace MediaBrowser.Plugins.Tmt5
         }
 
         private bool _isPaused;
-
         public override PlayState PlayState
         {
             get
@@ -283,7 +273,7 @@ namespace MediaBrowser.Plugins.Tmt5
 
                 if (TimeSpan.TryParse(values["CurTime"], UsCulture, out currentPosition))
                 {
-                    _currentPositionTicks = currentPosition.Ticks;
+                    CurrentPositionTicks = currentPosition.Ticks;
                 }
 
                 // Playback has stopped
@@ -311,7 +301,6 @@ namespace MediaBrowser.Plugins.Tmt5
             HasStartedPlaying = false;
             HasStoppedPlaying = false;
             _isPaused = false;
-            _currentPositionTicks = 0;
         }
 
         /// <summary>

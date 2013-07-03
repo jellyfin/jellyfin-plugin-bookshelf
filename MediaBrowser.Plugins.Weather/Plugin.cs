@@ -28,7 +28,12 @@ namespace MediaBrowser.Plugins.Weather
 
         public Uri ThumbUri
         {
-            get { return new Uri("pack://application:,,,/MediaBrowser.Plugins.Weather;component/Resources/tile.png", UriKind.Absolute); }
+            get { return GetThumbUri(); }
+        }
+
+        public static Uri GetThumbUri()
+        {
+            return new Uri("pack://application:,,,/MediaBrowser.Plugins.Weather;component/Resources/tile.png", UriKind.Absolute);
         }
     }
 }

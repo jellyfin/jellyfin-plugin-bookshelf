@@ -7,11 +7,11 @@ using System.Windows;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("MediaBrowser.Plugins.Weather")]
+[assembly: AssemblyTitle("MediaBrowser.Plugins.Kylo")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("MediaBrowser.Plugins.Weather")]
+[assembly: AssemblyProduct("MediaBrowser.Plugins.Kylo")]
 [assembly: AssemblyCopyright("Copyright ©  2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -30,8 +30,7 @@ using System.Windows;
 
 //[assembly: NeutralResourcesLanguage("en-US", UltimateResourceFallbackLocation.Satellite)]
 
-[assembly: Guid("8a6d08d0-cf46-490d-815a-c96761415554")]
-
+[assembly: Guid("a7245046-29a1-497a-b308-8229cd47bade")]
 
 [assembly:ThemeInfo(
     ResourceDictionaryLocation.None, //where theme specific resource dictionaries are located
