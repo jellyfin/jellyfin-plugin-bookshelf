@@ -25,7 +25,7 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
     {
         // http://developer.rottentomatoes.com/iodocs
 
-        private const int DailyRefreshLimit = 200;
+        private const int DailyRefreshLimit = 110;
 
         private const string MoviesReviews = @"movies/{1}/reviews.json?review_type=top_critic&page_limit=10&page=1&country=us&apikey={0}";
 
@@ -259,6 +259,12 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
         /// <returns>Task{System.Boolean}.</returns>
         public override async Task<bool> FetchAsync(BaseItem item, bool force, CancellationToken cancellationToken)
         {
+            var existingReviews = await _itemRepo.GetCriticReviews(item.Id).ConfigureAwait(false);
+            if (existingReviews.Any())
+            {
+                return true;
+            }
+
             await _refreshResourcePool.WaitAsync(cancellationToken).ConfigureAwait(false);
 
             var history = RequestHistory;
@@ -327,13 +333,6 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
                 return;
             }
 
-            var existingReviews = await _itemRepo.GetCriticReviews(item.Id).ConfigureAwait(false);
-            if (existingReviews.Any())
-            {
-                data.LastRefreshStatus = ProviderRefreshStatus.Success;
-                return;
-            }
-            
             RequestHistory.Add(DateTime.UtcNow);
             
             using (var stream = await HttpClient.Get(new HttpRequestOptions
