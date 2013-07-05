@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Controller.Entities;
+﻿using System.Threading.Tasks;
+using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Entities;
@@ -12,8 +13,15 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 {
     public class EpisodeXmlSaver : IMetadataSaver
     {
-        private readonly CultureInfo _usCulture = new CultureInfo("en-US");
+        private readonly ILibraryManager _libraryManager;
         
+        private readonly CultureInfo _usCulture = new CultureInfo("en-US");
+
+        public EpisodeXmlSaver(ILibraryManager libraryManager)
+        {
+            _libraryManager = libraryManager;
+        }
+
         public string GetSavePath(BaseItem item)
         {
             return Path.ChangeExtension(item.Path, ".nfo");
@@ -25,7 +33,9 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             builder.Append("<episodedetails>");
 
-            XmlSaverHelpers.AddCommonNodes(item, builder);
+            var task = XmlSaverHelpers.AddCommonNodes(item, builder, _libraryManager);
+
+            Task.WaitAll(task);
 
             if (item.IndexNumber.HasValue)
             {

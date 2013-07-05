@@ -5,9 +5,11 @@ using System.IO;
 using System.Linq;
 using System.Security;
 using System.Text;
+using System.Threading.Tasks;
 using System.Xml;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
+using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Entities;
 
 namespace MediaBrowser.Plugins.XbmcMetadata.Savers
@@ -63,7 +65,9 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                     "writer",
                     "trailer",
                     "premiered",
-                    "releasedate"
+                    "releasedate",
+                    "outline",
+                    "id"
                 });
 
                 var position = xml.ToString().LastIndexOf("</", StringComparison.OrdinalIgnoreCase);
@@ -167,6 +171,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
                 if (!string.IsNullOrEmpty(stream.AspectRatio))
                 {
+                    builder.Append("<aspect>" + SecurityElement.Escape(stream.AspectRatio) + "</aspect>");
                     builder.Append("<aspectratio>" + SecurityElement.Escape(stream.AspectRatio) + "</aspectratio>");
                 }
 
@@ -244,9 +249,13 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
         /// </summary>
         /// <param name="item">The item.</param>
         /// <param name="builder">The builder.</param>
-        public static void AddCommonNodes(BaseItem item, StringBuilder builder)
+        /// <param name="libraryManager">The library manager.</param>
+        /// <returns>Task.</returns>
+        public static Task AddCommonNodes(BaseItem item, StringBuilder builder, ILibraryManager libraryManager)
         {
             builder.Append("<plot><![CDATA[" + (item.Overview ?? string.Empty) + "]]></plot>");
+            builder.Append("<outline><![CDATA[" + (item.Overview ?? string.Empty) + "]]></outline>");
+
             builder.Append("<customrating>" + SecurityElement.Escape(item.CustomRating ?? string.Empty) + "</customrating>");
             builder.Append("<lockdata>" + item.DontFetchMeta.ToString().ToLower() + "</lockdata>");
 
@@ -258,17 +267,28 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             builder.Append("<dateadded>" + SecurityElement.Escape(item.DateCreated.ToString("yyyy-MM-dd HH:mm:ss")) + "</dateadded>");
 
             builder.Append("<title>" + SecurityElement.Escape(item.Name ?? string.Empty) + "</title>");
+            builder.Append("<originaltitle>" + SecurityElement.Escape(item.Name ?? string.Empty) + "</originaltitle>");
 
             foreach (var person in item.People
-                .Where(i => string.Equals(i.Type, PersonType.Director, StringComparison.OrdinalIgnoreCase)))
+                .Where(i => string.Equals(i.Type, PersonType.Director, StringComparison.OrdinalIgnoreCase) || string.Equals(i.Role, PersonType.Director, StringComparison.OrdinalIgnoreCase)))
             {
                 builder.Append("<director>" + SecurityElement.Escape(person.Name) + "</director>");
             }
 
             foreach (var person in item.People
-                .Where(i => string.Equals(i.Type, PersonType.Writer, StringComparison.OrdinalIgnoreCase)))
+                .Where(i => string.Equals(i.Type, PersonType.Writer, StringComparison.OrdinalIgnoreCase) || string.Equals(i.Role, PersonType.Writer, StringComparison.OrdinalIgnoreCase)))
             {
                 builder.Append("<writer>" + SecurityElement.Escape(person.Name) + "</writer>");
+            }
+
+            var credits = item.People
+                .Where(i => string.Equals(i.Role, PersonType.Writer, StringComparison.OrdinalIgnoreCase) || string.Equals(i.Type, PersonType.Writer, StringComparison.OrdinalIgnoreCase) || string.Equals(i.Role, PersonType.Director, StringComparison.OrdinalIgnoreCase) || string.Equals(i.Type, PersonType.Director, StringComparison.OrdinalIgnoreCase))
+                .Select(i => i.Name)
+                .ToList();
+
+            if (credits.Count > 0)
+            {
+                builder.Append("<credits>" + SecurityElement.Escape(string.Join(" / ", credits.ToArray())) + "</credits>");
             }
 
             foreach (var trailer in item.RemoteTrailers)
@@ -325,11 +345,20 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 builder.Append("<collectionnumber>" + SecurityElement.Escape(tmdbCollection) + "</collectionnumber>");
             }
 
+            var imdb = item.GetProviderId(MetadataProviders.Imdb);
+
+            if (!string.IsNullOrEmpty(imdb))
+            {
+                builder.Append("<id moviedb=\"imdb\">" + SecurityElement.Escape(imdb) + "</id>");
+            }
+            
             var tmdb = item.GetProviderId(MetadataProviders.Tmdb);
 
             if (!string.IsNullOrEmpty(tmdb))
             {
                 builder.Append("<tmdbid>" + SecurityElement.Escape(tmdb) + "</tmdbid>");
+                builder.Append("<id moviedb=\"tmdb\">" + SecurityElement.Escape(tmdb) + "</id>");
+                builder.Append("<id moviedb=\"themoviedb\">" + SecurityElement.Escape(tmdb) + "</id>");
             }
 
             var tvcom = item.GetProviderId(MetadataProviders.Tvcom);
@@ -400,15 +429,34 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 builder.Append("<tag>" + SecurityElement.Escape(tag) + "</tag>");
             }
 
+            return AddActors(item, builder, libraryManager);
+        }
+
+        public static async Task AddActors(BaseItem item, StringBuilder builder, ILibraryManager libraryManager)
+        {
             foreach (var person in item.People
                 .Where(i => !string.Equals(i.Type, PersonType.Director, StringComparison.OrdinalIgnoreCase) && !string.Equals(i.Type, PersonType.Writer, StringComparison.OrdinalIgnoreCase)))
             {
                 builder.Append("<actor>");
                 builder.Append("<name>" + SecurityElement.Escape(person.Name) + "</name>");
                 builder.Append("<role>" + SecurityElement.Escape(person.Role) + "</role>");
+
+                try
+                {
+                    var personEntity = await libraryManager.GetPerson(person.Name);
+
+                    if (!string.IsNullOrEmpty(personEntity.PrimaryImagePath))
+                    {
+                        builder.Append("<thumb>" + SecurityElement.Escape(personEntity.PrimaryImagePath) + "</thumb>");
+                    }
+                }
+                catch (Exception)
+                {
+                    // Already logged in core
+                }
+
                 builder.Append("</actor>");
             }
-
         }
 
     }

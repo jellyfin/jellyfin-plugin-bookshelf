@@ -3,6 +3,7 @@ using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
+using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Persistence;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
@@ -111,7 +112,15 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
         {
             get
             {
-                return true;
+                return false;
+            }
+        }
+
+        public override ItemUpdateType ItemUpdateType
+        {
+            get
+            {
+                return ItemUpdateType.MetadataDownload;
             }
         }
 

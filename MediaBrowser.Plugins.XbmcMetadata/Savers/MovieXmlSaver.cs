@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Controller.Entities;
+﻿using System.Threading.Tasks;
+using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Entities;
@@ -12,7 +13,12 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 {
     public class MovieXmlSaver : IMetadataSaver
     {
-        private readonly CultureInfo _usCulture = new CultureInfo("en-US");
+        private readonly ILibraryManager _libraryManager;
+
+        public MovieXmlSaver(ILibraryManager libraryManager)
+        {
+            _libraryManager = libraryManager;
+        }
 
         public string GetSavePath(BaseItem item)
         {
@@ -39,7 +45,9 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             builder.Append("<" + tag + ">");
 
-            XmlSaverHelpers.AddCommonNodes(item, builder);
+            var task = XmlSaverHelpers.AddCommonNodes(item, builder, _libraryManager);
+
+            Task.WaitAll(task);
 
             var imdb = item.GetProviderId(MetadataProviders.Imdb);
 

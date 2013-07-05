@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Controller.Entities;
+﻿using System.Threading.Tasks;
+using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Library;
 using System;
@@ -14,6 +15,8 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 {
     public class ArtistXmlSaver : IMetadataSaver
     {
+        private readonly ILibraryManager _libraryManager;
+        
         public string GetSavePath(BaseItem item)
         {
             return Path.Combine(item.Path, "artist.nfo");
@@ -25,7 +28,9 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             builder.Append("<artist>");
 
-            XmlSaverHelpers.AddCommonNodes(item, builder);
+            var task = XmlSaverHelpers.AddCommonNodes(item, builder, _libraryManager);
+
+            Task.WaitAll(task);
 
             var albums = ((MusicArtist)item).Children.OfType<MusicAlbum>().ToList();
 
@@ -54,6 +59,11 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
         }
 
         private static readonly CultureInfo UsCulture = new CultureInfo("en-US");
+
+        public ArtistXmlSaver(ILibraryManager libraryManager)
+        {
+            _libraryManager = libraryManager;
+        }
 
         private void AddAlbums(IEnumerable<MusicAlbum> albums, StringBuilder builder)
         {

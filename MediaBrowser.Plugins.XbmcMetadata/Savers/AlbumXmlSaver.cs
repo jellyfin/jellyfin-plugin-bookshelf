@@ -9,11 +9,19 @@ using System.Linq;
 using System.Security;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 {
     public class AlbumXmlSaver : IMetadataSaver
     {
+        private readonly ILibraryManager _libraryManager;
+
+        public AlbumXmlSaver(ILibraryManager libraryManager)
+        {
+            _libraryManager = libraryManager;
+        }
+        
         public string GetSavePath(BaseItem item)
         {
             return Path.Combine(item.Path, "album.nfo");
@@ -25,7 +33,9 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             builder.Append("<album>");
 
-            XmlSaverHelpers.AddCommonNodes(item, builder);
+            var task = XmlSaverHelpers.AddCommonNodes(item, builder, _libraryManager);
+
+            Task.WaitAll(task);
 
             var tracks = ((MusicAlbum)item).Children.OfType<Audio>().ToList();
 

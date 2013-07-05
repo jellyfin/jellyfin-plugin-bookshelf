@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Controller.Configuration;
+﻿using System.Threading.Tasks;
+using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
@@ -13,13 +14,14 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 {
     public class SeriesXmlSaver : IMetadataSaver
     {
-        private readonly CultureInfo _usCulture = new CultureInfo("en-US");
+        private readonly ILibraryManager _libraryManager;
 
         private readonly IServerConfigurationManager _config;
 
-        public SeriesXmlSaver(IServerConfigurationManager config)
+        public SeriesXmlSaver(IServerConfigurationManager config, ILibraryManager libraryManager)
         {
             _config = config;
+            _libraryManager = libraryManager;
         }
 
         public string GetSavePath(BaseItem item)
@@ -33,7 +35,9 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             builder.Append("<tvshow>");
 
-            XmlSaverHelpers.AddCommonNodes(item, builder);
+            var task = XmlSaverHelpers.AddCommonNodes(item, builder, _libraryManager);
+
+            Task.WaitAll(task);
 
             var tvdb = item.GetProviderId(MetadataProviders.Tvdb);
 

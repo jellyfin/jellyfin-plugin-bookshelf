@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Controller.Entities;
+﻿using System.Threading.Tasks;
+using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using System.IO;
@@ -9,6 +10,13 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 {
     public class SeasonXmlSaver : IMetadataSaver
     {
+        private readonly ILibraryManager _libraryManager;
+
+        public SeasonXmlSaver(ILibraryManager libraryManager)
+        {
+            _libraryManager = libraryManager;
+        }
+
         public string GetSavePath(BaseItem item)
         {
             return Path.Combine(item.Path, "season.nfo");
@@ -20,7 +28,9 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             builder.Append("<season>");
 
-            XmlSaverHelpers.AddCommonNodes(item, builder);
+            var task = XmlSaverHelpers.AddCommonNodes(item, builder, _libraryManager);
+
+            Task.WaitAll(task);
 
             builder.Append("</season>");
 

@@ -81,6 +81,9 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\SharedVersion.cs">
+      <Link>Properties\SharedVersion.cs</Link>
+    </Compile>
     <Compile Include="Configuration\PluginConfiguration.cs" />
     <Compile Include="DummyTheme.cs" />
     <Compile Include="Home\HomePage.xaml.cs">
