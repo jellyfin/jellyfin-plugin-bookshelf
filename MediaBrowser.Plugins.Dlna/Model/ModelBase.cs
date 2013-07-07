@@ -469,8 +469,8 @@ namespace MediaBrowser.Plugins.Dlna.Model
         {
             get
             {
-                var folderChildren = this.MBItem.GetChildren(this.User).OfType<Folder>().Select(i => (ModelBase)(new VideoFolderContainer(this.User, mbItem: i, parent: this)));
-                var videoChildren = this.MBItem.GetChildren(this.User).OfType<Video>().Select(i => (ModelBase)(new VideoItem(this.User, mbItem: i, parent: this)));
+                var folderChildren = this.MBItem.GetChildren(this.User, true).OfType<Folder>().Select(i => (ModelBase)(new VideoFolderContainer(this.User, mbItem: i, parent: this)));
+                var videoChildren = this.MBItem.GetChildren(this.User, true).OfType<Video>().Select(i => (ModelBase)(new VideoItem(this.User, mbItem: i, parent: this)));
                 return folderChildren.Union(videoChildren);
             }
         }
@@ -580,8 +580,8 @@ namespace MediaBrowser.Plugins.Dlna.Model
         {
             get
             {
-                var folderChildren = this.MBItem.GetChildren(this.User).OfType<Folder>().Select(i => (ModelBase)(new VideoFolderContainer(this.User, i, this)));
-                var videoChildren = this.MBItem.GetChildren(this.User).OfType<Video>().Select(i => (ModelBase)(new VideoItem(this.User, i, this)));
+                var folderChildren = this.MBItem.GetChildren(this.User, true).OfType<Folder>().Select(i => (ModelBase)(new VideoFolderContainer(this.User, i, this)));
+                var videoChildren = this.MBItem.GetChildren(this.User, true).OfType<Video>().Select(i => (ModelBase)(new VideoItem(this.User, i, this)));
                 return folderChildren.Union(videoChildren);
             }
         }

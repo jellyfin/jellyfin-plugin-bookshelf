@@ -67,7 +67,8 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                     "premiered",
                     "releasedate",
                     "outline",
-                    "id"
+                    "id",
+                    "votes"
                 });
 
                 var position = xml.ToString().LastIndexOf("</", StringComparison.OrdinalIgnoreCase);
@@ -384,6 +385,11 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 builder.Append("<criticrating>" + SecurityElement.Escape(item.CriticRating.Value.ToString(UsCulture)) + "</criticrating>");
             }
 
+            if (item.VoteCount.HasValue)
+            {
+                builder.Append("<votes>" + SecurityElement.Escape(item.VoteCount.Value.ToString(UsCulture)) + "</votes>");
+            }
+            
             if (!string.IsNullOrEmpty(item.CriticRatingSummary))
             {
                 builder.Append("<criticratingsummary><![CDATA[" + item.Overview + "]]></criticratingsummary>");
