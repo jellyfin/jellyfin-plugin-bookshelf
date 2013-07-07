@@ -1,6 +1,4 @@
 ﻿using MediaBrowser.Model.Dto;
-using MediaBrowser.Plugins.DummyTheme.Home;
-using MediaBrowser.Plugins.DummyTheme.Pages;
 using MediaBrowser.Theater.Interfaces.Presentation;
 using MediaBrowser.Theater.Interfaces.Theming;
 using System;
@@ -10,42 +8,33 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 
-namespace MediaBrowser.Plugins.DummyTheme
+namespace MediaBrowser.Plugins.Phoenix
 {
-    public class DummyTheme : ITheme
+    public class Theme : ITheme
     {
         private readonly IThemeManager _themeManager;
         private readonly IPresentationManager _presentationManager;
 
-        public DummyTheme(IThemeManager themeManager, IPresentationManager presentationManager)
+        public Theme(IThemeManager themeManager, IPresentationManager presentationManager)
         {
             _themeManager = themeManager;
             _presentationManager = presentationManager;
         }
 
-        public IEnumerable<ResourceDictionary> GetGlobalResources()
-        {
-            var namespaceName = GetType().Namespace;
-
-            return new[] { "Dictionary1" }.Select(i => new ResourceDictionary
-            {
-                Source = new Uri("pack://application:,,,/" + namespaceName + ";component/Resources/" + i + ".xaml", UriKind.Absolute)
-            });
-        }
-
+        /// <summary>
+        /// Gets the item page.
+        /// </summary>
+        /// <param name="item">The item.</param>
+        /// <param name="context">The context.</param>
+        /// <returns>Page.</returns>
         public Page GetItemPage(BaseItemDto item, string context)
         {
-            return new Blankpage();
-        }
-
-        public Page GetLoginPage()
-        {
-            return new HomePage();
+            return null;
         }
 
         public string Name
         {
-            get { return "Dummy Theme"; }
+            get { return "Phoenix"; }
         }
 
         public void SetDefaultPageTitle()
@@ -77,6 +66,20 @@ namespace MediaBrowser.Plugins.DummyTheme
 
         private List<ResourceDictionary> _globalResources;
 
+        /// <summary>
+        /// Gets the global resources.
+        /// </summary>
+        /// <returns>IEnumerable{ResourceDictionary}.</returns>
+        private IEnumerable<ResourceDictionary> GetGlobalResources()
+        {
+            var namespaceName = GetType().Namespace;
+
+            return new[] { "Theme" }.Select(i => new ResourceDictionary
+            {
+                Source = new Uri("pack://application:,,,/" + namespaceName + ";component/Resources/" + i + ".xaml", UriKind.Absolute)
+            });
+        }
+
         public void Load()
         {
             _globalResources = GetGlobalResources().ToList();
@@ -100,6 +103,11 @@ namespace MediaBrowser.Plugins.DummyTheme
             }
 
             _globalResources.Clear();
+        }
+
+        public string DefaultHomePageName
+        {
+            get { return "Phoenix"; }
         }
     }
 }

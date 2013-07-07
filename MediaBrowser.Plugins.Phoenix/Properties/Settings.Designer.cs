@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace MediaBrowser.Plugins.DummyTheme.Properties
+namespace MediaBrowser.Plugins.Phoenix.Properties
 {
     
     

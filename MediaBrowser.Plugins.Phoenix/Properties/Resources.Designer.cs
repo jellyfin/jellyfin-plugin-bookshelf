@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace MediaBrowser.Plugins.DummyTheme.Properties {
+namespace MediaBrowser.Plugins.Phoenix.Properties {
     
     
     /// <summary>
@@ -38,7 +38,7 @@ namespace MediaBrowser.Plugins.DummyTheme.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if ((resourceMan == null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("MediaBrowser.Plugins.DummyTheme.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("MediaBrowser.Plugins.Phoenix.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

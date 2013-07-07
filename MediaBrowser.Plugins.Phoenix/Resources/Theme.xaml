@@ -5,8 +5,8 @@
         <Setter Property="Background">
             <Setter.Value>
                 <LinearGradientBrush SpreadMethod="Reflect" ColorInterpolationMode="SRgbLinearInterpolation" StartPoint="0,0" EndPoint="0,1" >
-                    <GradientStop Color="#ffdddddd" Offset="0" />
-                    <GradientStop Color="#ffffffff" Offset="1" />
+                    <GradientStop Color="#ffffffff" Offset="0" />
+                    <GradientStop Color="#ffeeeeee" Offset="1" />
                 </LinearGradientBrush>
             </Setter.Value>
         </Setter>
@@ -17,13 +17,11 @@
         <Setter Property="Background">
             <Setter.Value>
                 <LinearGradientBrush SpreadMethod="Reflect" ColorInterpolationMode="SRgbLinearInterpolation" StartPoint="0,0" EndPoint="0,1" >
-                    <GradientStop Color="#ffdddddd" Offset="0" />
-                    <GradientStop Color="#ffffffff" Offset="1" />
+                    <GradientStop Color="#ffffffff" Offset="0" />
+                    <GradientStop Color="#ffeeeeee" Offset="1" />
                 </LinearGradientBrush>
             </Setter.Value>
         </Setter>
     </Style>
-
-    <Brush x:Key="SelectedItemHighlightColor">SkyBlue</Brush>
 
 </ResourceDictionary>

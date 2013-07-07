@@ -1,7 +1,6 @@
 ﻿using MediaBrowser.Model.Dto;
 using MediaBrowser.Theater.Interfaces.Presentation;
 using System;
-using System.Windows.Controls;
 
 namespace MediaBrowser.Plugins.MpcHc.Configuration
 {
@@ -14,15 +13,6 @@ namespace MediaBrowser.Plugins.MpcHc.Configuration
         public string Name
         {
             get { return "Mpc-Hc"; }
-        }
-
-        /// <summary>
-        /// Gets the page.
-        /// </summary>
-        /// <returns>Page.</returns>
-        public Page GetPage()
-        {
-            return new ConfigPage();
         }
 
         /// <summary>
@@ -41,7 +31,12 @@ namespace MediaBrowser.Plugins.MpcHc.Configuration
 
         public bool IsVisible(UserDto user)
         {
-            return true;
+            return user != null && user.Configuration.IsAdministrator;
+        }
+
+        public Type PageType
+        {
+            get { return typeof(ConfigPage); }
         }
     }
 }
