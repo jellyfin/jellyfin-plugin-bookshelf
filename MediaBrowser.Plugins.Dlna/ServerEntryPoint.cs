@@ -627,7 +627,7 @@ namespace MediaBrowser.Plugins.Dlna
         private void LogUserActivity(Platinum.DeviceSignature signature)
         {
             // TODO: Device Id, Name?
-            SessionManager.LogConnectionActivity("Dlna", signature.ToString(), signature.ToString(), CurrentUser);
+            //SessionManager.LogConnectionActivity("Dlna", signature.ToString(), signature.ToString(), CurrentUser);
         }
 
         #region "Search Ideas"
