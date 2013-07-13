@@ -56,6 +56,20 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 builder.Append("<id>" + SecurityElement.Escape(imdb) + "</id>");
             }
 
+            var musicVideo = item as MusicVideo;
+
+            if (musicVideo != null)
+            {
+                if (!string.IsNullOrEmpty(musicVideo.Artist))
+                {
+                    builder.Append("<artist>" + SecurityElement.Escape(musicVideo.Artist) + "</artist>");
+                }
+                if (!string.IsNullOrEmpty(musicVideo.Album))
+                {
+                    builder.Append("<album>" + SecurityElement.Escape(musicVideo.Album) + "</album>");
+                }
+            }
+            
             XmlSaverHelpers.AddMediaInfo((Video)item, builder);
 
             builder.Append("</" + tag + ">");
@@ -64,7 +78,9 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             XmlSaverHelpers.Save(builder, xmlFilePath, new[]
                 {
-                    "id"
+                    "id",
+                    "album",
+                    "artist"
                 });
         }
 
