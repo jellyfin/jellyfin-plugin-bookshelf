@@ -271,6 +271,7 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
             var existingReviews = await _itemRepo.GetCriticReviews(item.Id).ConfigureAwait(false);
             if (existingReviews.Any())
             {
+                SetLastRefreshed(item, DateTime.UtcNow);
                 return true;
             }
 
@@ -312,19 +313,11 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
         /// <returns>Task{System.Boolean}.</returns>
         private async Task FetchAsyncInternal(BaseItem item, bool force, CancellationToken cancellationToken)
         {
-            BaseProviderInfo data;
-
-            if (!item.ProviderData.TryGetValue(Id, out data))
-            {
-                data = new BaseProviderInfo();
-                item.ProviderData[Id] = data;
-            }
-
             var imdbId = item.GetProviderId(MetadataProviders.Imdb);
 
             if (string.IsNullOrEmpty(imdbId))
             {
-                data.LastRefreshStatus = ProviderRefreshStatus.Success;
+                SetLastRefreshed(item, DateTime.UtcNow);
                 return;
             }
 
@@ -338,7 +331,7 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
             // If still empty we can't continue
             if (string.IsNullOrEmpty(item.GetProviderId(MetadataProviders.RottenTomatoes)))
             {
-                data.LastRefreshStatus = ProviderRefreshStatus.Success;
+                SetLastRefreshed(item, DateTime.UtcNow);
                 return;
             }
 
@@ -369,7 +362,6 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
                 await _itemRepo.SaveCriticReviews(item.Id, criticReviews).ConfigureAwait(false);
             }
 
-            data.LastRefreshStatus = ProviderRefreshStatus.Success;
             SetLastRefreshed(item, DateTime.UtcNow);
         }
 
