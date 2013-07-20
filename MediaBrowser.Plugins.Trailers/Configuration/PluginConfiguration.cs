@@ -18,7 +18,13 @@ namespace MediaBrowser.Plugins.Trailers.Configuration
         /// </summary>
         /// <value>The max trailer age.</value>
         public int? MaxTrailerAge { get; set; }
-        
+
+        /// <summary>
+        /// Gets or sets a value indicating whether [enable local trailer downloads].
+        /// </summary>
+        /// <value><c>true</c> if [enable local trailer downloads]; otherwise, <c>false</c>.</value>
+        public bool EnableLocalTrailerDownloads { get; set; }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="PluginConfiguration" /> class.
         /// </summary>

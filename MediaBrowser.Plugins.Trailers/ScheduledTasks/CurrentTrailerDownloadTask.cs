@@ -82,7 +82,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
                 {
                     new DailyTrigger { TimeOfDay = TimeSpan.FromHours(2) },
 
-                    new IntervalTrigger { Interval = TimeSpan.FromHours(3) }
+                    new IntervalTrigger { Interval = TimeSpan.FromHours(6) }
                 };
         }
 

@@ -1,6 +1,5 @@
 ﻿using MediaBrowser.Common.Plugins;
 using MediaBrowser.Controller.Plugins;
-using System;
 using System.IO;
 
 namespace MediaBrowser.Plugins.Trailers.Configuration

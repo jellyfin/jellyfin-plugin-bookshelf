@@ -15,7 +15,7 @@
                             <label for="txtFolderName">
                                 Trailer collection name:
                             </label>
-                            <input id="txtFolderName" name="txtFolderName" />
+                            <input type="text" id="txtFolderName" name="txtFolderName" />
                         </li>
                         <li>
                             <label for="txtMaxTrailerAge">
@@ -24,6 +24,15 @@
                             <input type="number" id="txtMaxTrailerAge" name="txtMaxTrailerAge" pattern="[0-9]*" min="1" />
                             <div class="fieldDescription">
                                 If specified, trailers older than this will not be presented
+                            </div>
+                        </li>
+                        <li>
+                            <label for="chkEnableLocalTrailerDownloads">
+                                Enable local trailer downloads for existing titles
+                            </label>
+                            <input id="chkEnableLocalTrailerDownloads" name="chkEnableLocalTrailerDownloads" type="checkbox" />
+                            <div class="fieldDescription">
+                                This feature is only available for MB supporters.
                             </div>
                         </li>
                         <li>
@@ -52,6 +61,7 @@
 
                     $('#txtFolderName', page).val(config.FolderName);
                     $('#txtMaxTrailerAge', page).val(config.MaxTrailerAge || "");
+                    $('#chkEnableLocalTrailerDownloads', page).checked(config.EnableLocalTrailerDownloads).checkboxradio("refresh");
 
                     Dashboard.hideLoadingMsg();
                 });
@@ -69,6 +79,8 @@
                     var maxTrailerAge = $('#txtMaxTrailerAge', form).val();
 
                     config.MaxTrailerAge = maxTrailerAge ? maxTrailerAge : null;
+
+                    config.EnableLocalTrailerDownloads = $('#chkEnableLocalTrailerDownloads', form).checked();
 
                     ApiClient.updatePluginConfiguration(TrailersConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
                 });
