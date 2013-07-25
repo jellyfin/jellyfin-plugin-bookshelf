@@ -3,6 +3,7 @@ using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.IO;
 using MediaBrowser.Controller.Resolvers;
 using MediaBrowser.Model.Logging;
+using MediaBrowser.Model.Serialization;
 using System;
 using System.IO;
 using System.Linq;
@@ -16,12 +17,14 @@ namespace MediaBrowser.Plugins.Trailers.Search
         private readonly IHttpClient _httpClient;
         private readonly IDirectoryWatchers _directoryWatchers;
         private readonly ILogger _logger;
+        private readonly IJsonSerializer _json;
 
-        public LocalTrailerDownloader(IHttpClient httpClient, IDirectoryWatchers directoryWatchers, ILogger logger)
+        public LocalTrailerDownloader(IHttpClient httpClient, IDirectoryWatchers directoryWatchers, ILogger logger, IJsonSerializer json)
         {
             _httpClient = httpClient;
             _directoryWatchers = directoryWatchers;
             _logger = logger;
+            _json = json;
         }
 
         /// <summary>
@@ -95,7 +98,8 @@ namespace MediaBrowser.Plugins.Trailers.Search
         /// <returns>Task{System.String}.</returns>
         private async Task<string> GetTrailerUrl(BaseItem item, CancellationToken cancellationToken)
         {
-            var url = await new HdNetTrailerSearch(_httpClient).Search(item, cancellationToken).ConfigureAwait(false);
+            var url = await new MovieListSearch(_httpClient, _json).Search(item, cancellationToken).ConfigureAwait(false) ??
+                await new HdNetTrailerSearch(_httpClient).Search(item, cancellationToken).ConfigureAwait(false);
 
             if (!string.IsNullOrEmpty(url))
             {

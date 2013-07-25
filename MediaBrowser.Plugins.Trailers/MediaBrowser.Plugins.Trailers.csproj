@@ -81,6 +81,7 @@
     <Compile Include="ScheduledTasks\LocalTrailerDownloadTask.cs" />
     <Compile Include="Search\HdNetTrailerSearch.cs" />
     <Compile Include="Search\LocalTrailerDownloader.cs" />
+    <Compile Include="Search\MovieListSearch.cs" />
     <Compile Include="ServerEntryPoint.cs" />
     <Compile Include="TrailerInfo.cs" />
   </ItemGroup>

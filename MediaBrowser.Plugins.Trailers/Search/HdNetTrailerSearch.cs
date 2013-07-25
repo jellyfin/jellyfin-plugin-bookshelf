@@ -91,7 +91,7 @@ namespace MediaBrowser.Plugins.Trailers.Search
                     {
                         var val = WebUtility.HtmlDecode(matchCollection[0].Groups["trailer"].Value);
 
-                        if (val.IndexOf("yahoo-redir", StringComparison.OrdinalIgnoreCase) == -1)
+                        if (val.IndexOf("yahoo", StringComparison.OrdinalIgnoreCase) == -1)
                         {
                             return WebUtility.HtmlDecode(matchCollection[0].Groups["trailer"].Value);
                         }

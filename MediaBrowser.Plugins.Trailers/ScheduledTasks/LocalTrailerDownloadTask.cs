@@ -1,12 +1,12 @@
 ﻿using MediaBrowser.Common.Net;
 using MediaBrowser.Common.ScheduledTasks;
 using MediaBrowser.Common.Security;
-using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.IO;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
+using MediaBrowser.Model.Serialization;
 using MediaBrowser.Plugins.Trailers.Search;
 using System;
 using System.Collections.Generic;
@@ -29,14 +29,16 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
         private readonly IDirectoryWatchers _directoryWatchers;
         private readonly ILogger _logger;
         private readonly ISecurityManager _securityManager;
+        private readonly IJsonSerializer _json;
 
-        public LocalTrailerDownloadTask(ILibraryManager libraryManager, IHttpClient httpClient, IDirectoryWatchers directoryWatchers, ILogger logger, ISecurityManager securityManager)
+        public LocalTrailerDownloadTask(ILibraryManager libraryManager, IHttpClient httpClient, IDirectoryWatchers directoryWatchers, ILogger logger, ISecurityManager securityManager, IJsonSerializer json)
         {
             _libraryManager = libraryManager;
             _httpClient = httpClient;
             _directoryWatchers = directoryWatchers;
             _logger = logger;
             _securityManager = securityManager;
+            _json = json;
         }
 
         /// <summary>
@@ -72,6 +74,12 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
 
             var isSupporter = _securityManager.IsMBSupporter;
 
+            if (!isSupporter)
+            {
+                _logger.Info("Downloading trailers is only allowed for MB supporters.");
+                return;
+            }
+
             var items = _libraryManager.RootFolder
                 .RecursiveChildren
                 .OfType<Movie>()
@@ -82,20 +90,13 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
 
             foreach (var item in items)
             {
-                if (IsTrailerAllowed(item, isSupporter))
+                try
                 {
-                    try
-                    {
-                        await new LocalTrailerDownloader(_httpClient, _directoryWatchers, _logger).DownloadTrailerForItem(item, cancellationToken).ConfigureAwait(false);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.ErrorException("Error downloading trailer for {0}", ex, item.Name);
-                    }
+                    await new LocalTrailerDownloader(_httpClient, _directoryWatchers, _logger, _json).DownloadTrailerForItem(item, cancellationToken).ConfigureAwait(false);
                 }
-                else
+                catch (Exception ex)
                 {
-                    _logger.Info("Downloading trailers for {0} is only allowed for MB supporters.", item.Name);
+                    _logger.ErrorException("Error downloading trailer for {0}", ex, item.Name);
                 }
 
                 numComplete++;
@@ -104,28 +105,6 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
                 percent /= items.Count;
                 progress.Report(percent * 100);
             }
-        }
-
-        /// <summary>
-        /// Determines whether [is trailer allowed] [the specified item].
-        /// </summary>
-        /// <param name="item">The item.</param>
-        /// <param name="isSupporter">if set to <c>true</c> [is supporter].</param>
-        /// <returns><c>true</c> if [is trailer allowed] [the specified item]; otherwise, <c>false</c>.</returns>
-        private bool IsTrailerAllowed(BaseItem item, bool isSupporter)
-        {
-            if (isSupporter)
-            {
-                return true;
-            }
-
-            // Only allow years that are divisible by five for non-supporters
-            //if (item.PremiereDate.HasValue)
-            //{
-            //    return item.PremiereDate.Value.Year % 5 == 0;
-            //}
-
-            return false;
         }
 
         /// <summary>

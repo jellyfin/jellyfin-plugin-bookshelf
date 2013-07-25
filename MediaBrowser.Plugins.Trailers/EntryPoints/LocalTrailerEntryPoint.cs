@@ -7,6 +7,7 @@ using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Plugins;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
+using MediaBrowser.Model.Serialization;
 using MediaBrowser.Plugins.Trailers.Search;
 using MoreLinq;
 using System;
@@ -27,16 +28,18 @@ namespace MediaBrowser.Plugins.Trailers.EntryPoints
         private readonly ILogger _logger;
         private readonly IHttpClient _httpClient;
         private readonly IDirectoryWatchers _directoryWatchers;
+        private readonly IJsonSerializer _json;
 
         private Timer NewItemTimer { get; set; }
 
-        public LocalTrailerEntryPoint(ILibraryManager libraryManager, ISecurityManager securityManager, ILogger logger, IHttpClient httpClient, IDirectoryWatchers directoryWatchers)
+        public LocalTrailerEntryPoint(ILibraryManager libraryManager, ISecurityManager securityManager, ILogger logger, IHttpClient httpClient, IDirectoryWatchers directoryWatchers, IJsonSerializer json)
         {
             _libraryManager = libraryManager;
             _securityManager = securityManager;
             _logger = logger;
             _httpClient = httpClient;
             _directoryWatchers = directoryWatchers;
+            _json = json;
         }
 
         public void Run()
@@ -78,7 +81,7 @@ namespace MediaBrowser.Plugins.Trailers.EntryPoints
 
             var items = newItems.OfType<Movie>()
               .Where(i => i.LocationType == LocationType.FileSystem && i.LocalTrailerIds.Count == 0)
-              .Take(1)
+              .Take(2)
               .ToList();
 
             if (items.Count == 0 || !Plugin.Instance.Configuration.EnableLocalTrailerDownloads)
@@ -102,7 +105,7 @@ namespace MediaBrowser.Plugins.Trailers.EntryPoints
             {
                 try
                 {
-                    await new LocalTrailerDownloader(_httpClient, _directoryWatchers, _logger).DownloadTrailerForItem(item, CancellationToken.None).ConfigureAwait(false);
+                    await new LocalTrailerDownloader(_httpClient, _directoryWatchers, _logger, _json).DownloadTrailerForItem(item, CancellationToken.None).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -113,6 +116,9 @@ namespace MediaBrowser.Plugins.Trailers.EntryPoints
 
         public void Dispose()
         {
+            _libraryManager.ItemAdded -= libraryManager_ItemAdded;
+            _libraryManager.ItemUpdated -= libraryManager_ItemAdded;
+            
             if (NewItemTimer != null)
             {
                 NewItemTimer.Dispose();
