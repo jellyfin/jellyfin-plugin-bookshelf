@@ -109,5 +109,11 @@ namespace MediaBrowser.Plugins.Phoenix
         {
             get { return "Phoenix"; }
         }
+
+
+        public Page GetPersonPage(BaseItemDto item, string context)
+        {
+            return null;
+        }
     }
 }

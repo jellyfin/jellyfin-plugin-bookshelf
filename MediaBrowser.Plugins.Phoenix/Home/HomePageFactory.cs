@@ -1,5 +1,6 @@
-﻿using MediaBrowser.Theater.Interfaces.Presentation;
-using System;
+﻿using MediaBrowser.Model.Dto;
+using MediaBrowser.Theater.Interfaces.Presentation;
+using System.Windows.Controls;
 
 namespace MediaBrowser.Plugins.Phoenix.Home
 {
@@ -10,9 +11,9 @@ namespace MediaBrowser.Plugins.Phoenix.Home
             get { return "Phoenix"; }
         }
 
-        public Type PageType
+        public Page GetHomePage(BaseItemDto rootFolder)
         {
-            get { return typeof(HomePage); }
+            return new HomePage();
         }
     }
 }
