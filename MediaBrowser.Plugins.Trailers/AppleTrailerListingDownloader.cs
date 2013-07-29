@@ -143,8 +143,15 @@ namespace MediaBrowser.Plugins.Trailers
                             break;
                         }
                     case "rating":
-                        info.Video.OfficialRating = reader.ReadStringSafe();
-                        break;
+                        {
+                            var rating = reader.ReadStringSafe();
+
+                            if (!string.IsNullOrWhiteSpace(rating) && !string.Equals("not yet rated", rating, StringComparison.OrdinalIgnoreCase))
+                            {
+                                info.Video.OfficialRating = rating;
+                            }
+                            break;
+                        }
                     case "studio":
                         {
                             var studio = reader.ReadStringSafe();

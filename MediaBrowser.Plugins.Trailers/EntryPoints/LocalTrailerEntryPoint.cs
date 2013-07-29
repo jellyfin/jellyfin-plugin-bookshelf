@@ -9,7 +9,6 @@ using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Plugins.Trailers.Search;
-using MoreLinq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +20,7 @@ namespace MediaBrowser.Plugins.Trailers.EntryPoints
     {
         private readonly List<BaseItem> _newlyAddedItems = new List<BaseItem>();
 
-        private const int NewItemDelay = 60000;
+        private const int NewItemDelay = 30000;
 
         private readonly ILibraryManager _libraryManager;
         private readonly ISecurityManager _securityManager;
@@ -72,7 +71,7 @@ namespace MediaBrowser.Plugins.Trailers.EntryPoints
             // Lock the list and release all resources
             lock (_newlyAddedItems)
             {
-                newItems = _newlyAddedItems.DistinctBy(i => i.Id).ToList();
+                newItems = _newlyAddedItems.Distinct().ToList();
                 _newlyAddedItems.Clear();
 
                 NewItemTimer.Dispose();
