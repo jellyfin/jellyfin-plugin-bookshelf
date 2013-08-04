@@ -43,17 +43,19 @@
     <Reference Include="MediaBrowser.Model">
       <HintPath>..\packages\MediaBrowser.Common.3.0.171\lib\net45\MediaBrowser.Model.dll</HintPath>
     </Reference>
-    <Reference Include="MediaBrowser.Theater.Interfaces">
-      <HintPath>..\packages\MediaBrowser.Theater.3.0.58\lib\net45\MediaBrowser.Theater.Interfaces.dll</HintPath>
+    <Reference Include="MediaBrowser.Theater.Interfaces, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\MediaBrowser.Theater.3.0.59\lib\net45\MediaBrowser.Theater.Interfaces.dll</HintPath>
     </Reference>
-    <Reference Include="MediaBrowser.Theater.Presentation">
-      <HintPath>..\packages\MediaBrowser.Theater.3.0.58\lib\net45\MediaBrowser.Theater.Presentation.dll</HintPath>
+    <Reference Include="MediaBrowser.Theater.Presentation, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\MediaBrowser.Theater.3.0.59\lib\net45\MediaBrowser.Theater.Presentation.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Expression.Effects, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\MediaBrowser.Theater.3.0.58\lib\net45\Microsoft.Expression.Effects.dll</HintPath>
+      <HintPath>..\packages\MediaBrowser.Theater.3.0.59\lib\net45\Microsoft.Expression.Effects.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Expression.Interactions, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\MediaBrowser.Theater.3.0.58\lib\net45\Microsoft.Expression.Interactions.dll</HintPath>
+      <HintPath>..\packages\MediaBrowser.Theater.3.0.59\lib\net45\Microsoft.Expression.Interactions.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />

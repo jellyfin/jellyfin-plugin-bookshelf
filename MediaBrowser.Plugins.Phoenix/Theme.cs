@@ -115,5 +115,10 @@ namespace MediaBrowser.Plugins.Phoenix
         {
             return null;
         }
+
+        public Page GetFullscreenVideoPage()
+        {
+            return null;
+        }
     }
 }
