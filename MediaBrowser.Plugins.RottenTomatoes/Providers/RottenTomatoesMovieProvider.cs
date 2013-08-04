@@ -26,7 +26,7 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
     {
         // http://developer.rottentomatoes.com/iodocs
 
-        private const int DailyRefreshLimit = 110;
+        private const int DailyRefreshLimit = 1000;
 
         private const string MoviesReviews = @"movies/{1}/reviews.json?review_type=top_critic&page_limit=10&page=1&country=us&apikey={0}";
 
