@@ -12,12 +12,6 @@
 
                     <ul class="ulForm" data-role="listview">
                         <li>
-                            <label for="txtFolderName">
-                                Trailer collection name:
-                            </label>
-                            <input type="text" id="txtFolderName" name="txtFolderName" />
-                        </li>
-                        <li>
                             <label for="txtMaxTrailerAge">
                                 Max trailer age (days):
                             </label>
@@ -59,7 +53,6 @@
 
                 ApiClient.getPluginConfiguration(TrailersConfigurationPage.pluginUniqueId).done(function (config) {
 
-                    $('#txtFolderName', page).val(config.FolderName);
                     $('#txtMaxTrailerAge', page).val(config.MaxTrailerAge || "");
                     $('#chkEnableLocalTrailerDownloads', page).checked(config.EnableLocalTrailerDownloads).checkboxradio("refresh");
 
@@ -75,7 +68,6 @@
 
                 ApiClient.getPluginConfiguration(TrailersConfigurationPage.pluginUniqueId).done(function (config) {
 
-                    config.FolderName = $('#txtFolderName', form).val();
                     var maxTrailerAge = $('#txtMaxTrailerAge', form).val();
 
                     config.MaxTrailerAge = maxTrailerAge ? maxTrailerAge : null;

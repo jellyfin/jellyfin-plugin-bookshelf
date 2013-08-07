@@ -7,16 +7,9 @@ namespace MediaBrowser.Plugins.Trailers.Entities
     /// </summary>
     class TrailerCollectionFolder : BasePluginFolder
     {
-        /// <summary>
-        /// Gets the name.
-        /// </summary>
-        /// <value>The name.</value>
-        public override string Name
+        public TrailerCollectionFolder()
         {
-            get
-            {
-                return Plugin.Instance.Configuration.FolderName;
-            }
+            Name = "Trailers";
         }
     }
 
