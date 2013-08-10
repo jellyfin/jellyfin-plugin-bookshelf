@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Common.Extensions;
+using MediaBrowser.Controller.Entities;
 
 namespace MediaBrowser.Plugins.Trailers.Entities
 {
@@ -24,7 +25,10 @@ namespace MediaBrowser.Plugins.Trailers.Entities
         /// <returns>BasePluginFolder.</returns>
         public BasePluginFolder GetFolder()
         {
-            return new TrailerCollectionFolder();
+            return new TrailerCollectionFolder
+            {
+                Id = "Trailers".GetMBId(typeof(TrailerCollectionFolder))
+            };
         }
     }
 }
