@@ -80,7 +80,7 @@ namespace MediaBrowser.Plugins.Trailers.EntryPoints
 
             var items = newItems.OfType<Movie>()
               .Where(i => i.LocationType == LocationType.FileSystem && i.LocalTrailerIds.Count == 0)
-              .Take(2)
+              .Take(5)
               .ToList();
 
             if (items.Count == 0 || !Plugin.Instance.Configuration.EnableLocalTrailerDownloads)
