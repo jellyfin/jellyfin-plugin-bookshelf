@@ -68,7 +68,9 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                     "releasedate",
                     "outline",
                     "id",
-                    "votes"
+                    "votes",
+                    "credits",
+                    "originaltitle"
                 });
 
                 var position = xml.ToString().LastIndexOf("</", StringComparison.OrdinalIgnoreCase);

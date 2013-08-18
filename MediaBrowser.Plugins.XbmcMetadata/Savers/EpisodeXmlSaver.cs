@@ -58,7 +58,12 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             var xmlFilePath = GetSavePath(item);
 
-            XmlSaverHelpers.Save(builder, xmlFilePath, new string[] { });
+            XmlSaverHelpers.Save(builder, xmlFilePath, new string[]
+                {
+                    "aired",
+                    "season",
+                    "episode"
+                });
         }
 
         public bool IsEnabledFor(BaseItem item, ItemUpdateType updateType)
