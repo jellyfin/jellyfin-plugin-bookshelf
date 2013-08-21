@@ -44,7 +44,6 @@ namespace MediaBrowser.Plugins.Trailers.EntryPoints
         public void Run()
         {
             _libraryManager.ItemAdded += libraryManager_ItemAdded;
-            _libraryManager.ItemUpdated += libraryManager_ItemAdded;
         }
 
         void libraryManager_ItemAdded(object sender, ItemChangeEventArgs e)
