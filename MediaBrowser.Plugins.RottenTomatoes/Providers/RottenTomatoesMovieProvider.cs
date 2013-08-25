@@ -28,7 +28,7 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
 
         private const int DailyRefreshLimit = 1000;
 
-        private const string MoviesReviews = @"movies/{1}/reviews.json?review_type=top_critic&page_limit=10&page=1&country=us&apikey={0}";
+        private const string MoviesReviews = @"movies/{1}/reviews.json?review_type=top_critic&page_limit=12&page=1&country=us&apikey={0}";
 
         private readonly string[] _apiKeys =
             {
