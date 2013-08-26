@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using MediaBrowser.Theater.Interfaces.Presentation;
 using System;
 using System.Diagnostics;
@@ -8,7 +9,7 @@ using System.Windows.Controls;
 
 namespace MediaBrowser.Plugins.Kylo
 {
-    public class App : ITheaterApp
+    public class App : IApp
     {
         private readonly IImageManager _imageManager;
 
@@ -67,6 +68,18 @@ namespace MediaBrowser.Plugins.Kylo
         public string Name
         {
             get { return "Kylo"; }
+        }
+
+        public void Dispose()
+        {
+        }
+    }
+
+    public class AppFactory : IAppFactory
+    {
+        public IEnumerable<Type> AppTypes
+        {
+            get { return new[] { typeof(App) }; }
         }
     }
 }

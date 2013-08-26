@@ -1,5 +1,6 @@
 ﻿using MediaBrowser.Theater.Interfaces.Presentation;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
@@ -8,7 +9,7 @@ using System.Windows.Controls;
 
 namespace MediaBrowser.Plugins.WindowsMediaCenter
 {
-    public class App : ITheaterApp
+    public class App : IApp
     {
         private readonly IImageManager _imageManager;
 
@@ -67,6 +68,18 @@ namespace MediaBrowser.Plugins.WindowsMediaCenter
         public string Name
         {
             get { return "Windows Media Center"; }
+        }
+
+        public void Dispose()
+        {
+        }
+    }
+
+    public class AppFactory : IAppFactory
+    {
+        public IEnumerable<Type> AppTypes
+        {
+            get { return new[] { typeof(App) }; }
         }
     }
 }

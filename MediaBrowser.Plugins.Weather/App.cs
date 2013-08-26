@@ -1,13 +1,15 @@
 ﻿using MediaBrowser.Plugins.Weather.Pages;
 using MediaBrowser.Theater.Interfaces.Navigation;
 using MediaBrowser.Theater.Interfaces.Presentation;
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
 namespace MediaBrowser.Plugins.Weather
 {
-    public class App : ITheaterApp
+    public class App : IApp
     {
         private readonly INavigationService _nav;
         private readonly IImageManager _imageManager;
@@ -41,6 +43,18 @@ namespace MediaBrowser.Plugins.Weather
         public Task Launch()
         {
             return _nav.Navigate(new MainWeatherPage());
+        }
+
+        public void Dispose()
+        {
+        }
+    }
+
+    public class AppFactory : IAppFactory
+    {
+        public IEnumerable<Type> AppTypes
+        {
+            get { return new[] { typeof(App) }; }
         }
     }
 }

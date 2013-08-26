@@ -1,13 +1,12 @@
-﻿using System.Threading.Tasks;
-using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Entities;
-using System.Globalization;
 using System.IO;
 using System.Security;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 {
