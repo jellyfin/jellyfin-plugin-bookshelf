@@ -18,7 +18,7 @@ namespace MediaBrowser.Plugins.WindowsMediaCenter
             _imageManager = imageManager;
         }
 
-        public FrameworkElement GetTileImage()
+        public FrameworkElement GetThumbImage()
         {
             var image = new Image
             {
@@ -77,9 +77,16 @@ namespace MediaBrowser.Plugins.WindowsMediaCenter
 
     public class AppFactory : IAppFactory
     {
-        public IEnumerable<Type> AppTypes
+        private readonly IImageManager _imageManager;
+
+        public AppFactory(IImageManager imageManager)
         {
-            get { return new[] { typeof(App) }; }
+            _imageManager = imageManager;
+        }
+
+        public IEnumerable<IApp> GetApps()
+        {
+            return new[] { new App(_imageManager) };
         }
     }
 }

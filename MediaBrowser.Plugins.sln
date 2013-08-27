@@ -11,8 +11,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.Rotten
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.XbmcMetadata", "MediaBrowser.Plugins.XbmcMetadata\MediaBrowser.Plugins.XbmcMetadata.csproj", "{67F2EC37-873B-4381-A8AB-FAE57A94760C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.Weather", "MediaBrowser.Plugins.Weather\MediaBrowser.Plugins.Weather.csproj", "{0B005794-3D28-423F-BFC2-69DE1AF90693}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.Kylo", "MediaBrowser.Plugins.Kylo\MediaBrowser.Plugins.Kylo.csproj", "{328979BD-6247-4182-B7F5-4F43F00D60FF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.WindowsMediaCenter", "MediaBrowser.Plugins.WindowsMediaCenter\MediaBrowser.Plugins.WindowsMediaCenter.csproj", "{F1BDEF9D-F6E9-4906-97F8-A9278A908192}"
@@ -60,12 +58,6 @@ Global
 		{67F2EC37-873B-4381-A8AB-FAE57A94760C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{67F2EC37-873B-4381-A8AB-FAE57A94760C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{67F2EC37-873B-4381-A8AB-FAE57A94760C}.Release|x86.ActiveCfg = Release|Any CPU
-		{0B005794-3D28-423F-BFC2-69DE1AF90693}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0B005794-3D28-423F-BFC2-69DE1AF90693}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0B005794-3D28-423F-BFC2-69DE1AF90693}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{0B005794-3D28-423F-BFC2-69DE1AF90693}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0B005794-3D28-423F-BFC2-69DE1AF90693}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0B005794-3D28-423F-BFC2-69DE1AF90693}.Release|x86.ActiveCfg = Release|Any CPU
 		{328979BD-6247-4182-B7F5-4F43F00D60FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{328979BD-6247-4182-B7F5-4F43F00D60FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{328979BD-6247-4182-B7F5-4F43F00D60FF}.Debug|x86.ActiveCfg = Debug|Any CPU
