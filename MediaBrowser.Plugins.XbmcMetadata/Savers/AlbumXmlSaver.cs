@@ -40,8 +40,18 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             var tracks = ((MusicAlbum)item).Children.OfType<Audio>().ToList();
 
             var artists = tracks
-                .SelectMany(i => new[] { i.Artist, i.AlbumArtist })
-                .Where(i => !string.IsNullOrEmpty(i))
+                .SelectMany(i =>
+                {
+                    var list = new List<string>();
+
+                    if (!string.IsNullOrEmpty(i.AlbumArtist))
+                    {
+                        list.Add(i.AlbumArtist);
+                    }
+                    list.AddRange(i.Artists);
+
+                    return list;
+                })
                 .Distinct(StringComparer.OrdinalIgnoreCase);
 
             foreach (var artist in artists)

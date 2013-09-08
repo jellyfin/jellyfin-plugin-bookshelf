@@ -1,13 +1,13 @@
 ﻿using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Model.Entities;
+using MediaBrowser.Plugins.Trailers.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
-using MediaBrowser.Plugins.Trailers.Extensions;
 
 namespace MediaBrowser.Plugins.Trailers
 {
@@ -31,7 +31,8 @@ namespace MediaBrowser.Plugins.Trailers
             {
                 Url = TrailerFeedUrl,
                 CancellationToken = cancellationToken,
-                ResourcePool = Plugin.Instance.AppleTrailers
+                ResourcePool = Plugin.Instance.AppleTrailers,
+                UserAgent = "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.28 Safari/537.36"
 
             }).ConfigureAwait(false);
 
