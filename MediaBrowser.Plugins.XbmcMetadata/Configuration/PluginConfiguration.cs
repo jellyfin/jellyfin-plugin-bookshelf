@@ -1,4 +1,5 @@
 ﻿using MediaBrowser.Model.Plugins;
+using System;
 
 namespace MediaBrowser.Plugins.XbmcMetadata.Configuration
 {
@@ -7,5 +8,6 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Configuration
     /// </summary>
     public class PluginConfiguration : BasePluginConfiguration
     {
+        public Guid? UserId { get; set; }
     }
 }

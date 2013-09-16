@@ -1,6 +1,7 @@
 ﻿using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -16,12 +17,16 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
     public class AlbumXmlSaver : IMetadataSaver
     {
         private readonly ILibraryManager _libraryManager;
+        private readonly IUserManager _userManager;
+        private readonly IUserDataRepository _userDataRepo;
 
-        public AlbumXmlSaver(ILibraryManager libraryManager)
+        public AlbumXmlSaver(ILibraryManager libraryManager, IUserManager userManager, IUserDataRepository userDataRepo)
         {
             _libraryManager = libraryManager;
+            _userManager = userManager;
+            _userDataRepo = userDataRepo;
         }
-        
+
         public string GetSavePath(BaseItem item)
         {
             return Path.Combine(item.Path, "album.nfo");
@@ -33,7 +38,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             builder.Append("<album>");
 
-            var task = XmlSaverHelpers.AddCommonNodes(item, builder, _libraryManager);
+            var task = XmlSaverHelpers.AddCommonNodes(item, builder, _libraryManager, _userManager, _userDataRepo);
 
             Task.WaitAll(task);
 

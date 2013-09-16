@@ -10,6 +10,7 @@ using System.Xml;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Persistence;
 using MediaBrowser.Model.Entities;
 
 namespace MediaBrowser.Plugins.XbmcMetadata.Savers
@@ -70,7 +71,12 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                     "id",
                     "votes",
                     "credits",
-                    "originaltitle"
+                    "originaltitle",
+                    "watched",
+                    "playcount",
+                    "lastplayed",
+                    "art",
+                    "resume"
                 });
 
                 var position = xml.ToString().LastIndexOf("</", StringComparison.OrdinalIgnoreCase);
@@ -250,11 +256,8 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
         /// <summary>
         /// Adds the common nodes.
         /// </summary>
-        /// <param name="item">The item.</param>
-        /// <param name="builder">The builder.</param>
-        /// <param name="libraryManager">The library manager.</param>
         /// <returns>Task.</returns>
-        public static Task AddCommonNodes(BaseItem item, StringBuilder builder, ILibraryManager libraryManager)
+        public static Task AddCommonNodes(BaseItem item, StringBuilder builder, ILibraryManager libraryManager, IUserManager userManager, IUserDataRepository userDataRepo)
         {
             builder.Append("<plot><![CDATA[" + (item.Overview ?? string.Empty) + "]]></plot>");
             builder.Append("<outline><![CDATA[" + (item.Overview ?? string.Empty) + "]]></outline>");
@@ -272,22 +275,28 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             builder.Append("<title>" + SecurityElement.Escape(item.Name ?? string.Empty) + "</title>");
             builder.Append("<originaltitle>" + SecurityElement.Escape(item.Name ?? string.Empty) + "</originaltitle>");
 
-            foreach (var person in item.People
-                .Where(i => string.Equals(i.Type, PersonType.Director, StringComparison.OrdinalIgnoreCase) || string.Equals(i.Role, PersonType.Director, StringComparison.OrdinalIgnoreCase)))
-            {
-                builder.Append("<director>" + SecurityElement.Escape(person.Name) + "</director>");
-            }
-
-            foreach (var person in item.People
-                .Where(i => string.Equals(i.Type, PersonType.Writer, StringComparison.OrdinalIgnoreCase) || string.Equals(i.Role, PersonType.Writer, StringComparison.OrdinalIgnoreCase)))
-            {
-                builder.Append("<writer>" + SecurityElement.Escape(person.Name) + "</writer>");
-            }
-
-            var credits = item.People
-                .Where(i => string.Equals(i.Role, PersonType.Writer, StringComparison.OrdinalIgnoreCase) || string.Equals(i.Type, PersonType.Writer, StringComparison.OrdinalIgnoreCase) || string.Equals(i.Role, PersonType.Director, StringComparison.OrdinalIgnoreCase) || string.Equals(i.Type, PersonType.Director, StringComparison.OrdinalIgnoreCase))
+            var directors = item.People
+                .Where(i => IsPersonType(i, PersonType.Director))
                 .Select(i => i.Name)
                 .ToList();
+
+            foreach (var person in directors)
+            {
+                builder.Append("<director>" + SecurityElement.Escape(person) + "</director>");
+            }
+
+            var writers = item.People
+                .Where(i => IsPersonType(i, PersonType.Director))
+                .Select(i => i.Name)
+                .ToList();
+
+            foreach (var person in writers)
+            {
+                builder.Append("<writer>" + SecurityElement.Escape(person) + "</writer>");
+            }
+
+            directors.AddRange(writers);
+            var credits = directors.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
 
             if (credits.Count > 0)
             {
@@ -354,7 +363,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             {
                 builder.Append("<id moviedb=\"imdb\">" + SecurityElement.Escape(imdb) + "</id>");
             }
-            
+
             var tmdb = item.GetProviderId(MetadataProviders.Tmdb);
 
             if (!string.IsNullOrEmpty(tmdb))
@@ -391,7 +400,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             {
                 builder.Append("<votes>" + SecurityElement.Escape(item.VoteCount.Value.ToString(UsCulture)) + "</votes>");
             }
-            
+
             if (!string.IsNullOrEmpty(item.CriticRatingSummary))
             {
                 builder.Append("<criticratingsummary><![CDATA[" + item.Overview + "]]></criticratingsummary>");
@@ -437,13 +446,78 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 builder.Append("<tag>" + SecurityElement.Escape(tag) + "</tag>");
             }
 
+            AddImages(item, builder);
+            AddUserData(item, builder, userManager, userDataRepo);
+
             return AddActors(item, builder, libraryManager);
+        }
+
+        private static void AddImages(BaseItem item, StringBuilder builder)
+        {
+            builder.Append("<art>");
+
+            var poster = item.PrimaryImagePath;
+
+            if (!string.IsNullOrEmpty(poster))
+            {
+                builder.Append("<poster>" + SecurityElement.Escape(item.PrimaryImagePath) + "</poster>");
+            }
+
+            foreach (var backdrop in item.BackdropImagePaths)
+            {
+                builder.Append("<fanart>" + SecurityElement.Escape(backdrop) + "</fanart>");
+            }
+            
+            builder.Append("</art>");
+        }
+
+        private static void AddUserData(BaseItem item, StringBuilder builder, IUserManager userManager, IUserDataRepository userDataRepo)
+        {
+            var userId = Plugin.Instance.Configuration.UserId;
+            if (!userId.HasValue)
+            {
+                return;
+            }
+
+            var user = userManager.GetUserById(userId.Value);
+
+            if (user == null)
+            {
+                return;
+            }
+
+            if (item.IsFolder)
+            {
+                return;
+            }
+
+            var userdata = userDataRepo.GetUserData(user.Id, item.GetUserDataKey());
+
+            builder.Append("<playcount>" + userdata.PlayCount.ToString(UsCulture) + "</playcount>");
+            builder.Append("<watched>" + userdata.Played.ToString().ToLower() + "</watched>");
+
+            if (userdata.LastPlayedDate.HasValue)
+            {
+                builder.Append("<lastplayed>" + SecurityElement.Escape(userdata.LastPlayedDate.Value.ToString("yyyy-MM-dd HH:mm:ss")) + "</lastplayed>");
+            }
+
+            builder.Append("<resume>");
+
+            var runTimeTicks = item.OriginalRunTimeTicks ?? item.RunTimeTicks ?? 0;
+
+            builder.Append("<position>" + TimeSpan.FromTicks(userdata.PlaybackPositionTicks).TotalSeconds.ToString(UsCulture) + "</position>");
+            builder.Append("<total>" + TimeSpan.FromTicks(runTimeTicks).TotalSeconds.ToString(UsCulture) + "</total>");
+            
+            builder.Append("</resume>");
         }
 
         public static async Task AddActors(BaseItem item, StringBuilder builder, ILibraryManager libraryManager)
         {
-            foreach (var person in item.People
-                .Where(i => !string.Equals(i.Type, PersonType.Director, StringComparison.OrdinalIgnoreCase) && !string.Equals(i.Type, PersonType.Writer, StringComparison.OrdinalIgnoreCase)))
+            var actors = item.People
+                .Where(i => !IsPersonType(i, PersonType.Director) && !IsPersonType(i, PersonType.Writer))
+                .ToList();
+
+            foreach (var person in actors)
             {
                 builder.Append("<actor>");
                 builder.Append("<name>" + SecurityElement.Escape(person.Name) + "</name>");
@@ -467,5 +541,9 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             }
         }
 
+        private static bool IsPersonType(PersonInfo person, string type)
+        {
+            return string.Equals(person.Type, type, StringComparison.OrdinalIgnoreCase) || string.Equals(person.Role, type, StringComparison.OrdinalIgnoreCase);
+        }
     }
 }

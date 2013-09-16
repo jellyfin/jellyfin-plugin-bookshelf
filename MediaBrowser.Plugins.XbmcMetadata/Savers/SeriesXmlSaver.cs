@@ -1,27 +1,31 @@
-﻿using System.Threading.Tasks;
-using MediaBrowser.Controller.Configuration;
+﻿using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Persistence;
 using MediaBrowser.Model.Entities;
-using System.Globalization;
 using System.IO;
 using System.Security;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 {
     public class SeriesXmlSaver : IMetadataSaver
     {
         private readonly ILibraryManager _libraryManager;
+        private readonly IUserManager _userManager;
+        private readonly IUserDataRepository _userDataRepo;
 
         private readonly IServerConfigurationManager _config;
 
-        public SeriesXmlSaver(IServerConfigurationManager config, ILibraryManager libraryManager)
+        public SeriesXmlSaver(IServerConfigurationManager config, ILibraryManager libraryManager, IUserManager userManager, IUserDataRepository userDataRepo)
         {
             _config = config;
             _libraryManager = libraryManager;
+            _userManager = userManager;
+            _userDataRepo = userDataRepo;
         }
 
         public string GetSavePath(BaseItem item)
@@ -35,7 +39,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             builder.Append("<tvshow>");
 
-            var task = XmlSaverHelpers.AddCommonNodes(item, builder, _libraryManager);
+            var task = XmlSaverHelpers.AddCommonNodes(item, builder, _libraryManager, _userManager, _userDataRepo);
 
             Task.WaitAll(task);
 

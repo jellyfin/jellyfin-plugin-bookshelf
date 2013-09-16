@@ -1,8 +1,7 @@
-﻿using System.Threading.Tasks;
-using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Library;
-using System;
+using MediaBrowser.Controller.Persistence;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -10,13 +9,16 @@ using System.Linq;
 using System.Security;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 {
     public class ArtistXmlSaver : IMetadataSaver
     {
         private readonly ILibraryManager _libraryManager;
-        
+        private readonly IUserManager _userManager;
+        private readonly IUserDataRepository _userDataRepo;
+
         public string GetSavePath(BaseItem item)
         {
             return Path.Combine(item.Path, "artist.nfo");
@@ -28,7 +30,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             builder.Append("<artist>");
 
-            var task = XmlSaverHelpers.AddCommonNodes(item, builder, _libraryManager);
+            var task = XmlSaverHelpers.AddCommonNodes(item, builder, _libraryManager, _userManager, _userDataRepo);
 
             Task.WaitAll(task);
 
@@ -60,9 +62,11 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
         private static readonly CultureInfo UsCulture = new CultureInfo("en-US");
 
-        public ArtistXmlSaver(ILibraryManager libraryManager)
+        public ArtistXmlSaver(ILibraryManager libraryManager, IUserManager userManager, IUserDataRepository userDataRepo)
         {
             _libraryManager = libraryManager;
+            _userManager = userManager;
+            _userDataRepo = userDataRepo;
         }
 
         private void AddAlbums(IEnumerable<MusicAlbum> albums, StringBuilder builder)

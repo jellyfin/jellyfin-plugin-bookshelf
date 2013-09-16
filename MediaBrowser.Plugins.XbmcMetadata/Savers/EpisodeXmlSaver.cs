@@ -1,25 +1,29 @@
-﻿using System.Threading.Tasks;
-using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
-using MediaBrowser.Model.Entities;
+using MediaBrowser.Controller.Persistence;
 using System.Globalization;
 using System.IO;
 using System.Security;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 {
     public class EpisodeXmlSaver : IMetadataSaver
     {
         private readonly ILibraryManager _libraryManager;
-        
+        private readonly IUserManager _userManager;
+        private readonly IUserDataRepository _userDataRepo;
+
         private readonly CultureInfo _usCulture = new CultureInfo("en-US");
 
-        public EpisodeXmlSaver(ILibraryManager libraryManager)
+        public EpisodeXmlSaver(ILibraryManager libraryManager, IUserManager userManager, IUserDataRepository userDataRepo)
         {
             _libraryManager = libraryManager;
+            _userManager = userManager;
+            _userDataRepo = userDataRepo;
         }
 
         public string GetSavePath(BaseItem item)
@@ -33,7 +37,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             builder.Append("<episodedetails>");
 
-            var task = XmlSaverHelpers.AddCommonNodes(item, builder, _libraryManager);
+            var task = XmlSaverHelpers.AddCommonNodes(item, builder, _libraryManager, _userManager, _userDataRepo);
 
             Task.WaitAll(task);
 
