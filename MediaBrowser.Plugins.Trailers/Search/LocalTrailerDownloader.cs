@@ -64,6 +64,7 @@ namespace MediaBrowser.Plugins.Trailers.Search
             if (!EntityResolutionHelper.IsVideoFile(savePath))
             {
                 _logger.Warn("Unrecognized video extension {0}", savePath);
+                DeleteTempFile(responseInfo);
                 return;
             }
 
@@ -82,12 +83,30 @@ namespace MediaBrowser.Plugins.Trailers.Search
 
                 File.Move(responseInfo.TempFilePath, savePath);
             }
+            catch
+            {
+                DeleteTempFile(responseInfo);
+
+                throw;
+            }
             finally
             {
                 _directoryWatchers.RemoveTempIgnore(savePath);
             }
 
             await item.RefreshMetadata(cancellationToken).ConfigureAwait(false);
+        }
+
+        private void DeleteTempFile(HttpResponseInfo response)
+        {
+            try
+            {
+                File.Delete(response.TempFilePath);
+            }
+            catch (IOException ex)
+            {
+                _logger.ErrorException("Error deleting temp file {0}", ex, response.TempFilePath);
+            }
         }
 
         /// <summary>
