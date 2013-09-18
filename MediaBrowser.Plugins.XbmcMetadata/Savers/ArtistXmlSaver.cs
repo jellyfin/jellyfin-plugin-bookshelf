@@ -30,9 +30,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             builder.Append("<artist>");
 
-            var task = XmlSaverHelpers.AddCommonNodes(item, builder, _libraryManager, _userManager, _userDataRepo);
-
-            Task.WaitAll(task);
+            XmlSaverHelpers.AddCommonNodes(item, builder, _libraryManager, _userManager, _userDataRepo);
 
             var albums = ((MusicArtist)item).Children.OfType<MusicAlbum>().ToList();
 

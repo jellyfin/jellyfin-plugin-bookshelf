@@ -31,11 +31,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 var video = (Video)item;
                 var path = video.VideoType == VideoType.VideoFile || video.VideoType == VideoType.Iso ? Path.GetDirectoryName(item.Path) : item.Path;
 
-                if (item is MusicVideo)
-                {
-                    return Path.Combine(path, Path.GetFileName(path) + ".nfo");
-                }
-                return Path.Combine(path, "movie.nfo");
+                return Path.Combine(path, Path.GetFileNameWithoutExtension(path) + ".nfo");
             }
 
             return Path.ChangeExtension(item.Path, ".nfo");
@@ -49,9 +45,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             builder.Append("<" + tag + ">");
 
-            var task = XmlSaverHelpers.AddCommonNodes(item, builder, _libraryManager, _userManager, _userDataRepo);
-
-            Task.WaitAll(task);
+            XmlSaverHelpers.AddCommonNodes(item, builder, _libraryManager, _userManager, _userDataRepo);
 
             var imdb = item.GetProviderId(MetadataProviders.Imdb);
 

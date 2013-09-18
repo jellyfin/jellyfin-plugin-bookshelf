@@ -257,7 +257,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
         /// Adds the common nodes.
         /// </summary>
         /// <returns>Task.</returns>
-        public static Task AddCommonNodes(BaseItem item, StringBuilder builder, ILibraryManager libraryManager, IUserManager userManager, IUserDataRepository userDataRepo)
+        public static void AddCommonNodes(BaseItem item, StringBuilder builder, ILibraryManager libraryManager, IUserManager userManager, IUserDataRepository userDataRepo)
         {
             builder.Append("<plot><![CDATA[" + (item.Overview ?? string.Empty) + "]]></plot>");
             builder.Append("<outline><![CDATA[" + (item.Overview ?? string.Empty) + "]]></outline>");
@@ -449,7 +449,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             AddImages(item, builder);
             AddUserData(item, builder, userManager, userDataRepo);
 
-            return AddActors(item, builder, libraryManager);
+            AddActors(item, builder, libraryManager);
         }
 
         private static void AddImages(BaseItem item, StringBuilder builder)
@@ -467,7 +467,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             {
                 builder.Append("<fanart>" + SecurityElement.Escape(backdrop) + "</fanart>");
             }
-            
+
             builder.Append("</art>");
         }
 
@@ -507,11 +507,11 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             builder.Append("<position>" + TimeSpan.FromTicks(userdata.PlaybackPositionTicks).TotalSeconds.ToString(UsCulture) + "</position>");
             builder.Append("<total>" + TimeSpan.FromTicks(runTimeTicks).TotalSeconds.ToString(UsCulture) + "</total>");
-            
+
             builder.Append("</resume>");
         }
 
-        public static async Task AddActors(BaseItem item, StringBuilder builder, ILibraryManager libraryManager)
+        public static void AddActors(BaseItem item, StringBuilder builder, ILibraryManager libraryManager)
         {
             var actors = item.People
                 .Where(i => !IsPersonType(i, PersonType.Director) && !IsPersonType(i, PersonType.Writer))
@@ -525,7 +525,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
                 try
                 {
-                    var personEntity = await libraryManager.GetPerson(person.Name);
+                    var personEntity = libraryManager.GetPerson(person.Name);
 
                     if (!string.IsNullOrEmpty(personEntity.PrimaryImagePath))
                     {

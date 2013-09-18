@@ -268,7 +268,7 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
         /// <returns>Task{System.Boolean}.</returns>
         public override async Task<bool> FetchAsync(BaseItem item, bool force, CancellationToken cancellationToken)
         {
-            var existingReviews = await _itemRepo.GetCriticReviews(item.Id).ConfigureAwait(false);
+            var existingReviews = _itemRepo.GetCriticReviews(item.Id);
             if (existingReviews.Any())
             {
                 SetLastRefreshed(item, DateTime.UtcNow);
@@ -284,7 +284,7 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
             if (history.Count(i => (now - i).TotalDays <= 1) >= DailyRefreshLimit)
             {
                 _refreshResourcePool.Release();
-                
+
                 Logger.Debug("Skipping {0} because daily request limit has been reached. Tomorrow's refresh will retrieve it.", item.Name);
 
                 return false;
@@ -336,7 +336,7 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
             }
 
             RequestHistory.Add(DateTime.UtcNow);
-            
+
             using (var stream = await HttpClient.Get(new HttpRequestOptions
             {
                 Url = GetMovieReviewsUrl(item.GetProviderId(MetadataProviders.RottenTomatoes), apiKey),
@@ -420,7 +420,7 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
 
         private string GetApiKey()
         {
-            var index = Environment.MachineName.GetHashCode()%_apiKeys.Length;
+            var index = Environment.MachineName.GetHashCode() % _apiKeys.Length;
 
             return _apiKeys[Math.Abs(index)];
         }
