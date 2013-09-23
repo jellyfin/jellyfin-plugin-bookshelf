@@ -32,7 +32,14 @@ namespace MediaBrowser.Plugins.Trailers
         /// Gets or sets the post date.
         /// </summary>
         /// <value>The post date.</value>
-        public DateTime PostDate { get; set; }
+        public DateTime PostDate
+        {
+            get { return Video.DateCreated; }
+            set
+            {
+                Video.DateCreated = value;
+            }
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TrailerInfo" /> class.

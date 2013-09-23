@@ -19,7 +19,9 @@ namespace MediaBrowser.Plugins.Trailers
         /// <summary>
         /// The trailer feed URL
         /// </summary>
-        private const string TrailerFeedUrl = "http://trailers.apple.com/trailers/home/xml/current_720p.xml";
+        private const string HDTrailerFeedUrl = "http://trailers.apple.com/trailers/home/xml/current_720p.xml";
+
+        private const string TrailerFeedUrl = "http://trailers.apple.com/trailers/home/xml/current_480p.xml";
 
         /// <summary>
         /// Downloads a list of trailer info's from the apple url
@@ -27,9 +29,13 @@ namespace MediaBrowser.Plugins.Trailers
         /// <returns>Task{List{TrailerInfo}}.</returns>
         public static async Task<List<TrailerInfo>> GetTrailerList(IHttpClient httpClient, CancellationToken cancellationToken)
         {
+            var url = Plugin.Instance.Configuration.EnableHDTrailers ? 
+                HDTrailerFeedUrl : 
+                TrailerFeedUrl;
+
             var stream = await httpClient.Get(new HttpRequestOptions
             {
-                Url = TrailerFeedUrl,
+                Url = url,
                 CancellationToken = cancellationToken,
                 ResourcePool = Plugin.Instance.AppleTrailers,
                 UserAgent = "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.28 Safari/537.36"
