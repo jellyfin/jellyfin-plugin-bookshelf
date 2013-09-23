@@ -70,6 +70,8 @@ namespace MediaBrowser.Plugins.Trailers
 
             if (hdChanged)
             {
+                _taskManager.CancelIfRunning<CurrentTrailerDownloadTask>();
+                
                 var folder = _libraryManager.RootFolder.Children
                     .OfType<TrailerCollectionFolder>()
                     .FirstOrDefault();
@@ -79,7 +81,7 @@ namespace MediaBrowser.Plugins.Trailers
                     await folder.ClearChildren(CancellationToken.None).ConfigureAwait(false);
                 }
 
-                _taskManager.QueueScheduledTask<CurrentTrailerDownloadTask>();
+                _taskManager.CancelIfRunningAndQueue<CurrentTrailerDownloadTask>();
             }
         }
     }
