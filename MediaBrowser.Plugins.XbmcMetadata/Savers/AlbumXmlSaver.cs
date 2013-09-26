@@ -68,7 +68,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             var xmlFilePath = GetSavePath(item);
 
-            XmlSaverHelpers.Save(builder, xmlFilePath, new[]
+            XmlSaverHelpers.Save(builder, xmlFilePath, new List<string>
                 {
                     "track"
                 });

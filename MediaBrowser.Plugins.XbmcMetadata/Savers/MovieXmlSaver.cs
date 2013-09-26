@@ -3,11 +3,11 @@ using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Persistence;
 using MediaBrowser.Model.Entities;
+using System.Collections.Generic;
 using System.IO;
 using System.Security;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 {
@@ -74,9 +74,8 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             var xmlFilePath = GetSavePath(item);
 
-            XmlSaverHelpers.Save(builder, xmlFilePath, new[]
+            XmlSaverHelpers.Save(builder, xmlFilePath, new List<string>
                 {
-                    "id",
                     "album",
                     "artist"
                 });

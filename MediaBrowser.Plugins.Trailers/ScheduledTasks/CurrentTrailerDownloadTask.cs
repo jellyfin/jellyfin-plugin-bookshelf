@@ -232,7 +232,9 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
                 return false;
             }
 
-            return (DateTime.UtcNow - trailer.DateCreated).TotalDays >
+            var date = trailer.PremiereDate ?? trailer.DateCreated;
+
+            return (DateTime.UtcNow - date).TotalDays >
                    Plugin.Instance.Configuration.MaxTrailerAge.Value;
         }
 

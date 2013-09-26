@@ -1,17 +1,16 @@
-﻿using System;
+﻿using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.TV;
+using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Persistence;
+using MediaBrowser.Model.Entities;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security;
 using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Entities.TV;
-using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Persistence;
-using MediaBrowser.Model.Entities;
 
 namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 {
@@ -19,20 +18,8 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
     {
         private static readonly CultureInfo UsCulture = new CultureInfo("en-US");
 
-        /// <summary>
-        /// Saves the specified XML.
-        /// </summary>
-        /// <param name="xml">The XML.</param>
-        /// <param name="path">The path.</param>
-        /// <param name="xmlTagsUsed">The XML tags used.</param>
-        public static void Save(StringBuilder xml, string path, IEnumerable<string> xmlTagsUsed)
-        {
-            if (File.Exists(path))
-            {
-                var tags = xmlTagsUsed.ToList();
-
-                tags.AddRange(new[]
-                {
+        private static readonly Dictionary<string, string> CommonTags = new[] {     
+               
                     "plot",
                     "customrating",
                     "lockdata",
@@ -77,7 +64,20 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                     "lastplayed",
                     "art",
                     "resume"
-                });
+
+        }.ToDictionary(i => i, StringComparer.OrdinalIgnoreCase);
+        
+        /// <summary>
+        /// Saves the specified XML.
+        /// </summary>
+        /// <param name="xml">The XML.</param>
+        /// <param name="path">The path.</param>
+        /// <param name="xmlTagsUsed">The XML tags used.</param>
+        public static void Save(StringBuilder xml, string path, List<string> xmlTagsUsed)
+        {
+            if (File.Exists(path))
+            {
+                var tags = xmlTagsUsed.ToList();
 
                 var position = xml.ToString().LastIndexOf("</", StringComparison.OrdinalIgnoreCase);
                 xml.Insert(position, GetCustomTags(path, tags));
@@ -134,17 +134,46 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
         /// <param name="path">The path.</param>
         /// <param name="xmlTagsUsed">The XML tags used.</param>
         /// <returns>System.String.</returns>
-        private static string GetCustomTags(string path, ICollection<string> xmlTagsUsed)
+        private static string GetCustomTags(string path, List<string> xmlTagsUsed)
         {
-            var doc = new XmlDocument();
-            doc.Load(path);
+            var settings = new XmlReaderSettings
+            {
+                CheckCharacters = false,
+                IgnoreProcessingInstructions = true,
+                IgnoreComments = true,
+                ValidationType = ValidationType.None
+            };
 
-            var nodes = doc.DocumentElement.ChildNodes.Cast<XmlNode>()
-                .Where(i => !xmlTagsUsed.Contains(i.Name))
-                .Select(i => i.OuterXml)
-                .ToArray();
+            var builder = new StringBuilder();
 
-            return string.Join(Environment.NewLine, nodes);
+            using (var streamReader = new StreamReader(path, Encoding.UTF8))
+            {
+                // Use XmlReader for best performance
+                using (var reader = XmlReader.Create(streamReader, settings))
+                {
+                    reader.MoveToContent();
+
+                    // Loop through each element
+                    while (reader.Read())
+                    {
+                        if (reader.NodeType == XmlNodeType.Element)
+                        {
+                            var name = reader.Name;
+
+                            if (!CommonTags.ContainsKey(name) && !xmlTagsUsed.Contains(name, StringComparer.OrdinalIgnoreCase))
+                            {
+                                builder.AppendLine(reader.ReadOuterXml());
+                            }
+                            else
+                            {
+                                reader.Skip();
+                            }
+                        }
+                    }
+                }
+            }
+
+            return builder.ToString();
         }
 
         public static void AddMediaInfo<T>(T item, StringBuilder builder)
