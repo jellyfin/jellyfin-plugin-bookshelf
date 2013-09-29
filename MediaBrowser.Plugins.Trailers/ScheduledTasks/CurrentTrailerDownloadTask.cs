@@ -99,8 +99,6 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
 
             progress.Report(1);
 
-            var trailerFolder = LibraryManager.RootFolder.Children.OfType<TrailerCollectionFolder>().First();
-
             var now = DateTime.UtcNow;
 
             var trailersToDownload = trailers
@@ -128,6 +126,13 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
             cancellationToken.ThrowIfCancellationRequested();
 
             var numComplete = 0;
+
+            var trailerFolder = LibraryManager.RootFolder.Children.OfType<TrailerCollectionFolder>().FirstOrDefault();
+
+            if (trailerFolder == null)
+            {
+                return;
+            }
 
             foreach (var trailer in trailersToDownload)
             {
