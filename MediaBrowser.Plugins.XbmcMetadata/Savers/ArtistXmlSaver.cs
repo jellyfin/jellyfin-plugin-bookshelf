@@ -16,7 +16,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
     {
         private readonly ILibraryManager _libraryManager;
         private readonly IUserManager _userManager;
-        private readonly IUserDataRepository _userDataRepo;
+        private readonly IUserDataManager _userDataRepo;
 
         public string GetSavePath(BaseItem item)
         {
@@ -59,7 +59,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
         private static readonly CultureInfo UsCulture = new CultureInfo("en-US");
 
-        public ArtistXmlSaver(ILibraryManager libraryManager, IUserManager userManager, IUserDataRepository userDataRepo)
+        public ArtistXmlSaver(ILibraryManager libraryManager, IUserManager userManager, IUserDataManager userDataRepo)
         {
             _libraryManager = libraryManager;
             _userManager = userManager;

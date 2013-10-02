@@ -31,7 +31,7 @@ namespace MediaBrowser.Plugins.Trailers.Configuration
         public PluginConfiguration()
             : base()
         {
-            MaxTrailerAge = 60;
+            MaxTrailerAge = 120;
             EnableHDTrailers = true;
         }
     }

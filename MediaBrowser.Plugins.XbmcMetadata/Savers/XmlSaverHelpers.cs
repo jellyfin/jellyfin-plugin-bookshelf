@@ -286,7 +286,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
         /// Adds the common nodes.
         /// </summary>
         /// <returns>Task.</returns>
-        public static void AddCommonNodes(BaseItem item, StringBuilder builder, ILibraryManager libraryManager, IUserManager userManager, IUserDataRepository userDataRepo)
+        public static void AddCommonNodes(BaseItem item, StringBuilder builder, ILibraryManager libraryManager, IUserManager userManager, IUserDataManager userDataRepo)
         {
             builder.Append("<plot><![CDATA[" + (item.Overview ?? string.Empty) + "]]></plot>");
             builder.Append("<outline><![CDATA[" + (item.Overview ?? string.Empty) + "]]></outline>");
@@ -500,7 +500,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             builder.Append("</art>");
         }
 
-        private static void AddUserData(BaseItem item, StringBuilder builder, IUserManager userManager, IUserDataRepository userDataRepo)
+        private static void AddUserData(BaseItem item, StringBuilder builder, IUserManager userManager, IUserDataManager userDataRepo)
         {
             var userId = Plugin.Instance.Configuration.UserId;
             if (!userId.HasValue)

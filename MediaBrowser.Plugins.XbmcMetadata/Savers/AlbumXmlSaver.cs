@@ -1,7 +1,6 @@
 ﻿using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -10,7 +9,6 @@ using System.Linq;
 using System.Security;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 {
@@ -18,9 +16,9 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
     {
         private readonly ILibraryManager _libraryManager;
         private readonly IUserManager _userManager;
-        private readonly IUserDataRepository _userDataRepo;
+        private readonly IUserDataManager _userDataRepo;
 
-        public AlbumXmlSaver(ILibraryManager libraryManager, IUserManager userManager, IUserDataRepository userDataRepo)
+        public AlbumXmlSaver(ILibraryManager libraryManager, IUserManager userManager, IUserDataManager userDataRepo)
         {
             _libraryManager = libraryManager;
             _userManager = userManager;

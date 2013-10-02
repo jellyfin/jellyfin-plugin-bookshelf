@@ -16,11 +16,11 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
     {
         private readonly ILibraryManager _libraryManager;
         private readonly IUserManager _userManager;
-        private readonly IUserDataRepository _userDataRepo;
+        private readonly IUserDataManager _userDataRepo;
 
         private readonly IServerConfigurationManager _config;
 
-        public SeriesXmlSaver(IServerConfigurationManager config, ILibraryManager libraryManager, IUserManager userManager, IUserDataRepository userDataRepo)
+        public SeriesXmlSaver(IServerConfigurationManager config, ILibraryManager libraryManager, IUserManager userManager, IUserDataManager userDataRepo)
         {
             _config = config;
             _libraryManager = libraryManager;
