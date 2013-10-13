@@ -1,7 +1,6 @@
 ﻿using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Persistence;
 using MediaBrowser.Model.Entities;
 using System.Collections.Generic;
 using System.IO;
@@ -29,9 +28,13 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             if (item.ResolveArgs.IsDirectory)
             {
                 var video = (Video)item;
-                var path = video.VideoType == VideoType.VideoFile || video.VideoType == VideoType.Iso ? Path.GetDirectoryName(item.Path) : item.Path;
 
-                return Path.Combine(path, Path.GetFileNameWithoutExtension(path) + ".nfo");
+                if (video.VideoType == VideoType.Dvd || video.VideoType == VideoType.BluRay || video.VideoType == VideoType.HdDvd)
+                {
+                    var path = item.Path;
+
+                    return Path.Combine(path, Path.GetFileNameWithoutExtension(path) + ".nfo");
+                }
             }
 
             return Path.ChangeExtension(item.Path, ".nfo");
