@@ -94,6 +94,10 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
                 {
                     await new LocalTrailerDownloader(_httpClient, _directoryWatchers, _logger, _json).DownloadTrailerForItem(item, cancellationToken).ConfigureAwait(false);
                 }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
                 catch (Exception ex)
                 {
                     _logger.ErrorException("Error downloading trailer for {0}", ex, item.Name);
@@ -105,6 +109,8 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
                 percent /= items.Count;
                 progress.Report(percent * 100);
             }
+
+            progress.Report(100);
         }
 
         /// <summary>

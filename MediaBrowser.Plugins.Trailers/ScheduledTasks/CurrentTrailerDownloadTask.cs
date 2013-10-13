@@ -142,6 +142,10 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
                 {
                     await DownloadTrailer(trailer, trailerFolder, cancellationToken).ConfigureAwait(false);
                 }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
                 catch (Exception ex)
                 {
                     Logger.ErrorException("Error downloading information for {0}", ex, trailer.Video.Name);
