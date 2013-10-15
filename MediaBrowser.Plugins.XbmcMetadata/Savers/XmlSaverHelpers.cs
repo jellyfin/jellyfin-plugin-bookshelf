@@ -1,7 +1,6 @@
 ﻿using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Persistence;
 using MediaBrowser.Model.Entities;
 using System;
 using System.Collections.Generic;
@@ -349,7 +348,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             if (!string.IsNullOrEmpty(item.ForcedSortName))
             {
-                builder.Append("<sorttitle>" + SecurityElement.Escape(item.ForcedSortName) + "</sorttitle>");
+                builder.Append("<sorttitle>" + SecurityElement.Escape(item.SortName) + "</sorttitle>");
             }
 
             if (!string.IsNullOrEmpty(item.OfficialRating))
@@ -432,7 +431,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             if (!string.IsNullOrEmpty(item.CriticRatingSummary))
             {
-                builder.Append("<criticratingsummary><![CDATA[" + item.Overview + "]]></criticratingsummary>");
+                builder.Append("<criticratingsummary><![CDATA[" + item.CriticRatingSummary + "]]></criticratingsummary>");
             }
 
             if (item.Budget.HasValue)
@@ -489,12 +488,12 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             if (!string.IsNullOrEmpty(poster))
             {
-                builder.Append("<poster>" + SecurityElement.Escape(item.PrimaryImagePath) + "</poster>");
+                builder.Append("<poster>" + SecurityElement.Escape(GetPathToSave(item.PrimaryImagePath)) + "</poster>");
             }
 
             foreach (var backdrop in item.BackdropImagePaths)
             {
-                builder.Append("<fanart>" + SecurityElement.Escape(backdrop) + "</fanart>");
+                builder.Append("<fanart>" + SecurityElement.Escape(GetPathToSave(backdrop)) + "</fanart>");
             }
 
             builder.Append("</art>");
@@ -558,7 +557,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
                     if (!string.IsNullOrEmpty(personEntity.PrimaryImagePath))
                     {
-                        builder.Append("<thumb>" + SecurityElement.Escape(personEntity.PrimaryImagePath) + "</thumb>");
+                        builder.Append("<thumb>" + SecurityElement.Escape(GetPathToSave(personEntity.PrimaryImagePath)) + "</thumb>");
                     }
                 }
                 catch (Exception)
@@ -573,6 +572,36 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
         private static bool IsPersonType(PersonInfo person, string type)
         {
             return string.Equals(person.Type, type, StringComparison.OrdinalIgnoreCase) || string.Equals(person.Role, type, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string GetPathToSave(string path)
+        {
+            foreach (var replacement in Plugin.Instance.Configuration.PathSubstitutions)
+            {
+                path = ReplaceString(path, replacement.From, replacement.To ?? string.Empty, StringComparison.OrdinalIgnoreCase);
+            }
+
+            return path;
+        }
+
+        public static string ReplaceString(string str, string oldValue, string newValue, StringComparison comparison)
+        {
+            var sb = new StringBuilder();
+
+            int previousIndex = 0;
+            int index = str.IndexOf(oldValue, comparison);
+            while (index != -1)
+            {
+                sb.Append(str.Substring(previousIndex, index - previousIndex));
+                sb.Append(newValue);
+                index += oldValue.Length;
+
+                previousIndex = index;
+                index = str.IndexOf(oldValue, index, comparison);
+            }
+            sb.Append(str.Substring(previousIndex));
+
+            return sb.ToString();
         }
     }
 }

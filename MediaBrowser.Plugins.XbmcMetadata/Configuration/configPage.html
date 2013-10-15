@@ -20,6 +20,23 @@
                                 Dev builds are the bleeding edge. Released often, these build have not been tested. The application may crash and entire features may not work at all.                          
                             </div>
                         </li>
+                    </ul>
+
+                    <p><b>Path Substitution</b></p>
+
+                    <p>Use path substitution to substitute image locations for xbmc. For example \\server => smb://192.168.1.1</p>
+
+                    <ul class="ulForm" data-role="listview">
+
+                        <li>
+                            <label for="txtPathFrom">From::</label>
+                            <input type="text" id="txtPathFrom" name="txtPathFrom" />
+                        </li>
+
+                        <li>
+                            <label for="txtPathTo">To::</label>
+                            <input type="text" id="txtPathTo" name="txtPathTo" />
+                        </li>
 
                         <li>
                             <button type="submit" data-theme="b">Save</button>
@@ -56,6 +73,11 @@
 
                         $('#selectUser', page).html(html).val(config.UserId || '').selectmenu('refresh');
 
+                        var replacement = config.PathSubstitutions[0] || {};
+
+                        $('#txtPathFrom', page).html(html).val(replacement.From || '');
+                        $('#txtPathTo', page).html(html).val(replacement.To || '');
+
                         Dashboard.hideLoadingMsg();
                     });
 
@@ -71,7 +93,20 @@
                 ApiClient.getPluginConfiguration(XbmcMetadataConfigurationPage.pluginUniqueId).done(function (config) {
 
                     config.UserId = $('#selectUser', form).val() || null;
-                    
+
+                    var from = $('#txtPathFrom', form).val();
+                    var to = $('#txtPathTo', form).val();
+
+                    if (from) {
+                        config.PathSubstitutions = [{
+                            From: from,
+                            To: to
+                        }];
+                    } else {
+                        config.PathSubstitutions = [];
+                    }
+
+
                     ApiClient.updatePluginConfiguration(XbmcMetadataConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
                 });
 
