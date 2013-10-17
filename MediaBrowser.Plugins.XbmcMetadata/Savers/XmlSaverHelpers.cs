@@ -65,7 +65,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                     "resume"
 
         }.ToDictionary(i => i, StringComparer.OrdinalIgnoreCase);
-        
+
         /// <summary>
         /// Saves the specified XML.
         /// </summary>
@@ -578,7 +578,15 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
         {
             foreach (var replacement in Plugin.Instance.Configuration.PathSubstitutions)
             {
-                path = ReplaceString(path, replacement.From, replacement.To ?? string.Empty, StringComparison.OrdinalIgnoreCase);
+                var toValue = replacement.To ?? string.Empty;
+
+                path = ReplaceString(path, replacement.From, toValue, StringComparison.OrdinalIgnoreCase);
+
+                // Account for smb paths
+                if (toValue.IndexOf("://", StringComparison.OrdinalIgnoreCase) != -1)
+                {
+                    path = path.Replace('\\', '/');
+                }
             }
 
             return path;
