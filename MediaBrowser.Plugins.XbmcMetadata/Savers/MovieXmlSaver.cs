@@ -70,6 +70,16 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                     builder.Append("<album>" + SecurityElement.Escape(musicVideo.Album) + "</album>");
                 }
             }
+
+            var movie = item as Movie;
+
+            if (movie != null)
+            {
+                if (!string.IsNullOrEmpty(movie.TmdbCollectionName))
+                {
+                    builder.Append("<set>" + SecurityElement.Escape(movie.TmdbCollectionName) + "</set>");
+                }
+            }
             
             XmlSaverHelpers.AddMediaInfo((Video)item, builder);
 
@@ -80,7 +90,8 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             XmlSaverHelpers.Save(builder, xmlFilePath, new List<string>
                 {
                     "album",
-                    "artist"
+                    "artist",
+                    "set"
                 });
         }
 
