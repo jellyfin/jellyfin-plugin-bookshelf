@@ -53,12 +53,20 @@
     <Compile Include="..\SharedVersion.cs">
       <Link>Properties\SharedVersion.cs</Link>
     </Compile>
+    <Compile Include="BaseNesBoxProvider.cs" />
     <Compile Include="Configuration\PluginConfiguration.cs" />
+    <Compile Include="Extensions.cs" />
+    <Compile Include="NesBoxGame.cs" />
+    <Compile Include="NesBoxProvider.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="games.json" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="tile.jpg" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
