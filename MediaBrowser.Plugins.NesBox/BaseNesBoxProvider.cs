@@ -27,6 +27,22 @@ namespace MediaBrowser.Plugins.NesBox
         protected abstract string GameSystem { get; }
         protected abstract Stream GetCatalogStream();
 
+        protected override bool RefreshOnVersionChange
+        {
+            get
+            {
+                return true;
+            }
+        }
+
+        protected override string ProviderVersion
+        {
+            get
+            {
+                return "3";
+            }
+        }
+
         public override bool Supports(BaseItem item)
         {
             var game = item as Game;
@@ -88,8 +104,7 @@ namespace MediaBrowser.Plugins.NesBox
 
         private string GetComparableName(string name)
         {
-            Logger.Info("Original: " + name);
-            
+            //Logger.Info("Original name: " + name);
             var index = name.LastIndexOf('(');
 
             if (index != -1)
@@ -98,26 +113,38 @@ namespace MediaBrowser.Plugins.NesBox
             }
 
             var ret = RemoveSpecialCharacters(name);
-            Logger.Info("GetComparableName: " + ret);
 
+            //Logger.Info("Comparable name: " + ret);
             return ret;
         }
 
         public static string RemoveSpecialCharacters(string str)
         {
-            str = str.ReplaceString("The ", string.Empty, StringComparison.OrdinalIgnoreCase)
+            str = str.ReplaceString("adventures", "adventure", StringComparison.OrdinalIgnoreCase)
+                     .ReplaceString("mike tyson's", string.Empty, StringComparison.OrdinalIgnoreCase)
+                     .ReplaceString("x2", "x 2", StringComparison.OrdinalIgnoreCase)
+                     .ReplaceString("x3", "x 3", StringComparison.OrdinalIgnoreCase)
+                     .ReplaceString("alien wars", string.Empty, StringComparison.OrdinalIgnoreCase)
+                     .ReplaceString("Legend of the Seven Stars", string.Empty, StringComparison.OrdinalIgnoreCase)
+                     .ReplaceString("The World Warriors", string.Empty, StringComparison.OrdinalIgnoreCase)
+                     .ReplaceString("The World Warrior", string.Empty, StringComparison.OrdinalIgnoreCase)
+                     .ReplaceString("Hyper Fighting", string.Empty, StringComparison.OrdinalIgnoreCase)
+                     .ReplaceString("The New Challengers", string.Empty, StringComparison.OrdinalIgnoreCase)
+                     .ReplaceString("Legend of the Seven Stars", string.Empty, StringComparison.OrdinalIgnoreCase)
                      .ReplaceString(", The", string.Empty, StringComparison.OrdinalIgnoreCase)
-                     .ReplaceString("adventures", "adventure", StringComparison.OrdinalIgnoreCase)
-                     .ReplaceString("mike tyson's", string.Empty, StringComparison.OrdinalIgnoreCase);
+                     .ReplaceString("The ", string.Empty, StringComparison.OrdinalIgnoreCase);
 
             var sb = new StringBuilder();
-
+            
             sb.Append(' ');
             sb.Append(str);
             sb.Append(' ');
 
             // Standardize this
-            sb = sb.Replace(" 1 ", " I ")
+            sb = sb.Replace(":", string.Empty)
+                .Replace("-", string.Empty)
+                .Replace("'", string.Empty)
+                .Replace(" 1 ", " I ")
                 .Replace(" 2 ", " II ")
                 .Replace(" 3 ", " III ")
                 .Replace(" 4 ", " IV ")
@@ -140,5 +167,50 @@ namespace MediaBrowser.Plugins.NesBox
             
             return sb.ToString();
         }
+    }
+
+    public static class Extensions
+    {
+        public static string ReplaceString(this string str, string oldValue, string newValue, StringComparison comparison)
+        {
+            var sb = new StringBuilder();
+
+            var previousIndex = 0;
+            var index = str.IndexOf(oldValue, comparison);
+            while (index != -1)
+            {
+                sb.Append(str.Substring(previousIndex, index - previousIndex));
+                sb.Append(newValue);
+                index += oldValue.Length;
+
+                previousIndex = index;
+                index = str.IndexOf(oldValue, index, comparison);
+            }
+            sb.Append(str.Substring(previousIndex));
+
+            return sb.ToString();
+        }
+    }
+
+    /// <summary>
+    /// Class NesBoxGame
+    /// </summary>
+    public class NesBoxGame
+    {
+        /// <summary>
+        /// Gets or sets the name.
+        /// </summary>
+        /// <value>The name.</value>
+        public string name { get; set; }
+        /// <summary>
+        /// Gets or sets the URL.
+        /// </summary>
+        /// <value>The URL.</value>
+        public string url { get; set; }
+        /// <summary>
+        /// Gets or sets the play.
+        /// </summary>
+        /// <value>The play.</value>
+        public string play { get; set; }
     }
 }

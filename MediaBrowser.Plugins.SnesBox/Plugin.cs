@@ -1,9 +1,9 @@
 ﻿using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Serialization;
-using MediaBrowser.Plugins.NesBox.Configuration;
+using MediaBrowser.Plugins.SnesBox.Configuration;
 
-namespace MediaBrowser.Plugins.NesBox
+namespace MediaBrowser.Plugins.SnesBox
 {
     /// <summary>
     /// Class Plugin
@@ -22,7 +22,7 @@ namespace MediaBrowser.Plugins.NesBox
         /// <value>The name.</value>
         public override string Name
         {
-            get { return "NESBox"; }
+            get { return "SNESBox"; }
         }
 
         /// <summary>
@@ -33,7 +33,7 @@ namespace MediaBrowser.Plugins.NesBox
         {
             get
             {
-                return "Adds NESBox links for Nintendo games.";
+                return "Adds SNESBox links for Super Nintendo games.";
             }
         }
 
