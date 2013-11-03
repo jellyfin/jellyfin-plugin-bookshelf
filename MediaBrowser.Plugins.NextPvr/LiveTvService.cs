@@ -1,4 +1,5 @@
 ﻿using MediaBrowser.Controller.LiveTv;
+using MediaBrowser.Model.LiveTv;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,6 +37,16 @@ namespace MediaBrowser.Plugins.NextPvr
         public string Name
         {
             get { return "Next Pvr"; }
+        }
+
+        public Task<IEnumerable<EpgFullInfo>> GetEpgAsync(CancellationToken cancellationToken)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task<IEnumerable<RecordingInfo>> GetRecordingsAsync(CancellationToken cancellationToken)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }
