@@ -58,7 +58,6 @@
     </Compile>
     <Compile Include="BaseNesBoxProvider.cs" />
     <Compile Include="Configuration\PluginConfiguration.cs" />
-    <Compile Include="Entities\TrailerCollectionFolder.cs" />
     <Compile Include="NesBoxProvider.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
