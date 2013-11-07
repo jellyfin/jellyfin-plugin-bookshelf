@@ -11,11 +11,6 @@ namespace MediaBrowser.Plugins.NextPvr
     /// </summary>
     public class Plugin : BasePlugin<PluginConfiguration>
     {
-        /// <summary>
-        /// Apple doesn't seem to like too many simulataneous requests.
-        /// </summary>
-        public readonly SemaphoreSlim AppleTrailers = new SemaphoreSlim(1, 1);
-
         public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer)
             : base(applicationPaths, xmlSerializer)
         {
