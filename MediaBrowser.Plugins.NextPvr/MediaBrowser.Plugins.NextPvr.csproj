@@ -57,6 +57,9 @@
       <Link>Properties\SharedVersion.cs</Link>
     </Compile>
     <Compile Include="Configuration\PluginConfiguration.cs" />
+    <Compile Include="Helpers\ChannelType.cs" />
+    <Compile Include="Helpers\EncryptionHelper.cs" />
+    <Compile Include="Helpers\XmlHelper.cs" />
     <Compile Include="LiveTvService.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

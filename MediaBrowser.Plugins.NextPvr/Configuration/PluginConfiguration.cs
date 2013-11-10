@@ -7,5 +7,8 @@ namespace MediaBrowser.Plugins.NextPvr.Configuration
     /// </summary>
     public class PluginConfiguration : BasePluginConfiguration
     {
+        public string WebServiceUrl { get; set; }
+        public int Port { get; set; }
+        public string Pin { get; set; }
     }
 }
