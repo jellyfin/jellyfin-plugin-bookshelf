@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml;
@@ -7,6 +8,7 @@ using MediaBrowser.Controller.LiveTv;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using MediaBrowser.Model.LiveTv;
 using MediaBrowser.Plugins.NextPvr.Helpers;
 
 namespace MediaBrowser.Plugins.NextPvr
@@ -31,9 +33,9 @@ namespace MediaBrowser.Plugins.NextPvr
         {
             _httpClient = httpClient;
 
-            WebserviceUrl = Plugin.Instance.Configuration.WebServiceUrl;
-            Port = Plugin.Instance.Configuration.Port;
-            Pin = Plugin.Instance.Configuration.Pin;
+            //WebserviceUrl = Plugin.Instance.Configuration.WebServiceUrl;
+            //Port = Plugin.Instance.Configuration.Port;
+            //Pin = Plugin.Instance.Configuration.Pin;
 
             //TODO: Remove the following. Read from configuration
             WebserviceUrl = "http://192.168.1.170";
@@ -132,14 +134,74 @@ namespace MediaBrowser.Plugins.NextPvr
                     channels.AddRange(from XmlNode node in XmlHelper.GetMultipleNodes(html, "//rsp/channels/channel")
                                       select new ChannelInfo()
                                           {
-                                              //ChannelType = 
+                                              Id = XmlHelper.GetSingleNode(node.OuterXml, "//id").InnerXml,
                                               Name = XmlHelper.GetSingleNode(node.OuterXml, "//name").InnerXml,
+                                              ChannelType = ChannelHelper.GetChannelType(XmlHelper.GetSingleNode(node.OuterXml, "//type").InnerXml),
                                               ServiceName = Name
                                           });
                 }
             }
 
             return await Task.FromResult<IEnumerable<ChannelInfo>>(channels);
+        }
+
+        public async Task<IEnumerable<RecordingInfo>> GetRecordingsAsync(CancellationToken cancellationToken)
+        {
+            List<RecordingInfo> recordings = new List<RecordingInfo>();
+
+            if (IsConnected)
+            {
+                string html;
+
+                HttpRequestOptions options = new HttpRequestOptions()
+                {
+                    CancellationToken = cancellationToken,
+                    Url = string.Format("{0}:{1}/service?method=recording.list&sid={2}", WebserviceUrl, Port, Sid)
+                };
+
+                using (var reader = new StreamReader(_httpClient.Get(options).Result))
+                {
+                    html = reader.ReadToEnd();
+                }
+
+                if (XmlHelper.GetSingleNode(html, "//rsp/@stat").InnerXml.ToLower() == "ok")
+                {
+                    recordings.AddRange(
+                        from XmlNode node in XmlHelper.GetMultipleNodes(html, "//rsp/recordings/recording")
+                        let startDate = DateTime.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//start_time").InnerXml)
+                        select new RecordingInfo()
+                            {
+                                Id = XmlHelper.GetSingleNode(node.OuterXml, "//id").InnerXml,
+                                Name = XmlHelper.GetSingleNode(node.OuterXml, "//name").InnerXml,
+                                Description = XmlHelper.GetSingleNode(node.OuterXml, "//desc").InnerXml,
+                                StartDate = startDate,
+                                Status = XmlHelper.GetSingleNode(node.OuterXml, "//status").InnerXml,
+                                Quality = XmlHelper.GetSingleNode(node.OuterXml, "//quality").InnerXml,
+                                ChannelName = XmlHelper.GetSingleNode(node.OuterXml, "//channel").InnerXml,
+                                ChannelId = XmlHelper.GetSingleNode(node.OuterXml, "//channel_id").InnerXml,
+                                Recurring = bool.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring").InnerXml),
+                                RecurrringStartDate =
+                                    DateTime.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring_start").InnerXml),
+                                RecurringEndDate =
+                                    DateTime.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring_end").InnerXml),
+                                RecurringParent = XmlHelper.GetSingleNode(node.OuterXml, "//recurring_parent").InnerXml,
+                                DayMask = XmlHelper.GetSingleNode(node.OuterXml, "//daymask").InnerXml.Split(',').ToList(),
+                                EndDate =
+                                    startDate.AddSeconds(
+                                        (double.Parse(
+                                            XmlHelper.GetSingleNode(node.OuterXml, "//duration_seconds").InnerXml)))
+                            });
+                }
+            }
+
+            return await Task.FromResult<IEnumerable<RecordingInfo>>(recordings);
+        }
+
+        public async Task<IEnumerable<EpgFullInfo>> GetEpgAsync(CancellationToken cancellationToken)
+        {
+            List<EpgFullInfo> epgFullInfos = new List<EpgFullInfo>();
+
+            return await Task.FromResult<IEnumerable<EpgFullInfo>>(epgFullInfos);
         }
 
         /// <summary>
@@ -150,12 +212,5 @@ namespace MediaBrowser.Plugins.NextPvr
         {
             get { return "Next Pvr"; }
         }
-
-
-        #region External Stuff
-       
-
-        
-        #endregion
     }
 }
