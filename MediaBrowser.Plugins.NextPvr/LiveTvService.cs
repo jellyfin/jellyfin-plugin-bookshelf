@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -33,17 +34,15 @@ namespace MediaBrowser.Plugins.NextPvr
         {
             _httpClient = httpClient;
 
-            //WebserviceUrl = Plugin.Instance.Configuration.WebServiceUrl;
-            //Port = Plugin.Instance.Configuration.Port;
-            //Pin = Plugin.Instance.Configuration.Pin;
-
-            //TODO: Remove the following. Read from configuration
-            WebserviceUrl = "http://192.168.1.170";
-            Port = 8866;
-            Pin = "0000";
-
-            InitiateSession();
-            Login();
+            WebserviceUrl = Plugin.Instance.Configuration.WebServiceUrl;
+            Port = Plugin.Instance.Configuration.Port;
+            Pin = Plugin.Instance.Configuration.Pin;
+            
+            if(string.IsNullOrEmpty(WebserviceUrl) && string.IsNullOrEmpty(Port.ToString(CultureInfo.InvariantCulture)) && string.IsNullOrEmpty(Pin))
+            {
+                InitiateSession();
+                Login();
+            }
         }
 
         /// <summary>
@@ -197,11 +196,47 @@ namespace MediaBrowser.Plugins.NextPvr
             return await Task.FromResult<IEnumerable<RecordingInfo>>(recordings);
         }
 
-        public async Task<IEnumerable<EpgFullInfo>> GetEpgAsync(CancellationToken cancellationToken)
+        public Task<IEnumerable<EpgFullInfo>> GetEpgAsync(string channelId, CancellationToken cancellationToken)
         {
             List<EpgFullInfo> epgFullInfos = new List<EpgFullInfo>();
+            List<EpgInfo> epgInfos = new List<EpgInfo>();
 
-            return await Task.FromResult<IEnumerable<EpgFullInfo>>(epgFullInfos);
+            if (IsConnected)
+            {
+                string html;
+
+                HttpRequestOptions options = new HttpRequestOptions()
+                {
+                    CancellationToken = cancellationToken,
+                    Url = string.Format("{0}:{1}/service?method=channel.listings&channel_id={2}&sid={3}", WebserviceUrl, Port, channelId, Sid)
+                };
+
+                using (var reader = new StreamReader(_httpClient.Get(options).Result))
+                {
+                    html = reader.ReadToEnd();
+                }
+
+                if (XmlHelper.GetSingleNode(html, "//rsp/@stat").InnerXml.ToLower() == "ok")
+                {
+                    epgInfos.AddRange(
+                        from XmlNode node in XmlHelper.GetMultipleNodes(html, "//rsp/listings/l")
+                        let startDate = XmlHelper.GetSingleNode(node.OuterXml, "//start").InnerXml
+                        let endDate = XmlHelper.GetSingleNode(node.OuterXml, "//end").InnerXml
+                        select new EpgInfo()
+                        {
+                            Id = XmlHelper.GetSingleNode(node.OuterXml, "//id").InnerXml,
+                            //Name = XmlHelper.GetSingleNode(node.OuterXml, "//name").InnerXml,
+                            Description = XmlHelper.GetSingleNode(node.OuterXml, "//description").InnerXml,
+                            StartDate = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(double.Parse(startDate)) / 1000d).ToLocalTime(),
+                            EndDate = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(double.Parse(endDate)) / 1000d).ToLocalTime(),
+                            Genre = XmlHelper.GetSingleNode(node.OuterXml, "//genre").InnerXml,
+                        });
+
+                    epgFullInfos.Add(new EpgFullInfo(){ChannelId = channelId, EpgInfos = epgInfos});
+                }
+            }
+
+            return Task.FromResult<IEnumerable<EpgFullInfo>>(epgFullInfos);
         }
 
         /// <summary>
