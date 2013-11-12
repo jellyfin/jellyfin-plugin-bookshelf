@@ -1,16 +1,16 @@
-﻿using System;
+﻿using System.Collections.Generic;
+using MediaBrowser.Common.Net;
+using MediaBrowser.Controller.LiveTv;
+using MediaBrowser.Model.LiveTv;
+using MediaBrowser.Plugins.NextPvr.Helpers;
+using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Xml;
-using MediaBrowser.Common.Net;
-using MediaBrowser.Controller.LiveTv;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Model.LiveTv;
-using MediaBrowser.Plugins.NextPvr.Helpers;
+using System.Xml;
 
 namespace MediaBrowser.Plugins.NextPvr
 {
@@ -224,7 +224,7 @@ namespace MediaBrowser.Plugins.NextPvr
                         select new EpgInfo()
                         {
                             Id = XmlHelper.GetSingleNode(node.OuterXml, "//id").InnerXml,
-                            //Name = XmlHelper.GetSingleNode(node.OuterXml, "//name").InnerXml,
+                            Name = XmlHelper.GetSingleNode(node.OuterXml, "//name").InnerXml,
                             Description = XmlHelper.GetSingleNode(node.OuterXml, "//description").InnerXml,
                             StartDate = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(double.Parse(startDate)) / 1000d).ToLocalTime(),
                             EndDate = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(double.Parse(endDate)) / 1000d).ToLocalTime(),
