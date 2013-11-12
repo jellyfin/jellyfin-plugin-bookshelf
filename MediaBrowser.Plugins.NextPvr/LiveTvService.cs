@@ -196,9 +196,8 @@ namespace MediaBrowser.Plugins.NextPvr
             return await Task.FromResult<IEnumerable<RecordingInfo>>(recordings);
         }
 
-        public Task<IEnumerable<EpgFullInfo>> GetEpgAsync(string channelId, CancellationToken cancellationToken)
+        public Task<EpgFullInfo> GetEpgAsync(string channelId, CancellationToken cancellationToken)
         {
-            List<EpgFullInfo> epgFullInfos = new List<EpgFullInfo>();
             List<EpgInfo> epgInfos = new List<EpgInfo>();
 
             if (IsConnected)
@@ -231,12 +230,10 @@ namespace MediaBrowser.Plugins.NextPvr
                             EndDate = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(double.Parse(endDate)) / 1000d).ToLocalTime(),
                             Genre = XmlHelper.GetSingleNode(node.OuterXml, "//genre").InnerXml,
                         });
-
-                    epgFullInfos.Add(new EpgFullInfo(){ChannelId = channelId, EpgInfos = epgInfos});
                 }
             }
 
-            return Task.FromResult<IEnumerable<EpgFullInfo>>(epgFullInfos);
+            return Task.FromResult<EpgFullInfo>(new EpgFullInfo() { ChannelId = channelId, EpgInfos = epgInfos });
         }
 
         /// <summary>
