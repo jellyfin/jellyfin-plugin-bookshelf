@@ -13,9 +13,13 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Configuration
 
         public List<Replacement> PathSubstitutions { get; set; }
 
+        public string ReleaseDateFormat { get; set; }
+
         public PluginConfiguration()
         {
             PathSubstitutions = new List<Replacement>();
+
+            ReleaseDateFormat = "yyyy-MM-dd";
         }
     }
 

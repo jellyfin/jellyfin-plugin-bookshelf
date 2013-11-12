@@ -1,15 +1,15 @@
-﻿using System;
+﻿using MediaBrowser.Common.Net;
+using MediaBrowser.Controller.LiveTv;
+using MediaBrowser.Model.LiveTv;
+using MediaBrowser.Plugins.NextPvr.Helpers;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Xml;
-using MediaBrowser.Common.Net;
-using MediaBrowser.Controller.LiveTv;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Model.LiveTv;
-using MediaBrowser.Plugins.NextPvr.Helpers;
+using System.Xml;
 
 namespace MediaBrowser.Plugins.NextPvr
 {
@@ -197,13 +197,6 @@ namespace MediaBrowser.Plugins.NextPvr
             return await Task.FromResult<IEnumerable<RecordingInfo>>(recordings);
         }
 
-        public async Task<IEnumerable<EpgFullInfo>> GetEpgAsync(CancellationToken cancellationToken)
-        {
-            List<EpgFullInfo> epgFullInfos = new List<EpgFullInfo>();
-
-            return await Task.FromResult<IEnumerable<EpgFullInfo>>(epgFullInfos);
-        }
-
         /// <summary>
         /// Gets the name.
         /// </summary>
@@ -211,6 +204,11 @@ namespace MediaBrowser.Plugins.NextPvr
         public string Name
         {
             get { return "Next Pvr"; }
+        }
+
+        public Task<EpgFullInfo> GetEpgAsync(string channelId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
     }
 }

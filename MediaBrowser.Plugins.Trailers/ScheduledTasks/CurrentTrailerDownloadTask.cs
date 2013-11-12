@@ -205,7 +205,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
             var existing = trailerFolder
                 .Children
                 .OfType<Trailer>()
-                .FirstOrDefault(i => string.Equals(i.Path, trailer.TrailerUrl, StringComparison.OrdinalIgnoreCase));
+                .FirstOrDefault(i => string.Equals(i.Path, trailer.TrailerUrl, StringComparison.OrdinalIgnoreCase) || string.Equals(i.Name, trailer.Video.Name, StringComparison.OrdinalIgnoreCase));
 
             if (existing != null)
             {

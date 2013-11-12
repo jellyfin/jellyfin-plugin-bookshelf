@@ -415,8 +415,10 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             if (item.PremiereDate.HasValue && !(item is Episode))
             {
-                builder.Append("<premiered>" + SecurityElement.Escape(item.DateCreated.ToString("yyyy-MM-dd")) + "</premiered>");
-                builder.Append("<releasedate>" + SecurityElement.Escape(item.DateCreated.ToString("yyyy-MM-dd")) + "</releasedate>");
+                var formatString = Plugin.Instance.Configuration.ReleaseDateFormat;
+
+                builder.Append("<premiered>" + SecurityElement.Escape(item.DateCreated.ToString(formatString)) + "</premiered>");
+                builder.Append("<releasedate>" + SecurityElement.Escape(item.DateCreated.ToString(formatString)) + "</releasedate>");
             }
 
             var hasCriticRating = item as IHasCriticRating;

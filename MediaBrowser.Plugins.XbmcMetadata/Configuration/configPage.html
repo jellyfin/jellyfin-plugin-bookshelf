@@ -20,6 +20,13 @@
                                 Dev builds are the bleeding edge. Released often, these build have not been tested. The application may crash and entire features may not work at all.                          
                             </div>
                         </li>
+
+                        <li>
+                            <label for="selectReleaseDateFormat">Release date format:</label>
+                            <select name="selectReleaseDateFormat" id="selectReleaseDateFormat">
+                                <option value="yyyy-MM-dd">yyyy-MM-dd</option>
+                            </select>
+                        </li>
                     </ul>
 
                     <p><b>Path Substitution</b></p>
@@ -73,6 +80,8 @@
 
                         $('#selectUser', page).html(html).val(config.UserId || '').selectmenu('refresh');
 
+                        $('#selectReleaseDateFormat', page).html(html).val(config.ReleaseDateFormat).selectmenu('refresh');
+
                         var replacement = config.PathSubstitutions[0] || {};
 
                         $('#txtPathFrom', page).html(html).val(replacement.From || '');
@@ -93,6 +102,8 @@
                 ApiClient.getPluginConfiguration(XbmcMetadataConfigurationPage.pluginUniqueId).done(function (config) {
 
                     config.UserId = $('#selectUser', form).val() || null;
+
+                    config.ReleaseDateFormat = $('#selectReleaseDateFormat', form).val();
 
                     var from = $('#txtPathFrom', form).val();
                     var to = $('#txtPathTo', form).val();
