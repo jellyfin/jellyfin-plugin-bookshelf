@@ -59,6 +59,7 @@
     </Compile>
     <Compile Include="Configuration\PluginConfiguration.cs" />
     <Compile Include="Configuration\ConfigurationPage.cs" />
+    <Compile Include="EntryPoint.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Savers\AlbumXmlSaver.cs" />
