@@ -16,9 +16,6 @@
                             <label for="selectUser">Add user watch data to nfo's for:</label>
                             <select name="selectUser" id="selectUser">
                             </select>
-                            <div id="devBuildWarning" class="fieldDescription warningFieldDescription" style="display: none;">
-                                Dev builds are the bleeding edge. Released often, these build have not been tested. The application may crash and entire features may not work at all.                          
-                            </div>
                         </li>
 
                         <li>
@@ -80,7 +77,7 @@
 
                         $('#selectUser', page).html(html).val(config.UserId || '').selectmenu('refresh');
 
-                        $('#selectReleaseDateFormat', page).html(html).val(config.ReleaseDateFormat).selectmenu('refresh');
+                        $('#selectReleaseDateFormat', page).val(config.ReleaseDateFormat).selectmenu('refresh');
 
                         var replacement = config.PathSubstitutions[0] || {};
 

@@ -50,7 +50,9 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             if (item.PremiereDate.HasValue)
             {
-                builder.Append("<aired>" + SecurityElement.Escape(item.PremiereDate.Value.ToShortDateString()) + "</aired>");
+                var formatString = Plugin.Instance.Configuration.ReleaseDateFormat;
+
+                builder.Append("<aired>" + SecurityElement.Escape(item.PremiereDate.Value.ToString(formatString)) + "</aired>");
             }
 
             XmlSaverHelpers.AddMediaInfo((Episode)item, builder);
