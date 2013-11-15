@@ -160,7 +160,7 @@ namespace MediaBrowser.Plugins.NextPvr
             return channels;
         }
 
-        public async Task<IEnumerable<RecordingInfo>> GetRecordingsAsync(CancellationToken cancellationToken)
+        public async Task<IEnumerable<RecordingInfo>> GetRecordingsAsync(RecordingQuery query, CancellationToken cancellationToken)
         {
             await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
 
@@ -214,11 +214,11 @@ namespace MediaBrowser.Plugins.NextPvr
             return recordings;
         }
 
-        public async Task<EpgFullInfo> GetEpgAsync(string channelId, CancellationToken cancellationToken)
+        private async Task<ChannelGuide> GetEpgAsync(string channelId, CancellationToken cancellationToken)
         {
             await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
 
-            var epgInfos = new List<EpgInfo>();
+            var epgInfos = new List<ProgramInfo>();
 
             string html;
 
@@ -242,7 +242,7 @@ namespace MediaBrowser.Plugins.NextPvr
                     from XmlNode node in XmlHelper.GetMultipleNodes(html, "//rsp/listings/l")
                     let startDate = XmlHelper.GetSingleNode(node.OuterXml, "//start").InnerXml
                     let endDate = XmlHelper.GetSingleNode(node.OuterXml, "//end").InnerXml
-                    select new EpgInfo()
+                    select new ProgramInfo()
                     {
                         Id = XmlHelper.GetSingleNode(node.OuterXml, "//id").InnerXml,
                         Name = XmlHelper.GetSingleNode(node.OuterXml, "//name").InnerXml,
@@ -253,10 +253,10 @@ namespace MediaBrowser.Plugins.NextPvr
                     });
             }
 
-            return new EpgFullInfo
+            return new ChannelGuide
             {
                 ChannelId = channelId,
-                EpgInfos = epgInfos
+                Programs = epgInfos
             };
         }
 
@@ -267,6 +267,13 @@ namespace MediaBrowser.Plugins.NextPvr
         public string Name
         {
             get { return "Next Pvr"; }
+        }
+
+        public async Task<IEnumerable<ChannelGuide>> GetChannelGuidesAsync(IEnumerable<string> channelIdList, CancellationToken cancellationToken)
+        {
+            var tasks = channelIdList.Select(i => GetEpgAsync(i, cancellationToken));
+
+            return await Task.WhenAll(tasks).ConfigureAwait(false);
         }
     }
 }
