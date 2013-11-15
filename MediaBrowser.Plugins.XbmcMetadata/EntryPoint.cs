@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Controller.Entities;
+﻿using System.Linq;
+using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Plugins;
 using MediaBrowser.Model.Entities;
@@ -24,13 +25,33 @@ namespace MediaBrowser.Plugins.XbmcMetadata
         public void Run()
         {
             _userDataManager.UserDataSaved += _userDataManager_UserDataSaved;
+            _libraryManager.ItemUpdated += _libraryManager_ItemUpdated;
+        }
+
+        void _libraryManager_ItemUpdated(object sender, ItemChangeEventArgs e)
+        {
+            if (e.UpdateReason == ItemUpdateType.ImageUpdate && e.Item is Person)
+            {
+                var person = e.Item.Name;
+
+                var items = _libraryManager.RootFolder
+                    .GetRecursiveChildren(i => !i.IsFolder && i.People.Any(p => string.Equals(p.Name, person, StringComparison.OrdinalIgnoreCase)));
+
+                foreach (var item in items)
+                {
+                    SaveMetadataForItem(item, ItemUpdateType.MetadataEdit);
+                }
+            }
         }
 
         void _userDataManager_UserDataSaved(object sender, UserDataSaveEventArgs e)
         {
             if (e.SaveReason == UserDataSaveReason.PlaybackFinished || e.SaveReason == UserDataSaveReason.TogglePlayed)
             {
-                SaveMetadataForItem(e.Item, CancellationToken.None);
+                if (!e.Item.IsFolder && !(e.Item is IItemByName))
+                {
+                    SaveMetadataForItem(e.Item, ItemUpdateType.MetadataEdit);
+                }
             }
         }
 
@@ -39,7 +60,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata
             _userDataManager.UserDataSaved -= _userDataManager_UserDataSaved;
         }
 
-        private async void SaveMetadataForItem(BaseItem item, CancellationToken cancellationToken)
+        private async void SaveMetadataForItem(BaseItem item, ItemUpdateType updateReason)
         {
             var userId = Plugin.Instance.Configuration.UserId;
 
@@ -57,7 +78,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata
 
             try
             {
-                //await _libraryManager.SaveMetadata(item, cancellationToken).ConfigureAwait(false);
+                await _libraryManager.SaveMetadata(item, updateReason).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

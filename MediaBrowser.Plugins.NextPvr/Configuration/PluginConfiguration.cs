@@ -8,7 +8,12 @@ namespace MediaBrowser.Plugins.NextPvr.Configuration
     public class PluginConfiguration : BasePluginConfiguration
     {
         public string WebServiceUrl { get; set; }
-        public int Port { get; set; }
         public string Pin { get; set; }
+
+        public PluginConfiguration()
+        {
+            Pin = "0000";
+            WebServiceUrl = "http://localhost:8866";
+        }
     }
 }

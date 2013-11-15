@@ -23,7 +23,6 @@ namespace MediaBrowser.Plugins.NextPvr
         private string Sid { get; set; }
 
         private string WebserviceUrl { get; set; }
-        private int Port { get; set; }
         private string Pin { get; set; }
 
         public LiveTvService(IHttpClient httpClient)
@@ -54,13 +53,12 @@ namespace MediaBrowser.Plugins.NextPvr
             string html;
 
             WebserviceUrl = Plugin.Instance.Configuration.WebServiceUrl;
-            Port = Plugin.Instance.Configuration.Port;
             Pin = Plugin.Instance.Configuration.Pin;
 
             var options = new HttpRequestOptions
             {
                 // This moment only device name xbmc is available
-                Url = string.Format("{0}:{1}/service?method=session.initiate&ver=1.0&device=xbmc", WebserviceUrl, Port),
+                Url = string.Format("{0}/service?method=session.initiate&ver=1.0&device=xbmc", WebserviceUrl),
 
                 CancellationToken = cancellationToken
             };
@@ -104,7 +102,7 @@ namespace MediaBrowser.Plugins.NextPvr
             var options = new HttpRequestOptions()
             {
                 // This moment only device name xbmc is available
-                Url = string.Format("{0}:{1}/service?method=session.login&&sid={2}&md5={3}", WebserviceUrl, Port, sid, md5Result),
+                Url = string.Format("{0}/service?method=session.login&&sid={1}&md5={2}", WebserviceUrl, sid, md5Result),
 
                 CancellationToken = cancellationToken
             };
@@ -136,7 +134,7 @@ namespace MediaBrowser.Plugins.NextPvr
             var options = new HttpRequestOptions()
             {
                 CancellationToken = cancellationToken,
-                Url = string.Format("{0}:{1}/service?method=channel.list&sid={2}", WebserviceUrl, Port, Sid)
+                Url = string.Format("{0}/service?method=channel.list&sid={1}", WebserviceUrl, Sid)
             };
 
             using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
@@ -173,7 +171,7 @@ namespace MediaBrowser.Plugins.NextPvr
             var options = new HttpRequestOptions()
             {
                 CancellationToken = cancellationToken,
-                Url = string.Format("{0}:{1}/service?method=recording.list&sid={2}", WebserviceUrl, Port, Sid)
+                Url = string.Format("{0}/service?method=recording.list&sid={1}", WebserviceUrl, Sid)
             };
 
             using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
@@ -227,7 +225,7 @@ namespace MediaBrowser.Plugins.NextPvr
             var options = new HttpRequestOptions()
             {
                 CancellationToken = cancellationToken,
-                Url = string.Format("{0}:{1}/service?method=channel.listings&channel_id={2}&sid={3}", WebserviceUrl, Port, channelId, Sid)
+                Url = string.Format("{0}/service?method=channel.listings&channel_id={1}&sid={2}", WebserviceUrl, channelId, Sid)
             };
 
             using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
