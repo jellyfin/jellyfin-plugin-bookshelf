@@ -417,8 +417,8 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             {
                 var formatString = Plugin.Instance.Configuration.ReleaseDateFormat;
 
-                builder.Append("<premiered>" + SecurityElement.Escape(item.DateCreated.ToString(formatString)) + "</premiered>");
-                builder.Append("<releasedate>" + SecurityElement.Escape(item.DateCreated.ToString(formatString)) + "</releasedate>");
+                builder.Append("<premiered>" + SecurityElement.Escape(item.PremiereDate.Value.ToString(formatString)) + "</premiered>");
+                builder.Append("<releasedate>" + SecurityElement.Escape(item.PremiereDate.Value.ToString(formatString)) + "</releasedate>");
             }
 
             var hasCriticRating = item as IHasCriticRating;
