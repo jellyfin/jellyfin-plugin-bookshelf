@@ -55,6 +55,21 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 builder.Append("<aired>" + SecurityElement.Escape(item.PremiereDate.Value.ToString(formatString)) + "</aired>");
             }
 
+            var episode = (Episode)item;
+
+            if (episode.AirsAfterSeasonNumber.HasValue)
+            {
+                builder.Append("<airsafter_season>" + SecurityElement.Escape(episode.AirsAfterSeasonNumber.Value.ToString(_usCulture)) + "</airsafter_season>");
+            }
+            if (episode.AirsBeforeEpisodeNumber.HasValue)
+            {
+                builder.Append("<airsbefore_episode>" + SecurityElement.Escape(episode.AirsBeforeEpisodeNumber.Value.ToString(_usCulture)) + "</airsbefore_episode>");
+            }
+            if (episode.AirsBeforeSeasonNumber.HasValue)
+            {
+                builder.Append("<airsbefore_season>" + SecurityElement.Escape(episode.AirsBeforeSeasonNumber.Value.ToString(_usCulture)) + "</airsbefore_season>");
+            }
+
             XmlSaverHelpers.AddMediaInfo((Episode)item, builder);
 
             builder.Append("</episodedetails>");
@@ -65,7 +80,10 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 {
                     "aired",
                     "season",
-                    "episode"
+                    "episode",
+                    "airsafter_season",
+                    "airsbefore_episode",
+                    "airsbefore_season"
                 });
         }
 
