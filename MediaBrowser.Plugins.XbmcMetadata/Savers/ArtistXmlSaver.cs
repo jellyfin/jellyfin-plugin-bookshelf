@@ -30,7 +30,20 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             XmlSaverHelpers.AddCommonNodes(item, builder, _libraryManager, _userManager, _userDataRepo);
 
-            var albums = ((MusicArtist)item).Children.OfType<MusicAlbum>().ToList();
+            if (item.EndDate.HasValue)
+            {
+                var formatString = Plugin.Instance.Configuration.ReleaseDateFormat;
+
+                if (item is Artist || item is MusicArtist)
+                {
+                    builder.Append("<disbanded>" + SecurityElement.Escape(item.EndDate.Value.ToString(formatString)) + "</disbanded>");
+                }
+            } 
+
+            var albums = ((MusicArtist)item)
+                .RecursiveChildren
+                .OfType<MusicAlbum>()
+                .ToList();
 
             AddAlbums(albums, builder);
 
@@ -40,7 +53,8 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             XmlSaverHelpers.Save(builder, xmlFilePath, new List<string>
                 {
-                    "album"
+                    "album",
+                    "disbanded"
                 });
         }
 
@@ -80,7 +94,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 {
                     builder.Append("<year>" + SecurityElement.Escape(album.ProductionYear.Value.ToString(UsCulture)) + "</year>");
                 }
-
+                
                 builder.Append("</album>");
             }
         }

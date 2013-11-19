@@ -38,7 +38,9 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             XmlSaverHelpers.AddCommonNodes(item, builder, _libraryManager, _userManager, _userDataRepo);
 
-            var tracks = ((MusicAlbum)item).Children.OfType<Audio>().ToList();
+            var tracks = ((MusicAlbum)item).RecursiveChildren
+                .OfType<Audio>()
+                .ToList();
 
             var artists = tracks
                 .SelectMany(i =>

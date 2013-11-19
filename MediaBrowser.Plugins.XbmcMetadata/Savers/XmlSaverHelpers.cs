@@ -1,4 +1,5 @@
 ﻿using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Entities;
@@ -62,7 +63,9 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                     "playcount",
                     "lastplayed",
                     "art",
-                    "resume"
+                    "resume",
+                    "biography",
+                    "formed"
 
         }.ToDictionary(i => i, StringComparer.OrdinalIgnoreCase);
 
@@ -287,8 +290,15 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
         /// <returns>Task.</returns>
         public static void AddCommonNodes(BaseItem item, StringBuilder builder, ILibraryManager libraryManager, IUserManager userManager, IUserDataManager userDataRepo)
         {
-            builder.Append("<plot><![CDATA[" + (item.Overview ?? string.Empty) + "]]></plot>");
-            builder.Append("<outline><![CDATA[" + (item.Overview ?? string.Empty) + "]]></outline>");
+            if (item is Artist || item is MusicAlbum || item is MusicArtist)
+            {
+                builder.Append("<biography><![CDATA[" + (item.Overview ?? string.Empty) + "]]></biography>");
+            }
+            else
+            {
+                builder.Append("<plot><![CDATA[" + (item.Overview ?? string.Empty) + "]]></plot>");
+                builder.Append("<outline><![CDATA[" + (item.Overview ?? string.Empty) + "]]></outline>");
+            }
 
             builder.Append("<customrating>" + SecurityElement.Escape(item.CustomRating ?? string.Empty) + "</customrating>");
             builder.Append("<lockdata>" + item.DontFetchMeta.ToString().ToLower() + "</lockdata>");
@@ -417,10 +427,17 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             {
                 var formatString = Plugin.Instance.Configuration.ReleaseDateFormat;
 
-                builder.Append("<premiered>" + SecurityElement.Escape(item.PremiereDate.Value.ToString(formatString)) + "</premiered>");
-                builder.Append("<releasedate>" + SecurityElement.Escape(item.PremiereDate.Value.ToString(formatString)) + "</releasedate>");
+                if (item is Artist || item is MusicArtist)
+                {
+                    builder.Append("<formed>" + SecurityElement.Escape(item.PremiereDate.Value.ToString(formatString)) + "</formed>");
+                }
+                else
+                {
+                    builder.Append("<premiered>" + SecurityElement.Escape(item.PremiereDate.Value.ToString(formatString)) + "</premiered>");
+                    builder.Append("<releasedate>" + SecurityElement.Escape(item.PremiereDate.Value.ToString(formatString)) + "</releasedate>");
+                }
             }
-
+            
             var hasCriticRating = item as IHasCriticRating;
 
             if (hasCriticRating != null)
