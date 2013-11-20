@@ -65,7 +65,9 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                     "art",
                     "resume",
                     "biography",
-                    "formed"
+                    "formed",
+                    "review",
+                    "style"
 
         }.ToDictionary(i => i, StringComparer.OrdinalIgnoreCase);
 
@@ -290,9 +292,13 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
         /// <returns>Task.</returns>
         public static void AddCommonNodes(BaseItem item, StringBuilder builder, ILibraryManager libraryManager, IUserManager userManager, IUserDataManager userDataRepo)
         {
-            if (item is Artist || item is MusicAlbum || item is MusicArtist)
+            if (item is Artist || item is MusicArtist)
             {
                 builder.Append("<biography><![CDATA[" + (item.Overview ?? string.Empty) + "]]></biography>");
+            }
+            else if (item is MusicAlbum)
+            {
+                builder.Append("<review><![CDATA[" + (item.Overview ?? string.Empty) + "]]></review>");
             }
             else
             {
@@ -437,7 +443,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                     builder.Append("<releasedate>" + SecurityElement.Escape(item.PremiereDate.Value.ToString(formatString)) + "</releasedate>");
                 }
             }
-            
+
             var hasCriticRating = item as IHasCriticRating;
 
             if (hasCriticRating != null)
@@ -495,7 +501,14 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             foreach (var tag in item.Tags)
             {
-                builder.Append("<tag>" + SecurityElement.Escape(tag) + "</tag>");
+                if (item is MusicAlbum || item is MusicArtist || item is Artist)
+                {
+                    builder.Append("<style>" + SecurityElement.Escape(tag) + "</style>");
+                }
+                else
+                {
+                    builder.Append("<tag>" + SecurityElement.Escape(tag) + "</tag>");
+                }
             }
 
             AddImages(item, builder);
