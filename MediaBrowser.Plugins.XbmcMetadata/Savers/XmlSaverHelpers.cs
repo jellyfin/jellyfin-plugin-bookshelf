@@ -377,9 +377,13 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 builder.Append("<mpaadescription>" + SecurityElement.Escape(item.OfficialRatingDescription) + "</mpaadescription>");
             }
 
-            if (!string.IsNullOrEmpty(item.AspectRatio))
+            var hasAspectRatio = item as IHasAspectRatio;
+            if (hasAspectRatio != null)
             {
-                builder.Append("<aspectratio>" + SecurityElement.Escape(item.AspectRatio) + "</aspectratio>");
+                if (!string.IsNullOrEmpty(hasAspectRatio.AspectRatio))
+                {
+                    builder.Append("<aspectratio>" + SecurityElement.Escape(hasAspectRatio.AspectRatio) + "</aspectratio>");
+                }
             }
 
             if (!string.IsNullOrEmpty(item.HomePageUrl))

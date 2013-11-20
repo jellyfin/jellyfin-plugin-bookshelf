@@ -275,5 +275,20 @@ namespace MediaBrowser.Plugins.NextPvr
 
             return await Task.WhenAll(tasks).ConfigureAwait(false);
         }
+
+        public Task CancelRecordingAsync(string recordingId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Stream> GetChannelImageAsync(string channelId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task ScheduleRecordingAsync(string channelId, DateTime startTime, TimeSpan duration, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
