@@ -56,12 +56,12 @@ namespace MediaBrowser.Plugins.NextPvr
             Pin = Plugin.Instance.Configuration.Pin;
 
             var options = new HttpRequestOptions
-            {
-                // This moment only device name xbmc is available
-                Url = string.Format("{0}/service?method=session.initiate&ver=1.0&device=xbmc", WebserviceUrl),
+                {
+                    // This moment only device name xbmc is available
+                    Url = string.Format("{0}/service?method=session.initiate&ver=1.0&device=xbmc", WebserviceUrl),
 
-                CancellationToken = cancellationToken
-            };
+                    CancellationToken = cancellationToken
+                };
 
             using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
             {
@@ -100,12 +100,13 @@ namespace MediaBrowser.Plugins.NextPvr
             var md5Result = EncryptionHelper.GetMd5Hash(strb.ToString());
 
             var options = new HttpRequestOptions()
-            {
-                // This moment only device name xbmc is available
-                Url = string.Format("{0}/service?method=session.login&&sid={1}&md5={2}", WebserviceUrl, sid, md5Result),
+                {
+                    // This moment only device name xbmc is available
+                    Url =
+                        string.Format("{0}/service?method=session.login&&sid={1}&md5={2}", WebserviceUrl, sid, md5Result),
 
-                CancellationToken = cancellationToken
-            };
+                    CancellationToken = cancellationToken
+                };
 
             using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
             {
@@ -132,10 +133,10 @@ namespace MediaBrowser.Plugins.NextPvr
             string html;
 
             var options = new HttpRequestOptions()
-            {
-                CancellationToken = cancellationToken,
-                Url = string.Format("{0}/service?method=channel.list&sid={1}", WebserviceUrl, Sid)
-            };
+                {
+                    CancellationToken = cancellationToken,
+                    Url = string.Format("{0}/service?method=channel.list&sid={1}", WebserviceUrl, Sid)
+                };
 
             using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
             {
@@ -149,18 +150,21 @@ namespace MediaBrowser.Plugins.NextPvr
             {
                 channels.AddRange(from XmlNode node in XmlHelper.GetMultipleNodes(html, "//rsp/channels/channel")
                                   select new ChannelInfo()
-                                  {
-                                      Id = XmlHelper.GetSingleNode(node.OuterXml, "//id").InnerXml,
-                                      Name = XmlHelper.GetSingleNode(node.OuterXml, "//name").InnerXml,
-                                      ChannelType = ChannelHelper.GetChannelType(XmlHelper.GetSingleNode(node.OuterXml, "//type").InnerXml),
-                                      ServiceName = Name
-                                  });
+                                      {
+                                          Id = XmlHelper.GetSingleNode(node.OuterXml, "//id").InnerXml,
+                                          Name = XmlHelper.GetSingleNode(node.OuterXml, "//name").InnerXml,
+                                          ChannelType =
+                                              ChannelHelper.GetChannelType(
+                                                  XmlHelper.GetSingleNode(node.OuterXml, "//type").InnerXml),
+                                          ServiceName = Name
+                                      });
             }
 
             return channels;
         }
 
-        public async Task<IEnumerable<RecordingInfo>> GetRecordingsAsync(RecordingQuery query, CancellationToken cancellationToken)
+        public async Task<IEnumerable<RecordingInfo>> GetRecordingsAsync(RecordingQuery query,
+                                                                         CancellationToken cancellationToken)
         {
             await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
 
@@ -169,10 +173,10 @@ namespace MediaBrowser.Plugins.NextPvr
             string html;
 
             var options = new HttpRequestOptions()
-            {
-                CancellationToken = cancellationToken,
-                Url = string.Format("{0}/service?method=recording.list&sid={1}", WebserviceUrl, Sid)
-            };
+                {
+                    CancellationToken = cancellationToken,
+                    Url = string.Format("{0}/service?method=recording.list&sid={1}", WebserviceUrl, Sid)
+                };
 
             using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
             {
@@ -223,10 +227,12 @@ namespace MediaBrowser.Plugins.NextPvr
             string html;
 
             var options = new HttpRequestOptions()
-            {
-                CancellationToken = cancellationToken,
-                Url = string.Format("{0}/service?method=channel.listings&channel_id={1}&sid={2}", WebserviceUrl, channelId, Sid)
-            };
+                {
+                    CancellationToken = cancellationToken,
+                    Url =
+                        string.Format("{0}/service?method=channel.listings&channel_id={1}&sid={2}", WebserviceUrl,
+                                      channelId, Sid)
+                };
 
             using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
             {
@@ -243,21 +249,99 @@ namespace MediaBrowser.Plugins.NextPvr
                     let startDate = XmlHelper.GetSingleNode(node.OuterXml, "//start").InnerXml
                     let endDate = XmlHelper.GetSingleNode(node.OuterXml, "//end").InnerXml
                     select new ProgramInfo()
-                    {
-                        Id = XmlHelper.GetSingleNode(node.OuterXml, "//id").InnerXml,
-                        Name = XmlHelper.GetSingleNode(node.OuterXml, "//name").InnerXml,
-                        Description = XmlHelper.GetSingleNode(node.OuterXml, "//description").InnerXml,
-                        StartDate = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(double.Parse(startDate)) / 1000d).ToLocalTime(),
-                        EndDate = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(double.Parse(endDate)) / 1000d).ToLocalTime(),
-                        Genre = XmlHelper.GetSingleNode(node.OuterXml, "//genre").InnerXml,
-                    });
+                        {
+                            Id = XmlHelper.GetSingleNode(node.OuterXml, "//id").InnerXml,
+                            Name = XmlHelper.GetSingleNode(node.OuterXml, "//name").InnerXml,
+                            Description = XmlHelper.GetSingleNode(node.OuterXml, "//description").InnerXml,
+                            StartDate =
+                                new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(double.Parse(startDate)) /
+                                                                                1000d).ToLocalTime(),
+                            EndDate =
+                                new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(double.Parse(endDate)) / 1000d)
+                                                                    .ToLocalTime(),
+                            Genre = XmlHelper.GetSingleNode(node.OuterXml, "//genre").InnerXml,
+                        });
             }
 
             return new ChannelGuide
+                {
+                    ChannelId = channelId,
+                    Programs = epgInfos
+                };
+        }
+
+        public async Task<IEnumerable<ChannelGuide>> GetChannelGuidesAsync(IEnumerable<string> channelIdList,
+                                                                           CancellationToken cancellationToken)
+        {
+            var tasks = channelIdList.Select(i => GetEpgAsync(i, cancellationToken));
+
+            return await Task.WhenAll(tasks).ConfigureAwait(false);
+        }
+
+        public async Task CancelRecordingAsync(string recordingId, CancellationToken cancellationToken)
+        {
+            string html;
+
+            var options = new HttpRequestOptions()
+                {
+                    CancellationToken = cancellationToken,
+                    Url =
+                        string.Format("{0}/service?method=recording.delete&recording_id={1}&sid={2}", WebserviceUrl,
+                                      recordingId, Sid)
+                };
+
+            using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
             {
-                ChannelId = channelId,
-                Programs = epgInfos
-            };
+                using (var reader = new StreamReader(stream))
+                {
+                    html = await reader.ReadToEndAsync().ConfigureAwait(false);
+                }
+            }
+
+            if (XmlHelper.GetSingleNode(html, "//rsp/@stat").InnerXml.ToLower() == "ok")
+            {
+                //Deleted
+            }
+            else
+            {
+                //TODO: Send something back? When failing....
+            }
+        }
+
+        public Task<Stream> GetChannelImageAsync(string channelId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        public async Task ScheduleRecordingAsync(string name, string channelId, DateTime startTime, TimeSpan duration, CancellationToken cancellationToken)
+        {
+            string html;
+
+            var options = new HttpRequestOptions()
+                {
+                    CancellationToken = cancellationToken,
+                    Url =
+                        string.Format("{0}/service?method=recording.save&name={1}&channel={2}&time_t={3}&duration={4}&sid={5}", WebserviceUrl,
+                                      name, channelId, startTime, duration, Sid)
+                };
+
+            using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
+            {
+                using (var reader = new StreamReader(stream))
+                {
+                    html = await reader.ReadToEndAsync().ConfigureAwait(false);
+                }
+            }
+
+            if (XmlHelper.GetSingleNode(html, "//rsp/@stat").InnerXml.ToLower() == "ok")
+            {
+                //Added Recording
+            }
+            else
+            {
+                //TODO: Send something back? When failing....
+            }
         }
 
         /// <summary>
@@ -267,28 +351,6 @@ namespace MediaBrowser.Plugins.NextPvr
         public string Name
         {
             get { return "Next Pvr"; }
-        }
-
-        public async Task<IEnumerable<ChannelGuide>> GetChannelGuidesAsync(IEnumerable<string> channelIdList, CancellationToken cancellationToken)
-        {
-            var tasks = channelIdList.Select(i => GetEpgAsync(i, cancellationToken));
-
-            return await Task.WhenAll(tasks).ConfigureAwait(false);
-        }
-
-        public Task CancelRecordingAsync(string recordingId, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<Stream> GetChannelImageAsync(string channelId, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task ScheduleRecordingAsync(string channelId, DateTime startTime, TimeSpan duration, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
         }
     }
 }
