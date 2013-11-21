@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Common.Extensions;
+using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
@@ -292,18 +293,20 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
         /// <returns>Task.</returns>
         public static void AddCommonNodes(BaseItem item, StringBuilder builder, ILibraryManager libraryManager, IUserManager userManager, IUserDataManager userDataRepo)
         {
+            var overview = (item.Overview ?? string.Empty).StripHtml();
+
             if (item is Artist || item is MusicArtist)
             {
-                builder.Append("<biography><![CDATA[" + (item.Overview ?? string.Empty) + "]]></biography>");
+                builder.Append("<biography><![CDATA[" + overview + "]]></biography>");
             }
             else if (item is MusicAlbum)
             {
-                builder.Append("<review><![CDATA[" + (item.Overview ?? string.Empty) + "]]></review>");
+                builder.Append("<review><![CDATA[" + overview + "]]></review>");
             }
             else
             {
-                builder.Append("<plot><![CDATA[" + (item.Overview ?? string.Empty) + "]]></plot>");
-                builder.Append("<outline><![CDATA[" + (item.Overview ?? string.Empty) + "]]></outline>");
+                builder.Append("<plot><![CDATA[" + overview + "]]></plot>");
+                builder.Append("<outline><![CDATA[" + overview + "]]></outline>");
             }
 
             builder.Append("<customrating>" + SecurityElement.Escape(item.CustomRating ?? string.Empty) + "</customrating>");
