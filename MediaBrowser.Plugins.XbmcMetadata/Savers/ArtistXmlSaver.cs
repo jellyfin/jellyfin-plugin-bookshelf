@@ -34,7 +34,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             {
                 var formatString = Plugin.Instance.Configuration.ReleaseDateFormat;
 
-                if (item is Artist || item is MusicArtist)
+                if (item is MusicArtist)
                 {
                     builder.Append("<disbanded>" + SecurityElement.Escape(item.EndDate.Value.ToString(formatString)) + "</disbanded>");
                 }

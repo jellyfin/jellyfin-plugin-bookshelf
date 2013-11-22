@@ -293,9 +293,11 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
         /// <returns>Task.</returns>
         public static void AddCommonNodes(BaseItem item, StringBuilder builder, ILibraryManager libraryManager, IUserManager userManager, IUserDataManager userDataRepo)
         {
-            var overview = (item.Overview ?? string.Empty).StripHtml();
+            var overview = (item.Overview ?? string.Empty)
+                .StripHtml()
+                .Replace("&quot;", "'");
 
-            if (item is Artist || item is MusicArtist)
+            if (item is MusicArtist)
             {
                 builder.Append("<biography><![CDATA[" + overview + "]]></biography>");
             }
@@ -440,7 +442,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             {
                 var formatString = Plugin.Instance.Configuration.ReleaseDateFormat;
 
-                if (item is Artist || item is MusicArtist)
+                if (item is MusicArtist)
                 {
                     builder.Append("<formed>" + SecurityElement.Escape(item.PremiereDate.Value.ToString(formatString)) + "</formed>");
                 }
@@ -508,7 +510,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             foreach (var tag in item.Tags)
             {
-                if (item is MusicAlbum || item is MusicArtist || item is Artist)
+                if (item is MusicAlbum || item is MusicArtist)
                 {
                     builder.Append("<style>" + SecurityElement.Escape(tag) + "</style>");
                 }
