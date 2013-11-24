@@ -153,6 +153,7 @@ namespace MediaBrowser.Plugins.NextPvr
                                       {
                                           Id = XmlHelper.GetSingleNode(node.OuterXml, "//id").InnerXml,
                                           Name = XmlHelper.GetSingleNode(node.OuterXml, "//name").InnerXml,
+                                          Number = XmlHelper.GetSingleNode(node.OuterXml, "//number").InnerXml,
                                           ChannelType =
                                               ChannelHelper.GetChannelType(
                                                   XmlHelper.GetSingleNode(node.OuterXml, "//type").InnerXml),
