@@ -309,7 +309,7 @@ namespace MediaBrowser.Plugins.NextPvr
             }
         }
 
-        public Task<Stream> GetChannelImageAsync(string channelId, CancellationToken cancellationToken)
+        public Task<HttpResponseInfo> GetChannelImageAsync(string channelId, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
