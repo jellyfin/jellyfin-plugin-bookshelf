@@ -196,12 +196,12 @@ namespace MediaBrowser.Plugins.NextPvr
                             Id = XmlHelper.GetSingleNode(node.OuterXml, "//id").InnerXml,
                             Name = XmlHelper.GetSingleNode(node.OuterXml, "//name").InnerXml,
                             Description = XmlHelper.GetSingleNode(node.OuterXml, "//desc").InnerXml,
+                            ProgramId = GetString(node, "epg_event_oid"),
                             StartDate = startDate,
                             Status = XmlHelper.GetSingleNode(node.OuterXml, "//status").InnerXml,
-                            Quality = XmlHelper.GetSingleNode(node.OuterXml, "//quality").InnerXml,
                             ChannelName = XmlHelper.GetSingleNode(node.OuterXml, "//channel").InnerXml,
                             ChannelId = XmlHelper.GetSingleNode(node.OuterXml, "//channel_id").InnerXml,
-                            Recurring = bool.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring").InnerXml),
+                            IsRecurring = bool.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring").InnerXml),
                             RecurrringStartDate =
                                 DateTime.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring_start").InnerXml),
                             RecurringEndDate =
@@ -216,6 +216,13 @@ namespace MediaBrowser.Plugins.NextPvr
             }
 
             return recordings;
+        }
+
+        private string GetString(XmlNode node, string name)
+        {
+            node = XmlHelper.GetSingleNode(node.OuterXml, "//" + name);
+
+            return node == null ? null : node.InnerXml;
         }
 
         public async Task CancelRecordingAsync(string recordingId, CancellationToken cancellationToken)
