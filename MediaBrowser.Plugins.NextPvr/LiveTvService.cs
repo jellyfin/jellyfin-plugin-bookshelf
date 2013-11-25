@@ -164,8 +164,7 @@ namespace MediaBrowser.Plugins.NextPvr
             return channels;
         }
 
-        public async Task<IEnumerable<RecordingInfo>> GetRecordingsAsync(RecordingQuery query,
-                                                                         CancellationToken cancellationToken)
+        public async Task<IEnumerable<RecordingInfo>> GetRecordingsAsync(CancellationToken cancellationToken)
         {
             await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
 
@@ -249,6 +248,11 @@ namespace MediaBrowser.Plugins.NextPvr
             }
         }
 
+        public Task DeleteRecordingAsync(string recordingId, CancellationToken cancellationToken)
+        {
+            return CancelRecordingAsync(recordingId, cancellationToken);
+        }
+
         public Task<HttpResponseInfo> GetChannelImageAsync(string channelId, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
@@ -294,7 +298,7 @@ namespace MediaBrowser.Plugins.NextPvr
             get { return "Next Pvr"; }
         }
 
-        public async Task<IEnumerable<ProgramInfo>> GetChannelGuideAsync(string channelId, CancellationToken cancellationToken)
+        public async Task<IEnumerable<ProgramInfo>> GetProgramsAsync(string channelId, CancellationToken cancellationToken)
         {
             await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
 
@@ -335,18 +339,24 @@ namespace MediaBrowser.Plugins.NextPvr
                         EndDate =
                             new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(double.Parse(endDate)) / 1000d)
                                                                 .ToLocalTime(),
-                        Genre = GetGenre(node),
+                        Genres = GetGenres(node),
                     });
             }
 
             return epgInfos;
         }
 
-        private string GetGenre(XmlNode node)
+        private List<string> GetGenres(XmlNode node)
         {
+            var list = new List<string>();
+
             node = XmlHelper.GetSingleNode(node.OuterXml, "//genre");
 
-            return node == null ? null : node.InnerXml;
+            if (node != null)
+            {
+                list.Add(node.InnerXml);
+            }
+            return list;
         }
     }
 }
