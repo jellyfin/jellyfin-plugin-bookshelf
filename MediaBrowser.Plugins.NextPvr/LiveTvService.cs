@@ -156,8 +156,7 @@ namespace MediaBrowser.Plugins.NextPvr
                                           Number = XmlHelper.GetSingleNode(node.OuterXml, "//number").InnerXml,
                                           ChannelType =
                                               ChannelHelper.GetChannelType(
-                                                  XmlHelper.GetSingleNode(node.OuterXml, "//type").InnerXml),
-                                          ServiceName = Name
+                                                  XmlHelper.GetSingleNode(node.OuterXml, "//type").InnerXml)
                                       });
             }
 
@@ -196,18 +195,18 @@ namespace MediaBrowser.Plugins.NextPvr
                             Id = XmlHelper.GetSingleNode(node.OuterXml, "//id").InnerXml,
                             Name = XmlHelper.GetSingleNode(node.OuterXml, "//name").InnerXml,
                             Description = XmlHelper.GetSingleNode(node.OuterXml, "//desc").InnerXml,
-                            ProgramId = GetString(node, "epg_event_oid"),
+                            //ProgramId = GetString(node, "epg_event_oid"),
                             StartDate = startDate,
                             Status = GetStatus(node),
                             ChannelName = XmlHelper.GetSingleNode(node.OuterXml, "//channel").InnerXml,
                             ChannelId = XmlHelper.GetSingleNode(node.OuterXml, "//channel_id").InnerXml,
-                            IsRecurring = bool.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring").InnerXml),
-                            RecurrringStartDate =
-                                DateTime.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring_start").InnerXml),
-                            RecurringEndDate =
-                                DateTime.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring_end").InnerXml),
-                            RecurringParent = XmlHelper.GetSingleNode(node.OuterXml, "//recurring_parent").InnerXml,
-                            DayMask = XmlHelper.GetSingleNode(node.OuterXml, "//daymask").InnerXml.Split(',').ToList(),
+                            //IsRecurring = bool.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring").InnerXml),
+                            //RecurrringStartDate =
+                                //DateTime.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring_start").InnerXml),
+                            //RecurringEndDate =
+                                //DateTime.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring_end").InnerXml),
+                            //RecurringParent = XmlHelper.GetSingleNode(node.OuterXml, "//recurring_parent").InnerXml,
+                            //DayMask = XmlHelper.GetSingleNode(node.OuterXml, "//daymask").InnerXml.Split(',').ToList(),
                             EndDate =
                                 startDate.AddSeconds(
                                     (double.Parse(
@@ -374,6 +373,26 @@ namespace MediaBrowser.Plugins.NextPvr
                 list.Add(node.InnerXml);
             }
             return list;
+        }
+
+        public Task CancelTimerAsync(string timerId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task CreateTimerAsync(TimerInfo info, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IEnumerable<TimerInfo>> GetTimersAsync(CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task UpdateTimerAsync(TimerInfo info, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
     }
 }
