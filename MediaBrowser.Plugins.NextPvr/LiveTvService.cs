@@ -198,7 +198,7 @@ namespace MediaBrowser.Plugins.NextPvr
                             Description = XmlHelper.GetSingleNode(node.OuterXml, "//desc").InnerXml,
                             ProgramId = GetString(node, "epg_event_oid"),
                             StartDate = startDate,
-                            Status = XmlHelper.GetSingleNode(node.OuterXml, "//status").InnerXml,
+                            Status = GetStatus(node),
                             ChannelName = XmlHelper.GetSingleNode(node.OuterXml, "//channel").InnerXml,
                             ChannelId = XmlHelper.GetSingleNode(node.OuterXml, "//channel_id").InnerXml,
                             IsRecurring = bool.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring").InnerXml),
@@ -218,6 +218,16 @@ namespace MediaBrowser.Plugins.NextPvr
             return recordings;
         }
 
+        private RecordingStatus GetStatus(XmlNode node)
+        {
+            node = XmlHelper.GetSingleNode(node.OuterXml, "//status");
+
+            var statusText = node == null ? string.Empty : node.InnerXml;
+
+            // TODO : Parse this
+            return RecordingStatus.Pending;
+        }
+        
         private string GetString(XmlNode node, string name)
         {
             node = XmlHelper.GetSingleNode(node.OuterXml, "//" + name);
