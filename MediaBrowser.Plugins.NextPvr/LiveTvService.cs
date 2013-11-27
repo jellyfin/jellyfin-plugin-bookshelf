@@ -174,7 +174,7 @@ namespace MediaBrowser.Plugins.NextPvr
             var options = new HttpRequestOptions()
                 {
                     CancellationToken = cancellationToken,
-                    Url = string.Format("{0}/service?method=recording.list&sid={1}", WebserviceUrl, Sid)
+                    Url = string.Format("{0}/service?method=recording.list&filter=ready&sid={1}", WebserviceUrl, Sid)
                 };
 
             using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
@@ -185,7 +185,7 @@ namespace MediaBrowser.Plugins.NextPvr
                 }
             }
 
-            if (XmlHelper.GetSingleNode(html, "//rsp/@stat").InnerXml.ToLower() == "ok")
+            if (string.Equals(XmlHelper.GetSingleNode(html, "//rsp/@stat").InnerXml, "ok", StringComparison.OrdinalIgnoreCase))
             {
                 recordings.AddRange(
                     from XmlNode node in XmlHelper.GetMultipleNodes(html, "//rsp/recordings/recording")
@@ -202,9 +202,9 @@ namespace MediaBrowser.Plugins.NextPvr
                             ChannelId = XmlHelper.GetSingleNode(node.OuterXml, "//channel_id").InnerXml,
                             //IsRecurring = bool.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring").InnerXml),
                             //RecurrringStartDate =
-                                //DateTime.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring_start").InnerXml),
+                            //DateTime.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring_start").InnerXml),
                             //RecurringEndDate =
-                                //DateTime.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring_end").InnerXml),
+                            //DateTime.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring_end").InnerXml),
                             //RecurringParent = XmlHelper.GetSingleNode(node.OuterXml, "//recurring_parent").InnerXml,
                             //DayMask = XmlHelper.GetSingleNode(node.OuterXml, "//daymask").InnerXml.Split(',').ToList(),
                             EndDate =
@@ -226,7 +226,7 @@ namespace MediaBrowser.Plugins.NextPvr
             // TODO : Parse this
             return RecordingStatus.Pending;
         }
-        
+
         private string GetString(XmlNode node, string name)
         {
             node = XmlHelper.GetSingleNode(node.OuterXml, "//" + name);
@@ -234,7 +234,7 @@ namespace MediaBrowser.Plugins.NextPvr
             return node == null ? null : node.InnerXml;
         }
 
-        public async Task CancelRecordingAsync(string recordingId, CancellationToken cancellationToken)
+        private async Task CancelRecordingAsync(string recordingId, CancellationToken cancellationToken)
         {
             string html;
 
@@ -254,13 +254,9 @@ namespace MediaBrowser.Plugins.NextPvr
                 }
             }
 
-            if (XmlHelper.GetSingleNode(html, "//rsp/@stat").InnerXml.ToLower() == "ok")
+            if (!string.Equals(XmlHelper.GetSingleNode(html, "//rsp/@stat").InnerXml, "ok", StringComparison.OrdinalIgnoreCase))
             {
-                //Deleted
-            }
-            else
-            {
-                //TODO: Send something back? When failing....
+                throw new ApplicationException("Operation failed");
             }
         }
 
@@ -273,7 +269,6 @@ namespace MediaBrowser.Plugins.NextPvr
         {
             throw new NotImplementedException();
         }
-
 
         public async Task ScheduleRecordingAsync(string name, string channelId, DateTime startTime, TimeSpan duration, CancellationToken cancellationToken)
         {
@@ -295,13 +290,9 @@ namespace MediaBrowser.Plugins.NextPvr
                 }
             }
 
-            if (XmlHelper.GetSingleNode(html, "//rsp/@stat").InnerXml.ToLower() == "ok")
+            if (!string.Equals(XmlHelper.GetSingleNode(html, "//rsp/@stat").InnerXml, "ok", StringComparison.OrdinalIgnoreCase))
             {
-                //Added Recording
-            }
-            else
-            {
-                //TODO: Send something back? When failing....
+                throw new ApplicationException("Operation failed");
             }
         }
 
@@ -338,7 +329,7 @@ namespace MediaBrowser.Plugins.NextPvr
                 }
             }
 
-            if (XmlHelper.GetSingleNode(html, "//rsp/@stat").InnerXml.ToLower() == "ok")
+            if (string.Equals(XmlHelper.GetSingleNode(html, "//rsp/@stat").InnerXml, "ok", StringComparison.OrdinalIgnoreCase))
             {
                 epgInfos.AddRange(
                     from XmlNode node in XmlHelper.GetMultipleNodes(html, "//rsp/listings/l")
@@ -377,7 +368,7 @@ namespace MediaBrowser.Plugins.NextPvr
 
         public Task CancelTimerAsync(string timerId, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            return DeleteRecordingAsync(timerId, cancellationToken);
         }
 
         public Task CreateTimerAsync(TimerInfo info, CancellationToken cancellationToken)
@@ -385,9 +376,58 @@ namespace MediaBrowser.Plugins.NextPvr
             throw new NotImplementedException();
         }
 
-        public Task<IEnumerable<TimerInfo>> GetTimersAsync(CancellationToken cancellationToken)
+        public async Task<IEnumerable<TimerInfo>> GetTimersAsync(CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
+
+            var recordings = new List<TimerInfo>();
+
+            string html;
+
+            var options = new HttpRequestOptions()
+            {
+                CancellationToken = cancellationToken,
+                Url = string.Format("{0}/service?method=recording.list&filter=pending&sid={1}", WebserviceUrl, Sid)
+            };
+
+            using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
+            {
+                using (var reader = new StreamReader(stream))
+                {
+                    html = await reader.ReadToEndAsync().ConfigureAwait(false);
+                }
+            }
+
+            if (string.Equals(XmlHelper.GetSingleNode(html, "//rsp/@stat").InnerXml, "ok", StringComparison.OrdinalIgnoreCase))
+            {
+                recordings.AddRange(
+                    from XmlNode node in XmlHelper.GetMultipleNodes(html, "//rsp/recordings/recording")
+                    let startDate = DateTime.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//start_time").InnerXml)
+                    select new TimerInfo()
+                    {
+                        Id = XmlHelper.GetSingleNode(node.OuterXml, "//id").InnerXml,
+                        Name = XmlHelper.GetSingleNode(node.OuterXml, "//name").InnerXml,
+                        Description = XmlHelper.GetSingleNode(node.OuterXml, "//desc").InnerXml,
+                        //ProgramId = GetString(node, "epg_event_oid"),
+                        StartDate = startDate,
+                        Status = GetStatus(node),
+                        ChannelName = XmlHelper.GetSingleNode(node.OuterXml, "//channel").InnerXml,
+                        ChannelId = XmlHelper.GetSingleNode(node.OuterXml, "//channel_id").InnerXml,
+                        //IsRecurring = bool.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring").InnerXml),
+                        //RecurrringStartDate =
+                        //DateTime.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring_start").InnerXml),
+                        //RecurringEndDate =
+                        //DateTime.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring_end").InnerXml),
+                        //RecurringParent = XmlHelper.GetSingleNode(node.OuterXml, "//recurring_parent").InnerXml,
+                        //DayMask = XmlHelper.GetSingleNode(node.OuterXml, "//daymask").InnerXml.Split(',').ToList(),
+                        EndDate =
+                            startDate.AddSeconds(
+                                (double.Parse(
+                                    XmlHelper.GetSingleNode(node.OuterXml, "//duration_seconds").InnerXml)))
+                    });
+            }
+
+            return recordings;
         }
 
         public Task UpdateTimerAsync(TimerInfo info, CancellationToken cancellationToken)
