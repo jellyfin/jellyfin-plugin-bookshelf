@@ -68,7 +68,8 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                     "biography",
                     "formed",
                     "review",
-                    "style"
+                    "style",
+                    "imdbid"
 
         }.ToDictionary(i => i, StringComparer.OrdinalIgnoreCase);
 
@@ -414,7 +415,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             if (!string.IsNullOrEmpty(imdb))
             {
-                builder.Append("<id moviedb=\"imdb\">" + SecurityElement.Escape(imdb) + "</id>");
+                builder.Append("<imdbid>" + SecurityElement.Escape(imdb) + "</imdbid>");
             }
 
             var tmdb = item.GetProviderId(MetadataProviders.Tmdb);
@@ -422,8 +423,6 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             if (!string.IsNullOrEmpty(tmdb))
             {
                 builder.Append("<tmdbid>" + SecurityElement.Escape(tmdb) + "</tmdbid>");
-                builder.Append("<id moviedb=\"tmdb\">" + SecurityElement.Escape(tmdb) + "</id>");
-                builder.Append("<id moviedb=\"themoviedb\">" + SecurityElement.Escape(tmdb) + "</id>");
             }
 
             var tvcom = item.GetProviderId(MetadataProviders.Tvcom);
