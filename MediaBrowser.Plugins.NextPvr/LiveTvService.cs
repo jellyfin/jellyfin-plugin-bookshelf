@@ -223,6 +223,27 @@ namespace MediaBrowser.Plugins.NextPvr
 
             var statusText = node == null ? string.Empty : node.InnerXml;
 
+            if (string.Equals(statusText, "COMPLETED", StringComparison.OrdinalIgnoreCase) || string.Equals(statusText, "READY", StringComparison.OrdinalIgnoreCase))
+            {
+                return RecordingStatus.Completed;
+            }
+            if (string.Equals(statusText, "COMPLETED_WITH_ERROR", StringComparison.OrdinalIgnoreCase))
+            {
+                return RecordingStatus.CompletedWithError;
+            }
+            if (string.Equals(statusText, "IN_PROGRESS", StringComparison.OrdinalIgnoreCase))
+            {
+                return RecordingStatus.InProgress;
+            }
+            if (string.Equals(statusText, "CONFLICT", StringComparison.OrdinalIgnoreCase))
+            {
+                return RecordingStatus.Conflicted;
+            }
+            if (string.Equals(statusText, "DELETED", StringComparison.OrdinalIgnoreCase))
+            {
+                return RecordingStatus.Deleted;
+            }
+
             // TODO : Parse this
             return RecordingStatus.Pending;
         }
