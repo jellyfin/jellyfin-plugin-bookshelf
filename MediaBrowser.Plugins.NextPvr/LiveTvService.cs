@@ -195,7 +195,7 @@ namespace MediaBrowser.Plugins.NextPvr
                             Id = XmlHelper.GetSingleNode(node.OuterXml, "//id").InnerXml,
                             Name = XmlHelper.GetSingleNode(node.OuterXml, "//name").InnerXml,
                             Description = XmlHelper.GetSingleNode(node.OuterXml, "//desc").InnerXml,
-                            //ProgramId = GetString(node, "epg_event_oid"),
+                            ProgramId = GetString(node, "epg_event_oid"),
                             StartDate = startDate,
                             Status = GetStatus(node),
                             ChannelName = XmlHelper.GetSingleNode(node.OuterXml, "//channel").InnerXml,
@@ -408,12 +408,12 @@ namespace MediaBrowser.Plugins.NextPvr
                         Id = XmlHelper.GetSingleNode(node.OuterXml, "//id").InnerXml,
                         Name = XmlHelper.GetSingleNode(node.OuterXml, "//name").InnerXml,
                         Description = XmlHelper.GetSingleNode(node.OuterXml, "//desc").InnerXml,
-                        //ProgramId = GetString(node, "epg_event_oid"),
+                        ProgramId = GetString(node, "epg_event_oid"),
                         StartDate = startDate,
                         Status = GetStatus(node),
                         ChannelName = XmlHelper.GetSingleNode(node.OuterXml, "//channel").InnerXml,
                         ChannelId = XmlHelper.GetSingleNode(node.OuterXml, "//channel_id").InnerXml,
-                        //IsRecurring = bool.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring").InnerXml),
+                        IsRecurring = bool.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring").InnerXml),
                         //RecurrringStartDate =
                         //DateTime.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring_start").InnerXml),
                         //RecurringEndDate =
@@ -428,11 +428,6 @@ namespace MediaBrowser.Plugins.NextPvr
             }
 
             return recordings;
-        }
-
-        public Task UpdateTimerAsync(TimerInfo info, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
         }
     }
 }
