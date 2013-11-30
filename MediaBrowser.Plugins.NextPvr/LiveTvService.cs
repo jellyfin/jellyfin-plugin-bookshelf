@@ -434,12 +434,12 @@ namespace MediaBrowser.Plugins.NextPvr
                         Status = GetStatus(node),
                         ChannelName = XmlHelper.GetSingleNode(node.OuterXml, "//channel").InnerXml,
                         ChannelId = XmlHelper.GetSingleNode(node.OuterXml, "//channel_id").InnerXml,
-                        IsRecurring = bool.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring").InnerXml),
+                        //IsRecurring = bool.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring").InnerXml),
                         //RecurrringStartDate =
                         //DateTime.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring_start").InnerXml),
                         //RecurringEndDate =
                         //DateTime.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring_end").InnerXml),
-                        //RecurringParent = XmlHelper.GetSingleNode(node.OuterXml, "//recurring_parent").InnerXml,
+                        RecurringTimerId = GetString(node, "recurring_parent"),
                         //DayMask = XmlHelper.GetSingleNode(node.OuterXml, "//daymask").InnerXml.Split(',').ToList(),
                         EndDate =
                             startDate.AddSeconds(
@@ -449,6 +449,11 @@ namespace MediaBrowser.Plugins.NextPvr
             }
 
             return recordings;
+        }
+
+        public Task<IEnumerable<RecurringTimerInfo>> GetRecurringTimersAsync(CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
     }
 }
