@@ -286,11 +286,6 @@ namespace MediaBrowser.Plugins.NextPvr
             return CancelRecordingAsync(recordingId, cancellationToken);
         }
 
-        public Task<HttpResponseInfo> GetChannelImageAsync(string channelId, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
         public async Task ScheduleRecordingAsync(string name, string channelId, DateTime startTime, TimeSpan duration, CancellationToken cancellationToken)
         {
             string html;
@@ -359,6 +354,7 @@ namespace MediaBrowser.Plugins.NextPvr
                     select new ProgramInfo()
                     {
                         Id = XmlHelper.GetSingleNode(node.OuterXml, "//id").InnerXml,
+                        ChannelId = channelId,
                         Name = XmlHelper.GetSingleNode(node.OuterXml, "//name").InnerXml,
                         Description = XmlHelper.GetSingleNode(node.OuterXml, "//description").InnerXml,
                         StartDate =
@@ -394,7 +390,9 @@ namespace MediaBrowser.Plugins.NextPvr
 
         public Task CreateTimerAsync(TimerInfo info, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var duration = info.EndDate - info.StartDate;
+
+            return ScheduleRecordingAsync(info.Name, info.ChannelId, info.StartDate, duration, cancellationToken);
         }
 
         public async Task<IEnumerable<TimerInfo>> GetTimersAsync(CancellationToken cancellationToken)
@@ -439,7 +437,7 @@ namespace MediaBrowser.Plugins.NextPvr
                         //DateTime.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring_start").InnerXml),
                         //RecurringEndDate =
                         //DateTime.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring_end").InnerXml),
-                        RecurringTimerId = GetString(node, "recurring_parent"),
+                        SeriesTimerId = GetString(node, "recurring_parent"),
                         //DayMask = XmlHelper.GetSingleNode(node.OuterXml, "//daymask").InnerXml.Split(',').ToList(),
                         EndDate =
                             startDate.AddSeconds(
@@ -451,7 +449,22 @@ namespace MediaBrowser.Plugins.NextPvr
             return recordings;
         }
 
-        public Task<IEnumerable<RecurringTimerInfo>> GetRecurringTimersAsync(CancellationToken cancellationToken)
+        public Task<HttpResponseInfo> GetChannelImageAsync(string channelId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task CreateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IEnumerable<SeriesTimerInfo>> GetSeriesTimersAsync(CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task UpdateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
