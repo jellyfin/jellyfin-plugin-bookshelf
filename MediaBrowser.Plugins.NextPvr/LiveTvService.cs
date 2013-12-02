@@ -449,11 +449,6 @@ namespace MediaBrowser.Plugins.NextPvr
             return recordings;
         }
 
-        public Task<HttpResponseInfo> GetChannelImageAsync(string channelId, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
         public Task CreateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
@@ -465,6 +460,17 @@ namespace MediaBrowser.Plugins.NextPvr
         }
 
         public Task UpdateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ImageResponseInfo> GetProgramImageAsync(string programId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        public Task<ImageResponseInfo> GetChannelImageAsync(string channelId, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

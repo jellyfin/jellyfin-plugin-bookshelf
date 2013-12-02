@@ -353,9 +353,13 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 builder.Append("<credits>" + SecurityElement.Escape(string.Join(" / ", credits.ToArray())) + "</credits>");
             }
 
-            foreach (var trailer in item.RemoteTrailers)
+            var hasTrailer = item as IHasTrailers;
+            if (hasTrailer != null)
             {
-                builder.Append("<trailer>" + SecurityElement.Escape(trailer.Url) + "</trailer>");
+                foreach (var trailer in hasTrailer.RemoteTrailers)
+                {
+                    builder.Append("<trailer>" + SecurityElement.Escape(trailer.Url) + "</trailer>");
+                }
             }
 
             if (item.CommunityRating.HasValue)
@@ -472,14 +476,18 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 builder.Append("<votes>" + SecurityElement.Escape(item.VoteCount.Value.ToString(UsCulture)) + "</votes>");
             }
 
-            if (item.Budget.HasValue)
+            var hasBudget = item as IHasBudget;
+            if (hasBudget != null)
             {
-                builder.Append("<budget>" + SecurityElement.Escape(item.Budget.Value.ToString(UsCulture)) + "</budget>");
-            }
+                if (hasBudget.Budget.HasValue)
+                {
+                    builder.Append("<budget>" + SecurityElement.Escape(hasBudget.Budget.Value.ToString(UsCulture)) + "</budget>");
+                }
 
-            if (item.Revenue.HasValue)
-            {
-                builder.Append("<revenue>" + SecurityElement.Escape(item.Revenue.Value.ToString(UsCulture)) + "</revenue>");
+                if (hasBudget.Revenue.HasValue)
+                {
+                    builder.Append("<revenue>" + SecurityElement.Escape(hasBudget.Revenue.Value.ToString(UsCulture)) + "</revenue>");
+                }
             }
 
             // Use original runtime here, actual file runtime later in MediaInfo
