@@ -194,7 +194,7 @@ namespace MediaBrowser.Plugins.NextPvr
                         {
                             Id = XmlHelper.GetSingleNode(node.OuterXml, "//id").InnerXml,
                             Name = XmlHelper.GetSingleNode(node.OuterXml, "//name").InnerXml,
-                            Description = XmlHelper.GetSingleNode(node.OuterXml, "//desc").InnerXml,
+                            Overview = XmlHelper.GetSingleNode(node.OuterXml, "//desc").InnerXml,
                             ProgramId = GetString(node, "epg_event_oid"),
                             StartDate = startDate,
                             Status = GetStatus(node),
@@ -356,7 +356,7 @@ namespace MediaBrowser.Plugins.NextPvr
                         Id = XmlHelper.GetSingleNode(node.OuterXml, "//id").InnerXml,
                         ChannelId = channelId,
                         Name = XmlHelper.GetSingleNode(node.OuterXml, "//name").InnerXml,
-                        Description = XmlHelper.GetSingleNode(node.OuterXml, "//description").InnerXml,
+                        Overview = XmlHelper.GetSingleNode(node.OuterXml, "//description").InnerXml,
                         StartDate =
                             new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(double.Parse(startDate)) /
                                                                             1000d).ToLocalTime(),
