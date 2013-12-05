@@ -436,9 +436,13 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 builder.Append("<tvcomid>" + SecurityElement.Escape(tvcom) + "</tvcomid>");
             }
 
-            if (!string.IsNullOrEmpty(item.Language))
+            var hasLanguage = item as IHasLanguage;
+            if (hasLanguage != null)
             {
-                builder.Append("<language>" + SecurityElement.Escape(item.Language) + "</language>");
+                if (!string.IsNullOrEmpty(hasLanguage.Language))
+                {
+                    builder.Append("<language>" + SecurityElement.Escape(hasLanguage.Language) + "</language>");
+                }
             }
 
             if (item.PremiereDate.HasValue && !(item is Episode))
@@ -500,9 +504,13 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 builder.Append("<runtime>" + Convert.ToInt32(timespan.TotalMinutes).ToString(UsCulture) + "</runtime>");
             }
 
-            foreach (var tagline in item.Taglines)
+            var hasTaglines = item as IHasTaglines;
+            if (hasTaglines != null)
             {
-                builder.Append("<tagline>" + SecurityElement.Escape(tagline) + "</tagline>");
+                foreach (var tagline in hasTaglines.Taglines)
+                {
+                    builder.Append("<tagline>" + SecurityElement.Escape(tagline) + "</tagline>");
+                }
             }
 
             foreach (var genre in item.Genres)
@@ -515,15 +523,19 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 builder.Append("<studio>" + SecurityElement.Escape(studio) + "</studio>");
             }
 
-            foreach (var tag in item.Tags)
+            var hasTags = item as IHasTags;
+            if (hasTags != null)
             {
-                if (item is MusicAlbum || item is MusicArtist)
+                foreach (var tag in hasTags.Tags)
                 {
-                    builder.Append("<style>" + SecurityElement.Escape(tag) + "</style>");
-                }
-                else
-                {
-                    builder.Append("<tag>" + SecurityElement.Escape(tag) + "</tag>");
+                    if (item is MusicAlbum || item is MusicArtist)
+                    {
+                        builder.Append("<style>" + SecurityElement.Escape(tag) + "</style>");
+                    }
+                    else
+                    {
+                        builder.Append("<tag>" + SecurityElement.Escape(tag) + "</tag>");
+                    }
                 }
             }
 
