@@ -266,12 +266,12 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
         /// <param name="force">if set to <c>true</c> [force].</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>Task{System.Boolean}.</returns>
-        public override async Task<bool> FetchAsync(BaseItem item, bool force, CancellationToken cancellationToken)
+        public override async Task<bool> FetchAsync(BaseItem item, bool force, BaseProviderInfo info, CancellationToken cancellationToken)
         {
             var existingReviews = _itemRepo.GetCriticReviews(item.Id);
             if (existingReviews.Any())
             {
-                SetLastRefreshed(item, DateTime.UtcNow);
+                SetLastRefreshed(item, DateTime.UtcNow, info);
                 return true;
             }
 
@@ -292,7 +292,7 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
 
             try
             {
-                await FetchAsyncInternal(item, force, cancellationToken).ConfigureAwait(false);
+                await FetchAsyncInternal(item, force, info, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
@@ -311,13 +311,13 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
         /// <param name="force">if set to <c>true</c> [force].</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>Task{System.Boolean}.</returns>
-        private async Task FetchAsyncInternal(BaseItem item, bool force, CancellationToken cancellationToken)
+        private async Task FetchAsyncInternal(BaseItem item, bool force, BaseProviderInfo info, CancellationToken cancellationToken)
         {
             var imdbId = item.GetProviderId(MetadataProviders.Imdb);
 
             if (string.IsNullOrEmpty(imdbId))
             {
-                SetLastRefreshed(item, DateTime.UtcNow);
+                SetLastRefreshed(item, DateTime.UtcNow, info);
                 return;
             }
 
@@ -331,7 +331,7 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
             // If still empty we can't continue
             if (string.IsNullOrEmpty(item.GetProviderId(MetadataProviders.RottenTomatoes)))
             {
-                SetLastRefreshed(item, DateTime.UtcNow);
+                SetLastRefreshed(item, DateTime.UtcNow, info);
                 return;
             }
 
@@ -362,7 +362,7 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
                 await _itemRepo.SaveCriticReviews(item.Id, criticReviews).ConfigureAwait(false);
             }
 
-            SetLastRefreshed(item, DateTime.UtcNow);
+            SetLastRefreshed(item, DateTime.UtcNow, info);
         }
 
         /// <summary>

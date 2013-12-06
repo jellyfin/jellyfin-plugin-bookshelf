@@ -3,6 +3,7 @@ using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Persistence;
 using MediaBrowser.Model.Entities;
 using System;
 using System.Collections.Generic;
@@ -182,13 +183,16 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             return builder.ToString();
         }
 
-        public static void AddMediaInfo<T>(T item, StringBuilder builder)
+        public static void AddMediaInfo<T>(T item, IItemRepository itemRepository, StringBuilder builder)
             where T : BaseItem, IHasMediaStreams
         {
             builder.Append("<fileinfo>");
             builder.Append("<streamdetails>");
 
-            foreach (var stream in item.MediaStreams)
+            foreach (var stream in itemRepository.GetMediaStreams(new MediaStreamQuery
+            {
+                ItemId = item.Id
+            }))
             {
                 builder.Append("<" + stream.Type.ToString().ToLower() + ">");
 
@@ -231,9 +235,10 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                     builder.Append("<language>" + SecurityElement.Escape(stream.Language) + "</language>");
                 }
 
-                if (!string.IsNullOrEmpty(stream.ScanType))
+                var scanType = stream.IsInterlaced ? "interlaced" : "progressive";
+                if (!string.IsNullOrEmpty(scanType))
                 {
-                    builder.Append("<scantype>" + SecurityElement.Escape(stream.ScanType) + "</scantype>");
+                    builder.Append("<scantype>" + SecurityElement.Escape(scanType) + "</scantype>");
                 }
 
                 if (stream.Channels.HasValue)

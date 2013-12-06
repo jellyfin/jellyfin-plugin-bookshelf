@@ -1,6 +1,7 @@
 ﻿using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Persistence;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -15,14 +16,16 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
         private readonly ILibraryManager _libraryManager;
         private readonly IUserManager _userManager;
         private readonly IUserDataManager _userDataRepo;
+        private readonly IItemRepository _itemRepo;
 
         private readonly CultureInfo _usCulture = new CultureInfo("en-US");
 
-        public EpisodeXmlSaver(ILibraryManager libraryManager, IUserManager userManager, IUserDataManager userDataRepo)
+        public EpisodeXmlSaver(ILibraryManager libraryManager, IUserManager userManager, IUserDataManager userDataRepo, IItemRepository itemRepo)
         {
             _libraryManager = libraryManager;
             _userManager = userManager;
             _userDataRepo = userDataRepo;
+            _itemRepo = itemRepo;
         }
 
         public string GetSavePath(BaseItem item)
@@ -70,7 +73,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 builder.Append("<airsbefore_season>" + SecurityElement.Escape(episode.AirsBeforeSeasonNumber.Value.ToString(_usCulture)) + "</airsbefore_season>");
             }
 
-            XmlSaverHelpers.AddMediaInfo((Episode)item, builder);
+            XmlSaverHelpers.AddMediaInfo((Episode)item, _itemRepo, builder);
 
             builder.Append("</episodedetails>");
 

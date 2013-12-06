@@ -67,7 +67,7 @@ namespace MediaBrowser.Plugins.NesBox
             return base.NeedsRefreshInternal(item, providerInfo);
         }
 
-        public override Task<bool> FetchAsync(BaseItem item, bool force, CancellationToken cancellationToken)
+        public override Task<bool> FetchAsync(BaseItem item, bool force, BaseProviderInfo info, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -80,7 +80,7 @@ namespace MediaBrowser.Plugins.NesBox
                 FetchData(catalog, item);
             }
 
-            SetLastRefreshed(item, DateTime.UtcNow);
+            SetLastRefreshed(item, DateTime.UtcNow, info);
             return TrueTaskResult;
         }
 
