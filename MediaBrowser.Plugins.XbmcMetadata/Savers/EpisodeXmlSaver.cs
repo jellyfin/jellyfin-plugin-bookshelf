@@ -73,6 +73,16 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 builder.Append("<airsbefore_season>" + SecurityElement.Escape(episode.AirsBeforeSeasonNumber.Value.ToString(_usCulture)) + "</airsbefore_season>");
             }
 
+            if (episode.DvdEpisodeNumber.HasValue)
+            {
+                builder.Append("<DVD_episodenumber>" + SecurityElement.Escape(episode.DvdEpisodeNumber.Value.ToString(_usCulture)) + "</DVD_episodenumber>");
+            }
+
+            if (episode.DvdSeasonNumber.HasValue)
+            {
+                builder.Append("<DVD_season>" + SecurityElement.Escape(episode.DvdSeasonNumber.Value.ToString(_usCulture)) + "</DVD_season>");
+            }
+            
             XmlSaverHelpers.AddMediaInfo((Episode)item, _itemRepo, builder);
 
             builder.Append("</episodedetails>");
@@ -86,7 +96,9 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                     "episode",
                     "airsafter_season",
                     "airsbefore_episode",
-                    "airsbefore_season"
+                    "airsbefore_season",
+                    "DVD_episodenumber",
+                    "DVD_season"
                 });
         }
 
