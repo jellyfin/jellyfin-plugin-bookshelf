@@ -82,6 +82,11 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             {
                 builder.Append("<DVD_season>" + SecurityElement.Escape(episode.DvdSeasonNumber.Value.ToString(_usCulture)) + "</DVD_season>");
             }
+
+            if (episode.AbsoluteEpisodeNumber.HasValue)
+            {
+                builder.Append("<absolute_number>" + SecurityElement.Escape(episode.AbsoluteEpisodeNumber.Value.ToString(_usCulture)) + "</absolute_number>");
+            }
             
             XmlSaverHelpers.AddMediaInfo((Episode)item, _itemRepo, builder);
 
@@ -98,7 +103,8 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                     "airsbefore_episode",
                     "airsbefore_season",
                     "DVD_episodenumber",
-                    "DVD_season"
+                    "DVD_season",
+                    "absolute_number"
                 });
         }
 
