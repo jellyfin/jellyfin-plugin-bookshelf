@@ -470,9 +470,28 @@ namespace MediaBrowser.Plugins.NextPvr
         }
 
 
-        public Task<ImageResponseInfo> GetChannelImageAsync(string channelId, CancellationToken cancellationToken)
+        public async Task<ImageResponseInfo> GetChannelImageAsync(string channelId, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            ImageResponseInfo responseInfo;
+
+            var options = new HttpRequestOptions()
+            {
+                CancellationToken = cancellationToken,
+                AcceptHeader = "image/*",
+                Url = string.Format("{0}/service?method=channel.icon&channel_id={1}&sid={2}", WebserviceUrl, channelId, Sid)
+            };
+
+
+            using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
+            {
+                responseInfo = new ImageResponseInfo
+                {
+                    Stream = stream,
+                    MimeType = "jpg"
+                };
+            }
+
+            return responseInfo;
         }
     }
 }
