@@ -426,7 +426,7 @@ namespace MediaBrowser.Plugins.NextPvr
                     {
                         Id = XmlHelper.GetSingleNode(node.OuterXml, "//id").InnerXml,
                         Name = XmlHelper.GetSingleNode(node.OuterXml, "//name").InnerXml,
-                        Description = XmlHelper.GetSingleNode(node.OuterXml, "//desc").InnerXml,
+                        Overview = XmlHelper.GetSingleNode(node.OuterXml, "//desc").InnerXml,
                         ProgramId = GetString(node, "epg_event_oid"),
                         StartDate = startDate,
                         Status = GetStatus(node),
