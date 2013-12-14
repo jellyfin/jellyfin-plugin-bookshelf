@@ -229,7 +229,7 @@ namespace MediaBrowser.Plugins.NextPvr
             }
             if (string.Equals(statusText, "COMPLETED_WITH_ERROR", StringComparison.OrdinalIgnoreCase))
             {
-                return RecordingStatus.CompletedWithError;
+                return RecordingStatus.Error;
             }
             if (string.Equals(statusText, "IN_PROGRESS", StringComparison.OrdinalIgnoreCase))
             {
@@ -237,15 +237,15 @@ namespace MediaBrowser.Plugins.NextPvr
             }
             if (string.Equals(statusText, "CONFLICT", StringComparison.OrdinalIgnoreCase))
             {
-                return RecordingStatus.Conflicted;
+                return RecordingStatus.ConflictedNotOk;
             }
             if (string.Equals(statusText, "DELETED", StringComparison.OrdinalIgnoreCase))
             {
-                return RecordingStatus.Deleted;
+                return RecordingStatus.Cancelled;
             }
 
             // TODO : Parse this
-            return RecordingStatus.Pending;
+            return RecordingStatus.Scheduled;
         }
 
         private string GetString(XmlNode node, string name)
@@ -487,11 +487,22 @@ namespace MediaBrowser.Plugins.NextPvr
                 responseInfo = new ImageResponseInfo
                 {
                     Stream = stream,
-                    MimeType = "jpg"
+                    MimeType = "image/jpg"
                 };
             }
 
             return responseInfo;
+        }
+
+
+        public Task<ImageResponseInfo> GetRecordingImageAsync(string channelId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task UpdateTimerAsync(TimerInfo info, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
     }
 }
