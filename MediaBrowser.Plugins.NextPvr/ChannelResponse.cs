@@ -34,6 +34,8 @@ namespace MediaBrowser.Plugins.NextPvr
             return new List<ChannelInfo>();
         }
 
+        // Classes created with http://json2csharp.com/
+
         private class Channel2
         {
             public int channelNum { get; set; }
