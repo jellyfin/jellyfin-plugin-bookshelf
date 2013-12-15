@@ -557,8 +557,6 @@ namespace MediaBrowser.Plugins.NextPvr
 
         public async Task<ImageResponseInfo> GetChannelImageAsync(string channelId, CancellationToken cancellationToken)
         {
-            ImageResponseInfo responseInfo;
-
             var options = new HttpRequestOptions()
             {
                 CancellationToken = cancellationToken,
@@ -566,19 +564,14 @@ namespace MediaBrowser.Plugins.NextPvr
                 Url = string.Format("{0}/service?method=channel.icon&channel_id={1}&sid={2}", WebserviceUrl, channelId, Sid)
             };
 
+            var response = await _httpClient.GetResponse(options).ConfigureAwait(false);
 
-            using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
+            return new ImageResponseInfo
             {
-                responseInfo = new ImageResponseInfo
-                {
-                    Stream = stream,
-                    MimeType = "image/jpg"
-                };
-            }
-
-            return responseInfo;
+                Stream = response.Content,
+                MimeType = response.ContentType
+            };
         }
-
 
         public Task<ImageResponseInfo> GetRecordingImageAsync(string channelId, CancellationToken cancellationToken)
         {
