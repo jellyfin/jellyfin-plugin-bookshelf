@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Controller.LiveTv;
+﻿using System;
+using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.Serialization;
 using System.Collections.Generic;
 using System.Globalization;
@@ -14,6 +15,11 @@ namespace MediaBrowser.Plugins.NextPvr
         public IEnumerable<ChannelInfo> GetChannels(Stream stream, IJsonSerializer json)
         {
             var root = json.DeserializeFromStream<RootObject>(stream);
+
+            if (root.channelsJSONObject.rtn != null && root.channelsJSONObject.rtn.Error)
+            {
+                throw new ApplicationException(root.channelsJSONObject.rtn.Message ?? "Failed to download channel information.");
+            }
 
             if (root.channelsJSONObject != null && root.channelsJSONObject.Channels != null)
             {
