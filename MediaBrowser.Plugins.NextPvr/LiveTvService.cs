@@ -1,6 +1,7 @@
 ﻿using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.LiveTv;
+using MediaBrowser.Model.Serialization;
 using MediaBrowser.Plugins.NextPvr.Helpers;
 using System;
 using System.Collections.Generic;
@@ -19,15 +20,17 @@ namespace MediaBrowser.Plugins.NextPvr
     public class LiveTvService : ILiveTvService
     {
         private readonly IHttpClient _httpClient;
+        private readonly IJsonSerializer _jsonSerializer;
 
         private string Sid { get; set; }
 
         private string WebserviceUrl { get; set; }
         private string Pin { get; set; }
 
-        public LiveTvService(IHttpClient httpClient)
+        public LiveTvService(IHttpClient httpClient, IJsonSerializer jsonSerializer)
         {
             _httpClient = httpClient;
+            _jsonSerializer = jsonSerializer;
         }
 
         private async Task EnsureConnectionAsync(CancellationToken cancellationToken)
@@ -56,12 +59,12 @@ namespace MediaBrowser.Plugins.NextPvr
             Pin = Plugin.Instance.Configuration.Pin;
 
             var options = new HttpRequestOptions
-                {
-                    // This moment only device name xbmc is available
-                    Url = string.Format("{0}/service?method=session.initiate&ver=1.0&device=xbmc", WebserviceUrl),
+            {
+                // This moment only device name xbmc is available
+                Url = string.Format("{0}/service?method=session.initiate&ver=1.0&device=xbmc", WebserviceUrl),
 
-                    CancellationToken = cancellationToken
-                };
+                CancellationToken = cancellationToken
+            };
 
             using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
             {
@@ -126,41 +129,16 @@ namespace MediaBrowser.Plugins.NextPvr
         /// <returns>Task{IEnumerable{ChannelInfo}}.</returns>
         public async Task<IEnumerable<ChannelInfo>> GetChannelsAsync(CancellationToken cancellationToken)
         {
-            await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
-
-            var channels = new List<ChannelInfo>();
-
-            string html;
-
             var options = new HttpRequestOptions()
-                {
-                    CancellationToken = cancellationToken,
-                    Url = string.Format("{0}/service?method=channel.list&sid={1}", WebserviceUrl, Sid)
-                };
+            {
+                CancellationToken = cancellationToken,
+                Url = string.Format("{0}/public/GuideService/Channels", Plugin.Instance.Configuration.WebServiceUrl)
+            };
 
             using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
             {
-                using (var reader = new StreamReader(stream))
-                {
-                    html = await reader.ReadToEndAsync().ConfigureAwait(false);
-                }
+                return new ChannelResponse().GetChannels(stream, _jsonSerializer);
             }
-
-            if (XmlHelper.GetSingleNode(html, "//rsp/@stat").InnerXml.ToLower() == "ok")
-            {
-                channels.AddRange(from XmlNode node in XmlHelper.GetMultipleNodes(html, "//rsp/channels/channel")
-                                  select new ChannelInfo()
-                                      {
-                                          Id = XmlHelper.GetSingleNode(node.OuterXml, "//id").InnerXml,
-                                          Name = XmlHelper.GetSingleNode(node.OuterXml, "//name").InnerXml,
-                                          Number = XmlHelper.GetSingleNode(node.OuterXml, "//number").InnerXml,
-                                          ChannelType =
-                                              ChannelHelper.GetChannelType(
-                                                  XmlHelper.GetSingleNode(node.OuterXml, "//type").InnerXml)
-                                      });
-            }
-
-            return channels;
         }
 
         public async Task<IEnumerable<RecordingInfo>> GetRecordingsAsync(CancellationToken cancellationToken)
