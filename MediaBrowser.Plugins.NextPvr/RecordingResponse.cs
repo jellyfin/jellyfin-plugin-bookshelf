@@ -12,6 +12,12 @@ namespace MediaBrowser.Plugins.NextPvr
     public class RecordingResponse
     {
         private readonly CultureInfo _usCulture = new CultureInfo("en-US");
+        private readonly string _baseUrl;
+
+        public RecordingResponse(string baseUrl)
+        {
+            _baseUrl = baseUrl;
+        }
 
         public IEnumerable<RecordingInfo> GetRecordings(Stream stream, IJsonSerializer json)
         {
@@ -31,6 +37,24 @@ namespace MediaBrowser.Plugins.NextPvr
                 .Select(GetRecordingInfo);
         }
 
+        public IEnumerable<TimerInfo> GetTimers(Stream stream, IJsonSerializer json)
+        {
+            if (stream == null)
+            {
+                throw new ArgumentNullException("stream");
+            }
+
+            var root = json.DeserializeFromStream<RootObject>(stream);
+
+            return root.ManageResults
+                .EPGEvents
+                .Select(i => i.epgEventJSONObject)
+
+                // Seeing recurring parents coming back with these reponses, for some reason
+                .Where(i => i.schd != null)
+                .Select(GetTimerInfo);
+        }
+
         private RecordingInfo GetRecordingInfo(EpgEventJSONObject i)
         {
             var info = new RecordingInfo();
@@ -48,10 +72,12 @@ namespace MediaBrowser.Plugins.NextPvr
                 info.ChannelId = schd.ChannelOid.ToString(_usCulture);
                 info.Id = schd.OID.ToString(_usCulture);
                 info.Path = schd.RecordingFileName;
-                info.Url = schd.DownloadURL;
+                info.Url = string.IsNullOrEmpty(schd.DownloadURL) ? null : (_baseUrl + schd.DownloadURL);
                 info.Status = ParseStatus(schd.Status);
                 info.StartDate = DateTime.Parse(schd.StartTime);
                 info.EndDate = DateTime.Parse(schd.EndTime);
+
+                info.IsHD = string.Equals(schd.Quality, "hdtv", StringComparison.OrdinalIgnoreCase);
             }
 
             var epg = i.epgEvent;
@@ -73,6 +99,44 @@ namespace MediaBrowser.Plugins.NextPvr
             return info;
         }
 
+        private TimerInfo GetTimerInfo(EpgEventJSONObject i)
+        {
+            var info = new TimerInfo();
+
+            var recurr = i.recurr;
+            if (recurr != null)
+            {
+                info.ChannelName = recurr.RulesXmlDoc.Rules.ChannelName;
+
+                info.SeriesTimerId = recurr.OID.ToString(_usCulture);
+            }
+
+            var schd = i.schd;
+
+            if (schd != null)
+            {
+                info.ChannelId = schd.ChannelOid.ToString(_usCulture);
+                info.Id = schd.OID.ToString(_usCulture);
+                info.Status = ParseStatus(schd.Status);
+                info.StartDate = DateTime.Parse(schd.StartTime);
+                info.EndDate = DateTime.Parse(schd.EndTime);
+
+                info.RequestedPrePaddingSeconds = int.Parse(schd.PrePadding, _usCulture) * 60;
+                info.RequestedPostPaddingSeconds = int.Parse(schd.PostPadding, _usCulture) * 60;
+            }
+
+            var epg = i.epgEvent;
+
+            if (epg != null)
+            {
+                info.ProgramId = epg.OID.ToString(_usCulture);
+                info.Name = epg.Title;
+                info.Overview = epg.Desc;
+            }
+
+            return info;
+        }
+
         private RecordingStatus ParseStatus(string value)
         {
             if (string.Equals(value, "Completed", StringComparison.OrdinalIgnoreCase))
@@ -84,6 +148,8 @@ namespace MediaBrowser.Plugins.NextPvr
             {
                 return RecordingStatus.InProgress;
             }
+
+            // TODO: Find the other possible values that could come back
 
             return RecordingStatus.Scheduled;
         }
@@ -100,6 +166,7 @@ namespace MediaBrowser.Plugins.NextPvr
             public string Keep { get; set; }
             public string Days { get; set; }
             public string EPGTitle { get; set; }
+
         }
 
         private class RulesXmlDoc
@@ -128,6 +195,7 @@ namespace MediaBrowser.Plugins.NextPvr
             public string Day { get; set; }
             public object AdvancedRules { get; set; }
             public RulesXmlDoc RulesXmlDoc { get; set; }
+
         }
 
         private class Rtn
@@ -157,6 +225,7 @@ namespace MediaBrowser.Plugins.NextPvr
             public bool FirstRun { get; set; }
             public bool HasSchedule { get; set; }
             public bool ScheduleIsRecurring { get; set; }
+
         }
 
         private class Schd

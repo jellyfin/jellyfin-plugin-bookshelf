@@ -144,10 +144,12 @@ namespace MediaBrowser.Plugins.NextPvr
 
         public async Task<IEnumerable<RecordingInfo>> GetRecordingsAsync(CancellationToken cancellationToken)
         {
+            var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
+
             var options = new HttpRequestOptions
             {
                 CancellationToken = cancellationToken,
-                Url = string.Format("{0}/public/ManageService/Get/SortedFilteredList", Plugin.Instance.Configuration.WebServiceUrl)
+                Url = string.Format("{0}/public/ManageService/Get/SortedFilteredList", baseUrl)
             };
 
             var filterOptions = new
@@ -173,39 +175,8 @@ namespace MediaBrowser.Plugins.NextPvr
 
             using (var stream = response.Content)
             {
-                return new RecordingResponse().GetRecordings(stream, _jsonSerializer);
+                return new RecordingResponse(baseUrl).GetRecordings(stream, _jsonSerializer);
             }
-        }
-
-        private RecordingStatus GetStatus(XmlNode node)
-        {
-            node = XmlHelper.GetSingleNode(node.OuterXml, "//status");
-
-            var statusText = node == null ? string.Empty : node.InnerXml;
-
-            if (string.Equals(statusText, "COMPLETED", StringComparison.OrdinalIgnoreCase) || string.Equals(statusText, "READY", StringComparison.OrdinalIgnoreCase))
-            {
-                return RecordingStatus.Completed;
-            }
-            if (string.Equals(statusText, "COMPLETED_WITH_ERROR", StringComparison.OrdinalIgnoreCase))
-            {
-                return RecordingStatus.Error;
-            }
-            if (string.Equals(statusText, "IN_PROGRESS", StringComparison.OrdinalIgnoreCase))
-            {
-                return RecordingStatus.InProgress;
-            }
-            if (string.Equals(statusText, "CONFLICT", StringComparison.OrdinalIgnoreCase))
-            {
-                return RecordingStatus.ConflictedNotOk;
-            }
-            if (string.Equals(statusText, "DELETED", StringComparison.OrdinalIgnoreCase))
-            {
-                return RecordingStatus.Cancelled;
-            }
-
-            // TODO : Parse this
-            return RecordingStatus.Scheduled;
         }
 
         private string GetString(XmlNode node, string name)
@@ -314,56 +285,39 @@ namespace MediaBrowser.Plugins.NextPvr
 
         public async Task<IEnumerable<TimerInfo>> GetTimersAsync(CancellationToken cancellationToken)
         {
-            await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
+            var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
 
-            var recordings = new List<TimerInfo>();
-
-            string html;
-
-            var options = new HttpRequestOptions()
+            var options = new HttpRequestOptions
             {
                 CancellationToken = cancellationToken,
-                Url = string.Format("{0}/service?method=recording.list&filter=pending&sid={1}", WebserviceUrl, Sid)
+                Url = string.Format("{0}/public/ManageService/Get/SortedFilteredList", baseUrl)
             };
 
-            using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
+            var filterOptions = new
             {
-                using (var reader = new StreamReader(stream))
-                {
-                    html = await reader.ReadToEndAsync().ConfigureAwait(false);
-                }
-            }
+                resultLimit = -1,
+                All = false,
+                None = false,
+                Pending = true,
+                InProgress = false,
+                Completed = false,
+                Failed = false,
+                Conflict = true,
+                Recurring = false,
+                Deleted = false
+            };
 
-            if (string.Equals(XmlHelper.GetSingleNode(html, "//rsp/@stat").InnerXml, "ok", StringComparison.OrdinalIgnoreCase))
+            var postContent = _jsonSerializer.SerializeToString(filterOptions);
+
+            options.RequestContent = postContent;
+            options.RequestContentType = "application/json";
+
+            var response = await _httpClient.Post(options).ConfigureAwait(false);
+
+            using (var stream = response.Content)
             {
-                recordings.AddRange(
-                    from XmlNode node in XmlHelper.GetMultipleNodes(html, "//rsp/recordings/recording")
-                    let startDate = DateTime.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//start_time").InnerXml)
-                    select new TimerInfo()
-                    {
-                        Id = XmlHelper.GetSingleNode(node.OuterXml, "//id").InnerXml,
-                        Name = XmlHelper.GetSingleNode(node.OuterXml, "//name").InnerXml,
-                        Overview = XmlHelper.GetSingleNode(node.OuterXml, "//desc").InnerXml,
-                        ProgramId = GetString(node, "epg_event_oid"),
-                        StartDate = startDate,
-                        Status = GetStatus(node),
-                        ChannelName = XmlHelper.GetSingleNode(node.OuterXml, "//channel").InnerXml,
-                        ChannelId = XmlHelper.GetSingleNode(node.OuterXml, "//channel_id").InnerXml,
-                        //IsRecurring = bool.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring").InnerXml),
-                        //RecurrringStartDate =
-                        //DateTime.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring_start").InnerXml),
-                        //RecurringEndDate =
-                        //DateTime.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring_end").InnerXml),
-                        SeriesTimerId = GetString(node, "recurring_parent"),
-                        //DayMask = XmlHelper.GetSingleNode(node.OuterXml, "//daymask").InnerXml.Split(',').ToList(),
-                        EndDate =
-                            startDate.AddSeconds(
-                                (double.Parse(
-                                    XmlHelper.GetSingleNode(node.OuterXml, "//duration_seconds").InnerXml)))
-                    });
+                return new RecordingResponse(baseUrl).GetTimers(stream, _jsonSerializer);
             }
-
-            return recordings;
         }
 
         public Task CreateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
