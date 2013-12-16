@@ -37,11 +37,6 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
         /// <value>The logger.</value>
         private ILogger Logger { get; set; }
         /// <summary>
-        /// Gets or sets the kernel.
-        /// </summary>
-        /// <value>The kernel.</value>
-        private Kernel Kernel { get; set; }
-        /// <summary>
         /// Gets or sets the library manager.
         /// </summary>
         /// <value>The library manager.</value>
@@ -56,18 +51,16 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
         /// <summary>
         /// Initializes a new instance of the <see cref="CurrentTrailerDownloadTask" /> class.
         /// </summary>
-        /// <param name="kernel">The kernel.</param>
         /// <param name="libraryManager">The library manager.</param>
         /// <param name="providerManager">The provider manager.</param>
         /// <param name="httpClient">The HTTP client.</param>
         /// <param name="jsonSerializer">The json serializer.</param>
         /// <param name="logger">The logger.</param>
-        public CurrentTrailerDownloadTask(Kernel kernel, ILibraryManager libraryManager, IProviderManager providerManager, IHttpClient httpClient, IJsonSerializer jsonSerializer, ILogger logger)
+        public CurrentTrailerDownloadTask(ILibraryManager libraryManager, IProviderManager providerManager, IHttpClient httpClient, IJsonSerializer jsonSerializer, ILogger logger)
         {
             _jsonSerializer = jsonSerializer;
             _httpClient = httpClient;
             Logger = logger;
-            Kernel = kernel;
             LibraryManager = libraryManager;
             ProviderManager = providerManager;
         }

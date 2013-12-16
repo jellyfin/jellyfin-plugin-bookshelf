@@ -1,11 +1,11 @@
-﻿using System.Globalization;
-using MediaBrowser.Common.Net;
+﻿using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.LiveTv;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Plugins.NextPvr.Helpers;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -130,7 +130,7 @@ namespace MediaBrowser.Plugins.NextPvr
         /// <returns>Task{IEnumerable{ChannelInfo}}.</returns>
         public async Task<IEnumerable<ChannelInfo>> GetChannelsAsync(CancellationToken cancellationToken)
         {
-            var options = new HttpRequestOptions()
+            var options = new HttpRequestOptions
             {
                 CancellationToken = cancellationToken,
                 Url = string.Format("{0}/public/GuideService/Channels", Plugin.Instance.Configuration.WebServiceUrl)
@@ -144,57 +144,37 @@ namespace MediaBrowser.Plugins.NextPvr
 
         public async Task<IEnumerable<RecordingInfo>> GetRecordingsAsync(CancellationToken cancellationToken)
         {
-            await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
-
-            var recordings = new List<RecordingInfo>();
-
-            string html;
-
-            var options = new HttpRequestOptions()
-                {
-                    CancellationToken = cancellationToken,
-                    Url = string.Format("{0}/service?method=recording.list&filter=ready&sid={1}", WebserviceUrl, Sid)
-                };
-
-            using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
+            var options = new HttpRequestOptions
             {
-                using (var reader = new StreamReader(stream))
-                {
-                    html = await reader.ReadToEndAsync().ConfigureAwait(false);
-                }
-            }
+                CancellationToken = cancellationToken,
+                Url = string.Format("{0}/public/ManageService/Get/SortedFilteredList", Plugin.Instance.Configuration.WebServiceUrl)
+            };
 
-            if (string.Equals(XmlHelper.GetSingleNode(html, "//rsp/@stat").InnerXml, "ok", StringComparison.OrdinalIgnoreCase))
+            var filterOptions = new
             {
-                recordings.AddRange(
-                    from XmlNode node in XmlHelper.GetMultipleNodes(html, "//rsp/recordings/recording")
-                    let startDate = DateTime.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//start_time").InnerXml)
-                    select new RecordingInfo()
-                        {
-                            Id = XmlHelper.GetSingleNode(node.OuterXml, "//id").InnerXml,
-                            Name = XmlHelper.GetSingleNode(node.OuterXml, "//name").InnerXml,
-                            Overview = XmlHelper.GetSingleNode(node.OuterXml, "//desc").InnerXml,
-                            ProgramId = GetString(node, "epg_event_oid"),
-                            StartDate = startDate,
-                            Status = GetStatus(node),
-                            ChannelName = XmlHelper.GetSingleNode(node.OuterXml, "//channel").InnerXml,
-                            ChannelId = XmlHelper.GetSingleNode(node.OuterXml, "//channel_id").InnerXml,
-                            HasImage = false,
-                            //IsRecurring = bool.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring").InnerXml),
-                            //RecurrringStartDate =
-                            //DateTime.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring_start").InnerXml),
-                            //RecurringEndDate =
-                            //DateTime.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring_end").InnerXml),
-                            //RecurringParent = XmlHelper.GetSingleNode(node.OuterXml, "//recurring_parent").InnerXml,
-                            //DayMask = XmlHelper.GetSingleNode(node.OuterXml, "//daymask").InnerXml.Split(',').ToList(),
-                            EndDate =
-                                startDate.AddSeconds(
-                                    (double.Parse(
-                                        XmlHelper.GetSingleNode(node.OuterXml, "//duration_seconds").InnerXml)))
-                        });
-            }
+                resultLimit = -1,
+                All = false,
+                None = false,
+                Pending = false,
+                InProgress = true,
+                Completed = true,
+                Failed = true,
+                Conflict = false,
+                Recurring = false,
+                Deleted = false
+            };
 
-            return recordings;
+            var postContent = _jsonSerializer.SerializeToString(filterOptions);
+
+            options.RequestContent = postContent;
+            options.RequestContentType = "application/json";
+
+            var response = await _httpClient.Post(options).ConfigureAwait(false);
+
+            using (var stream = response.Content)
+            {
+                return new RecordingResponse().GetRecordings(stream, _jsonSerializer);
+            }
         }
 
         private RecordingStatus GetStatus(XmlNode node)
@@ -302,13 +282,13 @@ namespace MediaBrowser.Plugins.NextPvr
         }
 
         private readonly CultureInfo _usCulture = new CultureInfo("en-US");
-        
+
         public async Task<IEnumerable<ProgramInfo>> GetProgramsAsync(string channelId, CancellationToken cancellationToken)
         {
             var options = new HttpRequestOptions()
             {
                 CancellationToken = cancellationToken,
-                Url = string.Format("{0}/public/GuideService/Listing?stime={1}&etime={2}", 
+                Url = string.Format("{0}/public/GuideService/Listing?stime={1}&etime={2}",
                 Plugin.Instance.Configuration.WebServiceUrl,
                 ApiHelper.GetCurrentUnixTimestampSeconds(DateTime.UtcNow.AddYears(-1)).ToString(_usCulture),
                 ApiHelper.GetCurrentUnixTimestampSeconds(DateTime.UtcNow.AddYears(1)).ToString(_usCulture))
@@ -318,19 +298,6 @@ namespace MediaBrowser.Plugins.NextPvr
             {
                 return new ListingsResponse().GetPrograms(stream, _jsonSerializer, channelId);
             }
-        }
-
-        private List<string> GetGenres(XmlNode node)
-        {
-            var list = new List<string>();
-
-            node = XmlHelper.GetSingleNode(node.OuterXml, "//genre");
-
-            if (node != null)
-            {
-                list.Add(node.InnerXml);
-            }
-            return list;
         }
 
         public Task CancelTimerAsync(string timerId, CancellationToken cancellationToken)
@@ -447,7 +414,8 @@ namespace MediaBrowser.Plugins.NextPvr
                         Days = ParseDays(GetString(node, "matchrules/Rules/Days")),
                         RequestedPrePaddingSeconds = int.Parse(GetString(node, "matchrules/Rules/PrePadding")) * 60,
                         RequestedPostPaddingSeconds = int.Parse(GetString(node, "matchrules/Rules/PostPadding")) * 60,
-                        RecurrenceType = GetRecurrenceType(node)
+                        RecordNewOnly = string.Equals(GetString(node, "matchrules/Rules/OnlyNewEpisodes"), "true", StringComparison.OrdinalIgnoreCase),
+                        RecordAnyChannel = string.Equals(GetString(node, "matchrules/Rules/ChannelOID"), "0", StringComparison.OrdinalIgnoreCase)
                     });
             }
 
@@ -478,31 +446,6 @@ namespace MediaBrowser.Plugins.NextPvr
             return val;
         }
 
-        private RecurrenceType GetRecurrenceType(XmlNode node)
-        {
-            var days = ParseDays(GetString(node, "matchrules/Rules/Days"));
-
-            var onlyNew = GetString(node, "matchrules/Rules/OnlyNewEpisodes");
-
-            if (days.Count > 0)
-            {
-                return RecurrenceType.Manual;
-            }
-
-            var channelId = GetString(node, "matchrules/Rules/ChannelOID");
-
-            if (string.Equals(channelId, "0", StringComparison.OrdinalIgnoreCase))
-            {
-                return string.Equals(onlyNew, "true", StringComparison.OrdinalIgnoreCase) ?
-                    RecurrenceType.NewProgramEventsAllChannels :
-                    RecurrenceType.AllProgramEventsAllChannels;
-            }
-
-            return string.Equals(onlyNew, "true", StringComparison.OrdinalIgnoreCase) ?
-                RecurrenceType.NewProgramEventsOneChannel :
-                RecurrenceType.AllProgramEventsOneChannel;
-        }
-
         private List<DayOfWeek> ParseDays(string value)
         {
             if (string.IsNullOrEmpty(value))
@@ -527,6 +470,8 @@ namespace MediaBrowser.Plugins.NextPvr
 
         public async Task<ImageResponseInfo> GetChannelImageAsync(string channelId, CancellationToken cancellationToken)
         {
+            await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
+
             var options = new HttpRequestOptions()
             {
                 CancellationToken = cancellationToken,

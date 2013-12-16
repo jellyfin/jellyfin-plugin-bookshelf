@@ -28,6 +28,7 @@ namespace MediaBrowser.Plugins.NextPvr
             {
                 AspectRatio = epg.Aspect,
                 ChannelId = channel.channelOID.ToString(_usCulture),
+                ChannelName = channel.channelName,
                 Id = epg.OID.ToString(_usCulture),
                 Overview = epg.Desc,
                 StartDate = DateTime.Parse(epg.StartTime).ToUniversalTime(),
@@ -39,13 +40,14 @@ namespace MediaBrowser.Plugins.NextPvr
                 CommunityRating = ParseCommunityRating(epg.StarRating),
                 EpisodeTitle = epg.Subtitle,
                 Audio = ParseAudio(epg.Audio),
-                IsHD = string.Equals(epg.Quality, "hdtv", StringComparison.OrdinalIgnoreCase)
+                IsHD = string.Equals(epg.Quality, "hdtv", StringComparison.OrdinalIgnoreCase),
+                IsRepeat = !epg.FirstRun
             };
 
             return info;
         }
 
-        private float? ParseCommunityRating(string value)
+        public static float? ParseCommunityRating(string value)
         {
             if (!string.IsNullOrEmpty(value))
             {
@@ -59,7 +61,7 @@ namespace MediaBrowser.Plugins.NextPvr
             return null;
         }
 
-        private ProgramAudio ParseAudio(string value)
+        public static ProgramAudio ParseAudio(string value)
         {
             if (string.Equals(value, "stereo", StringComparison.OrdinalIgnoreCase))
             {
