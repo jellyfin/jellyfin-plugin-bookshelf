@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Common.Net;
+﻿using System.Globalization;
+using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.LiveTv;
 using MediaBrowser.Model.Serialization;
@@ -300,54 +301,23 @@ namespace MediaBrowser.Plugins.NextPvr
             get { return "Next Pvr"; }
         }
 
+        private readonly CultureInfo _usCulture = new CultureInfo("en-US");
+        
         public async Task<IEnumerable<ProgramInfo>> GetProgramsAsync(string channelId, CancellationToken cancellationToken)
         {
-            await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
-
-            var epgInfos = new List<ProgramInfo>();
-
-            string html;
-
             var options = new HttpRequestOptions()
             {
                 CancellationToken = cancellationToken,
-                Url =
-                    string.Format("{0}/service?method=channel.listings&channel_id={1}&sid={2}", WebserviceUrl,
-                                  channelId, Sid)
+                Url = string.Format("{0}/public/GuideService/Listing?stime={1}&etime={2}", 
+                Plugin.Instance.Configuration.WebServiceUrl,
+                ApiHelper.GetCurrentUnixTimestampSeconds(DateTime.UtcNow.AddYears(-1)).ToString(_usCulture),
+                ApiHelper.GetCurrentUnixTimestampSeconds(DateTime.UtcNow.AddYears(1)).ToString(_usCulture))
             };
 
             using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
             {
-                using (var reader = new StreamReader(stream))
-                {
-                    html = await reader.ReadToEndAsync().ConfigureAwait(false);
-                }
+                return new ListingsResponse().GetPrograms(stream, _jsonSerializer, channelId);
             }
-
-            if (string.Equals(XmlHelper.GetSingleNode(html, "//rsp/@stat").InnerXml, "ok", StringComparison.OrdinalIgnoreCase))
-            {
-                epgInfos.AddRange(
-                    from XmlNode node in XmlHelper.GetMultipleNodes(html, "//rsp/listings/l")
-                    let startDate = XmlHelper.GetSingleNode(node.OuterXml, "//start").InnerXml
-                    let endDate = XmlHelper.GetSingleNode(node.OuterXml, "//end").InnerXml
-                    select new ProgramInfo()
-                    {
-                        Id = XmlHelper.GetSingleNode(node.OuterXml, "//id").InnerXml,
-                        ChannelId = channelId,
-                        Name = XmlHelper.GetSingleNode(node.OuterXml, "//name").InnerXml,
-                        Overview = XmlHelper.GetSingleNode(node.OuterXml, "//description").InnerXml,
-                        StartDate =
-                            new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(double.Parse(startDate)) /
-                                                                            1000d).ToLocalTime(),
-                        EndDate =
-                            new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(double.Parse(endDate)) / 1000d)
-                                                                .ToLocalTime(),
-                        Genres = GetGenres(node),
-                        HasImage = false
-                    });
-            }
-
-            return epgInfos;
         }
 
         private List<string> GetGenres(XmlNode node)
