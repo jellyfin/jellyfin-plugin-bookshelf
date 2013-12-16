@@ -55,6 +55,24 @@ namespace MediaBrowser.Plugins.NextPvr
                 .Select(GetTimerInfo);
         }
 
+        public IEnumerable<SeriesTimerInfo> GetSeriesTimers(Stream stream, IJsonSerializer json)
+        {
+            if (stream == null)
+            {
+                throw new ArgumentNullException("stream");
+            }
+
+            var root = json.DeserializeFromStream<RootObject>(stream);
+
+            return root.ManageResults
+                .EPGEvents
+                .Select(i => i.epgEventJSONObject)
+
+                // Seeing recurring parents coming back with these reponses, for some reason
+                .Where(i => i.recurr != null)
+                .Select(GetSeriesTimerInfo);
+        }
+
         private RecordingInfo GetRecordingInfo(EpgEventJSONObject i)
         {
             var info = new RecordingInfo();
@@ -62,7 +80,7 @@ namespace MediaBrowser.Plugins.NextPvr
             var recurr = i.recurr;
             if (recurr != null)
             {
-                info.ChannelName = recurr.RulesXmlDoc.Rules.ChannelName;
+                info.ChannelName = GetChannelName(recurr);
             }
 
             var schd = i.schd;
@@ -106,7 +124,7 @@ namespace MediaBrowser.Plugins.NextPvr
             var recurr = i.recurr;
             if (recurr != null)
             {
-                info.ChannelName = recurr.RulesXmlDoc.Rules.ChannelName;
+                info.ChannelName = GetChannelName(recurr);
 
                 info.SeriesTimerId = recurr.OID.ToString(_usCulture);
             }
@@ -135,6 +153,66 @@ namespace MediaBrowser.Plugins.NextPvr
             }
 
             return info;
+        }
+
+        private SeriesTimerInfo GetSeriesTimerInfo(EpgEventJSONObject i)
+        {
+            var info = new SeriesTimerInfo();
+
+            var recurr = i.recurr;
+            if (recurr != null)
+            {
+                info.ChannelName = GetChannelName(recurr);
+                info.ChannelId = GetChannelId(recurr);
+
+                info.Id = recurr.OID.ToString(_usCulture);
+
+                info.StartDate = DateTime.Parse(recurr.StartTime);
+                info.EndDate = DateTime.Parse(recurr.EndTime);
+
+                info.RequestedPrePaddingSeconds = int.Parse(recurr.PrePadding, _usCulture) * 60;
+                info.RequestedPostPaddingSeconds = int.Parse(recurr.PostPadding, _usCulture) * 60;
+
+                info.Name = recurr.RecurringName ?? recurr.EPGTitle;
+                info.RecordNewOnly = recurr.OnlyNew;
+                info.RecordAnyChannel = recurr.allChannels;
+
+                info.Days = (recurr.Day ?? string.Empty).Split(',')
+                    .Select(d => (DayOfWeek)Enum.Parse(typeof(DayOfWeek), d.Trim(), true))
+                    .ToList();
+
+                info.Priority = recurr.Priority;
+            }
+
+            var epg = i.epgEvent;
+
+            if (epg != null)
+            {
+                info.ProgramId = epg.OID.ToString(_usCulture);
+                info.Overview = epg.Desc;
+            }
+
+            return info;
+        }
+
+        private string GetChannelName(Recurr recurr)
+        {
+            if (recurr.RulesXmlDoc != null && recurr.RulesXmlDoc.Rules != null)
+            {
+                return string.Equals(recurr.RulesXmlDoc.Rules.ChannelName, "All Channels", StringComparison.OrdinalIgnoreCase) ? null : recurr.RulesXmlDoc.Rules.ChannelName;
+            }
+
+            return null;
+        }
+
+        private string GetChannelId(Recurr recurr)
+        {
+            if (recurr.RulesXmlDoc != null && recurr.RulesXmlDoc.Rules != null)
+            {
+                return string.Equals(recurr.RulesXmlDoc.Rules.ChannelOID, "0", StringComparison.OrdinalIgnoreCase) ? null : recurr.RulesXmlDoc.Rules.ChannelOID;
+            }
+
+            return null;
         }
 
         private RecordingStatus ParseStatus(string value)

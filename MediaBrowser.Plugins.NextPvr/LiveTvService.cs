@@ -188,6 +188,8 @@ namespace MediaBrowser.Plugins.NextPvr
 
         private async Task CancelRecordingAsync(string recordingId, CancellationToken cancellationToken)
         {
+            await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
+
             string html;
 
             var options = new HttpRequestOptions()
@@ -219,6 +221,8 @@ namespace MediaBrowser.Plugins.NextPvr
 
         public async Task ScheduleRecordingAsync(string name, string channelId, DateTime startTime, TimeSpan duration, CancellationToken cancellationToken)
         {
+            await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
+
             string html;
 
             var options = new HttpRequestOptions()
@@ -327,89 +331,39 @@ namespace MediaBrowser.Plugins.NextPvr
 
         public async Task<IEnumerable<SeriesTimerInfo>> GetSeriesTimersAsync(CancellationToken cancellationToken)
         {
-            await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
+            var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
 
-            var recordings = new List<SeriesTimerInfo>();
-
-            string html;
-
-            var options = new HttpRequestOptions()
+            var options = new HttpRequestOptions
             {
                 CancellationToken = cancellationToken,
-                Url = string.Format("{0}/service?method=recording.recurring.list&sid={1}", WebserviceUrl, Sid)
+                Url = string.Format("{0}/public/ManageService/Get/SortedFilteredList", baseUrl)
             };
 
-            using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
+            var filterOptions = new
             {
-                using (var reader = new StreamReader(stream))
-                {
-                    html = await reader.ReadToEndAsync().ConfigureAwait(false);
-                }
-            }
+                resultLimit = -1,
+                All = false,
+                None = false,
+                Pending = false,
+                InProgress = false,
+                Completed = false,
+                Failed = false,
+                Conflict = false,
+                Recurring = true,
+                Deleted = false
+            };
 
-            if (string.Equals(XmlHelper.GetSingleNode(html, "//rsp/@stat").InnerXml, "ok", StringComparison.OrdinalIgnoreCase))
+            var postContent = _jsonSerializer.SerializeToString(filterOptions);
+
+            options.RequestContent = postContent;
+            options.RequestContentType = "application/json";
+
+            var response = await _httpClient.Post(options).ConfigureAwait(false);
+
+            using (var stream = response.Content)
             {
-                recordings.AddRange(
-                    from XmlNode node in XmlHelper.GetMultipleNodes(html, "//rsp/recurrings/recurring")
-                    select new SeriesTimerInfo()
-                    {
-                        Id = GetString(node, "id"),
-                        Name = GetString(node, "name"),
-                        StartDate = DateTime.Parse(GetString(node, "matchrules/Rules/StartTime")),
-                        ChannelName = GetSeriesChannelName(node),
-                        ChannelId = GetSeriesChannelId(node),
-                        //IsRecurring = bool.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring").InnerXml),
-                        //RecurrringStartDate =
-                        //DateTime.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring_start").InnerXml),
-                        //RecurringEndDate =
-                        //DateTime.Parse(XmlHelper.GetSingleNode(node.OuterXml, "//recurring_end").InnerXml),
-                        //DayMask = XmlHelper.GetSingleNode(node.OuterXml, "//daymask").InnerXml.Split(',').ToList(),
-                        EndDate = DateTime.Parse(GetString(node, "matchrules/Rules/EndTime")),
-                        Days = ParseDays(GetString(node, "matchrules/Rules/Days")),
-                        RequestedPrePaddingSeconds = int.Parse(GetString(node, "matchrules/Rules/PrePadding")) * 60,
-                        RequestedPostPaddingSeconds = int.Parse(GetString(node, "matchrules/Rules/PostPadding")) * 60,
-                        RecordNewOnly = string.Equals(GetString(node, "matchrules/Rules/OnlyNewEpisodes"), "true", StringComparison.OrdinalIgnoreCase),
-                        RecordAnyChannel = string.Equals(GetString(node, "matchrules/Rules/ChannelOID"), "0", StringComparison.OrdinalIgnoreCase)
-                    });
+                return new RecordingResponse(baseUrl).GetSeriesTimers(stream, _jsonSerializer);
             }
-
-            return recordings;
-        }
-
-        private string GetSeriesChannelName(XmlNode node)
-        {
-            var val = GetString(node, "matchrules/Rules/ChannelName");
-
-            if (string.Equals(val, "All Channels", StringComparison.OrdinalIgnoreCase))
-            {
-                return null;
-            }
-
-            return val;
-        }
-
-        private string GetSeriesChannelId(XmlNode node)
-        {
-            var val = GetString(node, "matchrules/Rules/ChannelOID");
-
-            if (string.Equals(val, "0", StringComparison.OrdinalIgnoreCase))
-            {
-                return null;
-            }
-
-            return val;
-        }
-
-        private List<DayOfWeek> ParseDays(string value)
-        {
-            if (string.IsNullOrEmpty(value))
-            {
-                return new List<DayOfWeek>();
-            }
-
-            return value.Split(',')
-                .Select(i => (DayOfWeek)Enum.Parse(typeof(DayOfWeek), i.Trim(), true))
-                .ToList();
         }
 
         public Task UpdateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
