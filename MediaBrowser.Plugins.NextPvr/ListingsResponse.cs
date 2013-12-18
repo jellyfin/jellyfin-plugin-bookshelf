@@ -41,7 +41,8 @@ namespace MediaBrowser.Plugins.NextPvr
                 EpisodeTitle = epg.Subtitle,
                 Audio = ParseAudio(epg.Audio),
                 IsHD = string.Equals(epg.Quality, "hdtv", StringComparison.OrdinalIgnoreCase),
-                IsRepeat = !epg.FirstRun
+                IsRepeat = !epg.FirstRun,
+                IsSeries = !string.IsNullOrEmpty(epg.Subtitle)
             };
 
             return info;
@@ -61,14 +62,14 @@ namespace MediaBrowser.Plugins.NextPvr
             return null;
         }
 
-        public static ProgramAudio ParseAudio(string value)
+        public static ProgramAudio? ParseAudio(string value)
         {
             if (string.Equals(value, "stereo", StringComparison.OrdinalIgnoreCase))
             {
                 return ProgramAudio.Stereo;
             }
 
-            return ProgramAudio.Unspecified;
+            return null;
         }
 
         // Classes created with http://json2csharp.com/

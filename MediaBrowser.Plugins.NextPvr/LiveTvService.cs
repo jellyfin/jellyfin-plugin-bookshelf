@@ -1,13 +1,11 @@
 ﻿using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.LiveTv;
-using MediaBrowser.Model.LiveTv;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Plugins.NextPvr.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -371,11 +369,6 @@ namespace MediaBrowser.Plugins.NextPvr
             throw new NotImplementedException();
         }
 
-        public Task<ImageResponseInfo> GetProgramImageAsync(string programId, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
         public async Task<ImageResponseInfo> GetChannelImageAsync(string channelId, CancellationToken cancellationToken)
         {
             await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
@@ -396,17 +389,27 @@ namespace MediaBrowser.Plugins.NextPvr
             };
         }
 
-        public Task<ImageResponseInfo> GetRecordingImageAsync(string channelId, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
         public Task UpdateTimerAsync(TimerInfo info, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
         public Task CancelSeriesTimerAsync(string timerId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<SeriesTimerInfo> GetNewTimerDefaultsAsync(CancellationToken cancellationToken)
+        {
+            return new SeriesTimerInfo();
+        }
+
+        public Task<ImageResponseInfo> GetProgramImageAsync(string programId, string channelId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ImageResponseInfo> GetRecordingImageAsync(string recordingId, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

@@ -139,8 +139,8 @@ namespace MediaBrowser.Plugins.NextPvr
                 info.StartDate = DateTime.Parse(schd.StartTime);
                 info.EndDate = DateTime.Parse(schd.EndTime);
 
-                info.RequestedPrePaddingSeconds = int.Parse(schd.PrePadding, _usCulture) * 60;
-                info.RequestedPostPaddingSeconds = int.Parse(schd.PostPadding, _usCulture) * 60;
+                info.PrePaddingSeconds = int.Parse(schd.PrePadding, _usCulture) * 60;
+                info.PostPaddingSeconds = int.Parse(schd.PostPadding, _usCulture) * 60;
             }
 
             var epg = i.epgEvent;
@@ -170,8 +170,8 @@ namespace MediaBrowser.Plugins.NextPvr
                 info.StartDate = DateTime.Parse(recurr.StartTime);
                 info.EndDate = DateTime.Parse(recurr.EndTime);
 
-                info.RequestedPrePaddingSeconds = int.Parse(recurr.PrePadding, _usCulture) * 60;
-                info.RequestedPostPaddingSeconds = int.Parse(recurr.PostPadding, _usCulture) * 60;
+                info.PrePaddingSeconds = int.Parse(recurr.PrePadding, _usCulture) * 60;
+                info.PostPaddingSeconds = int.Parse(recurr.PostPadding, _usCulture) * 60;
 
                 info.Name = recurr.RecurringName ?? recurr.EPGTitle;
                 info.RecordNewOnly = recurr.OnlyNew;
@@ -227,8 +227,21 @@ namespace MediaBrowser.Plugins.NextPvr
                 return RecordingStatus.InProgress;
             }
 
-            // TODO: Find the other possible values that could come back
+            if (string.Equals(value, "Failed", StringComparison.OrdinalIgnoreCase))
+            {
+                return RecordingStatus.Error;
+            }
 
+            if (string.Equals(value, "Conflict", StringComparison.OrdinalIgnoreCase))
+            {
+                return RecordingStatus.ConflictedNotOk;
+            }
+
+            if (string.Equals(value, "Deleted", StringComparison.OrdinalIgnoreCase))
+            {
+                return RecordingStatus.Cancelled;
+            }
+            
             return RecordingStatus.Scheduled;
         }
 
