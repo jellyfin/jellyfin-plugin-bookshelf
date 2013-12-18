@@ -11,6 +11,12 @@ namespace MediaBrowser.Plugins.NextPvr
     public class ChannelResponse
     {
         private readonly CultureInfo _usCulture = new CultureInfo("en-US");
+        private readonly string _baseUrl;
+
+        public ChannelResponse(string baseUrl)
+        {
+            _baseUrl = baseUrl;
+        }
 
         public IEnumerable<ChannelInfo> GetChannels(Stream stream, IJsonSerializer json)
         {
@@ -27,7 +33,8 @@ namespace MediaBrowser.Plugins.NextPvr
                 {
                     Name = i.channel.channelName,
                     Number = i.channel.channelNum.ToString(_usCulture),
-                    Id = i.channel.channelOID.ToString(_usCulture)
+                    Id = i.channel.channelOID.ToString(_usCulture),
+                    ImageUrl = string.IsNullOrEmpty(i.channel.channelIcon) ? null : (_baseUrl + i.channel.channelIcon)
                 });
             }
 

@@ -32,6 +32,9 @@ namespace MediaBrowser.Plugins.NextPvr
                 .EPGEvents
                 .Select(i => i.epgEventJSONObject)
 
+                // Seeing epgEventJSONObject coming back null for some responses
+                .Where(i => i != null)
+
                 // Seeing recurring parents coming back with these reponses, for some reason
                 .Where(i => i.schd != null)
                 .Select(GetRecordingInfo);
@@ -50,6 +53,9 @@ namespace MediaBrowser.Plugins.NextPvr
                 .EPGEvents
                 .Select(i => i.epgEventJSONObject)
 
+                // Seeing epgEventJSONObject coming back null for some responses
+                .Where(i => i != null)
+
                 // Seeing recurring parents coming back with these reponses, for some reason
                 .Where(i => i.schd != null)
                 .Select(GetTimerInfo);
@@ -67,6 +73,9 @@ namespace MediaBrowser.Plugins.NextPvr
             return root.ManageResults
                 .EPGEvents
                 .Select(i => i.epgEventJSONObject)
+
+                // Seeing epgEventJSONObject coming back null for some responses
+                .Where(i => i != null)
 
                 // Seeing recurring parents coming back with these reponses, for some reason
                 .Where(i => i.recurr != null)
@@ -96,6 +105,7 @@ namespace MediaBrowser.Plugins.NextPvr
                 info.EndDate = DateTime.Parse(schd.EndTime);
 
                 info.IsHD = string.Equals(schd.Quality, "hdtv", StringComparison.OrdinalIgnoreCase);
+                info.ImageUrl = string.IsNullOrEmpty(schd.FanArt) ? null : (_baseUrl + schd.FanArt);
             }
 
             var epg = i.epgEvent;

@@ -12,6 +12,12 @@ namespace MediaBrowser.Plugins.NextPvr
     class ListingsResponse
     {
         private readonly CultureInfo _usCulture = new CultureInfo("en-US");
+        private readonly string _baseUrl;
+
+        public ListingsResponse(string baseUrl)
+        {
+            _baseUrl = baseUrl;
+        }
 
         public IEnumerable<ProgramInfo> GetPrograms(Stream stream, IJsonSerializer json, string channelId)
         {
@@ -42,7 +48,8 @@ namespace MediaBrowser.Plugins.NextPvr
                 Audio = ParseAudio(epg.Audio),
                 IsHD = string.Equals(epg.Quality, "hdtv", StringComparison.OrdinalIgnoreCase),
                 IsRepeat = !epg.FirstRun,
-                IsSeries = !string.IsNullOrEmpty(epg.Subtitle)
+                IsSeries = !string.IsNullOrEmpty(epg.Subtitle),
+                ImageUrl = string.IsNullOrEmpty(epg.FanArt) ? null : (_baseUrl + epg.FanArt)
             };
 
             return info;

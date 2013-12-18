@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Common.Net;
+﻿using System.Linq;
+using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Plugins.NextPvr.Helpers;
@@ -25,6 +26,8 @@ namespace MediaBrowser.Plugins.NextPvr
 
         private string WebserviceUrl { get; set; }
         private string Pin { get; set; }
+
+        private readonly CultureInfo _usCulture = new CultureInfo("en-US");
 
         public LiveTvService(IHttpClient httpClient, IJsonSerializer jsonSerializer)
         {
@@ -136,7 +139,7 @@ namespace MediaBrowser.Plugins.NextPvr
 
             using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
             {
-                return new ChannelResponse().GetChannels(stream, _jsonSerializer);
+                return new ChannelResponse(Plugin.Instance.Configuration.WebServiceUrl).GetChannels(stream, _jsonSerializer).ToList();
             }
         }
 
@@ -175,13 +178,6 @@ namespace MediaBrowser.Plugins.NextPvr
             {
                 return new RecordingResponse(baseUrl).GetRecordings(stream, _jsonSerializer);
             }
-        }
-
-        private string GetString(XmlNode node, string name)
-        {
-            node = XmlHelper.GetSingleNode(node.OuterXml, "//" + name);
-
-            return node == null ? null : node.InnerXml;
         }
 
         private async Task CancelRecordingAsync(string recordingId, CancellationToken cancellationToken)
@@ -254,23 +250,29 @@ namespace MediaBrowser.Plugins.NextPvr
             get { return "Next Pvr"; }
         }
 
-        private readonly CultureInfo _usCulture = new CultureInfo("en-US");
-
+        private List<ProgramInfo> _programs = new List<ProgramInfo>();
+        private DateTime _lastProgramDownload;
         public async Task<IEnumerable<ProgramInfo>> GetProgramsAsync(string channelId, CancellationToken cancellationToken)
         {
-            var options = new HttpRequestOptions()
+            if ((DateTime.Now - _lastProgramDownload).TotalMinutes >= 5)
             {
-                CancellationToken = cancellationToken,
-                Url = string.Format("{0}/public/GuideService/Listing?stime={1}&etime={2}",
-                Plugin.Instance.Configuration.WebServiceUrl,
-                ApiHelper.GetCurrentUnixTimestampSeconds(DateTime.UtcNow.AddYears(-1)).ToString(_usCulture),
-                ApiHelper.GetCurrentUnixTimestampSeconds(DateTime.UtcNow.AddYears(1)).ToString(_usCulture))
-            };
+                var options = new HttpRequestOptions()
+                {
+                    CancellationToken = cancellationToken,
+                    Url = string.Format("{0}/public/GuideService/Listing?stime={1}&etime={2}",
+                    Plugin.Instance.Configuration.WebServiceUrl,
+                    ApiHelper.GetCurrentUnixTimestampSeconds(DateTime.UtcNow.AddYears(-1)).ToString(_usCulture),
+                    ApiHelper.GetCurrentUnixTimestampSeconds(DateTime.UtcNow.AddYears(1)).ToString(_usCulture))
+                };
 
-            using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
-            {
-                return new ListingsResponse().GetPrograms(stream, _jsonSerializer, channelId);
+                using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
+                {
+                    _programs = new ListingsResponse(Plugin.Instance.Configuration.WebServiceUrl).GetPrograms(stream, _jsonSerializer, channelId).ToList();
+                    _lastProgramDownload = DateTime.Now;
+                }
             }
+
+            return _programs;
         }
 
         public Task CancelTimerAsync(string timerId, CancellationToken cancellationToken)
@@ -322,11 +324,6 @@ namespace MediaBrowser.Plugins.NextPvr
             }
         }
 
-        public Task CreateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
         public async Task<IEnumerable<SeriesTimerInfo>> GetSeriesTimersAsync(CancellationToken cancellationToken)
         {
             var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
@@ -364,29 +361,14 @@ namespace MediaBrowser.Plugins.NextPvr
             }
         }
 
-        public Task UpdateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
+        public Task CreateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<ImageResponseInfo> GetChannelImageAsync(string channelId, CancellationToken cancellationToken)
+        public Task UpdateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
         {
-            await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
-
-            var options = new HttpRequestOptions()
-            {
-                CancellationToken = cancellationToken,
-                AcceptHeader = "image/*",
-                Url = string.Format("{0}/service?method=channel.icon&channel_id={1}&sid={2}", WebserviceUrl, channelId, Sid)
-            };
-
-            var response = await _httpClient.GetResponse(options).ConfigureAwait(false);
-
-            return new ImageResponseInfo
-            {
-                Stream = response.Content,
-                MimeType = response.ContentType
-            };
+            throw new NotImplementedException();
         }
 
         public Task UpdateTimerAsync(TimerInfo info, CancellationToken cancellationToken)
@@ -404,13 +386,21 @@ namespace MediaBrowser.Plugins.NextPvr
             return new SeriesTimerInfo();
         }
 
+        public Task<ImageResponseInfo> GetChannelImageAsync(string channelId, CancellationToken cancellationToken)
+        {
+            // Leave as is. This is handled by supplying image url to ChannelInfo
+            throw new NotImplementedException();
+        }
+
         public Task<ImageResponseInfo> GetProgramImageAsync(string programId, string channelId, CancellationToken cancellationToken)
         {
+            // Leave as is. This is handled by supplying image url to ProgramInfo
             throw new NotImplementedException();
         }
 
         public Task<ImageResponseInfo> GetRecordingImageAsync(string recordingId, CancellationToken cancellationToken)
         {
+            // Leave as is. This is handled by supplying image url to RecordingInfo
             throw new NotImplementedException();
         }
     }
