@@ -99,13 +99,13 @@ namespace MediaBrowser.Plugins.NextPvr
                 info.ChannelId = schd.ChannelOid.ToString(_usCulture);
                 info.Id = schd.OID.ToString(_usCulture);
                 info.Path = schd.RecordingFileName;
-                info.Url = string.IsNullOrEmpty(schd.DownloadURL) ? null : (_baseUrl + schd.DownloadURL);
+                info.Url = string.IsNullOrEmpty(schd.DownloadURL) ? null : (_baseUrl + "/" + schd.DownloadURL);
                 info.Status = ParseStatus(schd.Status);
                 info.StartDate = DateTime.Parse(schd.StartTime);
                 info.EndDate = DateTime.Parse(schd.EndTime);
 
                 info.IsHD = string.Equals(schd.Quality, "hdtv", StringComparison.OrdinalIgnoreCase);
-                info.ImageUrl = string.IsNullOrEmpty(schd.FanArt) ? null : (_baseUrl + schd.FanArt);
+                info.ImageUrl = string.IsNullOrEmpty(schd.FanArt) ? null : (_baseUrl + "/" + schd.FanArt);
             }
 
             var epg = i.epgEvent;

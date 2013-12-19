@@ -48,9 +48,14 @@ namespace MediaBrowser.Plugins.XbmcMetadata
         {
             if (e.SaveReason == UserDataSaveReason.PlaybackFinished || e.SaveReason == UserDataSaveReason.TogglePlayed)
             {
-                if (!e.Item.IsFolder && !(e.Item is IItemByName))
+                var item = e.Item as BaseItem;
+
+                if (item != null)
                 {
-                    SaveMetadataForItem(e.Item, ItemUpdateType.MetadataEdit);
+                    if (!item.IsFolder && !(item is IItemByName))
+                    {
+                        SaveMetadataForItem(item, ItemUpdateType.MetadataEdit);
+                    }
                 }
             }
         }

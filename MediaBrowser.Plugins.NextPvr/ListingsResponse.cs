@@ -49,7 +49,7 @@ namespace MediaBrowser.Plugins.NextPvr
                 IsHD = string.Equals(epg.Quality, "hdtv", StringComparison.OrdinalIgnoreCase),
                 IsRepeat = !epg.FirstRun,
                 IsSeries = !string.IsNullOrEmpty(epg.Subtitle),
-                ImageUrl = string.IsNullOrEmpty(epg.FanArt) ? null : (_baseUrl + epg.FanArt)
+                ImageUrl = string.IsNullOrEmpty(epg.FanArt) ? null : (_baseUrl + "/" + epg.FanArt)
             };
 
             return info;
@@ -63,7 +63,7 @@ namespace MediaBrowser.Plugins.NextPvr
 
                 var rating = value.Replace("+", string.Empty).Length + (hasPlus ? .5 : 0);
 
-                return (float) rating;
+                return (float)rating;
             }
 
             return null;

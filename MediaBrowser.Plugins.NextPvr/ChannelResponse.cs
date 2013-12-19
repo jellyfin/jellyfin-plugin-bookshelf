@@ -34,7 +34,7 @@ namespace MediaBrowser.Plugins.NextPvr
                     Name = i.channel.channelName,
                     Number = i.channel.channelNum.ToString(_usCulture),
                     Id = i.channel.channelOID.ToString(_usCulture),
-                    ImageUrl = string.IsNullOrEmpty(i.channel.channelIcon) ? null : (_baseUrl + i.channel.channelIcon)
+                    ImageUrl = string.IsNullOrEmpty(i.channel.channelIcon) ? null : (_baseUrl + "/" + i.channel.channelIcon)
                 });
             }
 

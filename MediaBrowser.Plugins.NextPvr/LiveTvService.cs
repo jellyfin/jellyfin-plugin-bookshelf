@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using MediaBrowser.Common.Net;
+﻿using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Plugins.NextPvr.Helpers;
@@ -7,10 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 
 namespace MediaBrowser.Plugins.NextPvr
 {
@@ -250,29 +249,22 @@ namespace MediaBrowser.Plugins.NextPvr
             get { return "Next Pvr"; }
         }
 
-        private List<ProgramInfo> _programs = new List<ProgramInfo>();
-        private DateTime _lastProgramDownload;
         public async Task<IEnumerable<ProgramInfo>> GetProgramsAsync(string channelId, CancellationToken cancellationToken)
         {
-            if ((DateTime.Now - _lastProgramDownload).TotalMinutes >= 5)
+            var options = new HttpRequestOptions()
             {
-                var options = new HttpRequestOptions()
-                {
-                    CancellationToken = cancellationToken,
-                    Url = string.Format("{0}/public/GuideService/Listing?stime={1}&etime={2}",
-                    Plugin.Instance.Configuration.WebServiceUrl,
-                    ApiHelper.GetCurrentUnixTimestampSeconds(DateTime.UtcNow.AddYears(-1)).ToString(_usCulture),
-                    ApiHelper.GetCurrentUnixTimestampSeconds(DateTime.UtcNow.AddYears(1)).ToString(_usCulture))
-                };
+                CancellationToken = cancellationToken,
+                Url = string.Format("{0}/public/GuideService/Listing?stime={1}&etime={2}&channelId={3}",
+                Plugin.Instance.Configuration.WebServiceUrl,
+                ApiHelper.GetCurrentUnixTimestampSeconds(DateTime.UtcNow.AddYears(-1)).ToString(_usCulture),
+                ApiHelper.GetCurrentUnixTimestampSeconds(DateTime.UtcNow.AddYears(1)).ToString(_usCulture),
+                channelId)
+            };
 
-                using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
-                {
-                    _programs = new ListingsResponse(Plugin.Instance.Configuration.WebServiceUrl).GetPrograms(stream, _jsonSerializer, channelId).ToList();
-                    _lastProgramDownload = DateTime.Now;
-                }
+            using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
+            {
+                return new ListingsResponse(Plugin.Instance.Configuration.WebServiceUrl).GetPrograms(stream, _jsonSerializer, channelId).ToList();
             }
-
-            return _programs;
         }
 
         public Task CancelTimerAsync(string timerId, CancellationToken cancellationToken)
