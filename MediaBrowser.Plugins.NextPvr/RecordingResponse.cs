@@ -120,8 +120,18 @@ namespace MediaBrowser.Plugins.NextPvr
                 info.Overview = epg.Desc;
                 info.Genres = epg.Genres;
                 info.IsRepeat = !epg.FirstRun;
+                info.IsSeries = !string.IsNullOrEmpty(epg.Subtitle);
                 info.CommunityRating = ListingsResponse.ParseCommunityRating(epg.StarRating);
                 info.IsHD = string.Equals(epg.Quality, "hdtv", StringComparison.OrdinalIgnoreCase);
+                info.IsNews = epg.Genres.Contains("news", StringComparer.OrdinalIgnoreCase);
+                info.IsMovie = epg.Genres.Contains("movie", StringComparer.OrdinalIgnoreCase);
+                info.IsKids = epg.Genres.Contains("kids", StringComparer.OrdinalIgnoreCase);
+
+                info.IsSports = epg.Genres.Contains("sports", StringComparer.OrdinalIgnoreCase) ||
+                    epg.Genres.Contains("Sports non-event", StringComparer.OrdinalIgnoreCase) ||
+                    epg.Genres.Contains("Sports event", StringComparer.OrdinalIgnoreCase) ||
+                    epg.Genres.Contains("Sports talk", StringComparer.OrdinalIgnoreCase) ||
+                    epg.Genres.Contains("Sports news", StringComparer.OrdinalIgnoreCase);
             }
 
             return info;
@@ -157,9 +167,16 @@ namespace MediaBrowser.Plugins.NextPvr
 
             if (epg != null)
             {
+                //info.Audio = ListingsResponse.ParseAudio(epg.Audio);
                 info.ProgramId = epg.OID.ToString(_usCulture);
+                //info.OfficialRating = epg.Rating;
+                //info.EpisodeTitle = epg.Subtitle;
                 info.Name = epg.Title;
                 info.Overview = epg.Desc;
+                //info.Genres = epg.Genres;
+                //info.IsRepeat = !epg.FirstRun;
+                //info.CommunityRating = ListingsResponse.ParseCommunityRating(epg.StarRating);
+                //info.IsHD = string.Equals(epg.Quality, "hdtv", StringComparison.OrdinalIgnoreCase);
             }
 
             return info;

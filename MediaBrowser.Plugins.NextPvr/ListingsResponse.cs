@@ -49,7 +49,17 @@ namespace MediaBrowser.Plugins.NextPvr
                 IsHD = string.Equals(epg.Quality, "hdtv", StringComparison.OrdinalIgnoreCase),
                 IsRepeat = !epg.FirstRun,
                 IsSeries = !string.IsNullOrEmpty(epg.Subtitle),
-                ImageUrl = string.IsNullOrEmpty(epg.FanArt) ? null : (_baseUrl + "/" + epg.FanArt)
+                ImageUrl = string.IsNullOrEmpty(epg.FanArt) ? null : (_baseUrl + "/" + epg.FanArt),
+                IsVideo = true,
+                IsNews = epg.Genres.Contains("news", StringComparer.OrdinalIgnoreCase),
+                IsMovie = epg.Genres.Contains("movie", StringComparer.OrdinalIgnoreCase),
+                IsKids = epg.Genres.Contains("kids", StringComparer.OrdinalIgnoreCase),
+
+                IsSports = epg.Genres.Contains("sports", StringComparer.OrdinalIgnoreCase) ||
+                    epg.Genres.Contains("Sports non-event", StringComparer.OrdinalIgnoreCase) ||
+                    epg.Genres.Contains("Sports event", StringComparer.OrdinalIgnoreCase) ||
+                    epg.Genres.Contains("Sports talk", StringComparer.OrdinalIgnoreCase) ||
+                    epg.Genres.Contains("Sports news", StringComparer.OrdinalIgnoreCase)
             };
 
             return info;
