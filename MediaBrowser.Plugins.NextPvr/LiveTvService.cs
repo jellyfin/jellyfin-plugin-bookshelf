@@ -375,25 +375,35 @@ namespace MediaBrowser.Plugins.NextPvr
 
         public async Task<SeriesTimerInfo> GetNewTimerDefaultsAsync(CancellationToken cancellationToken)
         {
-            return new SeriesTimerInfo();
+            var options = new HttpRequestOptions()
+            {
+                CancellationToken = cancellationToken,
+                Url = string.Format("{0}/public/ScheduleService/Get/SchedSettingsObj",
+                Plugin.Instance.Configuration.WebServiceUrl)
+            };
+            
+            using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
+            {
+                return new TimerDefaultsResponse().GetDefaultTimerInfo(stream, _jsonSerializer);
+            }
         }
 
         public Task<ImageResponseInfo> GetChannelImageAsync(string channelId, CancellationToken cancellationToken)
         {
             // Leave as is. This is handled by supplying image url to ChannelInfo
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public Task<ImageResponseInfo> GetProgramImageAsync(string programId, string channelId, CancellationToken cancellationToken)
         {
             // Leave as is. This is handled by supplying image url to ProgramInfo
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public Task<ImageResponseInfo> GetRecordingImageAsync(string recordingId, CancellationToken cancellationToken)
         {
             // Leave as is. This is handled by supplying image url to RecordingInfo
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
     }
 }
