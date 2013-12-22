@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Common.Net;
+﻿using MediaBrowser.Common.Extensions;
+using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Plugins.NextPvr.Helpers;
@@ -402,40 +403,68 @@ namespace MediaBrowser.Plugins.NextPvr
                 Url = string.Format("{0}/public/ScheduleService/Get/SchedSettingsObj",
                 Plugin.Instance.Configuration.WebServiceUrl)
             };
-            
+
             using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
             {
                 return new TimerDefaultsResponse().GetDefaultTimerInfo(stream, _jsonSerializer);
             }
         }
 
-        public Task<ImageResponseInfo> GetChannelImageAsync(string channelId, CancellationToken cancellationToken)
+        public Task<StreamResponseInfo> GetChannelImageAsync(string channelId, CancellationToken cancellationToken)
         {
             // Leave as is. This is handled by supplying image url to ChannelInfo
             throw new NotImplementedException();
         }
 
-        public Task<ImageResponseInfo> GetProgramImageAsync(string programId, string channelId, CancellationToken cancellationToken)
+        public Task<StreamResponseInfo> GetProgramImageAsync(string programId, string channelId, CancellationToken cancellationToken)
         {
             // Leave as is. This is handled by supplying image url to ProgramInfo
             throw new NotImplementedException();
         }
 
-        public Task<ImageResponseInfo> GetRecordingImageAsync(string recordingId, CancellationToken cancellationToken)
+        public Task<StreamResponseInfo> GetRecordingImageAsync(string recordingId, CancellationToken cancellationToken)
         {
             // Leave as is. This is handled by supplying image url to RecordingInfo
             throw new NotImplementedException();
         }
 
 
-        public Task<Stream> GetChannelStream(string recordingId, CancellationToken cancellationToken)
+        public Task<StreamResponseInfo> GetChannelStream(string recordingId, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Stream> GetRecordingStream(string recordingId, CancellationToken cancellationToken)
+        public async Task<StreamResponseInfo> GetRecordingStream(string recordingId, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var recordings = await GetRecordingsAsync(cancellationToken).ConfigureAwait(false);
+            var recording = recordings.First(i => string.Equals(i.Id, recordingId, StringComparison.OrdinalIgnoreCase));
+
+            if (!string.IsNullOrEmpty(recording.Path) && File.Exists(recording.Path))
+            {
+                return new StreamResponseInfo
+                {
+                    MimeType = MimeTypes.GetMimeType(recording.Path),
+                    Stream = File.OpenRead(recording.Path)
+                };
+            }
+
+            if (!string.IsNullOrEmpty(recording.Url))
+            {
+                var response = await _httpClient.GetResponse(new HttpRequestOptions
+                {
+                    CancellationToken = cancellationToken,
+                    Url = recording.Url
+
+                }).ConfigureAwait(false);
+
+                return new StreamResponseInfo
+                {
+                    MimeType = response.ContentType,
+                    Stream = response.Content
+                };
+            }
+
+            throw new ResourceNotFoundException(string.Format("No stream exists for recording {0}", recording));
         }
     }
 }
