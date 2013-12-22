@@ -4,11 +4,11 @@
     <title>Trailers</title>
 </head>
 <body>
-    <div id="trailersConfigurationPage" data-role="page" class="page type-interior pluginConfigurationPage">
+    <div data-role="page" class="page type-interior pluginConfigurationPage trailersConfigurationPage">
 
         <div data-role="content">
             <div class="content-primary">
-                <form id="trailersConfigurationForm">
+                <form class="trailersConfigurationForm">
 
                     <ul class="ulForm" data-role="listview">
                         <li>
@@ -54,7 +54,7 @@
                 pluginUniqueId: "986a7283-205a-4436-862d-23135c067f8a"
             };
 
-            $('#trailersConfigurationPage').on('pageshow', function (event) {
+            $('.trailersConfigurationPage').on('pageshow', function (event) {
 
                 Dashboard.showLoadingMsg();
 
@@ -70,7 +70,7 @@
                 });
             });
 
-            $('#trailersConfigurationForm').on('submit', function (e) {
+            $('.trailersConfigurationForm').on('submit', function (e) {
 
                 Dashboard.showLoadingMsg();
 

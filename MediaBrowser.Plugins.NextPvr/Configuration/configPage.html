@@ -4,27 +4,27 @@
     <title>NextPVR</title>
 </head>
 <body>
-    <div id="nextpvrConfigurationPage" data-role="page" class="page type-interior pluginConfigurationPage">
+    <div data-role="page" class="page type-interior pluginConfigurationPage nextpvrConfigurationPage">
 
         <div data-role="content">
             <div class="content-primary">
-                <form id="nextpvrConfigurationForm">
+                <form class="nextpvrConfigurationForm">
 
                     <ul class="ulForm" data-role="listview">
                         <li>
-                            <label for="txtWebseriveUrl">
-                                NextPvr backend URL:
+                            <label for="txtWebServiceUrl">
+                                NextPvr base url:
                             </label>
-                            <input type="text" id="txtWebseriveUrl" name="txtWebseriveUrl" />
+                            <input type="text" id="txtWebServiceUrl" name="txtWebServiceUrl" />
                             <div class="fieldDescription">
                                 NextPVR backend url (format --> http://{hostname}:{port}).
                             </div>
                         </li>
-                                                <li>
-                            <label for="txtNextPvrPin">
-                                NxtPvr backend Pin:
+                        <li>
+                            <label for="txtPin">
+                                NxtPvr pin:
                             </label>
-                            <input type="text" id="txtNextPvrPin" name="txtNextPvrPin" />
+                            <input type="text" id="txtPin" name="txtPin" />
                             <div class="fieldDescription">
                                 NextPVR pin to access the nextpvr backend.
                             </div>
@@ -39,14 +39,14 @@
             </div>
         </div>
 
-    
+
         <script type="text/javascript">
 
             var NextPvrConfigurationPage = {
                 pluginUniqueId: "9574ac10-bf23-49bc-949f-924f23cfa48f"
             };
 
-            $('#nextpvrConfigurationPage').on('pageshow', function (event) {
+            $('.nextpvrConfigurationPage').on('pageshow', function (event) {
 
                 Dashboard.showLoadingMsg();
 
@@ -54,15 +54,15 @@
 
                 ApiClient.getPluginConfiguration(NextPvrConfigurationPage.pluginUniqueId).done(function (config) {
 
-                    $('#txtWebserviceUrl', page).val(config.WebserviceUrl || "");
-                    $('#txtNextPvrPin', page).val(config.Pin || "");
+                    $('#txtWebServiceUrl', page).val(config.WebServiceUrl || "");
+                    $('#txtPin', page).val(config.Pin || "");
 
 
                     Dashboard.hideLoadingMsg();
                 });
             });
 
-            $('#nextpvrConfigurationForm').on('submit', function (e) {
+            $('.nextpvrConfigurationForm').on('submit', function (e) {
 
                 Dashboard.showLoadingMsg();
 
@@ -70,11 +70,8 @@
 
                 ApiClient.getPluginConfiguration(NextPvrConfigurationPage.pluginUniqueId).done(function (config) {
 
-                    var webserviceUrl = $('#txtWebserviceUrl', form).val();
-                    var nextpvrPin = $('#txNextPvrPin', form).val();
-
-                    config.WebserviceUrl = webserviceUrl ? webserviceUrl : null;
-                    config.NextpvrPin = nextpvrPin ? nextpvrPin : null;
+                    config.WebServiceUrl = $('#txtWebServiceUrl', form).val();
+                    config.Pin = $('#txtPin', form).val();
 
                     ApiClient.updatePluginConfiguration(NextPvrConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
                 });
