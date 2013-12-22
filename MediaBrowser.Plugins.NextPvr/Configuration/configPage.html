@@ -54,7 +54,7 @@
 
                 ApiClient.getPluginConfiguration(NextPvrConfigurationPage.pluginUniqueId).done(function (config) {
 
-                    $('#txtWebserviceUrl', page).val(config.WebserviceUrl || "");
+                    $('#txtWebserviceUrl', page).val(config.WebServiceUrl || "");
                     $('#txtNextPvrPin', page).val(config.Pin || "");
 
 
