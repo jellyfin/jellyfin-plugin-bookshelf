@@ -224,7 +224,11 @@ namespace MediaBrowser.Plugins.ADEProvider
             var tagline = synopsisNode.ChildNodes.FirstOrDefault(x => x.HasAttributes && x.Attributes["class"] != null && x.Attributes["class"].Value == "Tagline");
             if (tagline != null && !string.IsNullOrEmpty(tagline.InnerText))
             {
-                item.AddTagline(tagline.InnerText.Trim());
+                var hasTagline = item as IHasTaglines;
+                if (hasTagline != null)
+                {
+                    hasTagline.AddTagline(tagline.InnerText.Trim());
+                }
                 synopsisText = synopsisText.Replace(tagline.InnerText, string.Empty);
             }
 
