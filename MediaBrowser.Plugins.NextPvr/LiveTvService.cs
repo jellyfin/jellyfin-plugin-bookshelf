@@ -388,31 +388,31 @@ namespace MediaBrowser.Plugins.NextPvr
             }
         }
 
-        public Task<ImageResponseInfo> GetChannelImageAsync(string channelId, CancellationToken cancellationToken)
+        public Task<StreamResponseInfo> GetChannelImageAsync(string channelId, CancellationToken cancellationToken)
         {
             // Leave as is. This is handled by supplying image url to ChannelInfo
             throw new NotImplementedException();
         }
 
-        public Task<ImageResponseInfo> GetProgramImageAsync(string programId, string channelId, CancellationToken cancellationToken)
+        public Task<StreamResponseInfo> GetProgramImageAsync(string programId, string channelId, CancellationToken cancellationToken)
         {
             // Leave as is. This is handled by supplying image url to ProgramInfo
             throw new NotImplementedException();
         }
 
-        public Task<ImageResponseInfo> GetRecordingImageAsync(string recordingId, CancellationToken cancellationToken)
+        public Task<StreamResponseInfo> GetRecordingImageAsync(string recordingId, CancellationToken cancellationToken)
         {
             // Leave as is. This is handled by supplying image url to RecordingInfo
             throw new NotImplementedException();
         }
 
 
-        public Task<Stream> GetChannelStream(string recordingId, CancellationToken cancellationToken)
+        public Task<StreamResponseInfo> GetChannelStream(string recordingId, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Stream> GetRecordingStream(string recordingId, CancellationToken cancellationToken)
+        public Task<StreamResponseInfo> GetRecordingStream(string recordingId, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
