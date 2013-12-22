@@ -272,11 +272,32 @@ namespace MediaBrowser.Plugins.NextPvr
             return DeleteRecordingAsync(timerId, cancellationToken);
         }
 
-        public Task CreateTimerAsync(TimerInfo info, CancellationToken cancellationToken)
+        public async Task CreateTimerAsync(TimerInfo info, CancellationToken cancellationToken)
         {
-            var duration = info.EndDate - info.StartDate;
+            var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
 
-            return ScheduleRecordingAsync(info.Name, info.ChannelId, info.StartDate, duration, cancellationToken);
+            var options = new HttpRequestOptions
+                {
+                    CancellationToken = cancellationToken,
+                    Url = string.Format("{0}/public/ScheduleService/Record", baseUrl)
+                };
+
+            var filterOptions = new
+                {
+                    ChannelOID = "",
+                    startDate = "",
+                    endDate = "",
+                    manualRecTitle = ""
+                };
+
+            var postContent = _jsonSerializer.SerializeToString(filterOptions);
+
+            options.RequestContent = postContent;
+            options.RequestContent = "application/json";
+
+            var response = await _httpClient.Post(options).ConfigureAwait((false));
+
+            //return ScheduleRecordingAsync(info.Name, info.ChannelId, info.StartDate, new TimeSpan(0,1,0,0), cancellationToken);
         }
 
         public async Task<IEnumerable<TimerInfo>> GetTimersAsync(CancellationToken cancellationToken)
