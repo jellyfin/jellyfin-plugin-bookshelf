@@ -1,0 +1,88 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>NextPVR</title>
+</head>
+<body>
+    <div id="nextpvrConfigurationPage" data-role="page" class="page type-interior pluginConfigurationPage">
+
+        <div data-role="content">
+            <div class="content-primary">
+                <form id="nextpvrConfigurationForm">
+
+                    <ul class="ulForm" data-role="listview">
+                        <li>
+                            <label for="txtWebseriveUrl">
+                                NextPvr backend URL:
+                            </label>
+                            <input type="text" id="txtWebseriveUrl" name="txtWebseriveUrl" />
+                            <div class="fieldDescription">
+                                NextPVR backend url (format --> http://{hostname}:{port}).
+                            </div>
+                        </li>
+                                                <li>
+                            <label for="txtNextPvrPin">
+                                NxtPvr backend Pin:
+                            </label>
+                            <input type="text" id="txtNextPvrPin" name="txtNextPvrPin" />
+                            <div class="fieldDescription">
+                                NextPVR pin to access the nextpvr backend.
+                            </div>
+                        </li>
+                        <li>
+                            <button type="submit" data-theme="b">Save</button>
+                            <button type="button" onclick="history.back();">Cancel</button>
+                        </li>
+                    </ul>
+
+                </form>
+            </div>
+        </div>
+
+    
+        <script type="text/javascript">
+
+            var NextPvrConfigurationPage = {
+                pluginUniqueId: "9574ac10-bf23-49bc-949f-924f23cfa48f"
+            };
+
+            $('#nextpvrConfigurationPage').on('pageshow', function (event) {
+
+                Dashboard.showLoadingMsg();
+
+                var page = this;
+
+                ApiClient.getPluginConfiguration(NextPvrConfigurationPage.pluginUniqueId).done(function (config) {
+
+                    $('#txtWebserviceUrl', page).val(config.WebserviceUrl || "");
+                    $('#txtNextPvrPin', page).val(config.Pin || "");
+
+
+                    Dashboard.hideLoadingMsg();
+                });
+            });
+
+            $('#nextpvrConfigurationForm').on('submit', function (e) {
+
+                Dashboard.showLoadingMsg();
+
+                var form = this;
+
+                ApiClient.getPluginConfiguration(NextPvrConfigurationPage.pluginUniqueId).done(function (config) {
+
+                    var webserviceUrl = $('#txtWebserviceUrl', form).val();
+                    var nextpvrPin = $('#txNextPvrPin', form).val();
+
+                    config.WebserviceUrl = webserviceUrl ? webserviceUrl : null;
+                    config.NextpvrPin = nextpvrPin ? nextpvrPin : null;
+
+                    ApiClient.updatePluginConfiguration(NextPvrConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
+                });
+
+                // Disable default form submission
+                return false;
+            });
+        </script>
+    </div>
+</body>
+</html>
