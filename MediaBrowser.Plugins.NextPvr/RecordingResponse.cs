@@ -89,8 +89,6 @@ namespace MediaBrowser.Plugins.NextPvr
             var recurr = i.recurr;
             if (recurr != null)
             {
-                info.ChannelName = GetChannelName(recurr);
-
                 if (recurr.OID != 0)
                 {
                     info.SeriesTimerId = recurr.OID.ToString(_usCulture);
@@ -149,8 +147,6 @@ namespace MediaBrowser.Plugins.NextPvr
             var recurr = i.recurr;
             if (recurr != null)
             {
-                info.ChannelName = GetChannelName(recurr);
-
                 if (recurr.OID != 0)
                 {
                     info.SeriesTimerId = recurr.OID.ToString(_usCulture);
@@ -197,7 +193,6 @@ namespace MediaBrowser.Plugins.NextPvr
             var recurr = i.recurr;
             if (recurr != null)
             {
-                info.ChannelName = GetChannelName(recurr);
                 info.ChannelId = GetChannelId(recurr);
 
                 info.Id = recurr.OID.ToString(_usCulture);
