@@ -308,6 +308,8 @@ namespace MediaBrowser.Plugins.NextPvr
             options.RequestContentType = "application/json";
 
             var response = await _httpClient.Post(options).ConfigureAwait((false));
+
+            // TODO: throw LiveTvConflictException if this fails due to conflict
         }
 
         public async Task<IEnumerable<TimerInfo>> GetTimersAsync(CancellationToken cancellationToken)
@@ -384,9 +386,51 @@ namespace MediaBrowser.Plugins.NextPvr
             }
         }
 
-        public Task CreateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
+        public async Task CreateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
+
+            var options = new HttpRequestOptions
+            {
+                CancellationToken = cancellationToken,
+                Url = string.Format("{0}/public/ScheduleService/Record", baseUrl)
+            };
+
+            var timerSettings = await GetDefaultScheduleSettings(cancellationToken).ConfigureAwait(false);
+
+            timerSettings.allChannels = info.RecordAnyChannel;
+            timerSettings.onlyNew = info.RecordNewOnly;
+            timerSettings.recurringName = info.Name;
+            timerSettings.recordAnyTimeslot = info.RecordAnyTime;
+
+            timerSettings.recordAnyDay = info.Days.Count == 7;
+            timerSettings.daySunday = info.Days.Contains(DayOfWeek.Sunday);
+            timerSettings.dayMonday = info.Days.Contains(DayOfWeek.Monday);
+            timerSettings.dayTuesday = info.Days.Contains(DayOfWeek.Tuesday);
+            timerSettings.dayWednesday = info.Days.Contains(DayOfWeek.Wednesday);
+            timerSettings.dayThursday = info.Days.Contains(DayOfWeek.Thursday);
+            timerSettings.dayFriday = info.Days.Contains(DayOfWeek.Friday);
+            timerSettings.daySaturday = info.Days.Contains(DayOfWeek.Saturday);
+
+            if (!info.RecordAnyChannel)
+            {
+                timerSettings.ChannelOID = int.Parse(info.ChannelId, _usCulture);
+            }
+
+            if (!string.IsNullOrEmpty(info.ProgramId))
+            {
+                timerSettings.epgeventOID = int.Parse(info.ProgramId, _usCulture);
+            }
+
+            timerSettings.post_padding_min = info.PostPaddingSeconds / 60;
+            timerSettings.pre_padding_min = info.PrePaddingSeconds / 60;
+
+            var postContent = _jsonSerializer.SerializeToString(timerSettings);
+
+            options.RequestContent = postContent;
+            options.RequestContentType = "application/json";
+
+            var response = await _httpClient.Post(options).ConfigureAwait((false));
         }
 
         public Task UpdateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
