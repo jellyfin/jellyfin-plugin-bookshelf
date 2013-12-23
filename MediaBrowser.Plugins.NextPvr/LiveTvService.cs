@@ -213,6 +213,7 @@ namespace MediaBrowser.Plugins.NextPvr
             return CancelRecordingAsync(recordingId, cancellationToken);
         }
 
+        [Obsolete]
         public async Task ScheduleRecordingAsync(string name, string channelId, DateTime startTime, TimeSpan duration, CancellationToken cancellationToken)
         {
             await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
@@ -285,10 +286,12 @@ namespace MediaBrowser.Plugins.NextPvr
 
             var filterOptions = new
                 {
-                    ChannelOID = "",
-                    startDate = "",
-                    endDate = "",
-                    manualRecTitle = ""
+                    ChannelOID = info.ChannelId,
+                    startDate = info.StartDate,
+                    endDate = info.EndDate,
+                    pre_padding_min = (int)(info.PrePaddingSeconds/60),
+                    post_padding_min = (int)(info.PostPaddingSeconds/60),
+                    manualRecTitle = info.Name
                 };
 
             var postContent = _jsonSerializer.SerializeToString(filterOptions);
