@@ -278,27 +278,36 @@ namespace MediaBrowser.Plugins.NextPvr
             var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
 
             var options = new HttpRequestOptions
-                {
-                    CancellationToken = cancellationToken,
-                    Url = string.Format("{0}/public/ScheduleService/Record", baseUrl)
-                };
+            {
+                CancellationToken = cancellationToken,
+                Url = string.Format("{0}/public/ScheduleService/Record", baseUrl)
+            };
 
-            var filterOptions = new
-                {
-                    ChannelOID = "",
-                    startDate = "",
-                    endDate = "",
-                    manualRecTitle = ""
-                };
+            var timerSettings = await GetDefaultScheduleSettings(cancellationToken).ConfigureAwait(false);
 
-            var postContent = _jsonSerializer.SerializeToString(filterOptions);
+            timerSettings.allChannels = false;
+            timerSettings.ChannelOID = int.Parse(info.ChannelId, _usCulture);
+
+            if (!string.IsNullOrEmpty(info.ProgramId))
+            {
+                timerSettings.epgeventOID = int.Parse(info.ProgramId, _usCulture);
+            }
+            else
+            {
+                // TODO: format the dates
+                //timerSettings.startDate = info.StartDate;
+                //timerSettings.endDate = info.EndDate;
+            }
+
+            timerSettings.post_padding_min = info.PostPaddingSeconds / 60;
+            timerSettings.pre_padding_min = info.PrePaddingSeconds / 60;
+
+            var postContent = _jsonSerializer.SerializeToString(timerSettings);
 
             options.RequestContent = postContent;
-            options.RequestContent = "application/json";
+            options.RequestContentType = "application/json";
 
             var response = await _httpClient.Post(options).ConfigureAwait((false));
-
-            //return ScheduleRecordingAsync(info.Name, info.ChannelId, info.StartDate, new TimeSpan(0,1,0,0), cancellationToken);
         }
 
         public async Task<IEnumerable<TimerInfo>> GetTimersAsync(CancellationToken cancellationToken)
@@ -407,6 +416,21 @@ namespace MediaBrowser.Plugins.NextPvr
             using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
             {
                 return new TimerDefaultsResponse().GetDefaultTimerInfo(stream, _jsonSerializer);
+            }
+        }
+
+        private async Task<ScheduleSettings> GetDefaultScheduleSettings(CancellationToken cancellationToken)
+        {
+            var options = new HttpRequestOptions()
+            {
+                CancellationToken = cancellationToken,
+                Url = string.Format("{0}/public/ScheduleService/Get/SchedSettingsObj",
+                Plugin.Instance.Configuration.WebServiceUrl)
+            };
+
+            using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
+            {
+                return new TimerDefaultsResponse().GetScheduleSettings(stream, _jsonSerializer);
             }
         }
 
