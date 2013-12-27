@@ -253,6 +253,39 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
 
                 await collectionFolder.RemoveChild(trailer, cancellationToken).ConfigureAwait(false);
             }
+
+            // Do another sweep for dupes, post-metadata
+
+            var nameLookup = collectionFolder.RecursiveChildren
+                .OfType<Trailer>()
+                .ToLookup(i => i.Name, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            foreach (var lookup in nameLookup)
+            {
+                var items = lookup.ToList();
+
+                foreach (var dupe in items.Skip(1))
+                {
+                    await collectionFolder.RemoveChild(dupe, cancellationToken).ConfigureAwait(false);
+                }
+            }
+
+            var tmdbLookup = collectionFolder.RecursiveChildren
+                .OfType<Trailer>()
+                .Where(i => !string.IsNullOrEmpty(i.GetProviderId(MetadataProviders.Tmdb)))
+                .ToLookup(i => i.GetProviderId(MetadataProviders.Tmdb), StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            foreach (var lookup in tmdbLookup)
+            {
+                var items = lookup.ToList();
+
+                foreach (var dupe in items.Skip(1))
+                {
+                    await collectionFolder.RemoveChild(dupe, cancellationToken).ConfigureAwait(false);
+                }
+            }
         }
 
         /// <summary>
