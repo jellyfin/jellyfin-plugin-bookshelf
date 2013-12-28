@@ -441,12 +441,12 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 builder.Append("<tvcomid>" + SecurityElement.Escape(tvcom) + "</tvcomid>");
             }
 
-            var hasLanguage = item as IHasLanguage;
+            var hasLanguage = item as IHasPreferredMetadataLanguage;
             if (hasLanguage != null)
             {
-                if (!string.IsNullOrEmpty(hasLanguage.Language))
+                if (!string.IsNullOrEmpty(hasLanguage.PreferredMetadataLanguage))
                 {
-                    builder.Append("<language>" + SecurityElement.Escape(hasLanguage.Language) + "</language>");
+                    builder.Append("<language>" + SecurityElement.Escape(hasLanguage.PreferredMetadataLanguage) + "</language>");
                 }
             }
 
