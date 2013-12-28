@@ -151,6 +151,8 @@ namespace MediaBrowser.Plugins.NextPvr
                 {
                     info.SeriesTimerId = recurr.OID.ToString(_usCulture);
                 }
+
+                info.Name = recurr.RecurringName;
             }
 
             var schd = i.schd;
@@ -165,6 +167,8 @@ namespace MediaBrowser.Plugins.NextPvr
 
                 info.PrePaddingSeconds = int.Parse(schd.PrePadding, _usCulture) * 60;
                 info.PostPaddingSeconds = int.Parse(schd.PostPadding, _usCulture) * 60;
+
+                info.Name = schd.Name;
             }
 
             var epg = i.epgEvent;

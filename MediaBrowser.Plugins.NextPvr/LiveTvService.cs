@@ -156,6 +156,14 @@ namespace MediaBrowser.Plugins.NextPvr
             var filterOptions = new
             {
                 resultLimit = -1,
+                datetimeSortSeq = 0,
+                channelSortSeq = 0,
+                titleSortSeq = 0,
+                statusSortSeq = 0,
+                datetimeDecending = false,
+                channelDecending = false,
+                titleDecending = false,
+                statusDecending = false,
                 All = false,
                 None = false,
                 Pending = false,
@@ -164,7 +172,10 @@ namespace MediaBrowser.Plugins.NextPvr
                 Failed = true,
                 Conflict = false,
                 Recurring = false,
-                Deleted = false
+                Deleted = false,
+                FilterByName = false,
+                NameFilter = (string)null,
+                NameFilterCaseSensative = false
             };
 
             var postContent = _jsonSerializer.SerializeToString(filterOptions);
@@ -325,6 +336,14 @@ namespace MediaBrowser.Plugins.NextPvr
             var filterOptions = new
             {
                 resultLimit = -1,
+                datetimeSortSeq = 0,
+                channelSortSeq = 0,
+                titleSortSeq = 0,
+                statusSortSeq = 0,
+                datetimeDecending = false,
+                channelDecending = false,
+                titleDecending = false,
+                statusDecending = false,
                 All = false,
                 None = false,
                 Pending = true,
@@ -333,7 +352,10 @@ namespace MediaBrowser.Plugins.NextPvr
                 Failed = false,
                 Conflict = true,
                 Recurring = false,
-                Deleted = false
+                Deleted = false,
+                FilterByName = false,
+                NameFilter = (string)null,
+                NameFilterCaseSensative = false
             };
 
             var postContent = _jsonSerializer.SerializeToString(filterOptions);
