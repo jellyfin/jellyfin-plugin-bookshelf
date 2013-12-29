@@ -32,7 +32,6 @@ namespace MediaBrowser.Plugins.NextPvr
         {
             var info = new ProgramInfo
             {
-                AspectRatio = epg.Aspect,
                 ChannelId = channel.channelOID.ToString(_usCulture),
                 Id = epg.OID.ToString(_usCulture),
                 Overview = epg.Desc,
