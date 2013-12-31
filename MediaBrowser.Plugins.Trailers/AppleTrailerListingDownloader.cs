@@ -278,8 +278,15 @@ namespace MediaBrowser.Plugins.Trailers
                     switch (reader.Name)
                     {
                         case "name":
-                            info.Video.AddPerson(new PersonInfo { Name = reader.ReadStringSafe(), Type = PersonType.Actor });
+                        {
+                            var name = reader.ReadStringSafe();
+
+                            if (!string.IsNullOrWhiteSpace(name))
+                            {
+                                info.Video.AddPerson(new PersonInfo { Name = name, Type = PersonType.Actor });
+                            }
                             break;
+                        }
                         default:
                             reader.Skip();
                             break;
