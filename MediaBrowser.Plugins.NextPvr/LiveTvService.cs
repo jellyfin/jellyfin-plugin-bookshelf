@@ -519,38 +519,29 @@ namespace MediaBrowser.Plugins.NextPvr
         }
 
 
-        public Task<StreamResponseInfo> GetChannelStream(string recordingId, CancellationToken cancellationToken)
+        public Task<LiveStreamInfo> GetChannelStream(string recordingId, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<StreamResponseInfo> GetRecordingStream(string recordingId, CancellationToken cancellationToken)
+        public async Task<LiveStreamInfo> GetRecordingStream(string recordingId, CancellationToken cancellationToken)
         {
             var recordings = await GetRecordingsAsync(cancellationToken).ConfigureAwait(false);
             var recording = recordings.First(i => string.Equals(i.Id, recordingId, StringComparison.OrdinalIgnoreCase));
 
             if (!string.IsNullOrEmpty(recording.Path) && File.Exists(recording.Path))
             {
-                return new StreamResponseInfo
+                return new LiveStreamInfo
                 {
-                    MimeType = MimeTypes.GetMimeType(recording.Path),
-                    Stream = File.OpenRead(recording.Path)
+                    Path = recording.Path
                 };
             }
 
             if (!string.IsNullOrEmpty(recording.Url))
             {
-                var response = await _httpClient.GetResponse(new HttpRequestOptions
+                return new LiveStreamInfo
                 {
-                    CancellationToken = cancellationToken,
-                    Url = recording.Url
-
-                }).ConfigureAwait(false);
-
-                return new StreamResponseInfo
-                {
-                    MimeType = response.ContentType,
-                    Stream = response.Content
+                    Path = recording.Url
                 };
             }
 

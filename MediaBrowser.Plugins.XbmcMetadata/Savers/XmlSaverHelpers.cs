@@ -480,6 +480,16 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 }
             }
 
+            var hasDisplayOrder = item as IHasDisplayOrder;
+
+            if (hasDisplayOrder != null)
+            {
+                if (!string.IsNullOrEmpty(hasDisplayOrder.DisplayOrder))
+                {
+                    builder.Append("<displayorder>" + SecurityElement.Escape(hasDisplayOrder.DisplayOrder) + "</displayorder>");
+                }
+            }
+
             if (item.VoteCount.HasValue)
             {
                 builder.Append("<votes>" + SecurityElement.Escape(item.VoteCount.Value.ToString(UsCulture)) + "</votes>");
