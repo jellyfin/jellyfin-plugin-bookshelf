@@ -547,5 +547,10 @@ namespace MediaBrowser.Plugins.NextPvr
 
             throw new ResourceNotFoundException(string.Format("No stream exists for recording {0}", recording));
         }
+
+        public Task CloseLiveStream(string id, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
