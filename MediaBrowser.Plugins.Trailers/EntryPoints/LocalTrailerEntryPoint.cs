@@ -87,18 +87,6 @@ namespace MediaBrowser.Plugins.Trailers.EntryPoints
                 return;
             }
 
-            try
-            {
-                if (!_securityManager.IsMBSupporter)
-                {
-                    return;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.ErrorException("Error getting MB supporter status", ex);
-            }
-
             foreach (var item in items)
             {
                 try

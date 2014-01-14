@@ -72,14 +72,6 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
                 return;
             }
 
-            var isSupporter = _securityManager.IsMBSupporter;
-
-            if (!isSupporter)
-            {
-                _logger.Info("Downloading trailers is only allowed for MB supporters.");
-                return;
-            }
-
             var items = _libraryManager.RootFolder
                 .RecursiveChildren
                 .OfType<Movie>()

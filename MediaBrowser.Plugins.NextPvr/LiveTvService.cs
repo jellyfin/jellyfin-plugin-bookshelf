@@ -261,24 +261,6 @@ namespace MediaBrowser.Plugins.NextPvr
             get { return "Next Pvr"; }
         }
 
-        public async Task<IEnumerable<ProgramInfo>> GetProgramsAsync(string channelId, CancellationToken cancellationToken)
-        {
-            var options = new HttpRequestOptions()
-            {
-                CancellationToken = cancellationToken,
-                Url = string.Format("{0}/public/GuideService/Listing?stime={1}&etime={2}&channelId={3}",
-                Plugin.Instance.Configuration.WebServiceUrl,
-                ApiHelper.GetCurrentUnixTimestampSeconds(DateTime.UtcNow.AddYears(-1)).ToString(_usCulture),
-                ApiHelper.GetCurrentUnixTimestampSeconds(DateTime.UtcNow.AddYears(1)).ToString(_usCulture),
-                channelId)
-            };
-
-            using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
-            {
-                return new ListingsResponse(Plugin.Instance.Configuration.WebServiceUrl).GetPrograms(stream, _jsonSerializer, channelId).ToList();
-            }
-        }
-
         public Task CancelTimerAsync(string timerId, CancellationToken cancellationToken)
         {
             return DeleteRecordingAsync(timerId, cancellationToken);
@@ -470,21 +452,6 @@ namespace MediaBrowser.Plugins.NextPvr
             throw new NotImplementedException();
         }
 
-        public async Task<SeriesTimerInfo> GetNewTimerDefaultsAsync(CancellationToken cancellationToken)
-        {
-            var options = new HttpRequestOptions()
-            {
-                CancellationToken = cancellationToken,
-                Url = string.Format("{0}/public/ScheduleService/Get/SchedSettingsObj",
-                Plugin.Instance.Configuration.WebServiceUrl)
-            };
-
-            using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
-            {
-                return new TimerDefaultsResponse().GetDefaultTimerInfo(stream, _jsonSerializer);
-            }
-        }
-
         private async Task<ScheduleSettings> GetDefaultScheduleSettings(CancellationToken cancellationToken)
         {
             var options = new HttpRequestOptions()
@@ -549,6 +516,44 @@ namespace MediaBrowser.Plugins.NextPvr
         }
 
         public Task CloseLiveStream(string id, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<SeriesTimerInfo> GetNewTimerDefaultsAsync(CancellationToken cancellationToken, ProgramInfo program = null)
+        {
+            var options = new HttpRequestOptions()
+            {
+                CancellationToken = cancellationToken,
+                Url = string.Format("{0}/public/ScheduleService/Get/SchedSettingsObj",
+                Plugin.Instance.Configuration.WebServiceUrl)
+            };
+
+            using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
+            {
+                return new TimerDefaultsResponse().GetDefaultTimerInfo(stream, _jsonSerializer);
+            }
+        }
+
+        public async Task<IEnumerable<ProgramInfo>> GetProgramsAsync(string channelId, DateTime startDateUtc, DateTime endDateUtc, CancellationToken cancellationToken)
+        {
+            var options = new HttpRequestOptions()
+            {
+                CancellationToken = cancellationToken,
+                Url = string.Format("{0}/public/GuideService/Listing?stime={1}&etime={2}&channelId={3}",
+                Plugin.Instance.Configuration.WebServiceUrl,
+                ApiHelper.GetCurrentUnixTimestampSeconds(DateTime.UtcNow.AddYears(-1)).ToString(_usCulture),
+                ApiHelper.GetCurrentUnixTimestampSeconds(DateTime.UtcNow.AddYears(1)).ToString(_usCulture),
+                channelId)
+            };
+
+            using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
+            {
+                return new ListingsResponse(Plugin.Instance.Configuration.WebServiceUrl).GetPrograms(stream, _jsonSerializer, channelId).ToList();
+            }
+        }
+
+        public Task RecordLiveStream(string id, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
