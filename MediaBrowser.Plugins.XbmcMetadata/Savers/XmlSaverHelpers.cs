@@ -70,7 +70,8 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                     "formed",
                     "review",
                     "style",
-                    "imdbid"
+                    "imdbid",
+                    "plotkeyword"
 
         }.ToDictionary(i => i, StringComparer.OrdinalIgnoreCase);
 
@@ -551,6 +552,15 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                     {
                         builder.Append("<tag>" + SecurityElement.Escape(tag) + "</tag>");
                     }
+                }
+            }
+
+            var hasKeywords = item as IHasKeywords;
+            if (hasKeywords != null)
+            {
+                foreach (var tag in hasKeywords.Keywords)
+                {
+                    builder.Append("<plotkeyword>" + SecurityElement.Escape(tag) + "</plotkeyword>");
                 }
             }
 

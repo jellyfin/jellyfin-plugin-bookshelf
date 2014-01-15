@@ -557,5 +557,10 @@ namespace MediaBrowser.Plugins.NextPvr
         {
             throw new NotImplementedException();
         }
+
+
+        public event EventHandler DataSourceChanged;
+
+        public event EventHandler<RecordingStatusChangedEventArgs> RecordingStatusChanged;
     }
 }
