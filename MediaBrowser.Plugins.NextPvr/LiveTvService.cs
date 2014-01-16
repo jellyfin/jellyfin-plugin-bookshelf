@@ -562,5 +562,11 @@ namespace MediaBrowser.Plugins.NextPvr
         public event EventHandler DataSourceChanged;
 
         public event EventHandler<RecordingStatusChangedEventArgs> RecordingStatusChanged;
+
+
+        public Task<LiveTvServiceStatusInfo> GetStatusInfoAsync(CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
