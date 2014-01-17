@@ -568,5 +568,11 @@ namespace MediaBrowser.Plugins.NextPvr
         {
             throw new NotImplementedException();
         }
+
+
+        public string HomePageUrl
+        {
+            get { throw new NotImplementedException(); }
+        }
     }
 }
