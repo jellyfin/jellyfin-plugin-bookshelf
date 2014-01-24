@@ -129,26 +129,6 @@ namespace MediaBrowser.Plugins.Trailers
                     case "title":
                         info.Video.Name = reader.ReadStringSafe();
                         break;
-                    case "runtime":
-                        {
-                            var runtime = reader.ReadStringSafe();
-
-                            if (!string.IsNullOrWhiteSpace(runtime))
-                            {
-                                if (runtime.StartsWith(":", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    runtime = "0" + runtime;
-                                }
-
-                                TimeSpan runtimeTimeSpan;
-
-                                if (TimeSpan.TryParse(runtime, UsCulture, out runtimeTimeSpan))
-                                {
-                                    info.Video.OriginalRunTimeTicks = runtimeTimeSpan.Ticks;
-                                }
-                            }
-                            break;
-                        }
                     case "rating":
                         {
                             var rating = reader.ReadStringSafe();

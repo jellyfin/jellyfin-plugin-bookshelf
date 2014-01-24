@@ -511,7 +511,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             }
 
             // Use original runtime here, actual file runtime later in MediaInfo
-            var runTimeTicks = item.OriginalRunTimeTicks ?? item.RunTimeTicks;
+            var runTimeTicks = item.RunTimeTicks;
 
             if (runTimeTicks.HasValue)
             {
@@ -621,7 +621,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             builder.Append("<resume>");
 
-            var runTimeTicks = item.OriginalRunTimeTicks ?? item.RunTimeTicks ?? 0;
+            var runTimeTicks = item.RunTimeTicks ?? 0;
 
             builder.Append("<position>" + TimeSpan.FromTicks(userdata.PlaybackPositionTicks).TotalSeconds.ToString(UsCulture) + "</position>");
             builder.Append("<total>" + TimeSpan.FromTicks(runTimeTicks).TotalSeconds.ToString(UsCulture) + "</total>");

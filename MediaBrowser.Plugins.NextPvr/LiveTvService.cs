@@ -558,21 +558,23 @@ namespace MediaBrowser.Plugins.NextPvr
             throw new NotImplementedException();
         }
 
-
         public event EventHandler DataSourceChanged;
 
         public event EventHandler<RecordingStatusChangedEventArgs> RecordingStatusChanged;
-
 
         public Task<LiveTvServiceStatusInfo> GetStatusInfoAsync(CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-
         public string HomePageUrl
         {
             get { throw new NotImplementedException(); }
+        }
+
+        public Task ResetTuner(string id, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
     }
 }
