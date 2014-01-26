@@ -562,14 +562,17 @@ namespace MediaBrowser.Plugins.NextPvr
 
         public event EventHandler<RecordingStatusChangedEventArgs> RecordingStatusChanged;
 
-        public Task<LiveTvServiceStatusInfo> GetStatusInfoAsync(CancellationToken cancellationToken)
+        public async Task<LiveTvServiceStatusInfo> GetStatusInfoAsync(CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            return new LiveTvServiceStatusInfo
+            {
+                 
+            };
         }
 
         public string HomePageUrl
         {
-            get { throw new NotImplementedException(); }
+            get { return "http://www.nextpvr.com/"; }
         }
 
         public Task ResetTuner(string id, CancellationToken cancellationToken)
