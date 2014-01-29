@@ -1,8 +1,6 @@
 ﻿using MediaBrowser.Common.Net;
 using MediaBrowser.Common.ScheduledTasks;
-using MediaBrowser.Common.Security;
 using MediaBrowser.Controller.Entities.Movies;
-using MediaBrowser.Controller.IO;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
@@ -26,19 +24,17 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
         /// </summary>
         private readonly ILibraryManager _libraryManager;
         private readonly IHttpClient _httpClient;
-        private readonly IDirectoryWatchers _directoryWatchers;
+        private readonly ILibraryMonitor _libraryMonitor;
         private readonly ILogger _logger;
-        private readonly ISecurityManager _securityManager;
         private readonly IJsonSerializer _json;
 
-        public LocalTrailerDownloadTask(ILibraryManager libraryManager, IHttpClient httpClient, IDirectoryWatchers directoryWatchers, ILogger logger, ISecurityManager securityManager, IJsonSerializer json)
+        public LocalTrailerDownloadTask(ILibraryManager libraryManager, IHttpClient httpClient, ILogger logger, IJsonSerializer json, ILibraryMonitor libraryMonitor)
         {
             _libraryManager = libraryManager;
             _httpClient = httpClient;
-            _directoryWatchers = directoryWatchers;
             _logger = logger;
-            _securityManager = securityManager;
             _json = json;
+            _libraryMonitor = libraryMonitor;
         }
 
         /// <summary>
@@ -84,7 +80,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
             {
                 try
                 {
-                    await new LocalTrailerDownloader(_httpClient, _directoryWatchers, _logger, _json).DownloadTrailerForItem(item, cancellationToken).ConfigureAwait(false);
+                    await new LocalTrailerDownloader(_httpClient, _libraryMonitor, _logger, _json).DownloadTrailerForItem(item, cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {

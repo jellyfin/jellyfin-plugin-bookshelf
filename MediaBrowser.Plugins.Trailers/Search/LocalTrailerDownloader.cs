@@ -1,6 +1,7 @@
 ﻿using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.IO;
+using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Resolvers;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
@@ -15,14 +16,14 @@ namespace MediaBrowser.Plugins.Trailers.Search
     public class LocalTrailerDownloader
     {
         private readonly IHttpClient _httpClient;
-        private readonly IDirectoryWatchers _directoryWatchers;
+        private readonly ILibraryMonitor _libraryMonitor;
         private readonly ILogger _logger;
         private readonly IJsonSerializer _json;
 
-        public LocalTrailerDownloader(IHttpClient httpClient, IDirectoryWatchers directoryWatchers, ILogger logger, IJsonSerializer json)
+        public LocalTrailerDownloader(IHttpClient httpClient, ILibraryMonitor libraryMonitor, ILogger logger, IJsonSerializer json)
         {
             _httpClient = httpClient;
-            _directoryWatchers = directoryWatchers;
+            _libraryMonitor = libraryMonitor;
             _logger = logger;
             _json = json;
         }
@@ -68,7 +69,7 @@ namespace MediaBrowser.Plugins.Trailers.Search
                 return;
             }
 
-            _directoryWatchers.TemporarilyIgnore(savePath);
+            _libraryMonitor.ReportFileSystemChangeBeginning(savePath);
 
             _logger.Info("Moving {0} to {1}", responseInfo.TempFilePath, savePath);
 
@@ -91,10 +92,8 @@ namespace MediaBrowser.Plugins.Trailers.Search
             }
             finally
             {
-                _directoryWatchers.RemoveTempIgnore(savePath);
+                _libraryMonitor.ReportFileSystemChangeComplete(savePath, true);
             }
-
-            await item.RefreshMetadata(cancellationToken).ConfigureAwait(false);
         }
 
         private void DeleteTempFile(HttpResponseInfo response)

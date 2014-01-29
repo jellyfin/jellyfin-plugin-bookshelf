@@ -1,8 +1,6 @@
 ﻿using MediaBrowser.Common.Net;
-using MediaBrowser.Common.Security;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
-using MediaBrowser.Controller.IO;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Plugins;
 using MediaBrowser.Model.Entities;
@@ -23,22 +21,20 @@ namespace MediaBrowser.Plugins.Trailers.EntryPoints
         private const int NewItemDelay = 30000;
 
         private readonly ILibraryManager _libraryManager;
-        private readonly ISecurityManager _securityManager;
         private readonly ILogger _logger;
         private readonly IHttpClient _httpClient;
-        private readonly IDirectoryWatchers _directoryWatchers;
+        private readonly ILibraryMonitor _libraryMonitor;
         private readonly IJsonSerializer _json;
 
         private Timer NewItemTimer { get; set; }
 
-        public LocalTrailerEntryPoint(ILibraryManager libraryManager, ISecurityManager securityManager, ILogger logger, IHttpClient httpClient, IDirectoryWatchers directoryWatchers, IJsonSerializer json)
+        public LocalTrailerEntryPoint(ILibraryManager libraryManager, ILogger logger, IHttpClient httpClient, IJsonSerializer json, ILibraryMonitor libraryMonitor)
         {
             _libraryManager = libraryManager;
-            _securityManager = securityManager;
             _logger = logger;
             _httpClient = httpClient;
-            _directoryWatchers = directoryWatchers;
             _json = json;
+            _libraryMonitor = libraryMonitor;
         }
 
         public void Run()
@@ -91,7 +87,7 @@ namespace MediaBrowser.Plugins.Trailers.EntryPoints
             {
                 try
                 {
-                    await new LocalTrailerDownloader(_httpClient, _directoryWatchers, _logger, _json).DownloadTrailerForItem(item, CancellationToken.None).ConfigureAwait(false);
+                    await new LocalTrailerDownloader(_httpClient, _libraryMonitor, _logger, _json).DownloadTrailerForItem(item, CancellationToken.None).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
