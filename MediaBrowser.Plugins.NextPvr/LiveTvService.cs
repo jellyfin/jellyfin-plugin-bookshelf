@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Common.Extensions;
+﻿using System.Data.SqlTypes;
+using MediaBrowser.Common.Extensions;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.Serialization;
@@ -21,13 +22,9 @@ namespace MediaBrowser.Plugins.NextPvr
     {
         private readonly IHttpClient _httpClient;
         private readonly IJsonSerializer _jsonSerializer;
-
-        private string Sid { get; set; }
-
-        private string WebserviceUrl { get; set; }
-        private string Pin { get; set; }
-
         private readonly CultureInfo _usCulture = new CultureInfo("en-US");
+        
+        private string Sid { get; set; }
 
         public LiveTvService(IHttpClient httpClient, IJsonSerializer jsonSerializer)
         {
@@ -35,6 +32,11 @@ namespace MediaBrowser.Plugins.NextPvr
             _jsonSerializer = jsonSerializer;
         }
 
+        /// <summary>
+        /// Ensure that we are connected to the NextPvr server
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         private async Task EnsureConnectionAsync(CancellationToken cancellationToken)
         {
             var config = Plugin.Instance.Configuration;
@@ -42,6 +44,11 @@ namespace MediaBrowser.Plugins.NextPvr
             if (string.IsNullOrEmpty(config.WebServiceUrl))
             {
                 throw new InvalidOperationException("NextPvr web service url must be configured.");
+            }
+
+            if (string.IsNullOrEmpty(config.Pin))
+            {
+                throw new InvalidOperationException("NextPvr pin must be configured.");
             }
 
             if (string.IsNullOrEmpty(Sid))
@@ -55,33 +62,22 @@ namespace MediaBrowser.Plugins.NextPvr
         /// </summary>
         private async Task InitiateSession(CancellationToken cancellationToken)
         {
-            string html;
+            var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
 
-            WebserviceUrl = Plugin.Instance.Configuration.WebServiceUrl;
-            Pin = Plugin.Instance.Configuration.Pin;
-
-            var options = new HttpRequestOptions
+            var options = new HttpRequestOptions()
             {
-                // This moment only device name xbmc is available
-                Url = string.Format("{0}/service?method=session.initiate&ver=1.0&device=xbmc", WebserviceUrl),
-
-                CancellationToken = cancellationToken
+                CancellationToken = cancellationToken,
+                Url = string.Format("{0}/public/Util/NPVR/Client/Instantiate", baseUrl)
             };
-
+            
             using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
             {
-                using (var reader = new StreamReader(stream))
-                {
-                    html = await reader.ReadToEndAsync().ConfigureAwait(false);
-                }
-            }
+                var clientKeys = InstantiateResponse.GetClientKeys(stream, _jsonSerializer);
 
-            if (XmlHelper.GetSingleNode(html, "//rsp/@stat").InnerXml.ToLower() == "ok")
-            {
-                var salt = XmlHelper.GetSingleNode(html, "//rsp/salt").InnerXml;
-                var sid = XmlHelper.GetSingleNode(html, "//rsp/sid").InnerXml;
-
-                var loggedIn = await Login(sid, salt, cancellationToken).ConfigureAwait(false);
+                var sid = clientKeys.sid;
+                var salt = clientKeys.salt;
+                
+                var loggedIn = await Login(salt, cancellationToken).ConfigureAwait(false);
 
                 if (loggedIn)
                 {
@@ -90,38 +86,43 @@ namespace MediaBrowser.Plugins.NextPvr
             }
         }
 
-        private async Task<bool> Login(string sid, string salt, CancellationToken cancellationToken)
+        /// <summary>
+        /// Initialize the NextPvr session
+        /// </summary>
+        /// <param name="salt"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        private async Task<bool> Login(string salt, CancellationToken cancellationToken)
         {
-            string html;
+            var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
+            var pin = Plugin.Instance.Configuration.Pin;
 
-            var md5 = EncryptionHelper.GetMd5Hash(Pin);
             var strb = new StringBuilder();
-
-            strb.Append(":");
-            strb.Append(md5);
-            strb.Append(":");
-            strb.Append(salt);
-
-            var md5Result = EncryptionHelper.GetMd5Hash(strb.ToString());
+            var md5Result = EncryptionHelper.GetMd5Hash(strb.Append(":").Append(EncryptionHelper.GetMd5Hash(pin)).Append(":").Append(salt).ToString());
 
             var options = new HttpRequestOptions()
                 {
-                    // This moment only device name xbmc is available
-                    Url =
-                        string.Format("{0}/service?method=session.login&&sid={1}&md5={2}", WebserviceUrl, sid, md5Result),
-
+                    Url = string.Format("{0}/public/Util/NPVR/Client/Initialize" , baseUrl),
                     CancellationToken = cancellationToken
                 };
 
+            var clientKeys = new
+            {
+                ClientKey = md5Result
+            };
+
+            var postContent = _jsonSerializer.SerializeToString(clientKeys);
+            
+            options.RequestContent = postContent;
+            options.RequestContentType = "application/json";
+
             using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
             {
-                using (var reader = new StreamReader(stream))
-                {
-                    html = await reader.ReadToEndAsync().ConfigureAwait(false);
-                }
+                //TODO
+                //Default give true back
             }
 
-            return XmlHelper.GetSingleNode(html, "//rsp/@stat").InnerXml.ToLower() == "ok";
+            return true;
         }
 
         /// <summary>
@@ -143,6 +144,11 @@ namespace MediaBrowser.Plugins.NextPvr
             }
         }
 
+        /// <summary>
+        /// Gets the Recordings async
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>Task{IEnumerable{RecordingInfo}}</returns>
         public async Task<IEnumerable<RecordingInfo>> GetRecordingsAsync(CancellationToken cancellationToken)
         {
             var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
@@ -196,12 +202,13 @@ namespace MediaBrowser.Plugins.NextPvr
             await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
 
             string html;
+            var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
 
             var options = new HttpRequestOptions()
                 {
                     CancellationToken = cancellationToken,
                     Url =
-                        string.Format("{0}/service?method=recording.delete&recording_id={1}&sid={2}", WebserviceUrl,
+                        string.Format("{0}/service?method=recording.delete&recording_id={1}&sid={2}", baseUrl,
                                       recordingId, Sid)
                 };
 
@@ -229,12 +236,13 @@ namespace MediaBrowser.Plugins.NextPvr
             await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
 
             string html;
+            var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
 
             var options = new HttpRequestOptions()
                 {
                     CancellationToken = cancellationToken,
                     Url =
-                        string.Format("{0}/service?method=recording.save&name={1}&channel={2}&time_t={3}&duration={4}&sid={5}", WebserviceUrl,
+                        string.Format("{0}/service?method=recording.save&name={1}&channel={2}&time_t={3}&duration={4}&sid={5}", baseUrl,
                                       name, channelId, startTime, duration, Sid)
                 };
 
@@ -566,7 +574,7 @@ namespace MediaBrowser.Plugins.NextPvr
         {
             return new LiveTvServiceStatusInfo
             {
-                 
+                 HasUpdateAvailable = false,
             };
         }
 

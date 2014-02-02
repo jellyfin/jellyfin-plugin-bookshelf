@@ -62,6 +62,7 @@
     <Compile Include="Helpers\GeneralHelpers.cs" />
     <Compile Include="Helpers\EncryptionHelper.cs" />
     <Compile Include="Helpers\XmlHelper.cs" />
+    <Compile Include="InstantiateResponse.cs" />
     <Compile Include="ListingsResponse.cs" />
     <Compile Include="LiveTvService.cs" />
     <Compile Include="Plugin.cs" />
