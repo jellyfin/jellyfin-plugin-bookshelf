@@ -2,6 +2,7 @@
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Persistence;
+using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
 using System.Collections.Generic;
 using System.IO;
@@ -11,7 +12,7 @@ using System.Threading;
 
 namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 {
-    public class MovieXmlSaver : IMetadataSaver
+    public class MovieXmlSaver : IMetadataFileSaver
     {
         private readonly ILibraryManager _libraryManager;
         private readonly IUserManager _userManager;
@@ -26,12 +27,20 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             _itemRepo = itemRepo;
         }
 
-        public string GetSavePath(BaseItem item)
+        public string Name
         {
-            if (item.ResolveArgs.IsDirectory)
+            get
             {
-                var video = (Video)item;
+                return "Xbmc nfo";
+            }
+        }
 
+        public string GetSavePath(IHasMetadata item)
+        {
+            var video = (Video)item;
+
+            if (video.ResolveArgs.IsDirectory)
+            {
                 if (video.VideoType == VideoType.Dvd || video.VideoType == VideoType.BluRay || video.VideoType == VideoType.HdDvd)
                 {
                     var path = item.Path;
@@ -43,15 +52,17 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             return Path.ChangeExtension(item.Path, ".nfo");
         }
 
-        public void Save(BaseItem item, CancellationToken cancellationToken)
+        public void Save(IHasMetadata item, CancellationToken cancellationToken)
         {
+            var video = (Video)item;
+
             var builder = new StringBuilder();
 
             var tag = item is MusicVideo ? "musicvideo" : "movie";
 
             builder.Append("<" + tag + ">");
 
-            XmlSaverHelpers.AddCommonNodes(item, builder, _libraryManager, _userManager, _userDataRepo);
+            XmlSaverHelpers.AddCommonNodes(video, builder, _libraryManager, _userManager, _userDataRepo);
 
             var imdb = item.GetProviderId(MetadataProviders.Imdb);
 
@@ -98,7 +109,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 });
         }
 
-        public bool IsEnabledFor(BaseItem item, ItemUpdateType updateType)
+        public bool IsEnabledFor(IHasMetadata item, ItemUpdateType updateType)
         {
             // If new metadata has been downloaded or metadata was manually edited, proceed
             if ((updateType & ItemUpdateType.MetadataDownload) == ItemUpdateType.MetadataDownload

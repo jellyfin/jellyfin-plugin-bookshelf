@@ -1,8 +1,7 @@
 ﻿using MediaBrowser.Controller.Configuration;
-using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Persistence;
+using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
 using System.Collections.Generic;
 using System.IO;
@@ -12,7 +11,7 @@ using System.Threading;
 
 namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 {
-    public class SeriesXmlSaver : IMetadataSaver
+    public class SeriesXmlSaver : IMetadataFileSaver
     {
         private readonly ILibraryManager _libraryManager;
         private readonly IUserManager _userManager;
@@ -28,18 +27,28 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             _userDataRepo = userDataRepo;
         }
 
-        public string GetSavePath(BaseItem item)
+        public string Name
+        {
+            get
+            {
+                return "Xbmc nfo";
+            }
+        }
+
+        public string GetSavePath(IHasMetadata item)
         {
             return Path.Combine(item.Path, "tvshow.nfo");
         }
 
-        public void Save(BaseItem item, CancellationToken cancellationToken)
+        public void Save(IHasMetadata item, CancellationToken cancellationToken)
         {
+            var series = (Series)item;
+
             var builder = new StringBuilder();
 
             builder.Append("<tvshow>");
 
-            XmlSaverHelpers.AddCommonNodes(item, builder, _libraryManager, _userManager, _userDataRepo);
+            XmlSaverHelpers.AddCommonNodes(series, builder, _libraryManager, _userManager, _userDataRepo);
 
             var tvdb = item.GetProviderId(MetadataProviders.Tvdb);
 
@@ -62,8 +71,6 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             builder.Append("<season>-1</season>");
             builder.Append("<episode>-1</episode>");
 
-            var series = (Series)item;
-
             if (series.Status.HasValue)
             {
                 builder.Append("<status>" + SecurityElement.Escape(series.Status.Value.ToString()) + "</status>");
@@ -71,7 +78,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             if (series.Studios.Count > 0)
             {
-                builder.Append("<studio>" + SecurityElement.Escape(item.Studios[0]) + "</studio>");
+                builder.Append("<studio>" + SecurityElement.Escape(series.Studios[0]) + "</studio>");
             }
 
             if (!string.IsNullOrEmpty(series.AirTime))
@@ -105,7 +112,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 });
         }
 
-        public bool IsEnabledFor(BaseItem item, ItemUpdateType updateType)
+        public bool IsEnabledFor(IHasMetadata item, ItemUpdateType updateType)
         {
             // If new metadata has been downloaded or metadata was manually edited, proceed
             if ((updateType & ItemUpdateType.MetadataDownload) == ItemUpdateType.MetadataDownload

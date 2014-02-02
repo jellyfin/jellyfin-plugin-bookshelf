@@ -1,6 +1,6 @@
-﻿using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Entities.Audio;
+﻿using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Providers;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -12,7 +12,7 @@ using System.Threading;
 
 namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 {
-    public class AlbumXmlSaver : IMetadataSaver
+    public class AlbumXmlSaver : IMetadataFileSaver
     {
         private readonly ILibraryManager _libraryManager;
         private readonly IUserManager _userManager;
@@ -25,20 +25,30 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             _userDataRepo = userDataRepo;
         }
 
-        public string GetSavePath(BaseItem item)
+        public string Name
+        {
+            get
+            {
+                return "Xbmc nfo";
+            }
+        }
+
+        public string GetSavePath(IHasMetadata item)
         {
             return Path.Combine(item.Path, "album.nfo");
         }
 
-        public void Save(BaseItem item, CancellationToken cancellationToken)
+        public void Save(IHasMetadata item, CancellationToken cancellationToken)
         {
+            var album = (MusicAlbum)item;
+
             var builder = new StringBuilder();
 
             builder.Append("<album>");
 
-            XmlSaverHelpers.AddCommonNodes(item, builder, _libraryManager, _userManager, _userDataRepo);
+            XmlSaverHelpers.AddCommonNodes(album, builder, _libraryManager, _userManager, _userDataRepo);
 
-            var tracks = ((MusicAlbum)item).RecursiveChildren
+            var tracks = album.RecursiveChildren
                 .OfType<Audio>()
                 .ToList();
 
@@ -74,7 +84,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 });
         }
 
-        public bool IsEnabledFor(BaseItem item, ItemUpdateType updateType)
+        public bool IsEnabledFor(IHasMetadata item, ItemUpdateType updateType)
         {
             // If new metadata has been downloaded or metadata was manually edited, proceed
             if ((updateType & ItemUpdateType.MetadataDownload) == ItemUpdateType.MetadataDownload

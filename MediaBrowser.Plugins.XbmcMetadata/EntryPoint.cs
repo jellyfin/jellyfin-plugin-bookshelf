@@ -1,11 +1,11 @@
-﻿using System.Linq;
-using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Plugins;
+using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
 using System;
-using System.Threading;
+using System.Linq;
 
 namespace MediaBrowser.Plugins.XbmcMetadata
 {
@@ -14,12 +14,14 @@ namespace MediaBrowser.Plugins.XbmcMetadata
         private readonly IUserDataManager _userDataManager;
         private readonly ILogger _logger;
         private readonly ILibraryManager _libraryManager;
+        private readonly IProviderManager _providerManager;
 
-        public EntryPoint(IUserDataManager userDataManager, ILibraryManager libraryManager, ILogger logger)
+        public EntryPoint(IUserDataManager userDataManager, ILibraryManager libraryManager, ILogger logger, IProviderManager providerManager)
         {
             _userDataManager = userDataManager;
             _libraryManager = libraryManager;
             _logger = logger;
+            _providerManager = providerManager;
         }
 
         public void Run()
@@ -83,7 +85,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata
 
             try
             {
-                await _libraryManager.SaveMetadata(item, updateReason).ConfigureAwait(false);
+                await _providerManager.SaveMetadata(item, updateReason).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

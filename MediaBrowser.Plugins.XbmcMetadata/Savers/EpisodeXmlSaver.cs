@@ -1,7 +1,7 @@
-﻿using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Entities.TV;
+﻿using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Persistence;
+using MediaBrowser.Controller.Providers;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -11,7 +11,7 @@ using System.Threading;
 
 namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 {
-    public class EpisodeXmlSaver : IMetadataSaver
+    public class EpisodeXmlSaver : IMetadataFileSaver
     {
         private readonly ILibraryManager _libraryManager;
         private readonly IUserManager _userManager;
@@ -28,37 +28,45 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             _itemRepo = itemRepo;
         }
 
-        public string GetSavePath(BaseItem item)
+        public string Name
+        {
+            get
+            {
+                return "Xbmc nfo";
+            }
+        }
+
+        public string GetSavePath(IHasMetadata item)
         {
             return Path.ChangeExtension(item.Path, ".nfo");
         }
 
-        public void Save(BaseItem item, CancellationToken cancellationToken)
+        public void Save(IHasMetadata item, CancellationToken cancellationToken)
         {
+            var episode = (Episode)item;
+
             var builder = new StringBuilder();
 
             builder.Append("<episodedetails>");
 
-            XmlSaverHelpers.AddCommonNodes(item, builder, _libraryManager, _userManager, _userDataRepo);
+            XmlSaverHelpers.AddCommonNodes(episode, builder, _libraryManager, _userManager, _userDataRepo);
 
-            if (item.IndexNumber.HasValue)
+            if (episode.IndexNumber.HasValue)
             {
-                builder.Append("<episode>" + item.IndexNumber.Value.ToString(_usCulture) + "</episode>");
+                builder.Append("<episode>" + episode.IndexNumber.Value.ToString(_usCulture) + "</episode>");
             }
 
-            if (item.ParentIndexNumber.HasValue)
+            if (episode.ParentIndexNumber.HasValue)
             {
-                builder.Append("<season>" + item.ParentIndexNumber.Value.ToString(_usCulture) + "</season>");
+                builder.Append("<season>" + episode.ParentIndexNumber.Value.ToString(_usCulture) + "</season>");
             }
 
-            if (item.PremiereDate.HasValue)
+            if (episode.PremiereDate.HasValue)
             {
                 var formatString = Plugin.Instance.Configuration.ReleaseDateFormat;
 
-                builder.Append("<aired>" + SecurityElement.Escape(item.PremiereDate.Value.ToString(formatString)) + "</aired>");
+                builder.Append("<aired>" + SecurityElement.Escape(episode.PremiereDate.Value.ToString(formatString)) + "</aired>");
             }
-
-            var episode = (Episode)item;
 
             if (episode.AirsAfterSeasonNumber.HasValue)
             {
@@ -108,7 +116,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 });
         }
 
-        public bool IsEnabledFor(BaseItem item, ItemUpdateType updateType)
+        public bool IsEnabledFor(IHasMetadata item, ItemUpdateType updateType)
         {
             // If new metadata has been downloaded or metadata was manually edited, proceed
             if ((updateType & ItemUpdateType.MetadataDownload) == ItemUpdateType.MetadataDownload

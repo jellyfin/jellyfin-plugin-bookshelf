@@ -1,6 +1,6 @@
-﻿using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Entities.Audio;
+﻿using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Providers;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -11,36 +11,46 @@ using System.Threading;
 
 namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 {
-    public class ArtistXmlSaver : IMetadataSaver
+    public class ArtistXmlSaver : IMetadataFileSaver
     {
         private readonly ILibraryManager _libraryManager;
         private readonly IUserManager _userManager;
         private readonly IUserDataManager _userDataRepo;
 
-        public string GetSavePath(BaseItem item)
+        public string GetSavePath(IHasMetadata item)
         {
             return Path.Combine(item.Path, "artist.nfo");
         }
 
-        public void Save(BaseItem item, CancellationToken cancellationToken)
+        public string Name
         {
+            get
+            {
+                return "Xbmc nfo";
+            }
+        }
+
+        public void Save(IHasMetadata item, CancellationToken cancellationToken)
+        {
+            var artist = (MusicArtist)item;
+
             var builder = new StringBuilder();
 
             builder.Append("<artist>");
 
-            XmlSaverHelpers.AddCommonNodes(item, builder, _libraryManager, _userManager, _userDataRepo);
+            XmlSaverHelpers.AddCommonNodes(artist, builder, _libraryManager, _userManager, _userDataRepo);
 
-            if (item.EndDate.HasValue)
+            if (artist.EndDate.HasValue)
             {
                 var formatString = Plugin.Instance.Configuration.ReleaseDateFormat;
 
                 if (item is MusicArtist)
                 {
-                    builder.Append("<disbanded>" + SecurityElement.Escape(item.EndDate.Value.ToString(formatString)) + "</disbanded>");
+                    builder.Append("<disbanded>" + SecurityElement.Escape(artist.EndDate.Value.ToString(formatString)) + "</disbanded>");
                 }
-            } 
+            }
 
-            var albums = ((MusicArtist)item)
+            var albums = artist
                 .RecursiveChildren
                 .OfType<MusicAlbum>()
                 .ToList();
@@ -58,7 +68,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 });
         }
 
-        public bool IsEnabledFor(BaseItem item, ItemUpdateType updateType)
+        public bool IsEnabledFor(IHasMetadata item, ItemUpdateType updateType)
         {
             // If new metadata has been downloaded or metadata was manually edited, proceed
             if ((updateType & ItemUpdateType.MetadataDownload) == ItemUpdateType.MetadataDownload
