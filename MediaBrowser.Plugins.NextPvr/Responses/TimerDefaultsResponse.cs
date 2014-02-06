@@ -1,9 +1,9 @@
-﻿using MediaBrowser.Controller.LiveTv;
-using MediaBrowser.Model.Serialization;
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
+using MediaBrowser.Controller.LiveTv;
+using MediaBrowser.Model.Serialization;
 
-namespace MediaBrowser.Plugins.NextPvr
+namespace MediaBrowser.Plugins.NextPvr.Responses
 {
     public class TimerDefaultsResponse
     {

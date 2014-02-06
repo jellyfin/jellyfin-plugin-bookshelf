@@ -56,19 +56,23 @@
     <Compile Include="..\SharedVersion.cs">
       <Link>Properties\SharedVersion.cs</Link>
     </Compile>
-    <Compile Include="ChannelResponse.cs" />
+    <Compile Include="Responses\CancelRecordingResponse.cs" />
+    <Compile Include="Responses\ChannelResponse.cs" />
     <Compile Include="Configuration\NextPvrConfigurationPage.cs" />
     <Compile Include="Configuration\PluginConfiguration.cs" />
     <Compile Include="Helpers\GeneralHelpers.cs" />
     <Compile Include="Helpers\EncryptionHelper.cs" />
     <Compile Include="Helpers\XmlHelper.cs" />
-    <Compile Include="InstantiateResponse.cs" />
-    <Compile Include="ListingsResponse.cs" />
+    <Compile Include="Responses\InitializeResponse.cs" />
+    <Compile Include="Responses\InstantiateResponse.cs" />
+    <Compile Include="Responses\ListingsResponse.cs" />
     <Compile Include="LiveTvService.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RecordingResponse.cs" />
-    <Compile Include="TimerDefaultsResponse.cs" />
+    <Compile Include="Responses\RecordingResponse.cs" />
+    <Compile Include="Responses\TimerDefaultsResponse.cs" />
+    <Compile Include="Responses\TunerResponse.cs" />
+    <Compile Include="Responses\VersionCheckResponse.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Configuration\configPage.html" />

@@ -22,6 +22,10 @@ namespace MediaBrowser.Plugins.NextPvr.Helpers
         }
     }
 
+    public static class UtilsHelper
+    {
+        
+    }
 
     public static class RecordingHelper
     {

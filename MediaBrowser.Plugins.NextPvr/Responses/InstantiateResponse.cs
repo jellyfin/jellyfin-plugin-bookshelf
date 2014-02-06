@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using MediaBrowser.Model.Serialization;
 
-namespace MediaBrowser.Plugins.NextPvr
+namespace MediaBrowser.Plugins.NextPvr.Responses
 {
     public class InstantiateResponse
     {
-        public static ClientKeys GetClientKeys(Stream stream, IJsonSerializer json)
+        public ClientKeys GetClientKeys(Stream stream, IJsonSerializer json)
         {
             var root = json.DeserializeFromStream<RootObject>(stream);
 
