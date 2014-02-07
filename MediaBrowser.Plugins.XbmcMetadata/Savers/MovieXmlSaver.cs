@@ -39,14 +39,11 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
         {
             var video = (Video)item;
 
-            if (video.ResolveArgs.IsDirectory)
+            if (video.VideoType == VideoType.Dvd || video.VideoType == VideoType.BluRay || video.VideoType == VideoType.HdDvd)
             {
-                if (video.VideoType == VideoType.Dvd || video.VideoType == VideoType.BluRay || video.VideoType == VideoType.HdDvd)
-                {
-                    var path = item.Path;
+                var path = item.ContainingFolderPath;
 
-                    return Path.Combine(path, Path.GetFileNameWithoutExtension(path) + ".nfo");
-                }
+                return Path.Combine(path, Path.GetFileNameWithoutExtension(path) + ".nfo");
             }
 
             return Path.ChangeExtension(item.Path, ".nfo");

@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Controller.Entities.TV;
+﻿using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Providers;
 using System.Collections.Generic;
