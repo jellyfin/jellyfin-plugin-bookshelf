@@ -581,9 +581,9 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 builder.Append("<poster>" + SecurityElement.Escape(GetPathToSave(item.PrimaryImagePath)) + "</poster>");
             }
 
-            foreach (var backdrop in item.BackdropImagePaths)
+            foreach (var backdrop in item.GetImages(ImageType.Backdrop))
             {
-                builder.Append("<fanart>" + SecurityElement.Escape(GetPathToSave(backdrop)) + "</fanart>");
+                builder.Append("<fanart>" + SecurityElement.Escape(GetPathToSave(backdrop.Path)) + "</fanart>");
             }
 
             builder.Append("</art>");
