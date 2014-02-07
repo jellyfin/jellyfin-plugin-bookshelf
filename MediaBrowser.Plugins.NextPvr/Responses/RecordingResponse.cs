@@ -1,13 +1,13 @@
-﻿using MediaBrowser.Controller.LiveTv;
-using MediaBrowser.Model.LiveTv;
-using MediaBrowser.Model.Serialization;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using MediaBrowser.Controller.LiveTv;
+using MediaBrowser.Model.LiveTv;
+using MediaBrowser.Model.Serialization;
 
-namespace MediaBrowser.Plugins.NextPvr
+namespace MediaBrowser.Plugins.NextPvr.Responses
 {
     public class RecordingResponse
     {
