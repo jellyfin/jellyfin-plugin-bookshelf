@@ -9,6 +9,7 @@ using System.IO;
 using System.Security;
 using System.Text;
 using System.Threading;
+using MediaBrowser.Model.Entities;
 
 namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 {
@@ -119,6 +120,12 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
         public bool IsEnabledFor(IHasMetadata item, ItemUpdateType updateType)
         {
+            var locationType = item.LocationType;
+            if (locationType == LocationType.Remote || locationType == LocationType.Virtual)
+            {
+                return false;
+            }
+
             // If new metadata has been downloaded or metadata was manually edited, proceed
             if ((updateType & ItemUpdateType.MetadataDownload) == ItemUpdateType.MetadataDownload
                 || (updateType & ItemUpdateType.MetadataEdit) == ItemUpdateType.MetadataEdit)
