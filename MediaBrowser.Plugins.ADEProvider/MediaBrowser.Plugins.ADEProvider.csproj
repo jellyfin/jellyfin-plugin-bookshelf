@@ -60,8 +60,9 @@
     <Compile Include="..\SharedVersion.cs">
       <Link>Properties\SharedVersion.cs</Link>
     </Compile>
+    <Compile Include="ADEMetadataProvider.cs" />
     <Compile Include="ADEPlugin.cs" />
-    <Compile Include="ADEProvider.cs" />
+    <Compile Include="ADERemoteImageProvider.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

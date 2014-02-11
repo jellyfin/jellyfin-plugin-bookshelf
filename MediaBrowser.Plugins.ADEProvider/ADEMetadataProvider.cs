@@ -1,96 +1,95 @@
-﻿using System;
+﻿using HtmlAgilityPack;
+using MediaBrowser.Common.Configuration;
+using MediaBrowser.Common.IO;
+using MediaBrowser.Common.Net;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Providers;
+using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.Logging;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
-using HtmlAgilityPack;
-using MediaBrowser.Common.Net;
-using MediaBrowser.Controller.Configuration;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Providers;
-using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Logging;
 
 namespace MediaBrowser.Plugins.ADEProvider
 {
-    public class ADEProvider : BaseMetadataProvider
+    public class ADEMetadataProvider : IRemoteMetadataProvider<AdultVideo, ItemLookupInfo>
     {
         private const string BaseUrl = "http://www.adultdvdempire.com/";
         private const string SearchUrl = BaseUrl + "allsearch/search?q={0}";
-        private readonly SemaphoreSlim _resourcePool = new SemaphoreSlim(1, 1);
-
-        /// <summary>
-        /// Gets the HTTP client.
-        /// </summary>
-        /// <value>The HTTP client.</value>
-        protected IHttpClient HttpClient { get; private set; }
-
-        /// <summary>
-        /// The _provider manager
-        /// </summary>
-        private readonly IProviderManager _providerManager;
-
+        internal readonly SemaphoreSlim ResourcePool = new SemaphoreSlim(1, 1);
         private readonly ILogger _logger;
+        private readonly IHttpClient _httpClient;
+        private readonly IApplicationPaths _appPaths;
+        private readonly IFileSystem _fileSystem;
 
-        public ADEProvider(ILogManager logManager, IServerConfigurationManager configurationManager, IHttpClient httpClient, IProviderManager providerManager)
-            : base(logManager, configurationManager)
+        public static ADEMetadataProvider Current;
+
+        public ADEMetadataProvider(ILogger logger, IHttpClient httpClient, IApplicationPaths appPaths, IFileSystem fileSystem)
         {
-            HttpClient = httpClient;
-            _providerManager = providerManager;
-            _logger = logManager.GetLogger("ADEProvider");
+            _logger = logger;
+            _httpClient = httpClient;
+            _appPaths = appPaths;
+            _fileSystem = fileSystem;
 
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomainOnAssemblyResolve;
+            Current = this;
         }
 
-        public override async Task<bool> FetchAsync(BaseItem item, bool force, BaseProviderInfo providerInfo, CancellationToken cancellationToken)
+        public async Task<MetadataResult<AdultVideo>> GetMetadata(ItemLookupInfo info, CancellationToken cancellationToken)
         {
-            var adeId = item.GetProviderId("AdultDvdEmpire");
+            var result = new MetadataResult<AdultVideo>();
 
-            if (!string.IsNullOrEmpty(adeId) && !force)
+            var adeId = info.GetProviderId("AdultDvdEmpire");
+            var name = info.Name;
+
+            if (string.IsNullOrEmpty(adeId))
             {
-                SetLastRefreshed(item, DateTime.UtcNow, providerInfo);
-                return true;
+                var items = await GetSearchItems(info.Name, cancellationToken);
+
+                if (items != null && items.Any())
+                {
+                    var probableItem = items.FirstOrDefault(x => x.Rank == 1);
+
+                    if (probableItem != null)
+                    {
+                        name = probableItem.Name;
+
+                        adeId = probableItem.Id;
+                    }
+                }
             }
 
-            var items = await GetSearchItems(item.Name, cancellationToken);
-
-            if (items == null || !items.Any())
+            if (!string.IsNullOrEmpty(adeId))
             {
-                return false;
+                result.Item = new AdultVideo();
+                result.Item.SetProviderId("AdultDvdEmpire", adeId);
+                result.Item.Name = name;
+
+                await GetItemDetails(result.Item, adeId, cancellationToken);
+
+                result.HasMetadata = true;
             }
 
-            var probableItem = items.FirstOrDefault(x => x.Rank == 1);
-            if (probableItem == null)
-            {
-                return false;
-            }
-
-            item.Name = probableItem.Name;
-
-            if (await GetItemDetails(item, probableItem, cancellationToken))
-            {
-                item.SetProviderId("AdultDvdEmpire", adeId);
-
-                return true;
-            }
-
-            return false;
+            return result;
         }
 
-        private async Task<bool> GetItemDetails(BaseItem item, SearchItem probableItem, CancellationToken cancellationToken)
+        public string Name
+        {
+            get { return "Adult Dvd Empire"; }
+        }
+
+        private async Task GetItemDetails(BaseItem item, string id, CancellationToken cancellationToken)
         {
             string html;
 
-            _logger.Info("Getting details for: {0}", item.Name);
+            _logger.Info("Getting details for: {0}", id);
 
-            using (var stream = await HttpClient.Get(new HttpRequestOptions
-            {
-                Url = probableItem.Url,
-                CancellationToken = cancellationToken,
-                ResourcePool = _resourcePool
-            }).ConfigureAwait(false))
+            using (var stream = await GetInfo(id, cancellationToken).ConfigureAwait(false))
             {
                 html = stream.ToStringFromStream();
             }
@@ -117,11 +116,44 @@ namespace MediaBrowser.Plugins.ADEProvider
 
             GetDetails(divNodes, item);
 
-            GetImages(divNodes, item, cancellationToken);
-
             item.OfficialRating = "XXX";
+        }
 
-            return true;
+        public async Task<Stream> GetInfo(string adeId, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrEmpty(adeId))
+            {
+                throw new ArgumentNullException("adeId");
+            }
+
+            var cachePath = Path.Combine(_appPaths.CachePath, "ade", _fileSystem.GetValidFilename(adeId), "item.html");
+
+            var fileInfo = new FileInfo(cachePath);
+
+            // Check cache first
+            if (!fileInfo.Exists || (DateTime.UtcNow - _fileSystem.GetLastWriteTimeUtc(fileInfo)).TotalDays > 7)
+            {
+                var searchItem = new SearchItem { Id = adeId };
+
+                // Download and cache
+                using (var stream = await _httpClient.Get(new HttpRequestOptions
+                {
+                    Url = searchItem.Url,
+                    CancellationToken = cancellationToken,
+                    ResourcePool = ResourcePool
+
+                }))
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(cachePath));
+
+                    using (var fileStream = _fileSystem.GetFileStream(cachePath, FileMode.Create, FileAccess.Write, FileShare.Read, true))
+                    {
+                        await stream.CopyToAsync(fileStream).ConfigureAwait(false);
+                    }
+                }
+            }
+
+            return _fileSystem.GetFileStream(cachePath, FileMode.Open, FileAccess.Read, FileShare.Read);
         }
 
         private void GetDetails(IEnumerable<HtmlNode> divNodes, BaseItem item)
@@ -150,43 +182,6 @@ namespace MediaBrowser.Plugins.ADEProvider
             {
                 item.AddStudio(studioNode.InnerText.Trim());
             }
-        }
-
-        private void GetImages(IEnumerable<HtmlNode> divNodes, BaseItem item, CancellationToken cancellationToken)
-        {
-            var boxCoverNode = divNodes.FirstOrDefault(x => x.HasAttributes && x.Attributes["id"] != null && x.Attributes["id"].Value == "Boxcover");
-            if (boxCoverNode == null || !boxCoverNode.ChildNodes.Any())
-            {
-                return;
-            }
-
-            var frontCover = boxCoverNode.ChildNodes[0];
-            var frontCoverUrl = GetHref(frontCover);
-            if (!string.IsNullOrEmpty(frontCoverUrl))
-            {
-                _providerManager.SaveImage(item, frontCoverUrl, _resourcePool, ImageType.Primary, null, cancellationToken).ConfigureAwait(false);
-            }
-
-            if (boxCoverNode.ChildNodes.Count > 1)
-            {
-                var backCover = boxCoverNode.ChildNodes[1];
-                var backCoverUrl = GetHref(backCover);
-
-                if (!string.IsNullOrEmpty(backCoverUrl))
-                {
-                    _providerManager.SaveImage(item, backCoverUrl, _resourcePool, ImageType.BoxRear, null, cancellationToken).ConfigureAwait(false);
-                }
-            }
-        }
-
-        private string GetHref(HtmlNode frontCover)
-        {
-            if (frontCover.HasAttributes && frontCover.Attributes["href"] != null)
-            {
-                return frontCover.Attributes["href"].Value;
-            }
-
-            return string.Empty;
         }
 
         private void GetCategories(IEnumerable<HtmlNode> divNodes, BaseItem item)
@@ -297,10 +292,10 @@ namespace MediaBrowser.Plugins.ADEProvider
 
             _logger.Info("Searching for: {0}", name);
 
-            using (var stream = await HttpClient.Get(new HttpRequestOptions
+            using (var stream = await _httpClient.Get(new HttpRequestOptions
             {
                 Url = url,
-                ResourcePool = _resourcePool,
+                ResourcePool = ResourcePool,
                 CancellationToken = cancellationToken
             }).ConfigureAwait(false))
             {
@@ -374,33 +369,6 @@ namespace MediaBrowser.Plugins.ADEProvider
             return result;
         }
 
-        public override MetadataProviderPriority Priority
-        {
-            get { return MetadataProviderPriority.First; }
-        }
-
-        public override bool Supports(BaseItem item)
-        {
-            return item is AdultVideo;
-        }
-
-        public override bool RequiresInternet
-        {
-            get { return true; }
-        }
-
-        protected override string ProviderVersion
-        {
-            get { return "1"; }
-        }
-
-#if DEBUG
-        protected override bool NeedsRefreshInternal(BaseItem item, BaseProviderInfo providerInfo)
-        {
-            return true;
-        }
-#endif
-
         private Assembly CurrentDomainOnAssemblyResolve(object sender, ResolveEventArgs args)
         {
             var askedAssembly = new AssemblyName(args.Name);
@@ -438,5 +406,6 @@ namespace MediaBrowser.Plugins.ADEProvider
                 }
             }
         }
+
     }
 }
