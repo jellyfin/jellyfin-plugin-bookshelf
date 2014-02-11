@@ -8,9 +8,9 @@ using MediaBrowser.Model.Serialization;
 
 namespace MediaBrowser.Plugins.NextPvr.Responses
 {
-    public class CancelRecordingResponse
+    public class CancelDeleteRecordingResponse
     {
-        public bool CanceledRecordingError(Stream stream, IJsonSerializer json)
+        public bool? RecordingError(Stream stream, IJsonSerializer json)
         {
             var root = json.DeserializeFromStream<RootObject>(stream);
 
@@ -18,7 +18,7 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
             {
                 return root.epgEventJSONObject.rtn.Error;
             }
-            throw new ApplicationException("Failed to cancel the recording.");
+            return null;
         }
 
         public class Rtn
