@@ -83,7 +83,7 @@ namespace MediaBrowser.Plugins.ADEProvider
             get { return "Adult Dvd Empire"; }
         }
 
-        private async Task GetItemDetails(BaseItem item, string id, CancellationToken cancellationToken)
+        private async Task GetItemDetails(AdultVideo item, string id, CancellationToken cancellationToken)
         {
             string html;
 
@@ -156,7 +156,7 @@ namespace MediaBrowser.Plugins.ADEProvider
             return _fileSystem.GetFileStream(cachePath, FileMode.Open, FileAccess.Read, FileShare.Read);
         }
 
-        private void GetDetails(IEnumerable<HtmlNode> divNodes, BaseItem item)
+        private void GetDetails(IEnumerable<HtmlNode> divNodes, AdultVideo item)
         {
             var detailsNode = divNodes.FirstOrDefault(x => x.HasAttributes && x.Attributes["class"] != null && x.Attributes["class"].Value == "Section ProductInfo");
             if (detailsNode == null)
@@ -184,7 +184,7 @@ namespace MediaBrowser.Plugins.ADEProvider
             }
         }
 
-        private void GetCategories(IEnumerable<HtmlNode> divNodes, BaseItem item)
+        private void GetCategories(IEnumerable<HtmlNode> divNodes, AdultVideo item)
         {
             var categoriesNode = divNodes.FirstOrDefault(x => x.HasAttributes && x.Attributes["class"] != null && x.Attributes["class"].Value == "Section Categories");
             if (categoriesNode == null)
@@ -206,7 +206,7 @@ namespace MediaBrowser.Plugins.ADEProvider
             }
         }
 
-        private void GetSynopsisAndTagLine(IEnumerable<HtmlNode> divNodes, BaseItem item)
+        private void GetSynopsisAndTagLine(IEnumerable<HtmlNode> divNodes, AdultVideo item)
         {
             var synopsisNode = divNodes.FirstOrDefault(x => x.HasAttributes && x.Attributes["class"] != null && x.Attributes["class"].Value == "Section Synopsis");
             if (synopsisNode == null)
@@ -230,7 +230,7 @@ namespace MediaBrowser.Plugins.ADEProvider
             item.Overview = synopsisText.Trim();
         }
 
-        private void GetCast(IEnumerable<HtmlNode> divNodes, BaseItem item)
+        private void GetCast(IEnumerable<HtmlNode> divNodes, AdultVideo item)
         {
             var castNode = divNodes.FirstOrDefault(x => x.HasAttributes && x.Attributes["class"] != null && x.Attributes["class"].Value == "Section Cast");
 
