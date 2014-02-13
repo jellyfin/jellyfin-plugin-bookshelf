@@ -20,7 +20,7 @@ namespace MediaBrowser.Plugins.ADEProvider
             _httpClient = httpClient;
         }
 
-        public async Task<IEnumerable<RemoteImageInfo>> GetAllImages(IHasImages item, CancellationToken cancellationToken)
+        public async Task<IEnumerable<RemoteImageInfo>> GetImages(IHasImages item, CancellationToken cancellationToken)
         {
             var adeId = item.GetProviderId("AdultDvdEmpire");
 
@@ -102,13 +102,6 @@ namespace MediaBrowser.Plugins.ADEProvider
                 Url = url,
                 ResourcePool = ADEMetadataProvider.Current.ResourcePool
             });
-        }
-
-        public async Task<IEnumerable<RemoteImageInfo>> GetImages(IHasImages item, ImageType imageType, CancellationToken cancellationToken)
-        {
-            var images = await GetAllImages(item, cancellationToken).ConfigureAwait(false);
-
-            return images.Where(i => i.Type == imageType);
         }
 
         public IEnumerable<ImageType> GetSupportedImages(IHasImages item)
