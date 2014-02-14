@@ -1,15 +1,16 @@
-﻿using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Common.IO;
+using MediaBrowser.Controller.Configuration;
+using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Persistence;
-using MediaBrowser.Controller.Providers;
+using MediaBrowser.Model.Entities;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Security;
 using System.Text;
 using System.Threading;
-using MediaBrowser.Model.Entities;
 
 namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 {
@@ -22,12 +23,17 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
         private readonly CultureInfo _usCulture = new CultureInfo("en-US");
 
-        public EpisodeXmlSaver(ILibraryManager libraryManager, IUserManager userManager, IUserDataManager userDataRepo, IItemRepository itemRepo)
+        private readonly IFileSystem _fileSystem;
+        private readonly IServerConfigurationManager _config;
+
+        public EpisodeXmlSaver(ILibraryManager libraryManager, IUserManager userManager, IUserDataManager userDataRepo, IItemRepository itemRepo, IFileSystem fileSystem, IServerConfigurationManager config)
         {
             _libraryManager = libraryManager;
             _userManager = userManager;
             _userDataRepo = userDataRepo;
             _itemRepo = itemRepo;
+            _fileSystem = fileSystem;
+            _config = config;
         }
 
         public string Name
@@ -51,7 +57,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             builder.Append("<episodedetails>");
 
-            XmlSaverHelpers.AddCommonNodes(episode, builder, _libraryManager, _userManager, _userDataRepo);
+            XmlSaverHelpers.AddCommonNodes(episode, builder, _libraryManager, _userManager, _userDataRepo, _fileSystem, _config);
 
             if (episode.IndexNumber.HasValue)
             {

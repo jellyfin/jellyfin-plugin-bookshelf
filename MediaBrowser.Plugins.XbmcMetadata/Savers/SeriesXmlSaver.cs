@@ -1,8 +1,8 @@
-﻿using MediaBrowser.Controller.Configuration;
+﻿using MediaBrowser.Common.IO;
+using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
 using System.Collections.Generic;
 using System.IO;
@@ -18,14 +18,16 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
         private readonly IUserManager _userManager;
         private readonly IUserDataManager _userDataRepo;
 
+        private readonly IFileSystem _fileSystem;
         private readonly IServerConfigurationManager _config;
 
-        public SeriesXmlSaver(IServerConfigurationManager config, ILibraryManager libraryManager, IUserManager userManager, IUserDataManager userDataRepo)
+        public SeriesXmlSaver(IServerConfigurationManager config, ILibraryManager libraryManager, IUserManager userManager, IUserDataManager userDataRepo, IFileSystem fileSystem)
         {
             _config = config;
             _libraryManager = libraryManager;
             _userManager = userManager;
             _userDataRepo = userDataRepo;
+            _fileSystem = fileSystem;
         }
 
         public string Name
@@ -49,7 +51,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             builder.Append("<tvshow>");
 
-            XmlSaverHelpers.AddCommonNodes(series, builder, _libraryManager, _userManager, _userDataRepo);
+            XmlSaverHelpers.AddCommonNodes(series, builder, _libraryManager, _userManager, _userDataRepo, _fileSystem, _config);
 
             var tvdb = item.GetProviderId(MetadataProviders.Tvdb);
 

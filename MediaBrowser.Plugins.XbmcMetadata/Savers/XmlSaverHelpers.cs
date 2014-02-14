@@ -1,4 +1,6 @@
 ﻿using MediaBrowser.Common.Extensions;
+using MediaBrowser.Common.IO;
+using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Entities.TV;
@@ -298,7 +300,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
         /// Adds the common nodes.
         /// </summary>
         /// <returns>Task.</returns>
-        public static void AddCommonNodes(BaseItem item, StringBuilder builder, ILibraryManager libraryManager, IUserManager userManager, IUserDataManager userDataRepo)
+        public static void AddCommonNodes(BaseItem item, StringBuilder builder, ILibraryManager libraryManager, IUserManager userManager, IUserDataManager userDataRepo, IFileSystem fileSystem, IServerConfigurationManager config)
         {
             var overview = (item.Overview ?? string.Empty)
                 .StripHtml()
@@ -564,13 +566,17 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 }
             }
 
-            AddImages(item, builder);
+            if (Plugin.Instance.Configuration.SaveImagePathsInNfo)
+            {
+                AddImages(item, builder, fileSystem, config);
+            }
+
             AddUserData(item, builder, userManager, userDataRepo);
 
-            AddActors(item, builder, libraryManager);
+            AddActors(item, builder, libraryManager, fileSystem, config);
         }
 
-        private static void AddImages(BaseItem item, StringBuilder builder)
+        private static void AddImages(BaseItem item, StringBuilder builder, IFileSystem fileSystem, IServerConfigurationManager config)
         {
             builder.Append("<art>");
 
@@ -578,12 +584,12 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             if (!string.IsNullOrEmpty(poster))
             {
-                builder.Append("<poster>" + SecurityElement.Escape(GetPathToSave(item.PrimaryImagePath)) + "</poster>");
+                builder.Append("<poster>" + SecurityElement.Escape(GetPathToSave(item.PrimaryImagePath, fileSystem, config)) + "</poster>");
             }
 
             foreach (var backdrop in item.GetImages(ImageType.Backdrop))
             {
-                builder.Append("<fanart>" + SecurityElement.Escape(GetPathToSave(backdrop.Path)) + "</fanart>");
+                builder.Append("<fanart>" + SecurityElement.Escape(GetPathToSave(backdrop.Path, fileSystem, config)) + "</fanart>");
             }
 
             builder.Append("</art>");
@@ -629,7 +635,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             builder.Append("</resume>");
         }
 
-        public static void AddActors(BaseItem item, StringBuilder builder, ILibraryManager libraryManager)
+        public static void AddActors(BaseItem item, StringBuilder builder, ILibraryManager libraryManager, IFileSystem fileSystem, IServerConfigurationManager config)
         {
             var actors = item.People
                 .Where(i => !IsPersonType(i, PersonType.Director) && !IsPersonType(i, PersonType.Writer))
@@ -647,7 +653,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
                     if (!string.IsNullOrEmpty(personEntity.PrimaryImagePath))
                     {
-                        builder.Append("<thumb>" + SecurityElement.Escape(GetPathToSave(personEntity.PrimaryImagePath)) + "</thumb>");
+                        builder.Append("<thumb>" + SecurityElement.Escape(GetPathToSave(personEntity.PrimaryImagePath, fileSystem, config)) + "</thumb>");
                     }
                 }
                 catch (Exception)
@@ -664,19 +670,11 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             return string.Equals(person.Type, type, StringComparison.OrdinalIgnoreCase) || string.Equals(person.Role, type, StringComparison.OrdinalIgnoreCase);
         }
 
-        private static string GetPathToSave(string path)
+        private static string GetPathToSave(string path, IFileSystem fileSystem, IServerConfigurationManager config)
         {
-            foreach (var replacement in Plugin.Instance.Configuration.PathSubstitutions)
+            foreach (var map in config.Configuration.PathSubstitutions)
             {
-                var toValue = replacement.To ?? string.Empty;
-
-                path = ReplaceString(path, replacement.From, toValue, StringComparison.OrdinalIgnoreCase);
-
-                // Account for smb paths
-                if (toValue.IndexOf("://", StringComparison.OrdinalIgnoreCase) != -1)
-                {
-                    path = path.Replace('\\', '/');
-                }
+                path = fileSystem.SubstitutePath(path, map.From, map.To);
             }
 
             return path;

@@ -14,34 +14,26 @@
 
                         <li>
                             <label for="selectUser">Add user watch data to nfo's for:</label>
-                            <select name="selectUser" id="selectUser">
+                            <select name="selectUser" id="selectUser" data-mini="true">
                             </select>
                         </li>
 
                         <li>
                             <label for="selectReleaseDateFormat">Release date format:</label>
-                            <select name="selectReleaseDateFormat" id="selectReleaseDateFormat">
+                            <select name="selectReleaseDateFormat" id="selectReleaseDateFormat" data-mini="true">
                                 <option value="yyyy-MM-dd">yyyy-MM-dd</option>
                             </select>
                         </li>
-                    </ul>
-
-                    <p><b>Path Substitution</b></p>
-
-                    <p>Use path substitution to substitute image locations for xbmc. For example \\server => smb://192.168.1.1</p>
-
-                    <ul class="ulForm" data-role="listview">
-
                         <li>
-                            <label for="txtPathFrom">From::</label>
-                            <input type="text" id="txtPathFrom" name="txtPathFrom" />
+                            <label for="chkSaveImagePaths">Save image paths within nfo files</label>
+                            <input id="chkSaveImagePaths" type="checkbox" data-mini="true" />
+                            <div class="fieldDescription">This is recommended if you have image file names that don't conform to Xbmc guidelines.</div>
                         </li>
-
                         <li>
-                            <label for="txtPathTo">To::</label>
-                            <input type="text" id="txtPathTo" name="txtPathTo" />
+                            <label for="chkEnablePathSubstitution">Enable path substitution</label>
+                            <input id="chkEnablePathSubstitution" type="checkbox" data-mini="true" />
+                            <div class="fieldDescription">Enables path substitution of image paths using the server's <a href="librarypathmapping.html">path substitution settings</a>.</div>
                         </li>
-
                         <li>
                             <button type="submit" data-theme="b">Save</button>
                             <button type="button" onclick="history.back();">Cancel</button>
@@ -79,10 +71,8 @@
 
                         $('#selectReleaseDateFormat', page).val(config.ReleaseDateFormat).selectmenu('refresh');
 
-                        var replacement = config.PathSubstitutions[0] || {};
-
-                        $('#txtPathFrom', page).html(html).val(replacement.From || '');
-                        $('#txtPathTo', page).html(html).val(replacement.To || '');
+                        $('#chkSaveImagePaths', page).checked(config.SaveImagePathsInNfo).checkboxradio('refresh');
+                        $('#chkEnablePathSubstitution', page).checked(config.EnablePathSubstitution).checkboxradio('refresh');
 
                         Dashboard.hideLoadingMsg();
                     });
@@ -101,19 +91,8 @@
                     config.UserId = $('#selectUser', form).val() || null;
 
                     config.ReleaseDateFormat = $('#selectReleaseDateFormat', form).val();
-
-                    var from = $('#txtPathFrom', form).val();
-                    var to = $('#txtPathTo', form).val();
-
-                    if (from) {
-                        config.PathSubstitutions = [{
-                            From: from,
-                            To: to
-                        }];
-                    } else {
-                        config.PathSubstitutions = [];
-                    }
-
+                    config.SaveImagePathsInNfo = $('#chkSaveImagePaths', form).checked();
+                    config.EnablePathSubstitution = $('#chkEnablePathSubstitution', form).checked();
 
                     ApiClient.updatePluginConfiguration(XbmcMetadataConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
                 });

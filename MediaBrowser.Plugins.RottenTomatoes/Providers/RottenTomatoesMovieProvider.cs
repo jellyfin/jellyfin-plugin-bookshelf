@@ -162,6 +162,8 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
             }
         }
 
+        protected readonly CultureInfo UsCulture = new CultureInfo("en-US");
+
         /// <summary>
         /// Gets the request history file path.
         /// </summary>
@@ -178,8 +180,6 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
                 return Path.Combine(_requestHistoryPath, "data.dat");
             }
         }
-
-        protected readonly CultureInfo UsCulture = new CultureInfo("en-US");
 
         /// <summary>
         /// Loads the request history.

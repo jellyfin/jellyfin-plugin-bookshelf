@@ -1,6 +1,5 @@
 ﻿using MediaBrowser.Model.Plugins;
 using System;
-using System.Collections.Generic;
 
 namespace MediaBrowser.Plugins.XbmcMetadata.Configuration
 {
@@ -11,21 +10,17 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Configuration
     {
         public Guid? UserId { get; set; }
 
-        public List<Replacement> PathSubstitutions { get; set; }
-
         public string ReleaseDateFormat { get; set; }
+
+        public bool SaveImagePathsInNfo { get; set; }
+        public bool EnablePathSubstitution { get; set; }
 
         public PluginConfiguration()
         {
-            PathSubstitutions = new List<Replacement>();
-
             ReleaseDateFormat = "yyyy-MM-dd";
-        }
-    }
 
-    public class Replacement
-    {
-        public string From { get; set; }
-        public string To { get; set; }
+            SaveImagePathsInNfo = true;
+            EnablePathSubstitution = true;
+        }
     }
 }

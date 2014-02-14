@@ -1,7 +1,9 @@
-﻿using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Common.IO;
+using MediaBrowser.Controller.Configuration;
+using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Providers;
+using MediaBrowser.Model.Entities;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -9,7 +11,6 @@ using System.Linq;
 using System.Security;
 using System.Text;
 using System.Threading;
-using MediaBrowser.Model.Entities;
 
 namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 {
@@ -18,6 +19,20 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
         private readonly ILibraryManager _libraryManager;
         private readonly IUserManager _userManager;
         private readonly IUserDataManager _userDataRepo;
+
+        private readonly IFileSystem _fileSystem;
+        private readonly IServerConfigurationManager _config;
+
+        private static readonly CultureInfo UsCulture = new CultureInfo("en-US");
+
+        public ArtistXmlSaver(ILibraryManager libraryManager, IUserManager userManager, IUserDataManager userDataRepo, IFileSystem fileSystem, IServerConfigurationManager config)
+        {
+            _libraryManager = libraryManager;
+            _userManager = userManager;
+            _userDataRepo = userDataRepo;
+            _fileSystem = fileSystem;
+            _config = config;
+        }
 
         public string GetSavePath(IHasMetadata item)
         {
@@ -40,7 +55,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             builder.Append("<artist>");
 
-            XmlSaverHelpers.AddCommonNodes(artist, builder, _libraryManager, _userManager, _userDataRepo);
+            XmlSaverHelpers.AddCommonNodes(artist, builder, _libraryManager, _userManager, _userDataRepo, _fileSystem, _config);
 
             if (artist.EndDate.HasValue)
             {
@@ -86,15 +101,6 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             }
 
             return false;
-        }
-
-        private static readonly CultureInfo UsCulture = new CultureInfo("en-US");
-
-        public ArtistXmlSaver(ILibraryManager libraryManager, IUserManager userManager, IUserDataManager userDataRepo)
-        {
-            _libraryManager = libraryManager;
-            _userManager = userManager;
-            _userDataRepo = userDataRepo;
         }
 
         private void AddAlbums(IEnumerable<MusicAlbum> albums, StringBuilder builder)

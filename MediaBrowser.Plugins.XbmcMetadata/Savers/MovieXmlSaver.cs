@@ -1,8 +1,9 @@
-﻿using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Common.IO;
+using MediaBrowser.Controller.Configuration;
+using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Persistence;
-using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
 using System.Collections.Generic;
 using System.IO;
@@ -19,12 +20,17 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
         private readonly IUserDataManager _userDataRepo;
         private readonly IItemRepository _itemRepo;
 
-        public MovieXmlSaver(ILibraryManager libraryManager, IUserManager userManager, IUserDataManager userDataRepo, IItemRepository itemRepo)
+        private readonly IFileSystem _fileSystem;
+        private readonly IServerConfigurationManager _config;
+        
+        public MovieXmlSaver(ILibraryManager libraryManager, IUserManager userManager, IUserDataManager userDataRepo, IItemRepository itemRepo, IFileSystem fileSystem, IServerConfigurationManager config)
         {
             _libraryManager = libraryManager;
             _userManager = userManager;
             _userDataRepo = userDataRepo;
             _itemRepo = itemRepo;
+            _fileSystem = fileSystem;
+            _config = config;
         }
 
         public string Name
@@ -59,7 +65,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             builder.Append("<" + tag + ">");
 
-            XmlSaverHelpers.AddCommonNodes(video, builder, _libraryManager, _userManager, _userDataRepo);
+            XmlSaverHelpers.AddCommonNodes(video, builder, _libraryManager, _userManager, _userDataRepo, _fileSystem, _config);
 
             var imdb = item.GetProviderId(MetadataProviders.Imdb);
 

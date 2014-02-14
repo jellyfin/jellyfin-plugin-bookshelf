@@ -1,7 +1,9 @@
-﻿using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Common.IO;
+using MediaBrowser.Controller.Configuration;
+using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Providers;
+using MediaBrowser.Model.Entities;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -10,7 +12,6 @@ using System.Linq;
 using System.Security;
 using System.Text;
 using System.Threading;
-using MediaBrowser.Model.Entities;
 
 namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 {
@@ -20,11 +21,16 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
         private readonly IUserManager _userManager;
         private readonly IUserDataManager _userDataRepo;
 
-        public AlbumXmlSaver(ILibraryManager libraryManager, IUserManager userManager, IUserDataManager userDataRepo)
+        private readonly IFileSystem _fileSystem;
+        private readonly IServerConfigurationManager _config;
+
+        public AlbumXmlSaver(ILibraryManager libraryManager, IUserManager userManager, IUserDataManager userDataRepo, IFileSystem fileSystem, IServerConfigurationManager config)
         {
             _libraryManager = libraryManager;
             _userManager = userManager;
             _userDataRepo = userDataRepo;
+            _fileSystem = fileSystem;
+            _config = config;
         }
 
         public string Name
@@ -48,7 +54,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             builder.Append("<album>");
 
-            XmlSaverHelpers.AddCommonNodes(album, builder, _libraryManager, _userManager, _userDataRepo);
+            XmlSaverHelpers.AddCommonNodes(album, builder, _libraryManager, _userManager, _userDataRepo, _fileSystem, _config);
 
             var tracks = album.RecursiveChildren
                 .OfType<Audio>()
