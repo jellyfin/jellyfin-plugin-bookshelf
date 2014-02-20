@@ -1,6 +1,7 @@
 ﻿using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Common.ScheduledTasks;
+using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Plugins;
 using MediaBrowser.Model.Serialization;
@@ -76,7 +77,10 @@ namespace MediaBrowser.Plugins.Trailers
 
                 if (folder != null)
                 {
-                    await folder.ClearChildren(CancellationToken.None).ConfigureAwait(false);
+                    foreach (var trailer in folder.RecursiveChildren.OfType<Trailer>().ToList())
+                    {
+                        await _libraryManager.DeleteItem(trailer).ConfigureAwait(false);
+                    }
                 }
 
                 _taskManager.CancelIfRunningAndQueue<CurrentTrailerDownloadTask>();
