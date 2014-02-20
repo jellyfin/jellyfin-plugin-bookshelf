@@ -2,6 +2,7 @@
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
+using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Persistence;
 using MediaBrowser.Model.Entities;
@@ -124,14 +125,13 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             if ((updateType & ItemUpdateType.MetadataDownload) == ItemUpdateType.MetadataDownload
                 || (updateType & ItemUpdateType.MetadataEdit) == ItemUpdateType.MetadataEdit)
             {
-                var trailer = item as Trailer;
+                var video = item as Video;
 
-                if (trailer != null)
+                // Check parent for null to avoid running this against things like video backdrops
+                if (video != null && !(item is Episode) && !video.IsOwnedItem)
                 {
-                    return !trailer.IsLocalTrailer;
+                    return true;
                 }
-
-                return item is Movie || item is MusicVideo;
             }
 
             return false;

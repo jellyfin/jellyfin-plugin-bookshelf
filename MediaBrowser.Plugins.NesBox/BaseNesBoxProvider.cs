@@ -1,8 +1,7 @@
-﻿using MediaBrowser.Controller.Configuration;
-using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
 using System;
 using System.Collections.Generic;
@@ -14,12 +13,11 @@ using System.Threading.Tasks;
 
 namespace MediaBrowser.Plugins.NesBox
 {
-    public abstract class BaseNesBoxProvider : BaseMetadataProvider
+    public abstract class BaseNesBoxProvider : ICustomMetadataProvider<Game>
     {
         protected IJsonSerializer JsonSerializer;
 
-        protected BaseNesBoxProvider(ILogManager logManager, IServerConfigurationManager configurationManager, IJsonSerializer jsonSerializer)
-            : base(logManager, configurationManager)
+        protected BaseNesBoxProvider(IJsonSerializer jsonSerializer)
         {
             JsonSerializer = jsonSerializer;
         }
@@ -27,61 +25,36 @@ namespace MediaBrowser.Plugins.NesBox
         protected abstract string GameSystem { get; }
         protected abstract Stream GetCatalogStream();
 
-        protected override bool RefreshOnVersionChange
+        public Task<ItemUpdateType> FetchAsync(Game item, IDirectoryService directoryService, CancellationToken cancellationToken)
         {
-            get
+            if (Supports(item))
             {
-                return true;
-            }
-        }
+                // Already have it
+                if (string.IsNullOrEmpty(item.GetProviderId(MetadataProviders.NesBox)) || string.IsNullOrEmpty(item.GetProviderId(MetadataProviders.NesBoxRom)))
+                {
+                    using (var stream = GetCatalogStream())
+                    {
+                        var catalog = JsonSerializer.DeserializeFromStream<List<NesBoxGame>>(stream);
 
-        protected override string ProviderVersion
-        {
-            get
-            {
-                return "3";
-            }
-        }
+                        cancellationToken.ThrowIfCancellationRequested();
 
-        public override bool Supports(BaseItem item)
-        {
-            var game = item as Game;
-
-            return game != null && string.Equals(game.GameSystem, GameSystem, StringComparison.OrdinalIgnoreCase);
-        }
-
-        public override MetadataProviderPriority Priority
-        {
-            get { return MetadataProviderPriority.Last; }
-        }
-
-        protected override bool NeedsRefreshInternal(BaseItem item, BaseProviderInfo providerInfo)
-        {
-            // Already have it
-            if (!string.IsNullOrEmpty(item.GetProviderId(MetadataProviders.NesBox)) &&
-                !string.IsNullOrEmpty(item.GetProviderId(MetadataProviders.NesBoxRom)))
-            {
-                return false;
+                        FetchData(catalog, item);
+                        return Task.FromResult(ItemUpdateType.MetadataEdit);
+                    }
+                }
             }
 
-            return base.NeedsRefreshInternal(item, providerInfo);
+            return Task.FromResult(ItemUpdateType.None);
         }
 
-        public override Task<bool> FetchAsync(BaseItem item, bool force, BaseProviderInfo info, CancellationToken cancellationToken)
+        public abstract string Name
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            get;
+        }
 
-            using (var stream = GetCatalogStream())
-            {
-                var catalog = JsonSerializer.DeserializeFromStream<List<NesBoxGame>>(stream);
-
-                cancellationToken.ThrowIfCancellationRequested();
-                
-                FetchData(catalog, item);
-            }
-
-            SetLastRefreshed(item, DateTime.UtcNow, info);
-            return TrueTaskResult;
+        private bool Supports(Game item)
+        {
+            return string.Equals(item.GameSystem, GameSystem, StringComparison.OrdinalIgnoreCase);
         }
 
         private void FetchData(IEnumerable<NesBoxGame> catalog, BaseItem item)

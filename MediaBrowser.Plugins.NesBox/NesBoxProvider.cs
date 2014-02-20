@@ -1,14 +1,12 @@
-﻿using MediaBrowser.Controller.Configuration;
-using MediaBrowser.Model.Logging;
-using MediaBrowser.Model.Serialization;
+﻿using MediaBrowser.Model.Serialization;
 using System.IO;
 
 namespace MediaBrowser.Plugins.NesBox
 {
     public class NesBoxProvider : BaseNesBoxProvider
     {
-        public NesBoxProvider(ILogManager logManager, IServerConfigurationManager configurationManager, IJsonSerializer jsonSerializer)
-            : base(logManager, configurationManager, jsonSerializer)
+        public NesBoxProvider(IJsonSerializer jsonSerializer)
+            : base(jsonSerializer)
         {
         }
 
@@ -22,6 +20,11 @@ namespace MediaBrowser.Plugins.NesBox
             var path = GetType().Namespace + ".games.json";
 
             return GetType().Assembly.GetManifestResourceStream(path);
+        }
+
+        public override string Name
+        {
+            get { return "NESBox"; }
         }
     }
 }

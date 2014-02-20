@@ -6,6 +6,7 @@ using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
+using MediaBrowser.Model.Providers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -38,6 +39,16 @@ namespace MediaBrowser.Plugins.ADEProvider
 
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomainOnAssemblyResolve;
             Current = this;
+        }
+
+        public Task<HttpResponseInfo> GetImageResponse(string url, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IEnumerable<RemoteSearchResult>> GetSearchResults(ItemLookupInfo searchInfo, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task<MetadataResult<AdultVideo>> GetMetadata(ItemLookupInfo info, CancellationToken cancellationToken)
@@ -373,7 +384,6 @@ namespace MediaBrowser.Plugins.ADEProvider
         {
             var askedAssembly = new AssemblyName(args.Name);
 
-            Assembly assembly;
             var resourceName = string.Format("MediaBrowser.Plugins.ADEProvider.Assets.Assemblies.{0}.dll", askedAssembly.Name);
 
             using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName))
@@ -384,10 +394,8 @@ namespace MediaBrowser.Plugins.ADEProvider
                 }
                 var assemblyData = new byte[stream.Length];
                 stream.Read(assemblyData, 0, assemblyData.Length);
-                assembly = Assembly.Load(assemblyData);
+                return Assembly.Load(assemblyData);
             }
-
-            return assembly;
         }
 
         private class SearchItem
@@ -406,6 +414,5 @@ namespace MediaBrowser.Plugins.ADEProvider
                 }
             }
         }
-
     }
 }
