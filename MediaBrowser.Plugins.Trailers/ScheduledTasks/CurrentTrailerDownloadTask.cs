@@ -1,6 +1,5 @@
 ﻿using MediaBrowser.Common.Net;
 using MediaBrowser.Common.ScheduledTasks;
-using MediaBrowser.Controller;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Providers;
@@ -179,7 +178,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
             }
 
             // Enforce MaxTrailerAge
-            await DeleteOldTrailers(cancellationToken).ConfigureAwait(false);
+            await DeleteOldTrailers().ConfigureAwait(false);
 
             progress.Report(100);
         }
@@ -243,7 +242,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
         /// <summary>
         /// Deletes trailers that are older than the supplied date
         /// </summary>
-        private async Task DeleteOldTrailers(CancellationToken cancellationToken)
+        private async Task DeleteOldTrailers()
         {
             var collectionFolder = (Folder)LibraryManager.RootFolder.Children.First(c => c.GetType().Name.Equals(typeof(TrailerCollectionFolder).Name));
 
@@ -251,7 +250,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
             {
                 Logger.Info("Deleting old trailer: " + trailer.Name);
 
-                await collectionFolder.RemoveChild(trailer, cancellationToken).ConfigureAwait(false);
+                await LibraryManager.DeleteItem(trailer).ConfigureAwait(false);
             }
 
             // Do another sweep for dupes, post-metadata
@@ -267,7 +266,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
 
                 foreach (var dupe in items.Skip(1))
                 {
-                    await collectionFolder.RemoveChild(dupe, cancellationToken).ConfigureAwait(false);
+                    await LibraryManager.DeleteItem(dupe).ConfigureAwait(false);
                 }
             }
 
@@ -283,7 +282,7 @@ namespace MediaBrowser.Plugins.Trailers.ScheduledTasks
 
                 foreach (var dupe in items.Skip(1))
                 {
-                    await collectionFolder.RemoveChild(dupe, cancellationToken).ConfigureAwait(false);
+                    await LibraryManager.DeleteItem(dupe).ConfigureAwait(false);
                 }
             }
         }
