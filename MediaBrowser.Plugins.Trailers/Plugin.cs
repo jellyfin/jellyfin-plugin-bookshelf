@@ -70,8 +70,6 @@ namespace MediaBrowser.Plugins.Trailers
 
             if (hdChanged)
             {
-                _taskManager.CancelIfRunning<CurrentTrailerDownloadTask>();
-                
                 var folder = _libraryManager.RootFolder.Children
                     .OfType<TrailerCollectionFolder>()
                     .FirstOrDefault();
