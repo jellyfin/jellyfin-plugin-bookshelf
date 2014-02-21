@@ -51,7 +51,7 @@ namespace MediaBrowser.Plugins.NesBox
 
         public string UrlFormatString
         {
-            get { return null; }
+            get { return "http://nesbox.com/game/rom/{0}"; }
         }
     }
 }

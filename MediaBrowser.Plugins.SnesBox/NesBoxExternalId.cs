@@ -52,7 +52,7 @@ namespace MediaBrowser.Plugins.SnesBox
 
         public string UrlFormatString
         {
-            get { return null; }
+            get { return "http://snesbox.com/game/rom/{0}"; }
         }
     }
 }

@@ -55,7 +55,7 @@ namespace MediaBrowser.Plugins.ADEProvider
         {
             var result = new MetadataResult<AdultVideo>();
 
-            var adeId = info.GetProviderId("AdultDvdEmpire");
+            var adeId = info.GetProviderId(ExternalId.KeyName);
             var name = info.Name;
 
             if (string.IsNullOrEmpty(adeId))
@@ -78,7 +78,7 @@ namespace MediaBrowser.Plugins.ADEProvider
             if (!string.IsNullOrEmpty(adeId))
             {
                 result.Item = new AdultVideo();
-                result.Item.SetProviderId("AdultDvdEmpire", adeId);
+                result.Item.SetProviderId(ExternalId.KeyName, adeId);
                 result.Item.Name = name;
 
                 await GetItemDetails(result.Item, adeId, cancellationToken);
