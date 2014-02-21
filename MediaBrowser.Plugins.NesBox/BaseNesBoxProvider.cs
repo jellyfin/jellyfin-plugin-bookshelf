@@ -22,6 +22,9 @@ namespace MediaBrowser.Plugins.NesBox
             JsonSerializer = jsonSerializer;
         }
 
+        public static string NesBoxExternalIdKeyName = "NesBox";
+        public static string NesBoxRomExternalIdKeyName = "NesBoxRom";
+
         protected abstract string GameSystem { get; }
         protected abstract Stream GetCatalogStream();
 
@@ -30,7 +33,7 @@ namespace MediaBrowser.Plugins.NesBox
             if (Supports(item))
             {
                 // Already have it
-                if (string.IsNullOrEmpty(item.GetProviderId(MetadataProviders.NesBox)) || string.IsNullOrEmpty(item.GetProviderId(MetadataProviders.NesBoxRom)))
+                if (string.IsNullOrEmpty(item.GetProviderId(NesBoxExternalIdKeyName)) || string.IsNullOrEmpty(item.GetProviderId(NesBoxRomExternalIdKeyName)))
                 {
                     using (var stream = GetCatalogStream())
                     {
@@ -67,11 +70,11 @@ namespace MediaBrowser.Plugins.NesBox
             {
                 var id = match.url.TrimEnd('/').Split('/').Last();
 
-                item.SetProviderId(MetadataProviders.NesBox, id);
+                item.SetProviderId(NesBoxExternalIdKeyName, id);
 
                 var rom = match.play.TrimEnd('/').Split('/').Last();
 
-                item.SetProviderId(MetadataProviders.NesBoxRom, rom);
+                item.SetProviderId(NesBoxRomExternalIdKeyName, rom);
             }
         }
 
