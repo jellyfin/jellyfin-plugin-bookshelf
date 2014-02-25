@@ -63,10 +63,10 @@
     <Compile Include="Configuration\PluginConfiguration.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Providers\RottenTomatoesId.cs" />
+    <Compile Include="Providers\RottenTomatoesProvider.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Providers\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>

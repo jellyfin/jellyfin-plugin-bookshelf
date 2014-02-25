@@ -1,6 +1,5 @@
 ﻿using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Net;
-using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Library;
@@ -19,15 +18,10 @@ using System.Threading.Tasks;
 
 namespace MediaBrowser.Plugins.RottenTomatoes.Providers
 {
-    /// <summary>
-    /// Class RottenTomatoesMovieProvider
-    /// </summary>
-    public class RottenTomatoesProvider : BaseMetadataProvider
+    public class RottenTomatoesProvider : ICustomMetadataProvider<Movie>, ICustomMetadataProvider<Trailer>, IHasChangeMonitor
     {
         // http://developer.rottentomatoes.com/iodocs
-
         private const int DailyRefreshLimit = 1000;
-
         private const string MoviesReviews = @"movies/{1}/reviews.json?review_type=top_critic&page_limit=12&page=1&country=us&apikey={0}";
 
         private readonly string[] _apiKeys =
@@ -42,98 +36,49 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
                 "x9wjnvv39ntjmt9zs95nm7bg",
 
                 // Donated by Redshirt
-                "gecbjvjka5may65qmqrczk97",
-
-                // MB Theater
-                //"4wku9pfehuvwrrt5fyjgbert",
-
-                // MB Classic
-                //"t579r22wuq9399ra8u7cevs7"
+                "gecbjvjka5may65qmqrczk97"
             };
 
         private const string BasicUrl = @"http://api.rottentomatoes.com/api/public/v1.0/";
         private const string MovieImdb = @"movie_alias.json?id={1}&type=imdb&apikey={0}";
-
         private readonly SemaphoreSlim _rottenTomatoesResourcePool = new SemaphoreSlim(1, 1);
-
         private readonly SemaphoreSlim _refreshResourcePool = new SemaphoreSlim(1, 1);
+        private readonly CultureInfo _usCulture = new CultureInfo("en-US");
 
-        /// <summary>
-        /// Gets the json serializer.
-        /// </summary>
-        /// <value>The json serializer.</value>
-        protected IJsonSerializer JsonSerializer { get; private set; }
-
-        /// <summary>
-        /// Gets the HTTP client.
-        /// </summary>
-        /// <value>The HTTP client.</value>
-        protected IHttpClient HttpClient { get; private set; }
-
+        private readonly IJsonSerializer _jsonSerializer;
+        private readonly IHttpClient _httpClient;
         private readonly IItemRepository _itemRepo;
+        private readonly IApplicationPaths _appPaths;
+        private readonly ILogger _logger;
 
-        private readonly string _requestHistoryPath;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="RottenTomatoesMovieProvider" /> class.
-        /// </summary>
-        /// <param name="logManager">The log manager.</param>
-        /// <param name="configurationManager">The configuration manager.</param>
-        /// <param name="jsonSerializer">The json serializer.</param>
-        /// <param name="httpClient">The HTTP client.</param>
-        /// <param name="appPaths">The app paths.</param>
-        public RottenTomatoesProvider(ILogManager logManager, IServerConfigurationManager configurationManager, IJsonSerializer jsonSerializer, IHttpClient httpClient, IApplicationPaths appPaths, IItemRepository itemRepo)
-            : base(logManager, configurationManager)
+        private string RequestHistoryPath
         {
-            JsonSerializer = jsonSerializer;
-            HttpClient = httpClient;
+            get
+            {
+                return Path.Combine(_appPaths.CachePath, "rotten-tomatoes");
+            }
+        }
+
+        private string RequestHistoryFilePath
+        {
+            get
+            {
+                if (!Directory.Exists(RequestHistoryPath))
+                {
+                    Directory.CreateDirectory(RequestHistoryPath);
+                }
+
+                return Path.Combine(RequestHistoryPath, "data.dat");
+            }
+        }
+
+        public RottenTomatoesProvider(IApplicationPaths appPaths, ILogger logger, IItemRepository itemRepo, IHttpClient httpClient, IJsonSerializer jsonSerializer)
+        {
+            _appPaths = appPaths;
+            _logger = logger;
             _itemRepo = itemRepo;
-
-            _requestHistoryPath = Path.Combine(appPaths.CachePath, "rotten-tomatoes");
-        }
-
-        /// <summary>
-        /// Gets the provider version.
-        /// </summary>
-        /// <value>The provider version.</value>
-        protected override string ProviderVersion
-        {
-            get
-            {
-                return "7";
-            }
-        }
-
-        /// <summary>
-        /// Gets a value indicating whether [requires internet].
-        /// </summary>
-        /// <value><c>true</c> if [requires internet]; otherwise, <c>false</c>.</value>
-        public override bool RequiresInternet
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        public override ItemUpdateType ItemUpdateType
-        {
-            get
-            {
-                return ItemUpdateType.MetadataDownload;
-            }
-        }
-
-        /// <summary>
-        /// Gets a value indicating whether [refresh on version change].
-        /// </summary>
-        /// <value><c>true</c> if [refresh on version change]; otherwise, <c>false</c>.</value>
-        protected override bool RefreshOnVersionChange
-        {
-            get
-            {
-                return true;
-            }
+            _httpClient = httpClient;
+            _jsonSerializer = jsonSerializer;
         }
 
         /// <summary>
@@ -162,25 +107,6 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
             }
         }
 
-        protected readonly CultureInfo UsCulture = new CultureInfo("en-US");
-
-        /// <summary>
-        /// Gets the request history file path.
-        /// </summary>
-        /// <value>The request history file path.</value>
-        private string RequestHistoryFilePath
-        {
-            get
-            {
-                if (!Directory.Exists(_requestHistoryPath))
-                {
-                    Directory.CreateDirectory(_requestHistoryPath);
-                }
-
-                return Path.Combine(_requestHistoryPath, "data.dat");
-            }
-        }
-
         /// <summary>
         /// Loads the request history.
         /// </summary>
@@ -196,7 +122,7 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
                         {
                             long ticks;
 
-                            if (long.TryParse(i, NumberStyles.Any, UsCulture, out ticks))
+                            if (long.TryParse(i, NumberStyles.Any, _usCulture, out ticks))
                             {
                                 return new DateTime(ticks, DateTimeKind.Utc);
                             }
@@ -220,59 +146,65 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
                     var now = DateTime.UtcNow;
 
                     var text = string.Join("|", history.Where(i => (now - i).TotalDays <= 2)
-                        .Select(i => i.Ticks.ToString(UsCulture))
+                        .Select(i => i.Ticks.ToString(_usCulture))
                         .ToArray());
 
                     streamWriter.Write(text);
                 }
             }
         }
-
-        /// <summary>
-        /// Supports the specified item.
-        /// </summary>
-        /// <param name="item">The item.</param>
-        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
-        public override bool Supports(BaseItem item)
+        
+        public Task<ItemUpdateType> FetchAsync(Movie item, IDirectoryService directoryService, CancellationToken cancellationToken)
         {
-            var trailer = item as Trailer;
-
-            if (trailer != null)
-            {
-                return !trailer.IsLocalTrailer;
-            }
-
-            // Don't support local trailers
-            return item is Movie;
+            return FetchAsync(item, cancellationToken);
         }
 
-        /// <summary>
-        /// Gets the priority.
-        /// </summary>
-        /// <value>The priority.</value>
-        public override MetadataProviderPriority Priority
+        public Task<ItemUpdateType> FetchAsync(Trailer item, IDirectoryService directoryService, CancellationToken cancellationToken)
         {
-            get
+            if (item.IsLocalTrailer)
             {
-                // Run after moviedb and xml providers
-                return MetadataProviderPriority.Last;
+                return Task.FromResult(ItemUpdateType.None);
             }
+
+            return FetchAsync(item, cancellationToken);
         }
 
-        /// <summary>
-        /// Fetches metadata and returns true or false indicating if any work that requires persistence was done
-        /// </summary>
-        /// <param name="item">The item.</param>
-        /// <param name="force">if set to <c>true</c> [force].</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>Task{System.Boolean}.</returns>
-        public override async Task<bool> FetchAsync(BaseItem item, bool force, BaseProviderInfo info, CancellationToken cancellationToken)
+        public string Name
+        {
+            get { return "Rotten Tomatoes"; }
+        }
+
+        public bool HasChanged(IHasMetadata item, IDirectoryService directoryService, DateTime date)
+        {
+            var imdbId = item.GetProviderId(MetadataProviders.Imdb);
+
+            if (string.IsNullOrEmpty(imdbId))
+            {
+                return false;
+            }
+
+            if ((DateTime.UtcNow - date).TotalDays > 7)
+            {
+                if (string.IsNullOrEmpty(item.GetProviderId(RottenTomatoesExternalId.KeyName)))
+                {
+                    return true;
+                }
+
+                if (!_itemRepo.GetCriticReviews(item.Id).Any())
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private async Task<ItemUpdateType> FetchAsync(Video item, CancellationToken cancellationToken)
         {
             var existingReviews = _itemRepo.GetCriticReviews(item.Id);
             if (existingReviews.Any())
             {
-                SetLastRefreshed(item, DateTime.UtcNow, info);
-                return true;
+                return ItemUpdateType.None;
             }
 
             await _refreshResourcePool.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -285,14 +217,14 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
             {
                 _refreshResourcePool.Release();
 
-                Logger.Debug("Skipping {0} because daily request limit has been reached. Tomorrow's refresh will retrieve it.", item.Name);
+                _logger.Debug("Skipping {0} because daily request limit has been reached. Tomorrow's refresh will retrieve it.", item.Name);
 
-                return false;
+                return ItemUpdateType.None;
             }
 
             try
             {
-                await FetchAsyncInternal(item, force, info, cancellationToken).ConfigureAwait(false);
+                return await FetchAsyncInternal(item, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
@@ -300,53 +232,42 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
 
                 _refreshResourcePool.Release();
             }
-
-            return true;
         }
 
-        /// <summary>
-        /// Fetches the async internal.
-        /// </summary>
-        /// <param name="item">The item.</param>
-        /// <param name="force">if set to <c>true</c> [force].</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>Task{System.Boolean}.</returns>
-        private async Task FetchAsyncInternal(BaseItem item, bool force, BaseProviderInfo info, CancellationToken cancellationToken)
+        private async Task<ItemUpdateType> FetchAsyncInternal(BaseItem item, CancellationToken cancellationToken)
         {
             var imdbId = item.GetProviderId(MetadataProviders.Imdb);
 
             if (string.IsNullOrEmpty(imdbId))
             {
-                SetLastRefreshed(item, DateTime.UtcNow, info);
-                return;
+                return ItemUpdateType.None;
             }
 
             var apiKey = GetApiKey();
 
-            if (string.IsNullOrEmpty(item.GetProviderId(MetadataProviders.RottenTomatoes)))
+            if (string.IsNullOrEmpty(item.GetProviderId(RottenTomatoesExternalId.KeyName)))
             {
                 await FetchRottenTomatoesId(item, apiKey, cancellationToken).ConfigureAwait(false);
             }
 
             // If still empty we can't continue
-            if (string.IsNullOrEmpty(item.GetProviderId(MetadataProviders.RottenTomatoes)))
+            if (string.IsNullOrEmpty(item.GetProviderId(RottenTomatoesExternalId.KeyName)))
             {
-                SetLastRefreshed(item, DateTime.UtcNow, info);
-                return;
+                return ItemUpdateType.None;
             }
 
             RequestHistory.Add(DateTime.UtcNow);
 
-            using (var stream = await HttpClient.Get(new HttpRequestOptions
+            using (var stream = await _httpClient.Get(new HttpRequestOptions
             {
-                Url = GetMovieReviewsUrl(item.GetProviderId(MetadataProviders.RottenTomatoes), apiKey),
+                Url = GetMovieReviewsUrl(item.GetProviderId(RottenTomatoesExternalId.KeyName), apiKey),
                 ResourcePool = _rottenTomatoesResourcePool,
                 CancellationToken = cancellationToken
 
             }).ConfigureAwait(false))
             {
 
-                var result = JsonSerializer.DeserializeFromStream<RTReviewList>(stream);
+                var result = _jsonSerializer.DeserializeFromStream<RTReviewList>(stream);
 
                 var criticReviews = result.reviews.Select(rtReview => new ItemReview
                 {
@@ -362,16 +283,9 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
                 await _itemRepo.SaveCriticReviews(item.Id, criticReviews).ConfigureAwait(false);
             }
 
-            SetLastRefreshed(item, DateTime.UtcNow, info);
+            return ItemUpdateType.MetadataDownload;
         }
 
-        /// <summary>
-        /// Fetches the rotten tomatoes id.
-        /// </summary>
-        /// <param name="item">The item.</param>
-        /// <param name="apiKey">The API key.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>Task.</returns>
         private async Task FetchRottenTomatoesId(BaseItem item, string apiKey, CancellationToken cancellationToken)
         {
             var imdbId = item.GetProviderId(MetadataProviders.Imdb);
@@ -379,7 +293,7 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
             RequestHistory.Add(DateTime.UtcNow);
 
             // Have IMDB Id
-            using (var stream = await HttpClient.Get(new HttpRequestOptions
+            using (var stream = await _httpClient.Get(new HttpRequestOptions
             {
                 Url = GetMovieImdbUrl(imdbId, apiKey),
                 ResourcePool = _rottenTomatoesResourcePool,
@@ -387,7 +301,7 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
 
             }).ConfigureAwait(false))
             {
-                var hit = JsonSerializer.DeserializeFromStream<RTMovieSearchResult>(stream);
+                var hit = _jsonSerializer.DeserializeFromStream<RTMovieSearchResult>(stream);
 
                 if (!string.IsNullOrEmpty(hit.id))
                 {
@@ -406,14 +320,12 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
                         }
                     }
 
-                    item.SetProviderId(MetadataProviders.RottenTomatoes, hit.id);
+                    item.SetProviderId(RottenTomatoesExternalId.KeyName, hit.id);
                 }
             }
         }
 
-
         // Utility functions to get the URL of the API calls
-
         private string GetMovieReviewsUrl(string rtId, string apiKey)
         {
             return BasicUrl + string.Format(MoviesReviews, apiKey, rtId);
@@ -431,7 +343,6 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
         }
 
         // Data contract classes for use with the Rotten Tomatoes API
-
         protected class RTReviewList
         {
             public int total { get; set; }
@@ -492,6 +403,5 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
         {
             public string imdb { get; set; }
         }
-
     }
 }
