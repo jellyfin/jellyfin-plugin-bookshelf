@@ -43,12 +43,56 @@ namespace MediaBrowser.Plugins.ADEProvider
 
         public Task<HttpResponseInfo> GetImageResponse(string url, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            return _httpClient.GetResponse(new HttpRequestOptions
+            {
+                CancellationToken = cancellationToken,
+                Url = url,
+                ResourcePool = Current.ResourcePool
+            });
         }
 
-        public Task<IEnumerable<RemoteSearchResult>> GetSearchResults(ItemLookupInfo searchInfo, CancellationToken cancellationToken)
+        public async Task<IEnumerable<RemoteSearchResult>> GetSearchResults(ItemLookupInfo searchInfo, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var adeId = searchInfo.GetProviderId(ExternalId.KeyName);
+
+            if (!string.IsNullOrEmpty(adeId))
+            {
+                var result = await GetMetadata(searchInfo, cancellationToken).ConfigureAwait(false);
+
+                if (result.HasMetadata)
+                {
+                    return new List<RemoteSearchResult>()
+                    {
+                        new RemoteSearchResult
+                        {
+                             Name = result.Item.Name,
+                             ProductionYear  = result.Item.ProductionYear,
+                             ProviderIds = result.Item.ProviderIds,
+                             SearchProviderName = Name,
+                             PremiereDate = result.Item.PremiereDate
+                        }
+                    };
+                }
+            }
+
+            if (string.IsNullOrEmpty(adeId))
+            {
+                var items = await GetSearchItems(searchInfo.Name, cancellationToken);
+
+                return items.Select(i =>
+                {
+                    var result = new RemoteSearchResult
+                    {
+                        Name = i.Name
+                    };
+
+                    result.SetProviderId(ExternalId.KeyName, i.Id);
+
+                    return result;
+                });
+            }
+
+            return new List<RemoteSearchResult>();
         }
 
         public async Task<MetadataResult<AdultVideo>> GetMetadata(ItemLookupInfo info, CancellationToken cancellationToken)
