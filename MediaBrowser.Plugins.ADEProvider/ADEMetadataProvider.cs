@@ -75,24 +75,19 @@ namespace MediaBrowser.Plugins.ADEProvider
                 }
             }
 
-            if (string.IsNullOrEmpty(adeId))
+            var items = await GetSearchItems(searchInfo.Name, cancellationToken);
+
+            return items.Select(i =>
             {
-                var items = await GetSearchItems(searchInfo.Name, cancellationToken);
-
-                return items.Select(i =>
+                var result = new RemoteSearchResult
                 {
-                    var result = new RemoteSearchResult
-                    {
-                        Name = i.Name
-                    };
+                    Name = i.Name
+                };
 
-                    result.SetProviderId(ExternalId.KeyName, i.Id);
+                result.SetProviderId(ExternalId.KeyName, i.Id);
 
-                    return result;
-                });
-            }
-
-            return new List<RemoteSearchResult>();
+                return result;
+            });
         }
 
         public async Task<MetadataResult<AdultVideo>> GetMetadata(ItemLookupInfo info, CancellationToken cancellationToken)

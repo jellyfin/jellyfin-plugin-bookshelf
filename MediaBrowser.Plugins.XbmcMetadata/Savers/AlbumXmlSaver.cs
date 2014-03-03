@@ -114,7 +114,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
         private void AddTracks(IEnumerable<Audio> tracks, StringBuilder builder)
         {
-            foreach (var track in tracks)
+            foreach (var track in tracks.OrderBy(i => i.ParentIndexNumber ?? 0).ThenBy(i => i.IndexNumber ?? 0))
             {
                 builder.Append("<track>");
 
