@@ -109,6 +109,7 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
 
                 info.IsHD = string.Equals(schd.Quality, "hdtv", StringComparison.OrdinalIgnoreCase);
                 info.ImageUrl = string.IsNullOrEmpty(schd.FanArt) ? null : (_baseUrl + "/" + schd.FanArt);
+                info.HasImage = !string.IsNullOrEmpty(schd.FanArt);
             }
 
             var epg = i.epgEvent;

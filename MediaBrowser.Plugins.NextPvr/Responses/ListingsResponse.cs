@@ -48,6 +48,7 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
                 IsRepeat = !epg.FirstRun,
                 IsSeries = !string.IsNullOrEmpty(epg.Subtitle),
                 ImageUrl = string.IsNullOrEmpty(epg.FanArt) ? null : (_baseUrl + "/" + epg.FanArt),
+                HasImage = !string.IsNullOrEmpty(epg.FanArt),
                 IsNews = epg.Genres.Contains("news", StringComparer.OrdinalIgnoreCase),
                 IsMovie = epg.Genres.Contains("movie", StringComparer.OrdinalIgnoreCase),
                 IsKids = epg.Genres.Contains("kids", StringComparer.OrdinalIgnoreCase),
