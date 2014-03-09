@@ -21,7 +21,7 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
     public class RottenTomatoesProvider : ICustomMetadataProvider<Movie>, ICustomMetadataProvider<Trailer>, IHasChangeMonitor
     {
         // http://developer.rottentomatoes.com/iodocs
-        private const int DailyRefreshLimit = 1000;
+        private const int DailyRefreshLimit = 250;
         private const string MoviesReviews = @"movies/{1}/reviews.json?review_type=top_critic&page_limit=12&page=1&country=us&apikey={0}";
 
         private readonly string[] _apiKeys =
