@@ -2,6 +2,7 @@
 using MediaBrowser.Common.Extensions;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.LiveTv;
+using MediaBrowser.Model.Net;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Plugins.NextPvr.Helpers;
 using System;
@@ -259,6 +260,7 @@ namespace MediaBrowser.Plugins.NextPvr
             }
         }
 
+        //TODO
         /// <summary>
         /// 
         /// </summary>
@@ -298,32 +300,28 @@ namespace MediaBrowser.Plugins.NextPvr
 
             try
             {
-                var response = await _httpClient.Post(options).ConfigureAwait((false));
-                using (var stream = response.Content)
-                {
-                    var test = new RecordingResponse(baseUrl);
-                }
+                await _httpClient.Post(options).ConfigureAwait((false));
             }
-            catch (Exception)
+            catch (HttpException ex)
             {
-                
-                throw;
+                throw new LiveTvConflictException();
             }
-           
-
-          
-
-            // TODO: throw LiveTvConflictException if this fails due to conflict
         }
 
+        /// <summary>
+        /// Get the pending Recordings.
+        /// </summary>
+        /// <param name="cancellationToken">The CancellationToken</param>
+        /// <returns></returns>
         public async Task<IEnumerable<TimerInfo>> GetTimersAsync(CancellationToken cancellationToken)
         {
+            await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
             var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
 
             var options = new HttpRequestOptions
             {
                 CancellationToken = cancellationToken,
-                Url = string.Format("{0}/public/ManageService/Get/SortedFilteredList", baseUrl)
+                Url = string.Format("{0}/public/ManageService/Get/SortedFilteredList?sid={1}", baseUrl,Sid)
             };
 
             var filterOptions = new
@@ -364,14 +362,20 @@ namespace MediaBrowser.Plugins.NextPvr
             }
         }
 
+        /// <summary>
+        /// Get the recurrent recordings
+        /// </summary>
+        /// <param name="cancellationToken">The CancellationToken</param>
+        /// <returns></returns>
         public async Task<IEnumerable<SeriesTimerInfo>> GetSeriesTimersAsync(CancellationToken cancellationToken)
         {
+            await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
             var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
 
             var options = new HttpRequestOptions
             {
                 CancellationToken = cancellationToken,
-                Url = string.Format("{0}/public/ManageService/Get/SortedFilteredList", baseUrl)
+                Url = string.Format("{0}/public/ManageService/Get/SortedFilteredList?sid={1}", baseUrl,Sid)
             };
 
             var filterOptions = new
@@ -401,14 +405,21 @@ namespace MediaBrowser.Plugins.NextPvr
             }
         }
 
+        /// <summary>
+        /// Create a recurrent recording
+        /// </summary>
+        /// <param name="info">The recurrend program info</param>
+        /// <param name="cancellationToken">The CanccelationToken</param>
+        /// <returns></returns>
         public async Task CreateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
         {
+            await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
             var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
 
             var options = new HttpRequestOptions
             {
                 CancellationToken = cancellationToken,
-                Url = string.Format("{0}/public/ScheduleService/Record", baseUrl)
+                Url = string.Format("{0}/public/ScheduleService/Record?sid={1}", baseUrl,Sid)
             };
 
             var timerSettings = await GetDefaultScheduleSettings(cancellationToken).ConfigureAwait(false);
@@ -448,28 +459,133 @@ namespace MediaBrowser.Plugins.NextPvr
             var response = await _httpClient.Post(options).ConfigureAwait((false));
         }
 
-        public Task UpdateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
+        public async Task UpdateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
+            var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
+
+            var options = new HttpRequestOptions
+            {
+                CancellationToken = cancellationToken,
+                Url = string.Format("{0}/public/ScheduleService/UpdateRecurr?sid={1}", baseUrl, Sid)
+            };
+
+            var timerSettings = await GetDefaultScheduleSettings(cancellationToken).ConfigureAwait(false);
+
+            timerSettings.allChannels = info.RecordAnyChannel;
+            timerSettings.onlyNew = info.RecordNewOnly;
+            timerSettings.recurringName = info.Name;
+            timerSettings.recordAnyTimeslot = info.RecordAnyTime;
+
+            timerSettings.recordAnyDay = info.Days.Count == 7;
+            timerSettings.daySunday = info.Days.Contains(DayOfWeek.Sunday);
+            timerSettings.dayMonday = info.Days.Contains(DayOfWeek.Monday);
+            timerSettings.dayTuesday = info.Days.Contains(DayOfWeek.Tuesday);
+            timerSettings.dayWednesday = info.Days.Contains(DayOfWeek.Wednesday);
+            timerSettings.dayThursday = info.Days.Contains(DayOfWeek.Thursday);
+            timerSettings.dayFriday = info.Days.Contains(DayOfWeek.Friday);
+            timerSettings.daySaturday = info.Days.Contains(DayOfWeek.Saturday);
+
+            if (!info.RecordAnyChannel)
+            {
+                timerSettings.ChannelOID = int.Parse(info.ChannelId, _usCulture);
+            }
+
+            if (!string.IsNullOrEmpty(info.ProgramId))
+            {
+                timerSettings.epgeventOID = int.Parse(info.ProgramId, _usCulture);
+            }
+
+            timerSettings.post_padding_min = info.PostPaddingSeconds / 60;
+            timerSettings.pre_padding_min = info.PrePaddingSeconds / 60;
+
+            var postContent = _jsonSerializer.SerializeToString(timerSettings);
+
+            options.RequestContent = postContent;
+            options.RequestContentType = "application/json";
+
+            var response = await _httpClient.Post(options).ConfigureAwait((false));
         }
 
-        public Task UpdateTimerAsync(TimerInfo info, CancellationToken cancellationToken)
+        public async Task UpdateTimerAsync(TimerInfo info, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
+
+            var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
+
+            var options = new HttpRequestOptions
+            {
+                CancellationToken = cancellationToken,
+                Url = string.Format("{0}/public/ScheduleService/UpdateRec?sid={1}", baseUrl, Sid)
+            };
+
+            var timerSettings = await GetDefaultScheduleSettings(cancellationToken).ConfigureAwait(false);
+
+            timerSettings.allChannels = false;
+            timerSettings.ChannelOID = int.Parse(info.ChannelId, _usCulture);
+
+            if (!string.IsNullOrEmpty(info.ProgramId))
+            {
+                timerSettings.epgeventOID = int.Parse(info.ProgramId, _usCulture);
+            }
+
+            timerSettings.post_padding_min = info.PostPaddingSeconds / 60;
+            timerSettings.pre_padding_min = info.PrePaddingSeconds / 60;
+
+            var postContent = _jsonSerializer.SerializeToString(timerSettings);
+
+            options.RequestContent = postContent;
+            options.RequestContentType = "application/json";
+
+
+            try
+            {
+                await _httpClient.Post(options).ConfigureAwait((false));
+            }
+            catch (HttpException ex)
+            {
+                throw new LiveTvConflictException();
+            }
         }
 
-        public Task CancelSeriesTimerAsync(string timerId, CancellationToken cancellationToken)
+        public async Task CancelSeriesTimerAsync(string timerId, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
-        }
+            await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
 
-        private async Task<ScheduleSettings> GetDefaultScheduleSettings(CancellationToken cancellationToken)
-        {
+            var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
+
             var options = new HttpRequestOptions()
             {
                 CancellationToken = cancellationToken,
-                Url = string.Format("{0}/public/ScheduleService/Get/SchedSettingsObj",
-                Plugin.Instance.Configuration.WebServiceUrl)
+                Url = string.Format("{0}/public/ScheduleService/CancelRecurr/{1}?sid={2}", baseUrl, timerId, Sid)
+            };
+
+
+            using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
+            {
+                /*bool? error = new CancelDeleteRecordingResponse().RecordingError(stream, _jsonSerializer);
+
+                if (error == null || error == true)
+                {
+                    throw new ApplicationException("Failed to cancel the recording");
+                }*/
+            }
+        }
+
+        /// <summary>
+        /// Get the DefauktScheduleSettings
+        /// </summary>
+        /// <param name="cancellationToken">The CancellationToken</param>
+        /// <returns></returns>
+        private async Task<ScheduleSettings> GetDefaultScheduleSettings(CancellationToken cancellationToken)
+        {
+            await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
+            var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
+
+            var options = new HttpRequestOptions()
+            {
+                CancellationToken = cancellationToken,
+                Url = string.Format("{0}/public/ScheduleService/Get/SchedSettingsObj?sid={1}",baseUrl,Sid)
             };
 
             using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
@@ -477,25 +593,6 @@ namespace MediaBrowser.Plugins.NextPvr
                 return new TimerDefaultsResponse().GetScheduleSettings(stream, _jsonSerializer);
             }
         }
-
-        public Task<StreamResponseInfo> GetChannelImageAsync(string channelId, CancellationToken cancellationToken)
-        {
-            // Leave as is. This is handled by supplying image url to ChannelInfo
-            throw new NotImplementedException();
-        }
-
-        public Task<StreamResponseInfo> GetProgramImageAsync(string programId, string channelId, CancellationToken cancellationToken)
-        {
-            // Leave as is. This is handled by supplying image url to ProgramInfo
-            throw new NotImplementedException();
-        }
-
-        public Task<StreamResponseInfo> GetRecordingImageAsync(string recordingId, CancellationToken cancellationToken)
-        {
-            // Leave as is. This is handled by supplying image url to RecordingInfo
-            throw new NotImplementedException();
-        }
-
 
         public Task<LiveStreamInfo> GetChannelStream(string recordingId, CancellationToken cancellationToken)
         {
@@ -533,11 +630,13 @@ namespace MediaBrowser.Plugins.NextPvr
 
         public async Task<SeriesTimerInfo> GetNewTimerDefaultsAsync(CancellationToken cancellationToken, ProgramInfo program = null)
         {
+            await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
+            var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
+
             var options = new HttpRequestOptions()
             {
                 CancellationToken = cancellationToken,
-                Url = string.Format("{0}/public/ScheduleService/Get/SchedSettingsObj",
-                Plugin.Instance.Configuration.WebServiceUrl)
+                Url = string.Format("{0}/public/ScheduleService/Get/SchedSettingsObj?sid{1}",baseUrl,Sid)
             };
 
             using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
@@ -548,11 +647,14 @@ namespace MediaBrowser.Plugins.NextPvr
 
         public async Task<IEnumerable<ProgramInfo>> GetProgramsAsync(string channelId, DateTime startDateUtc, DateTime endDateUtc, CancellationToken cancellationToken)
         {
+            await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
+            var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
+
             var options = new HttpRequestOptions()
             {
                 CancellationToken = cancellationToken,
-                Url = string.Format("{0}/public/GuideService/Listing?stime={1}&etime={2}&channelId={3}",
-                Plugin.Instance.Configuration.WebServiceUrl,
+                Url = string.Format("{0}/public/GuideService/Listing?sid={1}&stime={2}&etime={3}&channelId={4}",
+                baseUrl,Sid,
                 ApiHelper.GetCurrentUnixTimestampSeconds(DateTime.UtcNow.AddYears(-1)).ToString(_usCulture),
                 ApiHelper.GetCurrentUnixTimestampSeconds(DateTime.UtcNow.AddYears(1)).ToString(_usCulture),
                 channelId)
@@ -591,32 +693,22 @@ namespace MediaBrowser.Plugins.NextPvr
             throw new NotImplementedException();
         }
 
-        /*public async Task ScheduleRecordingAsync(string name, string channelId, DateTime startTime, TimeSpan duration, CancellationToken cancellationToken)
+        public Task<StreamResponseInfo> GetChannelImageAsync(string channelId, CancellationToken cancellationToken)
         {
-            await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
+            // Leave as is. This is handled by supplying image url to ChannelInfo
+            throw new NotImplementedException();
+        }
 
-            string html;
-            var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
+        public Task<StreamResponseInfo> GetProgramImageAsync(string programId, string channelId, CancellationToken cancellationToken)
+        {
+            // Leave as is. This is handled by supplying image url to ProgramInfo
+            throw new NotImplementedException();
+        }
 
-            var options = new HttpRequestOptions()
-                {
-                    CancellationToken = cancellationToken,
-                    //TODO: Change to JSON
-                    // Url = string.Format("{0}/service?method=recording.save&name={1}&channel={2}&time_t={3}&duration={4}&sid={5}", baseUrl, name, channelId, startTime, duration, Sid)
-                };
-
-            using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
-            {
-                using (var reader = new StreamReader(stream))
-                {
-                    html = await reader.ReadToEndAsync().ConfigureAwait(false);
-                }
-            }
-
-            if (!string.Equals(XmlHelper.GetSingleNode(html, "//rsp/@stat").InnerXml, "ok", StringComparison.OrdinalIgnoreCase))
-            {
-                throw new ApplicationException("Operation failed");
-            }
-        }*/
+        public Task<StreamResponseInfo> GetRecordingImageAsync(string recordingId, CancellationToken cancellationToken)
+        {
+            // Leave as is. This is handled by supplying image url to RecordingInfo
+            throw new NotImplementedException();
+        }
     }
 }
