@@ -260,12 +260,11 @@ namespace MediaBrowser.Plugins.NextPvr
             }
         }
 
-        //TODO
         /// <summary>
-        /// 
+        /// Create a new recording
         /// </summary>
-        /// <param name="info"></param>
-        /// <param name="cancellationToken"></param>
+        /// <param name="info">The TimerInfo</param>
+        /// <param name="cancellationToken">The cancellationToken</param>
         /// <returns></returns>
         public async Task CreateTimerAsync(TimerInfo info, CancellationToken cancellationToken)
         {
@@ -456,7 +455,14 @@ namespace MediaBrowser.Plugins.NextPvr
             options.RequestContent = postContent;
             options.RequestContentType = "application/json";
 
-            var response = await _httpClient.Post(options).ConfigureAwait((false));
+            try
+            {
+                await _httpClient.Post(options).ConfigureAwait((false));
+            }
+            catch (HttpException ex)
+            {
+                throw new LiveTvConflictException();
+            }
         }
 
         public async Task UpdateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
@@ -504,7 +510,14 @@ namespace MediaBrowser.Plugins.NextPvr
             options.RequestContent = postContent;
             options.RequestContentType = "application/json";
 
-            var response = await _httpClient.Post(options).ConfigureAwait((false));
+            try
+            {
+                await _httpClient.Post(options).ConfigureAwait((false));
+            }
+            catch (HttpException ex)
+            {
+                throw new LiveTvConflictException();
+            }
         }
 
         public async Task UpdateTimerAsync(TimerInfo info, CancellationToken cancellationToken)
@@ -573,7 +586,7 @@ namespace MediaBrowser.Plugins.NextPvr
         }
 
         /// <summary>
-        /// Get the DefauktScheduleSettings
+        /// Get the DefaultScheduleSettings
         /// </summary>
         /// <param name="cancellationToken">The CancellationToken</param>
         /// <returns></returns>
@@ -662,7 +675,7 @@ namespace MediaBrowser.Plugins.NextPvr
 
             using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
             {
-                return new ListingsResponse(Plugin.Instance.Configuration.WebServiceUrl).GetPrograms(stream, _jsonSerializer, channelId).ToList();
+                return new ListingsResponse(baseUrl).GetPrograms(stream, _jsonSerializer, channelId).ToList();
             }
         }
 
@@ -677,9 +690,31 @@ namespace MediaBrowser.Plugins.NextPvr
 
         public async Task<LiveTvServiceStatusInfo> GetStatusInfoAsync(CancellationToken cancellationToken)
         {
+            await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
+            var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
+
+            var options = new HttpRequestOptions()
+            {
+                CancellationToken = cancellationToken,
+                Url = string.Format("{0}/public/Util/NPVR/VersionCheck?sid={1}",baseUrl, Sid)
+            };
+
+            bool upgradeAvailable;
+            string serverVersion;
+
+            using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
+            {
+                var versionCheckResponse = new VersionCheckResponse(stream, _jsonSerializer);
+
+                upgradeAvailable = versionCheckResponse.UpdateAvailable();
+                serverVersion = versionCheckResponse.ServerVersion();
+            }
+
             return new LiveTvServiceStatusInfo
             {
-                 HasUpdateAvailable = false,
+                 HasUpdateAvailable = upgradeAvailable,
+                 Version = serverVersion
+                 
             };
         }
 
