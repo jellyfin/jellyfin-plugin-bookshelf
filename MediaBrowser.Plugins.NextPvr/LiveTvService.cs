@@ -2,6 +2,7 @@
 using MediaBrowser.Common.Extensions;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.LiveTv;
+using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Net;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Plugins.NextPvr.Helpers;
@@ -25,13 +26,17 @@ namespace MediaBrowser.Plugins.NextPvr
         private readonly IHttpClient _httpClient;
         private readonly IJsonSerializer _jsonSerializer;
         private readonly CultureInfo _usCulture = new CultureInfo("en-US");
+        private readonly ILogger _logger;
+        int heartBeats = 0;
+       Dictionary<int,int> heartBeat = new Dictionary<int,int>();
         
         private string Sid { get; set; }
 
-        public LiveTvService(IHttpClient httpClient, IJsonSerializer jsonSerializer)
+        public LiveTvService(IHttpClient httpClient, IJsonSerializer jsonSerializer,ILogger logger)
         {
             _httpClient = httpClient;
             _jsonSerializer = jsonSerializer;
+            _logger = logger;
         }
 
         /// <summary>
@@ -78,6 +83,7 @@ namespace MediaBrowser.Plugins.NextPvr
 
                 var sid = clientKeys.sid;
                 var salt = clientKeys.salt;
+                _logger.Info(sid);
                 
                 var loggedIn = await Login(sid,salt, cancellationToken).ConfigureAwait(false);
 
@@ -99,6 +105,7 @@ namespace MediaBrowser.Plugins.NextPvr
         {
             var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
             var pin = Plugin.Instance.Configuration.Pin;
+            _logger.Info(pin);
 
             var strb = new StringBuilder();
             var md5Result = EncryptionHelper.GetMd5Hash(strb.Append(":").Append(EncryptionHelper.GetMd5Hash(pin)).Append(":").Append(salt).ToString());
@@ -607,9 +614,49 @@ namespace MediaBrowser.Plugins.NextPvr
             }
         }
 
-        public Task<LiveStreamInfo> GetChannelStream(string recordingId, CancellationToken cancellationToken)
+        public async Task<LiveStreamInfo> GetChannelStream(string recordingId, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
+
+            var options = new HttpRequestOptions()
+            {
+                CancellationToken = cancellationToken,
+                // NEWA doesn't currently support channnelOid so it hard coded now
+                Url = string.Format("{0}/public/VLCService/Dump/StreamByChannel/Number/{1}", baseUrl,"998")
+            };
+
+            using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
+            {
+                var vlcObj = new VLCResponse().GetVLCResponse(stream, _jsonSerializer);
+                _logger.Debug(vlcObj.StreamLocation);
+
+                while (!File.Exists(vlcObj.StreamLocation))
+                {
+                    await Task.Delay(200).ConfigureAwait(false);
+                }
+                await Task.Delay(20000).ConfigureAwait(false);
+                _logger.Debug("Finishing");
+                heartBeats++;
+                heartBeat.Add(heartBeats, vlcObj.ProcessId);
+                return new LiveStreamInfo
+                {
+                    Id = heartBeats.ToString(),
+                    Path = vlcObj.StreamLocation
+                };            
+            }
+             /*
+            heartBeats++;
+            var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
+            string streamUrl = string.Format("{0}/live?channeloid={1}&clientid=MB3", baseUrl, channelOid);
+            _logger.Debug("Streaming " + streamUrl);
+            return new LiveStreamInfo
+            {
+                Id = heartBeats.ToString(),
+                Url = streamUrl
+            }; 
+              */
+            
+            //throw new ResourceNotFoundException(string.Format("Could not stream channel {0}", channelOid));            
         }
 
         public async Task<LiveStreamInfo> GetRecordingStream(string recordingId, CancellationToken cancellationToken)
@@ -636,9 +683,22 @@ namespace MediaBrowser.Plugins.NextPvr
             throw new ResourceNotFoundException(string.Format("No stream exists for recording {0}", recording));
         }
 
-        public Task CloseLiveStream(string id, CancellationToken cancellationToken)
+        public async Task CloseLiveStream(string id, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            _logger.Debug("killing " + id);
+            var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
+ 
+            var options = new HttpRequestOptions()
+            {
+                CancellationToken = cancellationToken,
+                Url = string.Format("{0}/public/VLCService/KillVLC/{1}", baseUrl, heartBeat[int.Parse(id)])
+            };
+
+            using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
+            {
+                var ret = new VLCResponse().GetVLCReturn(stream, _jsonSerializer);
+                heartBeat.Remove(int.Parse(id));
+            }
         }
 
         public async Task<SeriesTimerInfo> GetNewTimerDefaultsAsync(CancellationToken cancellationToken, ProgramInfo program = null)
