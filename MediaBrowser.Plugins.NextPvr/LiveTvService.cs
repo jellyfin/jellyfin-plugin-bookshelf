@@ -28,8 +28,9 @@ namespace MediaBrowser.Plugins.NextPvr
         private readonly CultureInfo _usCulture = new CultureInfo("en-US");
         private readonly ILogger _logger;
         int heartBeats = 0;
-       Dictionary<int,int> heartBeat = new Dictionary<int,int>();
+        Dictionary<int, int> heartBeat = new Dictionary<int, int>();
         
+
         private string Sid { get; set; }
 
         public LiveTvService(IHttpClient httpClient, IJsonSerializer jsonSerializer,ILogger logger)
@@ -614,49 +615,53 @@ namespace MediaBrowser.Plugins.NextPvr
             }
         }
 
-        public async Task<LiveStreamInfo> GetChannelStream(string recordingId, CancellationToken cancellationToken)
+        public async Task<LiveStreamInfo> GetChannelStream(string channelOid, CancellationToken cancellationToken)
         {
+            var config = Plugin.Instance.Configuration;
             var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
 
-            var options = new HttpRequestOptions()
+            if (config.TimeShift)
             {
-                CancellationToken = cancellationToken,
-                // NEWA doesn't currently support channnelOid so it hard coded now
-                Url = string.Format("{0}/public/VLCService/Dump/StreamByChannel/Number/{1}", baseUrl,"998")
-            };
-
-            using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
-            {
-                var vlcObj = new VLCResponse().GetVLCResponse(stream, _jsonSerializer);
-                _logger.Debug(vlcObj.StreamLocation);
-
-                while (!File.Exists(vlcObj.StreamLocation))
+                var options = new HttpRequestOptions()
                 {
-                    await Task.Delay(200).ConfigureAwait(false);
+                    CancellationToken = cancellationToken,
+                    // NEWA doesn't currently support channnelOid so it hard coded now
+                    Url = string.Format("{0}/public/VLCService/Dump/StreamByChannel/OID/{1}", baseUrl, channelOid)
+                };
+
+
+                using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
+                {
+                    var vlcObj = new VLCResponse().GetVLCResponse(stream, _jsonSerializer);
+                    _logger.Debug(vlcObj.StreamLocation);
+
+                    while (!File.Exists(vlcObj.StreamLocation))
+                    {
+                        await Task.Delay(200).ConfigureAwait(false);
+                    }
+                    await Task.Delay(20000).ConfigureAwait(false);
+                    _logger.Debug("Finishing");
+                    heartBeats++;
+                    heartBeat.Add(heartBeats, vlcObj.ProcessId);
+                    return new LiveStreamInfo
+                    {
+                        Id = heartBeats.ToString(),
+                        Path = vlcObj.StreamLocation
+                    };
                 }
-                await Task.Delay(20000).ConfigureAwait(false);
-                _logger.Debug("Finishing");
-                heartBeats++;
-                heartBeat.Add(heartBeats, vlcObj.ProcessId);
-                return new LiveStreamInfo
-                {
-                    Id = heartBeats.ToString(),
-                    Path = vlcObj.StreamLocation
-                };            
             }
-             /*
-            heartBeats++;
-            var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
-            string streamUrl = string.Format("{0}/live?channeloid={1}&clientid=MB3", baseUrl, channelOid);
-            _logger.Debug("Streaming " + streamUrl);
-            return new LiveStreamInfo
+            else
             {
-                Id = heartBeats.ToString(),
-                Url = streamUrl
-            }; 
-              */
-            
-            //throw new ResourceNotFoundException(string.Format("Could not stream channel {0}", channelOid));            
+                heartBeats++;
+                string streamUrl = string.Format("{0}/live?channeloid={1}&clientid=MB3.{2}", baseUrl, channelOid,heartBeats.ToString());
+                _logger.Debug("Streaming " + streamUrl);
+                 return new LiveStreamInfo
+                 {
+                    Id = heartBeats.ToString(),         
+                    Url = streamUrl
+               };               
+            }
+            throw new ResourceNotFoundException(string.Format("Could not stream channel {0}", channelOid));            
         }
 
         public async Task<LiveStreamInfo> GetRecordingStream(string recordingId, CancellationToken cancellationToken)
@@ -685,19 +690,33 @@ namespace MediaBrowser.Plugins.NextPvr
 
         public async Task CloseLiveStream(string id, CancellationToken cancellationToken)
         {
-            _logger.Debug("killing " + id);
-            var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
- 
-            var options = new HttpRequestOptions()
+            _logger.Debug("Closing " + id);
+            var config = Plugin.Instance.Configuration;
+            if (config.TimeShift)
             {
-                CancellationToken = cancellationToken,
-                Url = string.Format("{0}/public/VLCService/KillVLC/{1}", baseUrl, heartBeat[int.Parse(id)])
-            };
+                var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
 
-            using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
+                var options = new HttpRequestOptions()
+                {
+                    CancellationToken = cancellationToken,
+                    Url = string.Format("{0}/public/VLCService/KillVLC/{1}", baseUrl, heartBeat[int.Parse(id)])
+                };
+
+                using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
+                {
+                    var ret = new VLCResponse().GetVLCReturn(stream, _jsonSerializer);
+                    heartBeat.Remove(int.Parse(id));
+                }
+            }
+        }
+
+        public async Task CopyFilesAsync(StreamReader Source, StreamWriter Destination)
+        {
+            char[] buffer = new char[0x1000];
+            int numRead;
+            while ((numRead = await Source.ReadAsync(buffer, 0, buffer.Length)) != 0)
             {
-                var ret = new VLCResponse().GetVLCReturn(stream, _jsonSerializer);
-                heartBeat.Remove(int.Parse(id));
+                await Destination.WriteAsync(buffer, 0, numRead);
             }
         }
 

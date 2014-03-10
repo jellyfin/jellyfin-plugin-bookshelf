@@ -38,6 +38,8 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
         public string endDate { get; set; }
         public object manualRecTitle { get; set; }
         public object epgeventOID { get; set; }
+        public object scheduleOID { get; set; }
+        public object recurrOID { get; set; }
         public object recDirId { get; set; }
         public object rules { get; set; }
         public object recurringName { get; set; }

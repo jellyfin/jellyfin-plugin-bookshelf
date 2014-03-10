@@ -9,11 +9,13 @@ namespace MediaBrowser.Plugins.NextPvr.Configuration
     {
         public string WebServiceUrl { get; set; }
         public string Pin { get; set; }
+        public bool TimeShift { get; set; }
 
         public PluginConfiguration()
         {
             Pin = "0000";
             WebServiceUrl = "http://localhost:8866";
+            TimeShift = false;
         }
     }
 }

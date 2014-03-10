@@ -101,8 +101,14 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
             {
                 info.ChannelId = schd.ChannelOid.ToString(_usCulture);
                 info.Id = schd.OID.ToString(_usCulture);
-                info.Path = schd.RecordingFileName;
-                info.Url = string.IsNullOrEmpty(schd.DownloadURL) ? null : (_baseUrl + "/" + schd.DownloadURL);
+                if (!File.Exists(schd.RecordingFileName))
+                {
+                    info.Path = schd.RecordingFileName;
+                }
+                else
+                {
+                    info.Url = _baseUrl + "/live?recording=" + schd.OID;
+                }
                 info.Status = ParseStatus(schd.Status);
                 info.StartDate = DateTime.Parse(schd.StartTime);
                 info.EndDate = DateTime.Parse(schd.EndTime);
