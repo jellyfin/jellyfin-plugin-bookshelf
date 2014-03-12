@@ -486,7 +486,7 @@ namespace MediaBrowser.Plugins.NextPvr
 
             var timerSettings = await GetDefaultScheduleSettings(cancellationToken).ConfigureAwait(false);
 
-            timerSettings.allChannels = info.RecordAnyChannel;
+            /*timerSettings.allChannels = info.RecordAnyChannel;
             timerSettings.onlyNew = info.RecordNewOnly;
             timerSettings.recurringName = info.Name;
             timerSettings.recordAnyTimeslot = info.RecordAnyTime;
@@ -512,6 +512,17 @@ namespace MediaBrowser.Plugins.NextPvr
 
             timerSettings.post_padding_min = info.PostPaddingSeconds / 60;
             timerSettings.pre_padding_min = info.PrePaddingSeconds / 60;
+            */
+            
+#region mvallevand
+            timerSettings.recurrOID = int.Parse(info.Id);
+            timerSettings.post_padding_min = info.PostPaddingSeconds / 60;
+            timerSettings.pre_padding_min = info.PrePaddingSeconds / 60;
+            timerSettings.recurringName = info.Name;
+            timerSettings.keep_all_days = true;
+            timerSettings.days_to_keep = 0;
+            timerSettings.extend_end_time_min = 0;
+#endregion
 
             var postContent = _jsonSerializer.SerializeToString(timerSettings);
 
@@ -520,7 +531,15 @@ namespace MediaBrowser.Plugins.NextPvr
 
             try
             {
-                await _httpClient.Post(options).ConfigureAwait((false));
+                /* await _httpClient.Post(options).ConfigureAwait((false));*/
+
+                #region mvallevand
+                    var response = await _httpClient.Post(options).ConfigureAwait((false));
+                    using (var stream = response.Content)
+                    {
+                        var test = new RecordingResponse(baseUrl);
+                    }
+                #endregion
             }
             catch (HttpException ex)
             {
@@ -542,6 +561,7 @@ namespace MediaBrowser.Plugins.NextPvr
 
             var timerSettings = await GetDefaultScheduleSettings(cancellationToken).ConfigureAwait(false);
 
+            /*
             timerSettings.allChannels = false;
             timerSettings.ChannelOID = int.Parse(info.ChannelId, _usCulture);
 
@@ -549,6 +569,10 @@ namespace MediaBrowser.Plugins.NextPvr
             {
                 timerSettings.epgeventOID = int.Parse(info.ProgramId, _usCulture);
             }
+            */
+            #region mvallevand
+                timerSettings.scheduleOID = int.Parse(info.Id);
+            #endregion
 
             timerSettings.post_padding_min = info.PostPaddingSeconds / 60;
             timerSettings.pre_padding_min = info.PrePaddingSeconds / 60;
@@ -561,7 +585,15 @@ namespace MediaBrowser.Plugins.NextPvr
 
             try
             {
-                await _httpClient.Post(options).ConfigureAwait((false));
+                /* await _httpClient.Post(options).ConfigureAwait((false));*/
+
+                #region mvallevand
+                var response = await _httpClient.Post(options).ConfigureAwait((false));
+                using (var stream = response.Content)
+                {
+                    var test = new RecordingResponse(baseUrl);
+                }
+                #endregion
             }
             catch (HttpException ex)
             {
@@ -653,7 +685,7 @@ namespace MediaBrowser.Plugins.NextPvr
             else
             {
                 heartBeats++;
-                string streamUrl = string.Format("{0}/live?channeloid={1}&clientid=MB3.{2}", baseUrl, channelOid,heartBeats.ToString());
+                string streamUrl = string.Format("{0}/live?channeloid={1}&client=MB3.{2}", baseUrl, channelOid,heartBeats.ToString());
                 _logger.Debug("Streaming " + streamUrl);
                  return new LiveStreamInfo
                  {
@@ -747,8 +779,15 @@ namespace MediaBrowser.Plugins.NextPvr
                 CancellationToken = cancellationToken,
                 Url = string.Format("{0}/public/GuideService/Listing?sid={1}&stime={2}&etime={3}&channelId={4}",
                 baseUrl,Sid,
-                ApiHelper.GetCurrentUnixTimestampSeconds(DateTime.UtcNow.AddYears(-1)).ToString(_usCulture),
-                ApiHelper.GetCurrentUnixTimestampSeconds(DateTime.UtcNow.AddYears(1)).ToString(_usCulture),
+                    /*
+                    ApiHelper.GetCurrentUnixTimestampSeconds(DateTime.UtcNow.AddYears(-1)).ToString(_usCulture),
+                    ApiHelper.GetCurrentUnixTimestampSeconds(DateTime.UtcNow.AddYears(1)).ToString(_usCulture),
+                    */
+
+                #region mvallevand
+                    ApiHelper.GetCurrentUnixTimestampSeconds(startDateUtc).ToString(_usCulture),
+                    ApiHelper.GetCurrentUnixTimestampSeconds(endDateUtc).ToString(_usCulture),
+                #endregion
                 channelId)
             };
 
