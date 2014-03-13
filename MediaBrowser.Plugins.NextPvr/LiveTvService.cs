@@ -27,7 +27,7 @@ namespace MediaBrowser.Plugins.NextPvr
         private readonly IJsonSerializer _jsonSerializer;
         private readonly CultureInfo _usCulture = new CultureInfo("en-US");
         private readonly ILogger _logger;
-        int heartBeats = 0;
+        int liveStreams = 0;
         Dictionary<int, int> heartBeat = new Dictionary<int, int>();
         
 
@@ -311,6 +311,7 @@ namespace MediaBrowser.Plugins.NextPvr
             }
             catch (HttpException ex)
             {
+                _logger.Debug(ex.Message);
                 throw new LiveTvConflictException();
             }
         }
@@ -469,6 +470,7 @@ namespace MediaBrowser.Plugins.NextPvr
             }
             catch (HttpException ex)
             {
+                _logger.Debug(ex.Message);
                 throw new LiveTvConflictException();
             }
         }
@@ -486,35 +488,6 @@ namespace MediaBrowser.Plugins.NextPvr
 
             var timerSettings = await GetDefaultScheduleSettings(cancellationToken).ConfigureAwait(false);
 
-            /*timerSettings.allChannels = info.RecordAnyChannel;
-            timerSettings.onlyNew = info.RecordNewOnly;
-            timerSettings.recurringName = info.Name;
-            timerSettings.recordAnyTimeslot = info.RecordAnyTime;
-
-            timerSettings.recordAnyDay = info.Days.Count == 7;
-            timerSettings.daySunday = info.Days.Contains(DayOfWeek.Sunday);
-            timerSettings.dayMonday = info.Days.Contains(DayOfWeek.Monday);
-            timerSettings.dayTuesday = info.Days.Contains(DayOfWeek.Tuesday);
-            timerSettings.dayWednesday = info.Days.Contains(DayOfWeek.Wednesday);
-            timerSettings.dayThursday = info.Days.Contains(DayOfWeek.Thursday);
-            timerSettings.dayFriday = info.Days.Contains(DayOfWeek.Friday);
-            timerSettings.daySaturday = info.Days.Contains(DayOfWeek.Saturday);
-
-            if (!info.RecordAnyChannel)
-            {
-                timerSettings.ChannelOID = int.Parse(info.ChannelId, _usCulture);
-            }
-
-            if (!string.IsNullOrEmpty(info.ProgramId))
-            {
-                timerSettings.epgeventOID = int.Parse(info.ProgramId, _usCulture);
-            }
-
-            timerSettings.post_padding_min = info.PostPaddingSeconds / 60;
-            timerSettings.pre_padding_min = info.PrePaddingSeconds / 60;
-            */
-            
-#region mvallevand
             timerSettings.recurrOID = int.Parse(info.Id);
             timerSettings.post_padding_min = info.PostPaddingSeconds / 60;
             timerSettings.pre_padding_min = info.PrePaddingSeconds / 60;
@@ -522,7 +495,6 @@ namespace MediaBrowser.Plugins.NextPvr
             timerSettings.keep_all_days = true;
             timerSettings.days_to_keep = 0;
             timerSettings.extend_end_time_min = 0;
-#endregion
 
             var postContent = _jsonSerializer.SerializeToString(timerSettings);
 
@@ -531,18 +503,11 @@ namespace MediaBrowser.Plugins.NextPvr
 
             try
             {
-                /* await _httpClient.Post(options).ConfigureAwait((false));*/
-
-                #region mvallevand
-                    var response = await _httpClient.Post(options).ConfigureAwait((false));
-                    using (var stream = response.Content)
-                    {
-                        var test = new RecordingResponse(baseUrl);
-                    }
-                #endregion
+                await _httpClient.Post(options).ConfigureAwait((false));
             }
             catch (HttpException ex)
             {
+                _logger.Debug(ex.Message);
                 throw new LiveTvConflictException();
             }
         }
@@ -561,20 +526,8 @@ namespace MediaBrowser.Plugins.NextPvr
 
             var timerSettings = await GetDefaultScheduleSettings(cancellationToken).ConfigureAwait(false);
 
-            /*
-            timerSettings.allChannels = false;
-            timerSettings.ChannelOID = int.Parse(info.ChannelId, _usCulture);
-
-            if (!string.IsNullOrEmpty(info.ProgramId))
-            {
-                timerSettings.epgeventOID = int.Parse(info.ProgramId, _usCulture);
-            }
-            */
-            #region mvallevand
-                timerSettings.scheduleOID = int.Parse(info.Id);
-            #endregion
-
-            timerSettings.post_padding_min = info.PostPaddingSeconds / 60;
+            timerSettings.scheduleOID = int.Parse(info.Id);
+            timerSettings.post_padding_min = info.PostPaddingSeconds /60;
             timerSettings.pre_padding_min = info.PrePaddingSeconds / 60;
 
             var postContent = _jsonSerializer.SerializeToString(timerSettings);
@@ -582,21 +535,13 @@ namespace MediaBrowser.Plugins.NextPvr
             options.RequestContent = postContent;
             options.RequestContentType = "application/json";
 
-
             try
             {
-                /* await _httpClient.Post(options).ConfigureAwait((false));*/
-
-                #region mvallevand
-                var response = await _httpClient.Post(options).ConfigureAwait((false));
-                using (var stream = response.Content)
-                {
-                    var test = new RecordingResponse(baseUrl);
-                }
-                #endregion
+                await _httpClient.Post(options).ConfigureAwait((false));
             }
             catch (HttpException ex)
             {
+                _logger.Debug(ex.Message);
                 throw new LiveTvConflictException();
             }
         }
@@ -651,16 +596,14 @@ namespace MediaBrowser.Plugins.NextPvr
         {
             var config = Plugin.Instance.Configuration;
             var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
-
+            liveStreams++;
             if (config.TimeShift)
             {
                 var options = new HttpRequestOptions()
                 {
                     CancellationToken = cancellationToken,
-                    // NEWA doesn't currently support channnelOid so it hard coded now
                     Url = string.Format("{0}/public/VLCService/Dump/StreamByChannel/OID/{1}", baseUrl, channelOid)
                 };
-
 
                 using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
                 {
@@ -672,26 +615,24 @@ namespace MediaBrowser.Plugins.NextPvr
                         await Task.Delay(200).ConfigureAwait(false);
                     }
                     await Task.Delay(20000).ConfigureAwait(false);
-                    _logger.Debug("Finishing");
-                    heartBeats++;
-                    heartBeat.Add(heartBeats, vlcObj.ProcessId);
+                    _logger.Debug("Finishing wait");
+                    heartBeat.Add(liveStreams, vlcObj.ProcessId);
                     return new LiveStreamInfo
                     {
-                        Id = heartBeats.ToString(),
+                        Id = liveStreams.ToString(),
                         Path = vlcObj.StreamLocation
                     };
                 }
             }
             else
             {
-                heartBeats++;
-                string streamUrl = string.Format("{0}/live?channeloid={1}&client=MB3.{2}", baseUrl, channelOid,heartBeats.ToString());
+                string streamUrl = string.Format("{0}/live?channeloid={1}&client=MB3.{2}", baseUrl, channelOid,liveStreams.ToString());
                 _logger.Debug("Streaming " + streamUrl);
-                 return new LiveStreamInfo
-                 {
-                    Id = heartBeats.ToString(),         
+                return new LiveStreamInfo
+                {
+                    Id = liveStreams.ToString(),
                     Url = streamUrl
-               };               
+                };               
             }
             throw new ResourceNotFoundException(string.Format("Could not stream channel {0}", channelOid));            
         }
@@ -779,15 +720,8 @@ namespace MediaBrowser.Plugins.NextPvr
                 CancellationToken = cancellationToken,
                 Url = string.Format("{0}/public/GuideService/Listing?sid={1}&stime={2}&etime={3}&channelId={4}",
                 baseUrl,Sid,
-                    /*
-                    ApiHelper.GetCurrentUnixTimestampSeconds(DateTime.UtcNow.AddYears(-1)).ToString(_usCulture),
-                    ApiHelper.GetCurrentUnixTimestampSeconds(DateTime.UtcNow.AddYears(1)).ToString(_usCulture),
-                    */
-
-                #region mvallevand
-                    ApiHelper.GetCurrentUnixTimestampSeconds(startDateUtc).ToString(_usCulture),
-                    ApiHelper.GetCurrentUnixTimestampSeconds(endDateUtc).ToString(_usCulture),
-                #endregion
+                ApiHelper.GetCurrentUnixTimestampSeconds(startDateUtc).ToString(_usCulture),
+                ApiHelper.GetCurrentUnixTimestampSeconds(endDateUtc).ToString(_usCulture),
                 channelId)
             };
 
