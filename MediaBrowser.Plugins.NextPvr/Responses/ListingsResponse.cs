@@ -37,7 +37,7 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
                 Overview = epg.Desc,
                 StartDate = DateTime.Parse(epg.StartTime).ToUniversalTime(),
                 EndDate = DateTime.Parse(epg.EndTime).ToUniversalTime(),
-                Genres = epg.Genres,
+                Genres = epg.Genres.Where(g => !string.IsNullOrWhiteSpace(g)).ToList(),
                 OriginalAirDate = DateTime.Parse(epg.OriginalAirdate).ToUniversalTime(),
                 Name = epg.Title,
                 OfficialRating = epg.Rating,

@@ -128,7 +128,7 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
                 info.EpisodeTitle = epg.Subtitle;
                 info.Name = epg.Title;
                 info.Overview = epg.Desc;
-                info.Genres = epg.Genres;
+                info.Genres = epg.Genres.Where(g => !string.IsNullOrWhiteSpace(g)).ToList();
                 info.IsRepeat = !epg.FirstRun;
                 info.IsSeries = !string.IsNullOrEmpty(epg.Subtitle);
                 info.CommunityRating = ListingsResponse.ParseCommunityRating(epg.StarRating);
