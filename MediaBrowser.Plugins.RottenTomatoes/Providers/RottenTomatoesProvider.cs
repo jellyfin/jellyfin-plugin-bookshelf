@@ -21,7 +21,7 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
     public class RottenTomatoesProvider : ICustomMetadataProvider<Movie>, ICustomMetadataProvider<Trailer>, IHasChangeMonitor
     {
         // http://developer.rottentomatoes.com/iodocs
-        private const int DailyRefreshLimit = 250;
+        private const int DailyRefreshLimit = 200;
         private const string MoviesReviews = @"movies/{1}/reviews.json?review_type=top_critic&page_limit=12&page=1&country=us&apikey={0}";
 
         private readonly string[] _apiKeys =
@@ -183,7 +183,7 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
                 return false;
             }
 
-            if ((DateTime.UtcNow - date).TotalDays > 7)
+            if ((DateTime.UtcNow - date).TotalDays > 14)
             {
                 if (string.IsNullOrEmpty(item.GetProviderId(RottenTomatoesExternalId.KeyName)))
                 {
@@ -217,7 +217,7 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
             {
                 _refreshResourcePool.Release();
 
-                _logger.Debug("Skipping {0} because daily request limit has been reached. Tomorrow's refresh will retrieve it.", item.Name);
+                _logger.Debug("Skipping {0} because daily request limit has been reached.", item.Name);
 
                 return ItemUpdateType.None;
             }

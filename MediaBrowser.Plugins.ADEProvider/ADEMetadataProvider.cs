@@ -149,20 +149,11 @@ namespace MediaBrowser.Plugins.ADEProvider
 
             var divNodes = doc.DocumentNode.Descendants("div").ToList();
 
-            if (!item.LockedFields.Contains(MetadataFields.Cast))
-            {
-                GetCast(divNodes, item);
-            }
+            GetCast(divNodes, item);
 
-            if (!item.LockedFields.Contains(MetadataFields.Overview))
-            {
-                GetSynopsisAndTagLine(divNodes, item);
-            }
+            GetSynopsisAndTagLine(divNodes, item);
 
-            if (!item.LockedFields.Contains(MetadataFields.Genres))
-            {
-                GetCategories(divNodes, item);
-            }
+            GetCategories(divNodes, item);
 
             GetDetails(divNodes, item);
 
