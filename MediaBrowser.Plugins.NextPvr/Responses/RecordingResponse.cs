@@ -101,7 +101,7 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
             {
                 info.ChannelId = schd.ChannelOid.ToString(_usCulture);
                 info.Id = schd.OID.ToString(_usCulture);
-                if (!File.Exists(schd.RecordingFileName))
+                if (File.Exists(schd.RecordingFileName))
                 {
                     info.Path = schd.RecordingFileName;
                 }
@@ -109,6 +109,7 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
                 {
                     info.Url = _baseUrl + "/live?recording=" + schd.OID;
                 }
+               
                 info.Status = ParseStatus(schd.Status);
                 info.StartDate = DateTime.Parse(schd.StartTime);
                 info.EndDate = DateTime.Parse(schd.EndTime);

@@ -1,5 +1,4 @@
-﻿using System.Data.SqlTypes;
-using MediaBrowser.Common.Extensions;
+﻿using MediaBrowser.Common.Extensions;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.Logging;
@@ -27,10 +26,9 @@ namespace MediaBrowser.Plugins.NextPvr
         private readonly IJsonSerializer _jsonSerializer;
         private readonly CultureInfo _usCulture = new CultureInfo("en-US");
         private readonly ILogger _logger;
-        int liveStreams = 0;
-        Dictionary<int, int> heartBeat = new Dictionary<int, int>();
+        private int _liveStreams = 0;
+        private readonly Dictionary<int, int> _heartBeat = new Dictionary<int, int>();
         
-
         private string Sid { get; set; }
 
         public LiveTvService(IHttpClient httpClient, IJsonSerializer jsonSerializer,ILogger logger)
@@ -561,12 +559,12 @@ namespace MediaBrowser.Plugins.NextPvr
 
             using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
             {
-                /*bool? error = new CancelDeleteRecordingResponse().RecordingError(stream, _jsonSerializer);
+                bool? error = new CancelDeleteRecordingResponse().RecordingError(stream, _jsonSerializer);
 
                 if (error == null || error == true)
                 {
                     throw new ApplicationException("Failed to cancel the recording");
-                }*/
+                }
             }
         }
 
@@ -596,7 +594,7 @@ namespace MediaBrowser.Plugins.NextPvr
         {
             var config = Plugin.Instance.Configuration;
             var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
-            liveStreams++;
+            _liveStreams++;
             if (config.TimeShift)
             {
                 var options = new HttpRequestOptions()
@@ -616,21 +614,21 @@ namespace MediaBrowser.Plugins.NextPvr
                     }
                     await Task.Delay(20000).ConfigureAwait(false);
                     _logger.Debug("Finishing wait");
-                    heartBeat.Add(liveStreams, vlcObj.ProcessId);
+                    _heartBeat.Add(_liveStreams, vlcObj.ProcessId);
                     return new LiveStreamInfo
                     {
-                        Id = liveStreams.ToString(),
+                        Id = _liveStreams.ToString(CultureInfo.InvariantCulture),
                         Path = vlcObj.StreamLocation
                     };
                 }
             }
             else
             {
-                string streamUrl = string.Format("{0}/live?channeloid={1}&client=MB3.{2}", baseUrl, channelOid,liveStreams.ToString());
+                string streamUrl = string.Format("{0}/live?channeloid={1}&client=MB3.{2}", baseUrl, channelOid,_liveStreams.ToString());
                 _logger.Debug("Streaming " + streamUrl);
                 return new LiveStreamInfo
                 {
-                    Id = liveStreams.ToString(),
+                    Id = _liveStreams.ToString(CultureInfo.InvariantCulture),
                     Url = streamUrl
                 };               
             }
@@ -672,13 +670,13 @@ namespace MediaBrowser.Plugins.NextPvr
                 var options = new HttpRequestOptions()
                 {
                     CancellationToken = cancellationToken,
-                    Url = string.Format("{0}/public/VLCService/KillVLC/{1}", baseUrl, heartBeat[int.Parse(id)])
+                    Url = string.Format("{0}/public/VLCService/KillVLC/{1}", baseUrl, _heartBeat[int.Parse(id)])
                 };
 
                 using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
                 {
                     var ret = new VLCResponse().GetVLCReturn(stream, _jsonSerializer);
-                    heartBeat.Remove(int.Parse(id));
+                    _heartBeat.Remove(int.Parse(id));
                 }
             }
         }
@@ -765,8 +763,7 @@ namespace MediaBrowser.Plugins.NextPvr
             return new LiveTvServiceStatusInfo
             {
                  HasUpdateAvailable = upgradeAvailable,
-                 Version = serverVersion
-                 
+                 Version = serverVersion                
             };
         }
 
