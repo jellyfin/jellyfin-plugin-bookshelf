@@ -366,7 +366,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             {
                 foreach (var trailer in hasTrailer.RemoteTrailers)
                 {
-                    builder.Append("<trailer>" + SecurityElement.Escape(trailer.Url) + "</trailer>");
+                    builder.Append("<trailer>" + SecurityElement.Escape(GetOutputTrailerUrl(trailer.Url)) + "</trailer>");
                 }
             }
 
@@ -574,6 +574,20 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             AddUserData(item, builder, userManager, userDataRepo);
 
             AddActors(item, builder, libraryManager, fileSystem, config);
+        }
+
+        /// <summary>
+        /// Gets the output trailer URL.
+        /// </summary>
+        /// <param name="url">The URL.</param>
+        /// <returns>System.String.</returns>
+        private static string GetOutputTrailerUrl(string url)
+        {
+            // This is what xbmc expects
+
+            return url.Replace("http://www.youtube.com/watch?v=",
+                "plugin://plugin.video.youtube/?action=play_video&videoid=",
+                StringComparison.OrdinalIgnoreCase);
         }
 
         private static void AddImages(BaseItem item, StringBuilder builder, IFileSystem fileSystem, IServerConfigurationManager config)
