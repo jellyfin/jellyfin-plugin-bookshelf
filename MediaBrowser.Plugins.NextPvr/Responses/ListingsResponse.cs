@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.LiveTv;
+using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
 
 namespace MediaBrowser.Plugins.NextPvr.Responses
@@ -19,9 +20,11 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
             _baseUrl = baseUrl;
         }
 
-        public IEnumerable<ProgramInfo> GetPrograms(Stream stream, IJsonSerializer json, string channelId)
+        public IEnumerable<ProgramInfo> GetPrograms(Stream stream, IJsonSerializer json, string channelId, ILogger logger)
         {
             var root = json.DeserializeFromStream<RootObject>(stream);
+            logger.Debug("[NextPvr] GetPrograms Response: {0}",json.SerializeToString(root));
+
             var listings = root.Guide.Listings;
 
             return listings.Where(i => string.Equals(i.Channel.channelOID.ToString(_usCulture), channelId, StringComparison.OrdinalIgnoreCase))

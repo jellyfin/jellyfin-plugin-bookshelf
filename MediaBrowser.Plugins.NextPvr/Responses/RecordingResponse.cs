@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.LiveTv;
+using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
 
 namespace MediaBrowser.Plugins.NextPvr.Responses
@@ -19,14 +20,16 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
             _baseUrl = baseUrl;
         }
 
-        public IEnumerable<RecordingInfo> GetRecordings(Stream stream, IJsonSerializer json)
+        public IEnumerable<RecordingInfo> GetRecordings(Stream stream, IJsonSerializer json,ILogger logger)
         {
             if (stream == null)
             {
+                logger.Error("[NextPvr] GetRecording stream == null");
                 throw new ArgumentNullException("stream");
             }
 
             var root = json.DeserializeFromStream<RootObject>(stream);
+            logger.Debug("[NextPvr] GetRecordings Response: {0}", json.SerializeToString(root));
 
             return root.ManageResults
                 .EPGEvents
@@ -40,14 +43,16 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
                 .Select(GetRecordingInfo);
         }
 
-        public IEnumerable<TimerInfo> GetTimers(Stream stream, IJsonSerializer json)
+        public IEnumerable<TimerInfo> GetTimers(Stream stream, IJsonSerializer json,ILogger logger)
         {
             if (stream == null)
             {
+                logger.Error("[NextPvr] GetTimers stream == null");
                 throw new ArgumentNullException("stream");
             }
 
             var root = json.DeserializeFromStream<RootObject>(stream);
+            logger.Debug("[NextPvr] GetTimers Response: {0}", json.SerializeToString(root));
 
             return root.ManageResults
                 .EPGEvents
@@ -61,14 +66,16 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
                 .Select(GetTimerInfo);
         }
 
-        public IEnumerable<SeriesTimerInfo> GetSeriesTimers(Stream stream, IJsonSerializer json)
+        public IEnumerable<SeriesTimerInfo> GetSeriesTimers(Stream stream, IJsonSerializer json,ILogger logger)
         {
             if (stream == null)
             {
+                logger.Error("[NextPvr] GetSeriesTimers stream == null");
                 throw new ArgumentNullException("stream");
             }
 
             var root = json.DeserializeFromStream<RootObject>(stream);
+            logger.Debug("[NextPvr] GetSeriesTimers Response: {0}", json.SerializeToString(root));
 
             return root.ManageResults
                 .EPGEvents

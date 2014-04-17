@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using MediaBrowser.Controller.LiveTv;
+using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
 
 namespace MediaBrowser.Plugins.NextPvr.Responses
@@ -18,17 +19,19 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
             _baseUrl = baseUrl;
         }
 
-        public IEnumerable<ChannelInfo> GetChannels(Stream stream, IJsonSerializer json)
+        public IEnumerable<ChannelInfo> GetChannels(Stream stream, IJsonSerializer json,ILogger logger)
         {
             var root = json.DeserializeFromStream<RootObject>(stream);
 
             if (root.channelsJSONObject.rtn != null && root.channelsJSONObject.rtn.Error)
             {
+                logger.Error(root.channelsJSONObject.rtn.Message ?? "Failed to download channel information.");
                 throw new ApplicationException(root.channelsJSONObject.rtn.Message ?? "Failed to download channel information.");
             }
 
             if (root.channelsJSONObject != null && root.channelsJSONObject.Channels != null)
             {
+                logger.Debug("[NextPvr] ChannelResponse: {0}", json.SerializeToString(root));
                 return root.channelsJSONObject.Channels.Select(i => new ChannelInfo
                 {
                     Name = i.channel.channelName,

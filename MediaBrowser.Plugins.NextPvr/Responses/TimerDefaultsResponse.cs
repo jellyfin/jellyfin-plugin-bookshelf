@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using System.IO;
 using MediaBrowser.Controller.LiveTv;
+using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
 
 namespace MediaBrowser.Plugins.NextPvr.Responses
@@ -9,9 +10,10 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
     {
         private readonly CultureInfo _usCulture = new CultureInfo("en-US");
 
-        public SeriesTimerInfo GetDefaultTimerInfo(Stream stream, IJsonSerializer json)
+        public SeriesTimerInfo GetDefaultTimerInfo(Stream stream, IJsonSerializer json, ILogger logger)
         {
             var root = GetScheduleSettings(stream, json);
+            logger.Debug("[NextPvr] GetDefaultTimerInfo Response: {0}", json.SerializeToString(root));
 
             return new SeriesTimerInfo
             {

@@ -4,18 +4,20 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
 
 namespace MediaBrowser.Plugins.NextPvr.Responses
 {
     public class CancelDeleteRecordingResponse
     {
-        public bool? RecordingError(Stream stream, IJsonSerializer json)
+        public bool? RecordingError(Stream stream, IJsonSerializer json,ILogger logger)
         {
             var root = json.DeserializeFromStream<RootObject>(stream);
 
             if (root.epgEventJSONObject != null && root.epgEventJSONObject.rtn != null)
             {
+                logger.Debug("[NextPvr] RecordingError Response: {0}", json.SerializeToString(root));
                 return root.epgEventJSONObject.rtn.Error;
             }
             return null;
