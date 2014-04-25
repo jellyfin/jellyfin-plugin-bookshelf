@@ -1,0 +1,100 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>PushOver Notifications</title>
+</head>
+<body>
+    <div data-role="page" class="page type-interior pluginConfigurationPage notificationConfigurationPage">
+
+        <div data-role="content">
+            <div class="content-primary">
+                <form class="notificationConfigurationForm">
+                    <h2>Pushover</h2>
+                    <p>To use PushOver register an application at <a href="https://pushover.net/">pushover.net</a></p>
+                    <ul class="ulForm" data-role="listview">
+                        <li>
+                            <label for="chkEnablePushOver">Enable PushOver Notifications</label>
+                            <input type="checkbox" id="chkEnablePushOver" data-mini="true" />
+                        </li>
+                        <li>
+                            <label for="txtPushOverAuthKey">
+                                PushOver Auth Token:
+                            </label>
+                            <input type="text" id="txtPushOverAuthKey" name="txtPushOverAuthKey" />
+                            <div class="fieldDescription">
+                                Auth key for your application
+                            </div>
+                        </li>
+                        <li>
+                            <label for="txtPushOverUserKey">
+                                PushOver User Key:
+                            </label>
+                            <input type="text" id="txtPushOverUserKey" name="txtPushOverUserKey" />
+                            <div class="fieldDescription">
+                                User key for your application
+                            </div>
+                        </li>
+                        <li>
+                            <label for="txtPushOverDeviceName">
+                                PushOver Device Name:
+                            </label>
+                            <input type="text" id="txtPushOverDeviceName" name="txtPushOverDeviceName" />
+                            <div class="fieldDescription">
+                                Device Name for application
+                            </div>
+                        </li>
+                        <li>
+                            <button type="submit" data-theme="b">Save</button>
+                            <button type="button" onclick="history.back();">Cancel</button>
+                        </li>
+                    </ul>
+
+                </form>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+
+            var NotificationConfigurationPage = {
+                pluginUniqueId: "d6a93f1a-ebf4-42c0-8abe-a9a82db3c3a3"
+            };
+
+            $('.notificationConfigurationPage').on('pageshow', function (event) {
+
+                Dashboard.showLoadingMsg();
+
+                var page = this;
+
+                ApiClient.getPluginConfiguration(NotificationConfigurationPage.pluginUniqueId).done(function (config) {
+                    $('#chkEnablePushOver', page).checked(config.Notifications.PushOver.Enabled).checkboxradio("refresh");
+                    $('#txtPushOverAuthKey', page).val(config.Notifications.PushOver.Token);
+                    $('#txtPushOverUserKey', page).val(config.Notifications.PushOver.UserKey);
+                    $('#txtPushOverDeviceName', page).val(config.Notifications.PushOver.DeviceName);
+
+                    Dashboard.hideLoadingMsg();
+                });
+            });
+
+            $('.notificationConfigurationPage').on('submit', function (e) {
+
+                Dashboard.showLoadingMsg();
+
+                var form = this;
+
+                ApiClient.getPluginConfiguration(NotificationConfigurationPage.pluginUniqueId).done(function (config) {
+
+                    config.Notifications.PushOver.Enabled = $('#chkEnablePushOver', form).checked();
+                    config.Notifications.PushOver.Token = $('#txtPushOverAuthKey', form).val();
+                    config.Notifications.PushOver.UserKey = $('#txtPushOverUserKey', form).val();
+                    config.Notifications.PushOver.DeviceName = $('#txtPushOverDeviceName', form).val();
+
+
+                    ApiClient.updatePluginConfiguration(NotificationConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
+                });
+
+                return false;
+            });
+        </script>
+    </div>
+</body>
+</html>
