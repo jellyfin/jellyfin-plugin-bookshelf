@@ -30,6 +30,7 @@ namespace MediaBrowser.Plugins.SmtpNotifications.Configuration
         public SMTPOptions()
         {
             Port = 25;
+            Enabled = true;
         }
     }
 }
