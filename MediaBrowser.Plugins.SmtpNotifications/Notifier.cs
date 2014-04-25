@@ -16,7 +16,7 @@ namespace MediaBrowser.Plugins.SmtpNotifications
         {
             var options = GetOptions(user);
 
-            return options != null && IsValid(options);
+            return options != null && IsValid(options) && options.Enabled;
         }
 
         private SMTPOptions GetOptions(User user)
