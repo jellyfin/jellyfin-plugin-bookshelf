@@ -1,0 +1,144 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>MB Notifications</title>
+</head>
+<body>
+    <div data-role="page" class="page type-interior pluginConfigurationPage notificationConfigurationPage">
+
+        <div data-role="content">
+            <div class="content-primary">
+                <div data-role="controlgroup" data-type="horizontal" class="localnav" data-mini="true">
+                    <a href="ConfigurationPage?name=OverView" data-role="button">Overview</a>
+                    <a href="ConfigurationPage?name=PushOverOptions" data-role="button">Pushover</a>
+                    <a href="#" data-role="button" class="ui-btn-active">SMTP</a>
+                    <a href="ConfigurationPage?name=PushALotOptions" data-role="button">PushALot</a>
+                </div>
+
+                <form class="notificationConfigurationForm">
+                    <h2>SMTP</h2>
+                    <ul class="ulForm" data-role="listview">
+                        <li>
+                            <label for="chkEnableSMTP">Enable SMTP Notifications</label>
+                            <input type="checkbox" id="chkEnableSMTP" data-mini="true" />
+                        </li>
+                        <li>
+                            <label for="txtEmailFrom">
+                                Email From :
+                            </label>
+                            <input type="text" id="txtEmailFrom" name="txtEmailFrom" />
+                            <div class="fieldDescription">
+                                Email Address that messages will be sent from.
+                            </div>
+                        </li>
+                        <li>
+                            <label for="txtEmailTo">
+                                Email To :
+                            </label>
+                            <input type="text" id="txtEmailTo" name="txtEmailTo" />
+                            <div class="fieldDescription">
+                                Email Address that messaged will be sent to.
+                            </div>
+                        </li>
+                        <li>
+                            <label for="txtServer">
+                                SMTP Hostname :
+                            </label>
+                            <input type="text" id="txtServer" name="txtServer" />
+                            <div class="fieldDescription">
+                                Hostname for your SMTP Server.
+                            </div>
+                        </li>
+                        <li>
+                            <label for="txtPort">
+                                SMTP Port :
+                            </label>
+                            <input type="text" id="txtPort" name="txtPort" />
+                            <div class="fieldDescription">
+                                Port for your SMTP Server (Default 25).
+                            </div>
+                        </li>
+                        <li>
+                            <label for="chkEnableAuth">Enable SMTP Authentication</label>
+                            <input type="checkbox" id="chkEnableAuth" data-mini="true" />
+                        </li>
+                        <li>
+                            <label for="txtUsername">
+                                SMTP Username :
+                            </label>
+                            <input type="text" id="txtUsername" name="txtUsername" />
+                            <div class="fieldDescription">
+                                Username for your SMTP Server.
+                            </div>
+                        </li>
+                        <li>
+                            <label for="txtPassword">
+                                SMTP Password :
+                            </label>
+                            <input type="password" id="txtPassword" name="txtPassword" />
+                            <div class="fieldDescription">
+                                Password for your SMTP Server.
+                            </div>
+                        </li>
+                        <li>
+                            <button type="submit" data-theme="b">Save</button>
+                            <button type="button" onclick="history.back();">Cancel</button>
+                        </li>
+                    </ul>
+
+                </form>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+
+            var NotificationConfigurationPage = {
+                pluginUniqueId: "d6a93f1a-ebf4-42c0-8abe-a9a82db3c3a3"
+            };
+
+            $('.notificationConfigurationPage').on('pageshow', function (event) {
+
+                Dashboard.showLoadingMsg();
+
+                var page = this;
+
+                ApiClient.getPluginConfiguration(NotificationConfigurationPage.pluginUniqueId).done(function (config) {
+                    $('#chkEnableSMTP', page).checked(config.Notifications.SMTP.Enabled).checkboxradio("refresh");
+                    $('#txtEmailFrom', page).val(config.Notifications.SMTP.EmailFrom);
+                    $('#txtEmailTo', page).val(config.Notifications.SMTP.EmailTo);
+                    $('#txtServer', page).val(config.Notifications.SMTP.Server);
+                    $('#txtPort', page).val(config.Notifications.SMTP.Port);
+                    $('#chkEnableAuth', page).checked(config.Notifications.SMTP.useCredentials).checkboxradio("refresh");
+                    $('#txtUsername', page).val(config.Notifications.SMTP.Username);
+                    $('#txtPassword', page).val(config.Notifications.SMTP.Password);
+
+                    Dashboard.hideLoadingMsg();
+                });
+            });
+
+            $('.notificationConfigurationPage').on('submit', function (e) {
+
+                Dashboard.showLoadingMsg();
+
+                var form = this;
+
+                ApiClient.getPluginConfiguration(NotificationConfigurationPage.pluginUniqueId).done(function (config) {
+
+                    config.Notifications.SMTP.Enabled = $('#chkEnableSMTP', form).checked();
+                    config.Notifications.SMTP.EmailFrom = $('#txtEmailFrom', form).val();
+                    config.Notifications.SMTP.EmailTo = $('#txtEmailTo', form).val();
+                    config.Notifications.SMTP.Server = $('#txtServer', form).val();
+                    config.Notifications.SMTP.Port = $('#txtPort', form).val();
+                    config.Notifications.SMTP.useCredentials = $('#chkEnableAuth', form).checked();
+                    config.Notifications.SMTP.Username = $('#txtUsername', form).val();
+                    config.Notifications.SMTP.Password = $('#txtPassword', form).val();
+
+                    ApiClient.updatePluginConfiguration(NotificationConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
+                });
+
+                return false;
+            });
+        </script>
+    </div>
+</body>
+</html>

@@ -35,6 +35,9 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
                 // MB Server key (listed 3x because we have a 30k limit)
                 "x9wjnvv39ntjmt9zs95nm7bg",
 
+                // Donated by Cheesegeezer
+                "ag5v28yyk8mna32gujp7q6ze",
+
                 // Donated by Redshirt
                 "gecbjvjka5may65qmqrczk97"
             };
