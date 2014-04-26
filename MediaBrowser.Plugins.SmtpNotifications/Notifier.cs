@@ -1,5 +1,6 @@
 ﻿using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Notifications;
+using MediaBrowser.Model.Logging;
 using MediaBrowser.Plugins.SmtpNotifications.Configuration;
 using System;
 using System.Linq;
@@ -12,6 +13,13 @@ namespace MediaBrowser.Plugins.SmtpNotifications
 {
     public class Notifier : INotificationService
     {
+        private readonly ILogger _logger;
+
+        public Notifier(ILogManager logManager)
+        {
+            _logger = logManager.GetLogger(GetType().Name);
+        }
+
         public bool IsEnabledForUser(User user)
         {
             var options = GetOptions(user);
@@ -22,7 +30,7 @@ namespace MediaBrowser.Plugins.SmtpNotifications
         private SMTPOptions GetOptions(User user)
         {
             return Plugin.Instance.Configuration.Options
-                .FirstOrDefault(i => string.Equals(i.MediaBrowserUserId, user.Id.ToString(), StringComparison.OrdinalIgnoreCase));
+                .FirstOrDefault(i => string.Equals(i.MediaBrowserUserId, user.Id.ToString("N"), StringComparison.OrdinalIgnoreCase));
         }
 
         public string Name
@@ -47,6 +55,8 @@ namespace MediaBrowser.Plugins.SmtpNotifications
                 DeliveryMethod = SmtpDeliveryMethod.Network,
                 UseDefaultCredentials = false
             };
+
+            _logger.Debug("Emailing {0} with subject {1}", options.EmailTo, mail.Subject);
 
             if (options.UseCredentials)
                 client.Credentials = new NetworkCredential(options.Username, options.Password);
