@@ -1,6 +1,7 @@
 ﻿using System.Collections.Specialized;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Notifications;
+using MediaBrowser.Model.Logging;
 using MediaBrowser.Plugins.PushALotNotifications.Configuration;
 using System;
 using System.Linq;
@@ -12,17 +13,24 @@ namespace MediaBrowser.Plugins.PushALotNotifications
 {
     public class Notifier : INotificationService
     {
+        private readonly ILogger _logger;
+
+        public Notifier(ILogManager logManager)
+        {
+            _logger = logManager.GetLogger(GetType().Name);
+        }
+
         public bool IsEnabledForUser(User user)
         {
             var options = GetOptions(user);
 
-            return options != null && IsValid(options);
+            return options != null && IsValid(options) && options.Enabled;
         }
 
         private PushALotOptions GetOptions(User user)
         {
             return Plugin.Instance.Configuration.Options
-                .FirstOrDefault(i => string.Equals(i.MediaBrowserUserId, user.Id.ToString(), StringComparison.OrdinalIgnoreCase));
+                .FirstOrDefault(i => string.Equals(i.MediaBrowserUserId, user.Id.ToString("N"), StringComparison.OrdinalIgnoreCase));
         }
 
         public string Name
@@ -39,6 +47,8 @@ namespace MediaBrowser.Plugins.PushALotNotifications
                     {"AuthorizationToken", options.Token},
                     {"Body", request.Description}
                 };
+
+            _logger.Debug("PushAlot to {0}", options.Token);
 
             using (var client = new WebClient())
             {

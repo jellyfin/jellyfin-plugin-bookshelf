@@ -4,7 +4,7 @@ using System.IO;
 
 namespace MediaBrowser.Plugins.PushOverNotifications.Configuration
 {
-    class ConfigPage
+    class ConfigPage : IPluginConfigurationPage
     {
         /// <summary>
         /// Gets My Option.
@@ -30,7 +30,7 @@ namespace MediaBrowser.Plugins.PushOverNotifications.Configuration
         /// <value>The type of the configuration page.</value>
         public ConfigurationPageType ConfigurationPageType
         {
-            get { return ConfigurationPageType.None; }
+            get { return ConfigurationPageType.PluginConfiguration; }
         }
 
         public IPlugin Plugin
