@@ -45,6 +45,7 @@ namespace MediaBrowser.Plugins.PushALotNotifications
             var parameters = new NameValueCollection
                 {
                     {"AuthorizationToken", options.Token},
+                    {"Title", request.Name },
                     {"Body", request.Description}
                 };
 

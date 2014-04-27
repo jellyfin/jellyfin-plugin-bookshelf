@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using MediaBrowser.Model.Plugins;
 
 namespace MediaBrowser.Plugins.PushALotNotifications.Configuration
@@ -21,6 +22,7 @@ namespace MediaBrowser.Plugins.PushALotNotifications.Configuration
         public Boolean Enabled { get; set; }
         public String Token { get; set; }
 
+        public int Priority { get; set; }
         public string MediaBrowserUserId { get; set; }
     }
 }

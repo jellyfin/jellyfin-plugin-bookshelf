@@ -46,10 +46,11 @@ namespace MediaBrowser.Plugins.PushOverNotifications
                 {
                     {"token", options.Token},
                     {"user", options.UserKey},
-                    {"message", request.Description}
+                    {"title", request.Name },
+                    {"message", request.Description }
                 };
 
-            _logger.Debug("PushOver to Token : {0} - {1}", options.Token, options.UserKey);
+            _logger.Debug("PushOver to Token : {0} - {1} - {2}", options.Token, options.UserKey, request.Description);
 
             using (var client = new WebClient())
             {
