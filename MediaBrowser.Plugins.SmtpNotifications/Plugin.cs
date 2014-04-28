@@ -1,5 +1,8 @@
-﻿using MediaBrowser.Common.Configuration;
+﻿using System.Security.Cryptography;
+using System.Text;
+using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
+using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Plugins.SmtpNotifications.Configuration;
 
@@ -10,10 +13,13 @@ namespace MediaBrowser.Plugins.SmtpNotifications
     /// </summary>
     public class Plugin : BasePlugin<PluginConfiguration>
     {
-        public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer)
+        protected ILogger Logger { get; set; }
+
+        public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer, ILogManager logManager)
             : base(applicationPaths, xmlSerializer)
         {
             Instance = this;
+            Logger = logManager.GetLogger("SMTP Notifications");
         }
 
         /// <summary>
@@ -35,6 +41,28 @@ namespace MediaBrowser.Plugins.SmtpNotifications
             {
                 return "Sends notifications via email.";
             }
+        }
+
+        public override void UpdateConfiguration(Model.Plugins.BasePluginConfiguration configuration)
+        {
+            var config = (PluginConfiguration) configuration;
+
+            // Encrypt password for saving.  The Password field the config page sees will always be blank except when updated.
+            // The program actually uses the encrypted version
+            foreach (var optionSet in config.Options)
+            {
+                try
+                {
+                    optionSet.PwData = Encoding.Default.GetString(ProtectedData.Protect(Encoding.Default.GetBytes(optionSet.Password ?? ""), null, DataProtectionScope.LocalMachine));
+                    optionSet.Password = null;
+                }
+                catch (CryptographicException e)
+                {
+                    Logger.ErrorException("Error saving password", e);
+                }
+            }
+
+            base.UpdateConfiguration(configuration);
         }
 
         /// <summary>

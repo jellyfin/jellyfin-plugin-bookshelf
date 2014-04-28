@@ -1,4 +1,6 @@
-﻿using MediaBrowser.Controller.Entities;
+﻿using System.Security.Cryptography;
+using System.Text;
+using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Notifications;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Plugins.SmtpNotifications.Configuration;
@@ -59,7 +61,10 @@ namespace MediaBrowser.Plugins.SmtpNotifications
             _logger.Debug("Emailing {0} with subject {1}", options.EmailTo, mail.Subject);
 
             if (options.UseCredentials)
-                client.Credentials = new NetworkCredential(options.Username, options.Password);
+            {
+                var pw = Encoding.Default.GetString(ProtectedData.Unprotect(Encoding.Default.GetBytes(options.PwData), null, DataProtectionScope.LocalMachine));
+                client.Credentials = new NetworkCredential(options.Username, pw);
+            }
 
             return client.SendMailAsync(mail);
         }
