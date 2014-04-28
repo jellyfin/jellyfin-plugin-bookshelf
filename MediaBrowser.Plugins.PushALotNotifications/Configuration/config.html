@@ -1,7 +1,7 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-    <title>PushALot Notifications</title>
+    <title>Pushalot Notifications</title>
 </head>
 <body>
     <div data-role="page" class="page type-interior pluginConfigurationPage pushALotConfigurationPage">
@@ -9,10 +9,10 @@
         <div data-role="content">
             <div class="content-primary">
                 <form class="pushALotConfigurationForm">
-                    <p>To use PushALot register an application at <a href="https://pushalot.com/">pushalot.com</a></p>
+                    <p>To use Pushalot register an application at <a href="https://pushalot.com/">pushalot.com</a></p>
                     <ul class="ulForm" data-role="listview">
                         <li>
-                            <label for="selectUser">Configure PushAlot notifications for:</label>
+                            <label for="selectUser">Configure Pushalot notifications for:</label>
                             <select id="selectUser" data-mini="true"></select>
                         </li>
                         <li>
@@ -21,7 +21,7 @@
                         </li>
                         <li>
                             <label for="txtPushALotAuthKey">
-                                PushALot Auth Token:
+                                Pushalot Auth Token:
                             </label>
                             <input type="text" id="txtPushALotAuthKey" name="txtPushALotAuthKey" required="required" data-mini="true" />
                             <div class="fieldDescription">
@@ -50,14 +50,14 @@
 
                     ApiClient.getPluginConfiguration(pluginId).done(function (config) {
 
-                        var pushALotConfig = config.Options.filter(function (c) {
+                        var pushalotConfig = config.Options.filter(function (c) {
 
                             return userId == c.MediaBrowserUserId;
 
                         })[0] || {};
 
-                        $('#chkEnablePushALot', page).checked(pushALotConfig.Enabled || false).checkboxradio("refresh");
-                        $('#txtPushALotAuthKey', page).val(pushALotConfig.Token || '');
+                        $('#chkEnablePushALot', page).checked(pushalotConfig.Enabled || false).checkboxradio("refresh");
+                        $('#txtPushALotAuthKey', page).val(pushalotConfig.Token || '');
 
                         Dashboard.hideLoadingMsg();
                     });
@@ -101,21 +101,21 @@
 
                         var userId = $('#selectUser', form).val();
 
-                        var pushALotConfig = config.Options.filter(function (c) {
+                        var pushalotConfig = config.Options.filter(function (c) {
 
                             return userId == c.MediaBrowserUserId;
 
                         })[0];
 
-                        if (!pushOverConfig) {
-                            pushOverConfig = {};
-                            config.Options.push(pushOverConfig);
+                        if (!pushalotConfig) {
+                            pushalotConfig = {};
+                            config.Options.push(pushalotConfig);
                         }
 
-                        pushALotConfig.MediaBrowserUserId = userId;
+                        pushalotConfig.MediaBrowserUserId = userId;
 
-                        pushALotConfig.Enabled = $('#chkEnablePushALot', form).checked();
-                        pushALotConfig.Token = $('#txtPushALotAuthKey', form).val();
+                        pushalotConfig.Enabled = $('#chkEnablePushALot', form).checked();
+                        pushalotConfig.Token = $('#txtPushALotAuthKey', form).val();
 
                         ApiClient.updatePluginConfiguration(pluginId, config).done(Dashboard.processPluginConfigurationUpdateResult);
                     });

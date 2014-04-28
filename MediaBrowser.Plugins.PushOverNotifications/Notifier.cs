@@ -46,9 +46,22 @@ namespace MediaBrowser.Plugins.PushOverNotifications
                 {
                     {"token", options.Token},
                     {"user", options.UserKey},
-                    {"title", request.Name },
-                    {"message", request.Description }
                 };
+
+            if (!string.IsNullOrEmpty(options.DeviceName))
+            {
+                parameters.Add("device", options.DeviceName);
+            }
+
+            if (string.IsNullOrEmpty(request.Description))
+            {
+                parameters.Add("message", request.Name);
+            }
+            else
+            {
+                parameters.Add("title", request.Name);
+                parameters.Add("message", request.Description);
+            }
 
             _logger.Debug("PushOver to Token : {0} - {1} - {2}", options.Token, options.UserKey, request.Description);
 

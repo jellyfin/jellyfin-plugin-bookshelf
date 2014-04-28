@@ -22,7 +22,7 @@ namespace MediaBrowser.Plugins.PushOverNotifications
         /// <value>The name.</value>
         public override string Name
         {
-            get { return "PushOver Notifications"; }
+            get { return "Pushover Notifications"; }
         }
 
         /// <summary>
@@ -33,7 +33,7 @@ namespace MediaBrowser.Plugins.PushOverNotifications
         {
             get
             {
-                return "Sends notifications via PushOver Service.";
+                return "Sends notifications via Pushover Service.";
             }
         }
 

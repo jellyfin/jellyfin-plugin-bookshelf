@@ -22,7 +22,7 @@ namespace MediaBrowser.Plugins.PushALotNotifications
         /// <value>The name.</value>
         public override string Name
         {
-            get { return "PushALot Notifications"; }
+            get { return "Pushalot Notifications"; }
         }
 
         /// <summary>
@@ -33,7 +33,7 @@ namespace MediaBrowser.Plugins.PushALotNotifications
         {
             get
             {
-                return "Sends notifications via PushALot Service.";
+                return "Sends notifications via Pushalot Service.";
             }
         }
 

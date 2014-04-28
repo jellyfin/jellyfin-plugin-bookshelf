@@ -49,6 +49,17 @@ namespace MediaBrowser.Plugins.PushALotNotifications
                     {"Body", request.Description}
                 };
 
+            if (string.IsNullOrEmpty(request.Description))
+            {
+                parameters.Add("Body", request.Name);
+            }
+            else
+            {
+                parameters.Add("Title", request.Name);
+                parameters.Add("Body", request.Description);
+            }
+
+
             _logger.Debug("PushAlot to {0}", options.Token);
 
             using (var client = new WebClient())
