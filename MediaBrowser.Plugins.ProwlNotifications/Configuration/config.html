@@ -1,29 +1,29 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-    <title>Pushalot Notifications</title>
+    <title>Prowl Notifications</title>
 </head>
 <body>
-    <div data-role="page" class="page type-interior pluginConfigurationPage pushALotConfigurationPage">
+    <div data-role="page" class="page type-interior pluginConfigurationPage prowlConfigurationPage">
 
         <div data-role="content">
             <div class="content-primary">
-                <form class="pushALotConfigurationForm">
-                    <p>To use Pushalot register an application at <a href="https://pushalot.com/">pushalot.com</a></p>
+                <form class="prowlConfigurationForm">
+                    <p>To use Prowl register an application at <a href="https://www.prowlapp.com/">prowlapp.com</a></p>
                     <ul class="ulForm" data-role="listview">
                         <li>
-                            <label for="selectUser">Configure Pushalot notifications for:</label>
+                            <label for="selectUser">Configure Prowl notifications for:</label>
                             <select id="selectUser" data-mini="true"></select>
                         </li>
                         <li>
-                            <label for="chkEnablePushALot">Enabled</label>
-                            <input type="checkbox" id="chkEnablePushALot" data-mini="true" />
+                            <label for="chkEnableProwl">Enabled</label>
+                            <input type="checkbox" id="chkEnableProwl" data-mini="true" />
                         </li>
                         <li>
-                            <label for="txtPushALotAuthKey">
-                                Pushalot Auth Token:
+                            <label for="txtProwlAuthKey">
+                                Prowl Auth Token:
                             </label>
-                            <input type="text" id="txtPushALotAuthKey" name="txtPushALotAuthKey" required="required" data-mini="true" />
+                            <input type="text" id="txtProwlAuthKey" name="txtProwlAuthKey" required="required" data-mini="true" />
                             <div class="fieldDescription">
                                 Auth key for your application
                             </div>
@@ -38,26 +38,26 @@
                 </form>
             </div>
         </div>
-        
+
         <script type="text/javascript">
 
             (function () {
 
-                var pluginId = "6153FDF0-40CC-4457-8730-3B4A19512BAE";
+                var pluginId = "577f89eb-58a7-4013-be06-9a970ddb1377";
 
-                $('#testNotification').on('click', function(event) {
+                $('#testNotification').on('click', function (event) {
 
                     Dashboard.showLoadingMsg();
 
-                    ApiClient.getPluginConfiguration(pluginId).done(function(config) {
+                    ApiClient.getPluginConfiguration(pluginId).done(function (config) {
 
-                        config.Options.filter(function(c) {
+                        config.Options.filter(function (c) {
 
                             $.ajax({
                                 type: "POST",
-                                url: ApiClient.getUrl("Notification/Pushalot/Test/" + c.MediaBrowserUserId)
+                                url: ApiClient.getUrl("Notification/Prowl/Test/" + c.MediaBrowserUserId)
 
-                            }).done(function() {
+                            }).done(function () {
                                 Dashboard.hideLoadingMsg();
                             });
                         });
@@ -68,22 +68,22 @@
 
                     Dashboard.showLoadingMsg();
 
-                    ApiClient.getPluginConfiguration(pluginId).done(function(config) {
+                    ApiClient.getPluginConfiguration(pluginId).done(function (config) {
 
-                        var pushalotConfig = config.Options.filter(function(c) {
+                        var prowlConfig = config.Options.filter(function (c) {
 
                             return userId == c.MediaBrowserUserId;
 
                         })[0] || {};
 
-                        $('#chkEnablePushALot', page).checked(pushalotConfig.Enabled || false).checkboxradio("refresh");
-                        $('#txtPushALotAuthKey', page).val(pushalotConfig.Token || '');
+                        $('#chkEnableProwl', page).checked(prowlConfig.Enabled || false).checkboxradio("refresh");
+                        $('#txtProwlAuthKey', page).val(prowlConfig.Token || '');
 
                         Dashboard.hideLoadingMsg();
                     });
                 }
 
-                $('.pushALotConfigurationPage').on('pageinit', function (event) {
+                $('.prowlConfigurationPage').on('pageinit', function (event) {
 
                     var page = this;
 
@@ -111,7 +111,7 @@
                     Dashboard.hideLoadingMsg();
                 });
 
-                $('.pushALotConfigurationForm').on('submit', function (e) {
+                $('.prowlConfigurationForm').on('submit', function (e) {
 
                     Dashboard.showLoadingMsg();
 
@@ -121,21 +121,21 @@
 
                         var userId = $('#selectUser', form).val();
 
-                        var pushalotConfig = config.Options.filter(function (c) {
+                        var prowlConfig = config.Options.filter(function (c) {
 
                             return userId == c.MediaBrowserUserId;
 
                         })[0];
 
-                        if (!pushalotConfig) {
-                            pushalotConfig = {};
-                            config.Options.push(pushalotConfig);
+                        if (!prowlConfig) {
+                            prowlConfig = {};
+                            config.Options.push(prowlConfig);
                         }
 
-                        pushalotConfig.MediaBrowserUserId = userId;
+                        prowlConfig.MediaBrowserUserId = userId;
 
-                        pushalotConfig.Enabled = $('#chkEnablePushALot', form).checked();
-                        pushalotConfig.Token = $('#txtPushALotAuthKey', form).val();
+                        prowlConfig.Enabled = $('#chkEnableProwl', form).checked();
+                        prowlConfig.Token = $('#txtProwlAuthKey', form).val();
 
                         ApiClient.updatePluginConfiguration(pluginId, config).done(Dashboard.processPluginConfigurationUpdateResult);
                     });
@@ -146,7 +146,7 @@
             })();
 
         </script>
-        
+
 
     </div>
 </body>

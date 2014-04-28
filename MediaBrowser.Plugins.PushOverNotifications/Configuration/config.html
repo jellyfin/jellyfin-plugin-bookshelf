@@ -46,6 +46,7 @@
                                 Device Name for application
                             </div>
                         </li>
+                        <li><button type="button" id="testNotification" data-mini="true">Test Notification</button></li>
                         <li>
                             <button type="submit" data-theme="b" data-mini="true">Save</button>
                             <button type="button" onclick="history.back();" data-mini="true">Cancel</button>
@@ -61,6 +62,25 @@
             (function () {
 
                 var pluginId = "6C3B6965-C257-47C2-AA02-64457AE21D91";
+
+                $('#testNotification').on('click', function (event) {
+
+                    Dashboard.showLoadingMsg();
+
+                    ApiClient.getPluginConfiguration(pluginId).done(function (config) {
+
+                        config.Options.filter(function (c) {
+
+                            $.ajax({
+                                type: "POST",
+                                url: ApiClient.getUrl("Notification/Pushover/Test/" + c.MediaBrowserUserId)
+
+                            }).done(function () {
+                                Dashboard.hideLoadingMsg();
+                            });
+                        });
+                    });
+                });
 
                 function loadUserConfig(page, userId) {
 

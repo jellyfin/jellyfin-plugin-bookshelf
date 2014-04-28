@@ -1,10 +1,9 @@
 ﻿using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Serialization;
-using MediaBrowser.Plugins.PushALotNotifications.Api;
-using MediaBrowser.Plugins.PushALotNotifications.Configuration;
+using MediaBrowser.Plugins.ProwlNotifications.Configuration;
 
-namespace MediaBrowser.Plugins.PushALotNotifications
+namespace MediaBrowser.Plugins.ProwlNotifications
 {
     /// <summary>
     /// Class Plugin
@@ -23,7 +22,7 @@ namespace MediaBrowser.Plugins.PushALotNotifications
         /// <value>The name.</value>
         public override string Name
         {
-            get { return "Pushalot Notifications"; }
+            get { return "Prowl Notifications"; }
         }
 
         /// <summary>
@@ -34,7 +33,7 @@ namespace MediaBrowser.Plugins.PushALotNotifications
         {
             get
             {
-                return "Sends notifications via Pushalot Service.";
+                return "Sends notifications via Prowl Service.";
             }
         }
 
