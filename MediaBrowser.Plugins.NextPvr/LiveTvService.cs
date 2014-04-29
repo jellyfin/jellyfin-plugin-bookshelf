@@ -794,6 +794,7 @@ namespace MediaBrowser.Plugins.NextPvr
             await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
             var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
 
+            //Version Check
             var options = new HttpRequestOptions()
             {
                 CancellationToken = cancellationToken,
@@ -811,10 +812,27 @@ namespace MediaBrowser.Plugins.NextPvr
                 serverVersion = versionCheckResponse.ServerVersion();
             }
 
+
+            //Tuner information
+            var optionsTuner = new HttpRequestOptions()
+            {
+                CancellationToken = cancellationToken,
+                Url = string.Format("{0}/public/Util/Tuner/Stat?sid={1}", baseUrl, Sid)
+            };
+
+            List<LiveTvTunerInfo> tvTunerInfos;
+            using (var stream = await _httpClient.Get(optionsTuner).ConfigureAwait(false))
+            {
+                var tuners = new TunerResponse(stream, _jsonSerializer);
+
+                tvTunerInfos = tuners.LiveTvTunerInfos();
+            }
+            
             return new LiveTvServiceStatusInfo
             {
                  HasUpdateAvailable = upgradeAvailable,
-                 Version = serverVersion                
+                 Version = serverVersion,
+                 Tuners = tvTunerInfos
             };
         }
 
