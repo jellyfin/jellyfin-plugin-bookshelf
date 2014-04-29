@@ -8,7 +8,7 @@ using ServiceStack;
 
 namespace MediaBrowser.Plugins.PushOverNotifications.Api
 {
-    [Route("/Notification/Pushover/Test/{UserID}", "POST", Summary = "Tests Pushalot")]
+    [Route("/Notification/Pushover/Test/{UserID}", "POST", Summary = "Tests Pushover")]
     public class TestNotification : IReturnVoid
     {
         [ApiMember(Name = "UserID", Description = "User Id", IsRequired = true, DataType = "string", ParameterType = "path", Verb = "GET")]

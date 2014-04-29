@@ -10,7 +10,7 @@ using ServiceStack;
 
 namespace MediaBrowser.Plugins.ProwlNotifications.Api
 {
-    [Route("/Notification/Prowl/Test/{UserID}", "POST", Summary = "Tests Pushalot")]
+    [Route("/Notification/Prowl/Test/{UserID}", "POST", Summary = "Tests Prowl")]
     public class TestNotification : IReturnVoid
     {
         [ApiMember(Name = "UserID", Description = "User Id", IsRequired = true, DataType = "string", ParameterType = "path", Verb = "GET")]

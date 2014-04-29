@@ -45,6 +45,7 @@ namespace MediaBrowser.Plugins.ProwlNotifications
             var parameters = new NameValueCollection
             {
                 {"apikey", options.Token},
+                {"application", "Media Browser"}
             };
 
             if (string.IsNullOrEmpty(request.Description))
@@ -53,11 +54,12 @@ namespace MediaBrowser.Plugins.ProwlNotifications
             }
             else
             {
+                parameters.Add("event", request.Name);
                 parameters.Add("description", request.Description);
             }
 
 
-            _logger.Debug("Prowl to {0}", options.Token);
+            _logger.Debug("Prowl to {0} - {1} - {2}", options.Token, request.Name, request.Description);
 
             using (var client = new WebClient())
             {

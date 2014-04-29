@@ -41,6 +41,9 @@
     <Reference Include="MediaBrowser.Model">
       <HintPath>..\packages\MediaBrowser.Common.3.0.353\lib\net45\MediaBrowser.Model.dll</HintPath>
     </Reference>
+    <Reference Include="ServiceStack.Interfaces">
+      <HintPath>..\packages\ServiceStack.Interfaces.4.0.18\lib\net40\ServiceStack.Interfaces.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Security" />
@@ -54,6 +57,7 @@
     <Compile Include="..\SharedVersion.cs">
       <Link>Properties\SharedVersion.cs</Link>
     </Compile>
+    <Compile Include="Api\ServerApiEntryPoints.cs" />
     <Compile Include="Configuration\ConfigPage.cs" />
     <Compile Include="Configuration\PluginConfiguration.cs" />
     <Compile Include="Notifier.cs" />
