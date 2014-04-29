@@ -33,7 +33,8 @@ namespace MediaBrowser.Plugins.ProwlNotifications.Api
             {
                 {"apikey", options.Token},
                 {"event", "Test Notification"},
-                {"description", "This is a test notification from MediaBrowser"}
+                {"description", "This is a test notification from MediaBrowser"},
+                {"application", "Media Browser"}
             };
 
             using (var client = new WebClient())
