@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
+VisualStudioVersion = 12.0.30110.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.Trailers", "MediaBrowser.Plugins.Trailers\MediaBrowser.Plugins.Trailers.csproj", "{2F4C01E2-7C9F-4F08-922E-27AC4A1D53FF}"
 EndProject
@@ -29,6 +29,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.PushOverNotifications", "MediaBrowser.Plugins.PushOverNotifications\MediaBrowser.Plugins.PushOverNotifications.csproj", "{342C0A77-6E9F-4C38-898D-03A0312FD643}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.ProwlNotifications", "MediaBrowser.Plugins.ProwlNotifications\MediaBrowser.Plugins.ProwlNotifications.csproj", "{C16AF6E3-5032-4D2C-8756-85BF42F1C8D0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.NotifyMyAndroidNotifications", "MediaBrowser.Plugins.NotifyMyAndroidNotifications\MediaBrowser.Plugins.NotifyMyAndroidNotifications.csproj", "{FFA5128A-BEA6-4FFA-9E0B-9E706AC8A544}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -104,6 +106,12 @@ Global
 		{C16AF6E3-5032-4D2C-8756-85BF42F1C8D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C16AF6E3-5032-4D2C-8756-85BF42F1C8D0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C16AF6E3-5032-4D2C-8756-85BF42F1C8D0}.Release|x86.ActiveCfg = Release|Any CPU
+		{FFA5128A-BEA6-4FFA-9E0B-9E706AC8A544}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FFA5128A-BEA6-4FFA-9E0B-9E706AC8A544}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FFA5128A-BEA6-4FFA-9E0B-9E706AC8A544}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{FFA5128A-BEA6-4FFA-9E0B-9E706AC8A544}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FFA5128A-BEA6-4FFA-9E0B-9E706AC8A544}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FFA5128A-BEA6-4FFA-9E0B-9E706AC8A544}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

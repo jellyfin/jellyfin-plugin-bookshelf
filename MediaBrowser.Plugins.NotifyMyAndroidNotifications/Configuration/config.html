@@ -1,0 +1,153 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Notify My Android Notifications</title>
+</head>
+<body>
+    <div data-role="page" class="page type-interior pluginConfigurationPage prowlConfigurationPage">
+
+        <div data-role="content">
+            <div class="content-primary">
+                <form class="prowlConfigurationForm">
+                    <p>To use Notify My Android register an application at <a href="http://www.notifymyandroid.com/">notifymyandroid.com</a></p>
+                    <ul class="ulForm" data-role="listview">
+                        <li>
+                            <label for="selectUser">Configure Notify My Android notifications for:</label>
+                            <select id="selectUser" data-mini="true"></select>
+                        </li>
+                        <li>
+                            <label for="chkEnableProwl">Enabled</label>
+                            <input type="checkbox" id="chkEnableProwl" data-mini="true" />
+                        </li>
+                        <li>
+                            <label for="txtProwlAuthKey">
+                                Notify My Android Auth Token:
+                            </label>
+                            <input type="text" id="txtProwlAuthKey" name="txtProwlAuthKey" required="required" data-mini="true" />
+                            <div class="fieldDescription">
+                                Auth key for your application
+                            </div>
+                        </li>
+                        <li><button type="button" id="testNotification" data-mini="true">Test Notification</button></li>
+                        <li>
+                            <button type="submit" data-theme="b" data-mini="true">Save</button>
+                            <button type="button" onclick="history.back();" data-mini="true">Cancel</button>
+                        </li>
+                    </ul>
+
+                </form>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+
+            (function () {
+
+                var pluginId = "66fd72a4-7e8e-4f22-8d1c-022ce4b9b0d5";
+
+                $('#testNotification').on('click', function (event) {
+
+                    Dashboard.showLoadingMsg();
+
+                    ApiClient.getPluginConfiguration(pluginId).done(function (config) {
+
+                        config.Options.filter(function (c) {
+
+                            $.ajax({
+                                type: "POST",
+                                url: ApiClient.getUrl("Notification/NotifyMyAndroid/Test/" + c.MediaBrowserUserId)
+
+                            }).done(function () {
+                                Dashboard.hideLoadingMsg();
+                            });
+                        });
+                    });
+                });
+
+                function loadUserConfig(page, userId) {
+
+                    Dashboard.showLoadingMsg();
+
+                    ApiClient.getPluginConfiguration(pluginId).done(function (config) {
+
+                        var prowlConfig = config.Options.filter(function (c) {
+
+                            return userId == c.MediaBrowserUserId;
+
+                        })[0] || {};
+
+                        $('#chkEnableProwl', page).checked(prowlConfig.Enabled || false).checkboxradio("refresh");
+                        $('#txtProwlAuthKey', page).val(prowlConfig.Token || '');
+
+                        Dashboard.hideLoadingMsg();
+                    });
+                }
+
+                $('.prowlConfigurationPage').on('pageinit', function (event) {
+
+                    var page = this;
+
+                    $('#selectUser', page).on('change', function () {
+
+                        loadUserConfig(page, this.value);
+                    });
+
+                }).on('pageshow', function (event) {
+
+                    Dashboard.showLoadingMsg();
+
+                    var page = this;
+
+                    ApiClient.getUsers().done(function (users) {
+
+                        $('#selectUser', page).html(users.map(function (user) {
+
+                            return '<option value="' + user.Id + '">' + user.Name + '</option>';
+
+                        })).selectmenu('refresh').trigger('change');
+
+                    });
+
+                    Dashboard.hideLoadingMsg();
+                });
+
+                $('.prowlConfigurationForm').on('submit', function (e) {
+
+                    Dashboard.showLoadingMsg();
+
+                    var form = this;
+
+                    ApiClient.getPluginConfiguration(pluginId).done(function (config) {
+
+                        var userId = $('#selectUser', form).val();
+
+                        var prowlConfig = config.Options.filter(function (c) {
+
+                            return userId == c.MediaBrowserUserId;
+
+                        })[0];
+
+                        if (!prowlConfig) {
+                            prowlConfig = {};
+                            config.Options.push(prowlConfig);
+                        }
+
+                        prowlConfig.MediaBrowserUserId = userId;
+
+                        prowlConfig.Enabled = $('#chkEnableProwl', form).checked();
+                        prowlConfig.Token = $('#txtProwlAuthKey', form).val();
+
+                        ApiClient.updatePluginConfiguration(pluginId, config).done(Dashboard.processPluginConfigurationUpdateResult);
+                    });
+
+                    return false;
+                });
+
+            })();
+
+        </script>
+
+
+    </div>
+</body>
+</html>
