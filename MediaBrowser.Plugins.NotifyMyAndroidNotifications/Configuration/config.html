@@ -4,11 +4,11 @@
     <title>Notify My Android Notifications</title>
 </head>
 <body>
-    <div data-role="page" class="page type-interior pluginConfigurationPage prowlConfigurationPage">
+    <div data-role="page" class="page type-interior pluginConfigurationPage nmaConfigurationPage">
 
         <div data-role="content">
             <div class="content-primary">
-                <form class="prowlConfigurationForm">
+                <form class="nmaConfigurationForm">
                     <p>To use Notify My Android register an application at <a href="http://www.notifymyandroid.com/">notifymyandroid.com</a></p>
                     <ul class="ulForm" data-role="listview">
                         <li>
@@ -16,14 +16,14 @@
                             <select id="selectUser" data-mini="true"></select>
                         </li>
                         <li>
-                            <label for="chkEnableProwl">Enabled</label>
-                            <input type="checkbox" id="chkEnableProwl" data-mini="true" />
+                            <label for="chkEnablenma">Enabled</label>
+                            <input type="checkbox" id="chkEnablenma" data-mini="true" />
                         </li>
                         <li>
-                            <label for="txtProwlAuthKey">
+                            <label for="txtnmaAuthKey">
                                 Notify My Android Auth Token:
                             </label>
-                            <input type="text" id="txtProwlAuthKey" name="txtProwlAuthKey" required="required" data-mini="true" />
+                            <input type="text" id="txtnmaAuthKey" name="txtnmaAuthKey" required="required" data-mini="true" />
                             <div class="fieldDescription">
                                 Auth key for your application
                             </div>
@@ -70,20 +70,20 @@
 
                     ApiClient.getPluginConfiguration(pluginId).done(function (config) {
 
-                        var prowlConfig = config.Options.filter(function (c) {
+                        var nmaConfig = config.Options.filter(function (c) {
 
                             return userId == c.MediaBrowserUserId;
 
                         })[0] || {};
 
-                        $('#chkEnableProwl', page).checked(prowlConfig.Enabled || false).checkboxradio("refresh");
-                        $('#txtProwlAuthKey', page).val(prowlConfig.Token || '');
+                        $('#chkEnablenma', page).checked(nmaConfig.Enabled || false).checkboxradio("refresh");
+                        $('#txtnmaAuthKey', page).val(nmaConfig.Token || '');
 
                         Dashboard.hideLoadingMsg();
                     });
                 }
 
-                $('.prowlConfigurationPage').on('pageinit', function (event) {
+                $('.nmaowlConfigurationPage').on('pageinit', function (event) {
 
                     var page = this;
 
@@ -111,7 +111,7 @@
                     Dashboard.hideLoadingMsg();
                 });
 
-                $('.prowlConfigurationForm').on('submit', function (e) {
+                $('.nmaConfigurationForm').on('submit', function (e) {
 
                     Dashboard.showLoadingMsg();
 
@@ -121,21 +121,21 @@
 
                         var userId = $('#selectUser', form).val();
 
-                        var prowlConfig = config.Options.filter(function (c) {
+                        var nmaConfig = config.Options.filter(function (c) {
 
                             return userId == c.MediaBrowserUserId;
 
                         })[0];
 
-                        if (!prowlConfig) {
-                            prowlConfig = {};
-                            config.Options.push(prowlConfig);
+                        if (!nmaConfig) {
+                            nmaConfig = {};
+                            config.Options.push(nmaConfig);
                         }
 
-                        prowlConfig.MediaBrowserUserId = userId;
+                        nmaConfig.MediaBrowserUserId = userId;
 
-                        prowlConfig.Enabled = $('#chkEnableProwl', form).checked();
-                        prowlConfig.Token = $('#txtProwlAuthKey', form).val();
+                        nmaConfig.Enabled = $('#chkEnablenma', form).checked();
+                        nmaConfig.Token = $('#txtnmaAuthKey', form).val();
 
                         ApiClient.updatePluginConfiguration(pluginId, config).done(Dashboard.processPluginConfigurationUpdateResult);
                     });
