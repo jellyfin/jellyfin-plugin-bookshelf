@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Collections.Specialized;
+using System.Collections.Generic;
 using System.Linq;
-using System.Net;
+using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Net;
 using MediaBrowser.Model.Logging;
 using ServiceStack;
@@ -18,6 +18,15 @@ namespace MediaBrowser.Plugins.PushALotNotifications.Api
 
     class ServerApiEndpoints : IRestfulService
     {
+        private readonly IHttpClient _httpClient;
+        private readonly ILogger _logger;
+
+        public ServerApiEndpoints(ILogManager logManager, IHttpClient httpClient)
+        {
+            _logger = logManager.GetLogger(GetType().Name);
+            _httpClient = httpClient;
+        }
+
         private PushALotOptions GetOptions(String userID)
         {
             return Plugin.Instance.Configuration.Options
@@ -28,17 +37,16 @@ namespace MediaBrowser.Plugins.PushALotNotifications.Api
         {
             var options = GetOptions(request.UserID);
 
-            var parameters = new NameValueCollection
+            var parameters = new Dictionary<string, string>
             {
                 {"AuthorizationToken", options.Token},
                 {"Title", "Test Notification" },
                 {"Body", "This is a test notification from MediaBrowser"}
             };
 
-            using (var client = new WebClient())
-            {
-                return client.UploadValuesTaskAsync("https://pushalot.com/api/sendmessage", parameters);
-            }
+            _logger.Debug("PushAlot <TEST> to {0}", options.Token);
+
+            return _httpClient.Post(new HttpRequestOptions { Url = "https://pushalot.com/api/sendmessage" }, parameters);
         }
     }
 }

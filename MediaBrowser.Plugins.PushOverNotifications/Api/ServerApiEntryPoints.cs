@@ -1,8 +1,9 @@
 ﻿using System;
-using System.Collections.Specialized;
+using System.Collections.Generic;
 using System.Linq;
-using System.Net;
+using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Net;
+using MediaBrowser.Model.Logging;
 using MediaBrowser.Plugins.PushOverNotifications.Configuration;
 using ServiceStack;
 
@@ -17,6 +18,14 @@ namespace MediaBrowser.Plugins.PushOverNotifications.Api
 
     class ServerApiEndpoints : IRestfulService
     {
+        private readonly IHttpClient _httpClient;
+        private readonly ILogger _logger;
+
+        public ServerApiEndpoints(ILogManager logManager, IHttpClient httpClient)
+        {
+            _logger = logManager.GetLogger(GetType().Name);
+            _httpClient = httpClient;
+        }
         private PushOverOptions GetOptions(String userID)
         {
             return Plugin.Instance.Configuration.Options
@@ -27,7 +36,7 @@ namespace MediaBrowser.Plugins.PushOverNotifications.Api
         {
             var options = GetOptions(request.UserID);
 
-            var parameters = new NameValueCollection
+            var parameters = new Dictionary<string, string>
             {
                 {"token", options.Token},
                 {"user", options.UserKey},
@@ -35,10 +44,9 @@ namespace MediaBrowser.Plugins.PushOverNotifications.Api
                 {"message", "This is a test notification from MediaBrowser"}
             };
 
-            using (var client = new WebClient())
-            {
-                return client.UploadValuesTaskAsync("https://api.pushover.net/1/messages.json", parameters);
-            }
+            _logger.Debug("Pushover <TEST> to {0} - {1}", options.Token, options.UserKey);
+
+            return _httpClient.Post(new HttpRequestOptions { Url = "https://api.pushover.net/1/messages.json" }, parameters);
         }
     }
 }

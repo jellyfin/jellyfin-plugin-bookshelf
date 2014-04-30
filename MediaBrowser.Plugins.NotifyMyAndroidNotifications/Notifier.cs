@@ -1,11 +1,11 @@
-﻿using System.Collections.Specialized;
+﻿using System.Collections.Generic;
+using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Notifications;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Plugins.NotifyMyAndroidNotifications.Configuration;
 using System;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,10 +14,12 @@ namespace MediaBrowser.Plugins.NotifyMyAndroidNotifications
     public class Notifier : INotificationService
     {
         private readonly ILogger _logger;
+        private readonly IHttpClient _httpClient;
 
-        public Notifier(ILogManager logManager)
+        public Notifier(ILogManager logManager, IHttpClient httpClient)
         {
             _logger = logManager.GetLogger(GetType().Name);
+            _httpClient = httpClient;
         }
 
         public bool IsEnabledForUser(User user)
@@ -42,7 +44,7 @@ namespace MediaBrowser.Plugins.NotifyMyAndroidNotifications
         {
             var options = GetOptions(request.User);
 
-            var parameters = new NameValueCollection
+            var parameters = new Dictionary<string, string>
             {
                 {"apikey", options.Token},
                 {"application", "Media Browser"}
@@ -61,10 +63,7 @@ namespace MediaBrowser.Plugins.NotifyMyAndroidNotifications
 
             _logger.Debug("NotifyMyAndroid to {0} - {1} - {2}", options.Token, request.Name, request.Description);
 
-            using (var client = new WebClient())
-            {
-                return client.UploadValuesTaskAsync("https://www.notifymyandroid.com/publicapi/notify", parameters);
-            }
+            return _httpClient.Post("https://www.notifymyandroid.com/publicapi/notify", parameters, cancellationToken);
         }
 
         private bool IsValid(NotifyMyAndroidOptions options)

@@ -1,11 +1,11 @@
-﻿using System.Collections.Specialized;
+﻿using System.Collections.Generic;
+using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Notifications;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Plugins.PushOverNotifications.Configuration;
 using System;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,10 +14,12 @@ namespace MediaBrowser.Plugins.PushOverNotifications
     public class Notifier : INotificationService
     {
         private readonly ILogger _logger;
+        private readonly IHttpClient _httpClient;
 
-        public Notifier(ILogManager logManager)
+        public Notifier(ILogManager logManager, IHttpClient httpClient)
         {
             _logger = logManager.GetLogger(GetType().Name);
+            _httpClient = httpClient;
         }
 
         public bool IsEnabledForUser(User user)
@@ -42,21 +44,17 @@ namespace MediaBrowser.Plugins.PushOverNotifications
         {
             var options = GetOptions(request.User);
 
-            var parameters = new NameValueCollection
+            var parameters = new Dictionary<string, string>
                 {
                     {"token", options.Token},
                     {"user", options.UserKey},
                 };
 
             if (!string.IsNullOrEmpty(options.DeviceName))
-            {
                 parameters.Add("device", options.DeviceName);
-            }
 
             if (string.IsNullOrEmpty(request.Description))
-            {
                 parameters.Add("message", request.Name);
-            }
             else
             {
                 parameters.Add("title", request.Name);
@@ -65,10 +63,7 @@ namespace MediaBrowser.Plugins.PushOverNotifications
 
             _logger.Debug("PushOver to Token : {0} - {1} - {2}", options.Token, options.UserKey, request.Description);
 
-            using (var client = new WebClient())
-            {
-                return client.UploadValuesTaskAsync("https://api.pushover.net/1/messages.json", parameters);
-            }
+            return _httpClient.Post("https://api.pushover.net/1/messages.json", parameters, cancellationToken);
         }
 
         private bool IsValid(PushOverOptions options)

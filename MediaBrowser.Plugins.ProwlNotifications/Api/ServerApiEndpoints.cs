@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Collections.Specialized;
+using System.Collections.Generic;
 using System.Linq;
-using System.Net;
+using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Net;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Plugins.ProwlNotifications.Configuration;
@@ -19,6 +19,15 @@ namespace MediaBrowser.Plugins.ProwlNotifications.Api
 
     class ServerApiEndpoints : IRestfulService
     {
+        private readonly IHttpClient _httpClient;
+        private readonly ILogger _logger;
+
+        public ServerApiEndpoints(ILogManager logManager, IHttpClient httpClient)
+        {
+            _logger = logManager.GetLogger(GetType().Name);
+            _httpClient = httpClient;
+        }
+
         private ProwlOptions GetOptions(String userID)
         {
             return Plugin.Instance.Configuration.Options
@@ -29,7 +38,7 @@ namespace MediaBrowser.Plugins.ProwlNotifications.Api
         {
             var options = GetOptions(request.UserID);
 
-            var parameters = new NameValueCollection
+            var parameters = new Dictionary<string, string>
             {
                 {"apikey", options.Token},
                 {"event", "Test Notification"},
@@ -37,10 +46,9 @@ namespace MediaBrowser.Plugins.ProwlNotifications.Api
                 {"application", "Media Browser"}
             };
 
-            using (var client = new WebClient())
-            {
-                return client.UploadValuesTaskAsync("https://api.prowlapp.com/publicapi/add", parameters);
-            }
+            _logger.Debug("Prowl <TEST> to {0}", options.Token);
+
+            return _httpClient.Post(new HttpRequestOptions { Url = "https://api.prowlapp.com/publicapi/add" }, parameters);
         }
     }
 }

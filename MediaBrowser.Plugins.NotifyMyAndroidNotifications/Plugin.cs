@@ -22,7 +22,7 @@ namespace MediaBrowser.Plugins.NotifyMyAndroidNotifications
         /// <value>The name.</value>
         public override string Name
         {
-            get { return "Prowl Notifications"; }
+            get { return "Notify My Android Notifications"; }
         }
 
         /// <summary>
@@ -33,7 +33,7 @@ namespace MediaBrowser.Plugins.NotifyMyAndroidNotifications
         {
             get
             {
-                return "Sends notifications via Prowl Service.";
+                return "Sends notifications via Notify My Android Service.";
             }
         }
 

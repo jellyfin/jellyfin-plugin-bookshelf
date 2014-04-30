@@ -1,11 +1,11 @@
-﻿using System.Collections.Specialized;
+﻿using System.Collections.Generic;
+using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Notifications;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Plugins.PushALotNotifications.Configuration;
 using System;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,10 +14,12 @@ namespace MediaBrowser.Plugins.PushALotNotifications
     public class Notifier : INotificationService
     {
         private readonly ILogger _logger;
+        private readonly IHttpClient _httpClient;
 
-        public Notifier(ILogManager logManager)
+        public Notifier(ILogManager logManager, IHttpClient httpClient)
         {
             _logger = logManager.GetLogger(GetType().Name);
+            _httpClient = httpClient;
         }
 
         public bool IsEnabledForUser(User user)
@@ -42,7 +44,7 @@ namespace MediaBrowser.Plugins.PushALotNotifications
         {
             var options = GetOptions(request.User);
 
-            var parameters = new NameValueCollection
+            var parameters = new Dictionary<string, string>
                 {
                     {"AuthorizationToken", options.Token},
                     {"Title", request.Name },
@@ -59,13 +61,9 @@ namespace MediaBrowser.Plugins.PushALotNotifications
                 parameters.Add("Body", request.Description);
             }
 
-
             _logger.Debug("PushAlot to {0}", options.Token);
 
-            using (var client = new WebClient())
-            {
-                return client.UploadValuesTaskAsync("https://pushalot.com/api/sendmessage", parameters);
-            }
+            return _httpClient.Post("https://pushalot.com/api/sendmessage", parameters, cancellationToken);
         }
 
         private bool IsValid(PushALotOptions options)
