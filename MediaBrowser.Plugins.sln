@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30110.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.Trailers", "MediaBrowser.Plugins.Trailers\MediaBrowser.Plugins.Trailers.csproj", "{2F4C01E2-7C9F-4F08-922E-27AC4A1D53FF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.RottenTomatoes", "MediaBrowser.Plugins.RottenTomatoes\MediaBrowser.Plugins.RottenTomatoes.csproj", "{71BF266C-BFB0-4821-8909-FF21F95A4B49}"
@@ -21,6 +23,14 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.ADEProvider", "MediaBrowser.Plugins.ADEProvider\MediaBrowser.Plugins.ADEProvider.csproj", "{2F1E5734-05C5-495D-B11B-42C4762CF4CF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.SmtpNotifications", "MediaBrowser.Plugins.SmtpNotifications\MediaBrowser.Plugins.SmtpNotifications.csproj", "{B318F84E-B740-45BD-ADA8-1773C5A953F5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.PushALotNotifications", "MediaBrowser.Plugins.PushALotNotifications\MediaBrowser.Plugins.PushALotNotifications.csproj", "{A47CF14F-6339-4610-BF23-C732E18805BF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.PushOverNotifications", "MediaBrowser.Plugins.PushOverNotifications\MediaBrowser.Plugins.PushOverNotifications.csproj", "{342C0A77-6E9F-4C38-898D-03A0312FD643}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.ProwlNotifications", "MediaBrowser.Plugins.ProwlNotifications\MediaBrowser.Plugins.ProwlNotifications.csproj", "{C16AF6E3-5032-4D2C-8756-85BF42F1C8D0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.NotifyMyAndroidNotifications", "MediaBrowser.Plugins.NotifyMyAndroidNotifications\MediaBrowser.Plugins.NotifyMyAndroidNotifications.csproj", "{FFA5128A-BEA6-4FFA-9E0B-9E706AC8A544}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -78,6 +88,30 @@ Global
 		{B318F84E-B740-45BD-ADA8-1773C5A953F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B318F84E-B740-45BD-ADA8-1773C5A953F5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B318F84E-B740-45BD-ADA8-1773C5A953F5}.Release|x86.ActiveCfg = Release|Any CPU
+		{A47CF14F-6339-4610-BF23-C732E18805BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A47CF14F-6339-4610-BF23-C732E18805BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A47CF14F-6339-4610-BF23-C732E18805BF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A47CF14F-6339-4610-BF23-C732E18805BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A47CF14F-6339-4610-BF23-C732E18805BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A47CF14F-6339-4610-BF23-C732E18805BF}.Release|x86.ActiveCfg = Release|Any CPU
+		{342C0A77-6E9F-4C38-898D-03A0312FD643}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{342C0A77-6E9F-4C38-898D-03A0312FD643}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{342C0A77-6E9F-4C38-898D-03A0312FD643}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{342C0A77-6E9F-4C38-898D-03A0312FD643}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{342C0A77-6E9F-4C38-898D-03A0312FD643}.Release|Any CPU.Build.0 = Release|Any CPU
+		{342C0A77-6E9F-4C38-898D-03A0312FD643}.Release|x86.ActiveCfg = Release|Any CPU
+		{C16AF6E3-5032-4D2C-8756-85BF42F1C8D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C16AF6E3-5032-4D2C-8756-85BF42F1C8D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C16AF6E3-5032-4D2C-8756-85BF42F1C8D0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C16AF6E3-5032-4D2C-8756-85BF42F1C8D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C16AF6E3-5032-4D2C-8756-85BF42F1C8D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C16AF6E3-5032-4D2C-8756-85BF42F1C8D0}.Release|x86.ActiveCfg = Release|Any CPU
+		{FFA5128A-BEA6-4FFA-9E0B-9E706AC8A544}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FFA5128A-BEA6-4FFA-9E0B-9E706AC8A544}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FFA5128A-BEA6-4FFA-9E0B-9E706AC8A544}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{FFA5128A-BEA6-4FFA-9E0B-9E706AC8A544}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FFA5128A-BEA6-4FFA-9E0B-9E706AC8A544}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FFA5128A-BEA6-4FFA-9E0B-9E706AC8A544}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
