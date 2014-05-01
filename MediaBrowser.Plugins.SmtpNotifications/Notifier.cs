@@ -1,6 +1,4 @@
-﻿using System.Security.Cryptography;
-using System.Text;
-using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Notifications;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Plugins.SmtpNotifications.Configuration;
@@ -8,6 +6,8 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -40,7 +40,23 @@ namespace MediaBrowser.Plugins.SmtpNotifications
             get { return Plugin.Instance.Name; }
         }
 
-        public Task SendNotification(UserNotification request, CancellationToken cancellationToken)
+
+        private readonly SemaphoreSlim _resourcePool = new SemaphoreSlim(1, 1);
+        public async Task SendNotification(UserNotification request, CancellationToken cancellationToken)
+        {
+            await _resourcePool.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+            try
+            {
+                await SendNotificationInternal(request, cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                _resourcePool.Release();
+            }
+        }
+
+        private Task SendNotificationInternal(UserNotification request, CancellationToken cancellationToken)
         {
             var options = GetOptions(request.User);
 
