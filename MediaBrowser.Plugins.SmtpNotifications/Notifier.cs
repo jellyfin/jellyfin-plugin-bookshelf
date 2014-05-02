@@ -58,6 +58,8 @@ namespace MediaBrowser.Plugins.SmtpNotifications
                 UseDefaultCredentials = false
             };
 
+            if (options.SSL) client.EnableSsl = true;
+
             _logger.Debug("Emailing {0} with subject {1}", options.EmailTo, mail.Subject);
 
             if (options.UseCredentials)
