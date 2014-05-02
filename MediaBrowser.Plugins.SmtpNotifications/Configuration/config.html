@@ -57,6 +57,10 @@
                             </div>
                         </li>
                         <li>
+                            <label for="chkEnableSSL">Enable SSL / TLS</label>
+                            <input type="checkbox" id="chkEnableSSL" data-mini="true" />
+                        </li>
+                        <li>
                             <label for="chkEnableAuth">Enable SMTP Authentication</label>
                             <input type="checkbox" id="chkEnableAuth" data-mini="true" />
                         </li>
@@ -125,12 +129,13 @@
                             return userId == c.MediaBrowserUserId;
 
                         })[0] || {};
-
+                        
                         $('#chkEnableSMTP', page).checked(smtpConfig.Enabled || false).checkboxradio("refresh");
                         $('#txtEmailFrom', page).val(smtpConfig.EmailFrom || '');
                         $('#txtEmailTo', page).val(smtpConfig.EmailTo || '');
                         $('#txtServer', page).val(smtpConfig.Server || '');
                         $('#txtPort', page).val(smtpConfig.Port || '');
+                        $('#chkEnableSSL', page).checked(smtpConfig.SSL || false).checkboxradio("refresh");
                         $('#chkEnableAuth', page).checked(smtpConfig.UseCredentials || false).checkboxradio("refresh");
                         $('#txtUsername', page).val(smtpConfig.Username || '');
                         $('#txtPassword', page).val(smtpConfig.Password || '');
@@ -187,7 +192,7 @@
                             smtpConfig = {};
                             config.Options.push(smtpConfig);
                         }
-
+                        
                         smtpConfig.MediaBrowserUserId = userId;
                         smtpConfig.Enabled = $('#chkEnableSMTP', form).checked();
                         smtpConfig.EmailFrom = $('#txtEmailFrom', form).val();
@@ -195,6 +200,7 @@
                         smtpConfig.Server = $('#txtServer', form).val();
                         smtpConfig.Port = $('#txtPort', form).val();
                         smtpConfig.useCredentials = $('#chkEnableAuth', form).checked();
+                        smtpConfig.SSL = $('#chkEnableSSL', form).checked();
                         smtpConfig.Username = $('#txtUsername', form).val();
                         smtpConfig.Password = $('#txtPassword', form).val();
 

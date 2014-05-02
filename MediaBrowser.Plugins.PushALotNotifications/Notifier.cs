@@ -47,8 +47,6 @@ namespace MediaBrowser.Plugins.PushALotNotifications
             var parameters = new Dictionary<string, string>
                 {
                     {"AuthorizationToken", options.Token},
-                    {"Title", request.Name },
-                    {"Body", request.Description}
                 };
 
             if (string.IsNullOrEmpty(request.Description))
