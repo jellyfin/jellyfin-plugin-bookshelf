@@ -127,7 +127,7 @@ namespace MediaBrowser.Plugins.Trailers
                 switch (reader.Name)
                 {
                     case "title":
-                        info.Video.Name = reader.ReadStringSafe();
+                        info.Name = reader.ReadStringSafe();
                         break;
                     case "rating":
                         {
@@ -135,7 +135,7 @@ namespace MediaBrowser.Plugins.Trailers
 
                             if (!string.IsNullOrWhiteSpace(rating) && !string.Equals("not yet rated", rating, StringComparison.OrdinalIgnoreCase))
                             {
-                                info.Video.OfficialRating = rating;
+                                info.OfficialRating = rating;
                             }
                             break;
                         }
@@ -145,7 +145,7 @@ namespace MediaBrowser.Plugins.Trailers
 
                             if (!string.IsNullOrWhiteSpace(studio))
                             {
-                                info.Video.AddStudio(studio);
+                                info.Studios.Add(studio);
                             }
                             break;
                         }
@@ -169,8 +169,8 @@ namespace MediaBrowser.Plugins.Trailers
 
                                 if (DateTime.TryParse(val, UsCulture, DateTimeStyles.None, out date))
                                 {
-                                    info.Video.PremiereDate = date.ToUniversalTime();
-                                    info.Video.ProductionYear = date.Year;
+                                    info.PremiereDate = date.ToUniversalTime();
+                                    info.ProductionYear = date.Year;
                                 }
                             }
 
@@ -186,13 +186,13 @@ namespace MediaBrowser.Plugins.Trailers
 
                                 if (!string.IsNullOrWhiteSpace(name))
                                 {
-                                    info.Video.AddPerson(new PersonInfo { Name = name, Type = PersonType.Director });
+                                    info.People.Add(new PersonInfo { Name = name, Type = PersonType.Director });
                                 }
                             }
                             break;
                         }
                     case "description":
-                        info.Video.Overview = reader.ReadStringSafe();
+                        info.Overview = reader.ReadStringSafe();
                         break;
                     default:
                         reader.Skip();
@@ -230,8 +230,15 @@ namespace MediaBrowser.Plugins.Trailers
                     switch (reader.Name)
                     {
                         case "name":
-                            info.Video.AddGenre(reader.ReadStringSafe());
+                        {
+                            var val = reader.ReadStringSafe();
+
+                            if (!string.IsNullOrWhiteSpace(val))
+                            {
+                                info.Genres.Add(val);
+                            }
                             break;
+                        }
                         default:
                             reader.Skip();
                             break;
@@ -263,7 +270,7 @@ namespace MediaBrowser.Plugins.Trailers
 
                             if (!string.IsNullOrWhiteSpace(name))
                             {
-                                info.Video.AddPerson(new PersonInfo { Name = name, Type = PersonType.Actor });
+                                info.People.Add(new PersonInfo { Name = name, Type = PersonType.Actor });
                             }
                             break;
                         }

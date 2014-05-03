@@ -35,17 +35,17 @@
     <RunPostBuildEvent>Always</RunPostBuildEvent>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="MediaBrowser.Common">
-      <HintPath>..\packages\MediaBrowser.Common.3.0.357\lib\net45\MediaBrowser.Common.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="MediaBrowser.Common, Version=3.0.5235.34919, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\MediaBrowser.Common.3.0.359\lib\net45\MediaBrowser.Common.dll</HintPath>
     </Reference>
-    <Reference Include="MediaBrowser.Controller">
-      <HintPath>..\packages\MediaBrowser.Server.Core.3.0.357\lib\net45\MediaBrowser.Controller.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="MediaBrowser.Controller, Version=3.0.5235.34919, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\MediaBrowser.Server.Core.3.0.359\lib\net45\MediaBrowser.Controller.dll</HintPath>
     </Reference>
-    <Reference Include="MediaBrowser.Model">
-      <HintPath>..\packages\MediaBrowser.Common.3.0.357\lib\net45\MediaBrowser.Model.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="MediaBrowser.Model, Version=3.0.5235.34918, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\MediaBrowser.Common.3.0.359\lib\net45\MediaBrowser.Model.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -65,10 +65,8 @@
     <Compile Include="Configuration\TrailerConfigurationPage.cs" />
     <Compile Include="EntryPoints\LocalTrailerEntryPoint.cs" />
     <Compile Include="Extensions\XmlExtensions.cs" />
-    <Compile Include="ScheduledTasks\CurrentTrailerDownloadTask.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Entities\TrailerCollectionFolder.cs" />
     <Compile Include="ScheduledTasks\LocalTrailerDownloadTask.cs" />
     <Compile Include="Search\HdNetTrailerSearch.cs" />
     <Compile Include="Search\LocalTrailerDownloader.cs" />
@@ -82,6 +80,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Images\primary.jpg" />
+    <EmbeddedResource Include="Images\thumb.jpg" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

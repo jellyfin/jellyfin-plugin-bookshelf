@@ -1,14 +1,7 @@
 ﻿using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
-using MediaBrowser.Common.ScheduledTasks;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Library;
-using MediaBrowser.Model.Plugins;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Plugins.Trailers.Configuration;
-using MediaBrowser.Plugins.Trailers.Entities;
-using MediaBrowser.Plugins.Trailers.ScheduledTasks;
-using System.Linq;
 using System.Threading;
 
 namespace MediaBrowser.Plugins.Trailers
@@ -23,14 +16,9 @@ namespace MediaBrowser.Plugins.Trailers
         /// </summary>
         public readonly SemaphoreSlim AppleTrailers = new SemaphoreSlim(1, 1);
 
-        private readonly ITaskManager _taskManager;
-        private readonly ILibraryManager _libraryManager;
-
-        public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer, ITaskManager taskManager, ILibraryManager libraryManager)
+        public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer)
             : base(applicationPaths, xmlSerializer)
         {
-            _taskManager = taskManager;
-            _libraryManager = libraryManager;
             Instance = this;
         }
 
@@ -60,31 +48,5 @@ namespace MediaBrowser.Plugins.Trailers
         /// </summary>
         /// <value>The instance.</value>
         public static Plugin Instance { get; private set; }
-
-        public override async void UpdateConfiguration(BasePluginConfiguration configuration)
-        {
-            var config = (PluginConfiguration) configuration;
-
-            var hdChanged = config.EnableHDTrailers != Configuration.EnableHDTrailers;
-
-            base.UpdateConfiguration(configuration);
-
-            if (hdChanged)
-            {
-                var folder = _libraryManager.RootFolder.Children
-                    .OfType<TrailerCollectionFolder>()
-                    .FirstOrDefault();
-
-                if (folder != null)
-                {
-                    foreach (var trailer in folder.RecursiveChildren.OfType<Trailer>().ToList())
-                    {
-                        await _libraryManager.DeleteItem(trailer).ConfigureAwait(false);
-                    }
-                }
-
-                _taskManager.CancelIfRunningAndQueue<CurrentTrailerDownloadTask>();
-            }
-        }
     }
 }

@@ -37,7 +37,6 @@ namespace MediaBrowser.Plugins.Trailers
         /// </summary>
         public void Run()
         {
-            RunTaskIfNeverRun<CurrentTrailerDownloadTask>();
             RunTaskIfNeverRun<LocalTrailerDownloadTask>();
         }
 

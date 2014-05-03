@@ -1,5 +1,6 @@
 ﻿using MediaBrowser.Controller.Entities;
 using System;
+using System.Collections.Generic;
 
 namespace MediaBrowser.Plugins.Trailers
 {
@@ -8,11 +9,14 @@ namespace MediaBrowser.Plugins.Trailers
     /// </summary>
     public class TrailerInfo
     {
-        /// <summary>
-        /// Gets or sets the video.
-        /// </summary>
-        /// <value>The video.</value>
-        public Trailer Video { get; set; }
+        public string Name { get; set; }
+        public string OfficialRating { get; set; }
+        public string Overview { get; set; }
+        public float? CommunityRating { get; set; }
+        public List<string> Genres { get; set; }
+        public List<string> Studios { get; set; }
+        public List<PersonInfo> People { get; set; }
+
         /// <summary>
         /// Gets or sets the image URL.
         /// </summary>
@@ -32,21 +36,15 @@ namespace MediaBrowser.Plugins.Trailers
         /// Gets or sets the post date.
         /// </summary>
         /// <value>The post date.</value>
-        public DateTime PostDate
-        {
-            get { return Video.DateCreated; }
-            set
-            {
-                Video.DateCreated = value;
-            }
-        }
+        public DateTime PostDate { get; set; }
+        public DateTime? PremiereDate { get; set; }
+        public int? ProductionYear { get; set; }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TrailerInfo" /> class.
-        /// </summary>
         public TrailerInfo()
         {
-            Video = new Trailer();
+            Studios = new List<string>();
+            Genres = new List<string>();
+            People = new List<PersonInfo>();
         }
     }
 }
