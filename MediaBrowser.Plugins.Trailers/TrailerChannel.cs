@@ -22,14 +22,6 @@ namespace MediaBrowser.Plugins.Trailers
             _httpClient = httpClient;
         }
 
-        public ChannelCapabilities GetCapabilities()
-        {
-            return new ChannelCapabilities
-            {
-                CanSearch = false
-            };
-        }
-
         public async Task<ChannelItemResult> GetChannelItems(InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
             var items = await GetChannelItems(cancellationToken).ConfigureAwait(false);
@@ -126,6 +118,24 @@ namespace MediaBrowser.Plugins.Trailers
         public Task<IEnumerable<ChannelItemInfo>> Search(ChannelSearchInfo searchInfo, User user, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
+        }
+
+        public ChannelInfo GetChannelInfo()
+        {
+            return new ChannelInfo
+            {
+                CanSearch = false,
+
+                ContentTypes = new List<ChannelMediaContentType>
+                 {
+                     ChannelMediaContentType.Trailer
+                 },
+
+                MediaTypes = new List<ChannelMediaType>
+                  {
+                       ChannelMediaType.Video
+                  }
+            };
         }
     }
 }
