@@ -1,6 +1,7 @@
 ﻿using MediaBrowser.Common.Extensions;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Channels;
+using MediaBrowser.Controller.Drawing;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
@@ -21,14 +22,6 @@ namespace MediaBrowser.Plugins.Trailers
             _httpClient = httpClient;
         }
 
-        public ChannelCapabilities GetCapabilities()
-        {
-            return new ChannelCapabilities
-            {
-                CanSearch = false
-            };
-        }
-
         public async Task<ChannelItemResult> GetChannelItems(InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
             var items = await GetChannelItems(cancellationToken).ConfigureAwait(false);
@@ -45,32 +38,66 @@ namespace MediaBrowser.Plugins.Trailers
             var trailers = await AppleTrailerListingDownloader.GetTrailerList(_httpClient, cancellationToken)
                 .ConfigureAwait(false);
 
-            return trailers.Select(i => new ChannelItemInfo
+            var now = DateTime.UtcNow;
+            var maxDays = Plugin.Instance.Configuration.MaxTrailerAge;
+
+            return trailers.Where(i => !maxDays.HasValue || (now - i.PostDate).TotalDays <= maxDays.Value)
+                .Select(i => new ChannelItemInfo
             {
-                CommunityRating = i.Video.CommunityRating,
+                CommunityRating = i.CommunityRating,
                 ContentType = ChannelMediaContentType.Trailer,
-                Genres = i.Video.Genres,
+                Genres = i.Genres,
                 ImageUrl = i.HdImageUrl ?? i.ImageUrl,
                 IsInfiniteStream = false,
                 MediaType = ChannelMediaType.Video,
-                Name = i.Video.Name,
-                OfficialRating = i.Video.OfficialRating,
-                Overview = i.Video.Overview,
-                People = i.Video.People,
-                ProviderIds = i.Video.ProviderIds,
+                Name = i.Name,
+                OfficialRating = i.OfficialRating,
+                Overview = i.Overview,
+                People = i.People,
                 Type = ChannelItemType.Media,
-                Id = i.TrailerUrl.GetMD5().ToString("N")
+                Id = i.TrailerUrl.GetMD5().ToString("N"),
+                PremiereDate = i.PremiereDate,
+                ProductionYear = i.ProductionYear,
+                Studios = i.Studios,
+
+                MediaSources = new List<ChannelMediaInfo>
+                {
+                    new ChannelMediaInfo
+                    {
+                         Path = i.TrailerUrl
+                    }
+                }
             });
         }
 
         public Task<DynamicImageResponse> GetChannelImage(ImageType type, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            switch (type)
+            {
+                case ImageType.Primary:
+                case ImageType.Thumb:
+                    {
+                        var path = GetType().Namespace + ".Images." + type.ToString().ToLower() + ".jpg";
+
+                        return Task.FromResult(new DynamicImageResponse
+                        {
+                            Format = ImageFormat.Jpg,
+                            HasImage = true,
+                            Stream = GetType().Assembly.GetManifestResourceStream(path)
+                        });
+                    }
+                default:
+                    throw new ArgumentException("Unsupported image type: " + type);
+            }
         }
 
         public IEnumerable<ImageType> GetSupportedChannelImages()
         {
-            return new List<ImageType> { };
+            return new List<ImageType>
+            {
+                ImageType.Thumb,
+                ImageType.Primary
+            };
         }
 
         public string HomePageUrl
@@ -91,6 +118,24 @@ namespace MediaBrowser.Plugins.Trailers
         public Task<IEnumerable<ChannelItemInfo>> Search(ChannelSearchInfo searchInfo, User user, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
+        }
+
+        public ChannelInfo GetChannelInfo()
+        {
+            return new ChannelInfo
+            {
+                CanSearch = false,
+
+                ContentTypes = new List<ChannelMediaContentType>
+                 {
+                     ChannelMediaContentType.Trailer
+                 },
+
+                MediaTypes = new List<ChannelMediaType>
+                  {
+                       ChannelMediaType.Video
+                  }
+            };
         }
     }
 }
