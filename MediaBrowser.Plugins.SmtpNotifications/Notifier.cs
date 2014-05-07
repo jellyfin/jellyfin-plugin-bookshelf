@@ -1,13 +1,12 @@
 ﻿using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Notifications;
+using MediaBrowser.Controller.Security;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Plugins.SmtpNotifications.Configuration;
 using System;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,6 +14,7 @@ namespace MediaBrowser.Plugins.SmtpNotifications
 {
     public class Notifier : INotificationService
     {
+        private readonly IEncryptionManager _encryption;
         private readonly ILogger _logger;
 
         public Notifier(ILogManager logManager)
@@ -80,7 +80,7 @@ namespace MediaBrowser.Plugins.SmtpNotifications
 
             if (options.UseCredentials)
             {
-                var pw = Encoding.Default.GetString(ProtectedData.Unprotect(Encoding.Default.GetBytes(options.PwData), null, DataProtectionScope.LocalMachine));
+                var pw = _encryption.DecryptString(options.PwData);
                 client.Credentials = new NetworkCredential(options.Username, pw);
             }
 
