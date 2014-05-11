@@ -1,5 +1,5 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
+using MediaBrowser.Common.Plugins;
 using MediaBrowser.Controller.Plugins;
 
 namespace MediaBrowser.Plugins.NextPvr.Configuration
@@ -36,7 +36,7 @@ namespace MediaBrowser.Plugins.NextPvr.Configuration
             get { return "NextPvr"; }
         }
 
-        public Common.Plugins.IPlugin Plugin
+        public IPlugin Plugin
         {
             get { return NextPvr.Plugin.Instance; }
         }

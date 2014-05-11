@@ -2,7 +2,6 @@
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Plugins.NextPvr.Configuration;
-using System.Threading;
 
 namespace MediaBrowser.Plugins.NextPvr
 {
