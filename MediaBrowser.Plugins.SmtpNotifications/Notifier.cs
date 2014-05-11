@@ -17,8 +17,9 @@ namespace MediaBrowser.Plugins.SmtpNotifications
         private readonly IEncryptionManager _encryption;
         private readonly ILogger _logger;
 
-        public Notifier(ILogManager logManager)
+        public Notifier(ILogManager logManager, IEncryptionManager encryption)
         {
+            _encryption = encryption;
             _logger = logManager.GetLogger(GetType().Name);
         }
 
