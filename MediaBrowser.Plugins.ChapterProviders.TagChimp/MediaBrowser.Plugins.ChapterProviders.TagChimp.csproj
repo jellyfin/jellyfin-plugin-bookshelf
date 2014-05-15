@@ -54,6 +54,7 @@
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Providers\TagChimpChapterProvider.cs" />
+    <Compile Include="Properties\SharedVersion.cs" />
     <Compile Include="TagChimp.Net\Chapter.cs" />
     <Compile Include="TagChimp.Net\ChapterCollection.cs" />
     <Compile Include="TagChimp.Net\ChapterPart.cs" />
