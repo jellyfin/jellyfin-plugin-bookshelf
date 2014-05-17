@@ -19,7 +19,7 @@ namespace MediaBrowser.Plugins.Vimeo
     {
         private readonly IHttpClient _httpClient;
         private readonly ILogger _logger;
-        private IJsonSerializer _jsonSerializer;
+        private readonly IJsonSerializer _jsonSerializer;
 
         public VimeoChannel(IHttpClient httpClient, IJsonSerializer jsonSerializer, ILogManager logManager)
         {
@@ -104,13 +104,24 @@ namespace MediaBrowser.Plugins.Vimeo
             switch (type)
             {
                 case ImageType.Primary:
-                case ImageType.Thumb:
                     {
                         var path = GetType().Namespace + ".Images." + type.ToString().ToLower() + ".jpg";
 
                         return Task.FromResult(new DynamicImageResponse
                         {
                             Format = ImageFormat.Jpg,
+                            HasImage = true,
+                            Stream = GetType().Assembly.GetManifestResourceStream(path)
+                        });
+                    }
+                case ImageType.Backdrop:
+                case ImageType.Thumb:
+                    {
+                        var path = GetType().Namespace + ".Images." + type.ToString().ToLower() + ".png";
+
+                        return Task.FromResult(new DynamicImageResponse
+                        {
+                            Format = ImageFormat.Png,
                             HasImage = true,
                             Stream = GetType().Assembly.GetManifestResourceStream(path)
                         });
@@ -125,7 +136,8 @@ namespace MediaBrowser.Plugins.Vimeo
             return new List<ImageType>
             {
                 ImageType.Thumb,
-                ImageType.Primary
+                ImageType.Primary,
+                ImageType.Backdrop
             };
         }
 

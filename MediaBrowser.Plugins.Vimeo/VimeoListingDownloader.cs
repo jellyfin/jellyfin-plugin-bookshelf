@@ -1,7 +1,4 @@
 ﻿using MediaBrowser.Common.Net;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Providers;
-using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Plugins.Vimeo.Extensions;
@@ -21,8 +18,8 @@ namespace MediaBrowser.Plugins.Vimeo
     {
 
         private ILogger _logger;
-        private IHttpClient _httpClient;
-        private IJsonSerializer _jsonSerializer;
+        private readonly IHttpClient _httpClient;
+        private readonly IJsonSerializer _jsonSerializer;
 
         public VimeoListingDownloader(ILogger logManager, IJsonSerializer jsonSerializer, IHttpClient httpClient)
         {
