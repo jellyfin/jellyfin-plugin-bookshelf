@@ -49,6 +49,8 @@ namespace MediaBrowser.Plugins.SmtpNotifications.Api
                 UseDefaultCredentials = false
             };
 
+            if (options.SSL) client.EnableSsl = true;
+
             if (options.UseCredentials)
             {
                 var pw = _encryption.DecryptString(options.PwData);
