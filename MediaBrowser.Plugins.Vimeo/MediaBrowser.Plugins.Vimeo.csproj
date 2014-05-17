@@ -93,10 +93,13 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Images\primary.jpg" />
-    <EmbeddedResource Include="Images\thumb.jpg" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Images\backdrop.png" />
+    <EmbeddedResource Include="Images\thumb.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
