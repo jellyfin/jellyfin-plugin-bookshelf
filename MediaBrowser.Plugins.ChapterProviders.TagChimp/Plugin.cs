@@ -1,17 +1,19 @@
-﻿using MediaBrowser.Common.Configuration;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
+using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
-using MediaBrowser.Plugins.NextPvr.Configuration;
+using MediaBrowser.Plugins.ChapterProviders.TagChimp.Configuration;
 
-namespace MediaBrowser.Plugins.NextPvr
-{
-    /// <summary>
-    /// Class Plugin
-    /// </summary>
+namespace MediaBrowser.Plugins.ChapterProviders.TagChimp {
     public class Plugin : BasePlugin<PluginConfiguration>
     {
         public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer)
-            : base(applicationPaths, xmlSerializer)
+            : base (applicationPaths, xmlSerializer)
         {
             Instance = this;
         }
@@ -22,7 +24,7 @@ namespace MediaBrowser.Plugins.NextPvr
         /// <value>The name.</value>
         public override string Name
         {
-            get { return "Next Pvr"; }
+            get { return "tagChimp Chapters Provider"; }
         }
 
         /// <summary>
@@ -31,11 +33,10 @@ namespace MediaBrowser.Plugins.NextPvr
         /// <value>The description.</value>
         public override string Description
         {
-            get
-            {
-                return "Provides live tv using next pvr as a back-end.";
-            }
+            get { return "Gets chapter information from tagChimp.com"; }
         }
+
+        protected ILogger Logger { get; set; }
 
         /// <summary>
         /// Gets the instance.

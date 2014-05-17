@@ -1,7 +1,6 @@
-﻿using System.Security.Cryptography;
-using System.Text;
-using MediaBrowser.Common.Configuration;
+﻿using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
+using MediaBrowser.Controller.Security;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Plugins.SmtpNotifications.Configuration;
@@ -14,10 +13,12 @@ namespace MediaBrowser.Plugins.SmtpNotifications
     public class Plugin : BasePlugin<PluginConfiguration>
     {
         protected ILogger Logger { get; set; }
+        private readonly IEncryptionManager _encryption;
 
-        public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer, ILogManager logManager)
+        public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer, ILogManager logManager, IEncryptionManager encryption)
             : base(applicationPaths, xmlSerializer)
         {
+            _encryption = encryption;
             Instance = this;
             Logger = logManager.GetLogger("SMTP Notifications");
         }
@@ -51,15 +52,8 @@ namespace MediaBrowser.Plugins.SmtpNotifications
             // The program actually uses the encrypted version
             foreach (var optionSet in config.Options)
             {
-                try
-                {
-                    optionSet.PwData = Encoding.Default.GetString(ProtectedData.Protect(Encoding.Default.GetBytes(optionSet.Password ?? ""), null, DataProtectionScope.LocalMachine));
-                    optionSet.Password = null;
-                }
-                catch (CryptographicException e)
-                {
-                    Logger.ErrorException("Error saving password", e);
-                }
+                optionSet.PwData = _encryption.EncryptString(optionSet.Password ?? string.Empty);
+                optionSet.Password = null;
             }
 
             base.UpdateConfiguration(configuration);

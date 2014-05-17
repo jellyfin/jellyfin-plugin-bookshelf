@@ -73,7 +73,8 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                     "review",
                     "style",
                     "imdbid",
-                    "plotkeyword"
+                    "plotkeyword",
+                    "country"
 
         }.ToDictionary(i => i, StringComparer.OrdinalIgnoreCase);
 
@@ -528,6 +529,15 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 foreach (var tagline in hasTaglines.Taglines)
                 {
                     builder.Append("<tagline>" + SecurityElement.Escape(tagline) + "</tagline>");
+                }
+            }
+
+            var hasProductionLocations = item as IHasProductionLocations;
+            if (hasProductionLocations != null)
+            {
+                foreach (var country in hasProductionLocations.ProductionLocations)
+                {
+                    builder.Append("<country>" + SecurityElement.Escape(country) + "</country>");
                 }
             }
 

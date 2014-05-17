@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Specialized;
+﻿using MediaBrowser.Controller.Net;
+using MediaBrowser.Controller.Security;
+using MediaBrowser.Plugins.SmtpNotifications.Configuration;
+using ServiceStack;
+using System;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
-using System.Security.Cryptography;
-using System.Text;
-using MediaBrowser.Controller.Net;
-using MediaBrowser.Plugins.SmtpNotifications.Configuration;
-using ServiceStack;
 
 namespace MediaBrowser.Plugins.SmtpNotifications.Api
 {
@@ -20,6 +18,13 @@ namespace MediaBrowser.Plugins.SmtpNotifications.Api
 
     class ServerApiEndpoints : IRestfulService
     {
+        private readonly IEncryptionManager _encryption;
+
+        public ServerApiEndpoints(IEncryptionManager encryption)
+        {
+            _encryption = encryption;
+        }
+
         private SMTPOptions GetOptions(String userID)
         {
             return Plugin.Instance.Configuration.Options
@@ -48,7 +53,7 @@ namespace MediaBrowser.Plugins.SmtpNotifications.Api
 
             if (options.UseCredentials)
             {
-                var pw = Encoding.Default.GetString(ProtectedData.Unprotect(Encoding.Default.GetBytes(options.PwData), null, DataProtectionScope.LocalMachine));
+                var pw = _encryption.DecryptString(options.PwData);
                 client.Credentials = new NetworkCredential(options.Username, pw);
             }
 
