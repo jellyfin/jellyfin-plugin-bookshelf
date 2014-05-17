@@ -114,7 +114,7 @@ namespace MediaBrowser.Plugins.Vimeo
                 {
                     new ChannelMediaInfo
                     {
-                         Path = i.urls[0].Value,
+                         Path = i.urls[3].Value,
                          Height = i.height,
                          Width = i.width
                     }
