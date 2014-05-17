@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
-using Vimeo.API;
 
 namespace MediaBrowser.Plugins.Vimeo
 {
@@ -28,22 +27,47 @@ namespace MediaBrowser.Plugins.Vimeo
             _jsonSerializer = jsonSerializer;
         }
 
-        public Task<IEnumerable<ChannelItemInfo>> Search(ChannelSearchInfo searchInfo, Controller.Entities.User user, CancellationToken cancellationToken)
+        public async Task<IEnumerable<ChannelItemInfo>> Search(ChannelSearchInfo searchInfo, Controller.Entities.User user, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var downloader = new VimeoListingDownloader(_logger, _jsonSerializer, _httpClient);
+            var search = await downloader.GetSearchVimeoList(searchInfo.SearchTerm, cancellationToken);
+
+            return search.Select(i => new ChannelItemInfo
+            {
+                ContentType = ChannelMediaContentType.Clip,
+                ImageUrl = i.thumbnails[0].Url,
+                IsInfiniteStream = false,
+                MediaType = ChannelMediaType.Video,
+                Name = i.title,
+                Overview = i.description,
+                Type = ChannelItemType.Media,
+                Id = i.urls[0].Value.GetMD5().ToString("N"),
+
+                MediaSources = new List<ChannelMediaInfo>
+                {
+                    new ChannelMediaInfo
+                    {
+                         Path = i.urls[0].Value,
+                         Height = i.height,
+                         Width = i.width
+                    }
+                }
+            });
         }
 
         public async Task<ChannelItemResult> GetChannelItems(InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
             IEnumerable<ChannelItemInfo> items;
-            
+
+            _logger.Debug("cat ID : " + query.CategoryId);
+
             if (query.CategoryId == null)
             {
                 items = await GetChannels(cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                 items = await GetChannelItems(cancellationToken).ConfigureAwait(false);
+                 items = await GetChannelItems(query.CategoryId, cancellationToken).ConfigureAwait(false);
             }
 
             return new ChannelItemResult
@@ -63,37 +87,36 @@ namespace MediaBrowser.Plugins.Vimeo
                 Type = ChannelItemType.Category,
                 ImageUrl = i.logo_url,
                 Name = i.name,
-                Id = i.id.GetMD5().ToString("N"),
+                Id = i.id,
                 Overview = i.description
             });
         }
 
-        private async Task<IEnumerable<ChannelItemInfo>> GetChannelItems(CancellationToken cancellationToken)
+        private async Task<IEnumerable<ChannelItemInfo>> GetChannelItems(String catID, CancellationToken cancellationToken)
         {
             var downloader = new VimeoListingDownloader(_logger, _jsonSerializer, _httpClient);
-            var videos = await downloader.GetVimeoList(cancellationToken)
+            var videos = await downloader.GetVimeoList(catID, cancellationToken)
                 .ConfigureAwait(false);
 
             return videos.Select(i => new ChannelItemInfo
             {
                 ContentType = ChannelMediaContentType.Clip,
-                ImageUrl = i.Thumbnail,
+                ImageUrl = i.thumbnails[0].Url,
                 IsInfiniteStream = false,
                 MediaType = ChannelMediaType.Video,
-                Name = i.Name,
-                Overview = i.Description,
+                Name = i.title,
+                Overview = i.description,
                 Type = ChannelItemType.Media,
-                Id = i.URL.GetMD5().ToString("N"),
-                PremiereDate = i.UploadDate,
+                Id = i.id,
+               // PremiereDate = i.upload_date,
 
                 MediaSources = new List<ChannelMediaInfo>
                 {
                     new ChannelMediaInfo
                     {
-                         Path = i.URL,
-                         VideoBitrate = i.VideoBitRate,
-                         Height = i.VideoHeight,
-                         Width = i.VideoWidth
+                         Path = i.urls[0].Value,
+                         Height = i.height,
+                         Width = i.width
                     }
                 }
             });

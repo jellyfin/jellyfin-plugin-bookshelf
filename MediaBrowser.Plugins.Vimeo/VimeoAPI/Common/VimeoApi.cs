@@ -1,19 +1,16 @@
-﻿using System;
-using System.IO;
-using System.Net;
-using System.Text;
-#if WINDOWS
+﻿#if WINDOWS
 using System.Web;
 #endif
-using System.Web;
-using System.Xml;
-using System.Xml.Serialization;
+using System;
 using System.Collections.Generic;
-using Common;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
-using System.Xml.Linq;
-namespace Vimeo.API
+using System.Net;
+using System.Text;
+using System.Web;
+
+namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.Common
 {
 #if WINDOWS_PHONE
     public class WebProxy { } //Dum-dum.

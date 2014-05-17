@@ -1,15 +1,14 @@
-﻿using System;
-using System.Security.Cryptography;
-using System.Collections.Generic;
-using System.Text;
-using System.Net;
-#if WINDOWS
+﻿#if WINDOWS
 using System.Web;
 using System.Diagnostics;
 #endif
+using System;
+using System.Collections.Generic;
+using System.Security.Cryptography;
+using System.Text;
 using System.Web;
 
-namespace Common
+namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.Common
 {
     public enum OAuthSignatureType
     {

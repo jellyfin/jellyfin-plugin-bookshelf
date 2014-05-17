@@ -1,20 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Common;
-using System.Net;
-using System.Xml.Linq;
-using System.Web;
-#if VFW
+﻿#if VFW
 using VFW2;
 using System.Windows.Forms;
 #endif
-using System.IO;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using System.Net;
+using System.Web;
+using System.Xml.Linq;
 using MediaBrowser.Model.Logging;
+using MediaBrowser.Plugins.Vimeo.VimeoAPI.Common;
 
-namespace Vimeo.API
+namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
 {
     [Serializable]
     public partial class VimeoClient
@@ -1207,7 +1205,7 @@ namespace Vimeo.API
         }
 
         //.getCast
-        public List<Video.CastMember> vimeo_videos_getCast(string video_id, int? page, int? per_page)
+        public List<global::MediaBrowser.Plugins.Vimeo.VimeoAPI.API.Video.CastMember> vimeo_videos_getCast(string video_id, int? page, int? per_page)
         {
             Dictionary<string, string> parameters = new Dictionary<string, string>{
                 {"video_id", video_id}};
@@ -1215,10 +1213,10 @@ namespace Vimeo.API
             if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
             var x = ExecuteGetRequest("vimeo.videos.getCast", parameters);
             if (!IsResponseOK(x)) return null;
-            List<Video.CastMember> cast = new List<Video.CastMember>();
+            List<global::MediaBrowser.Plugins.Vimeo.VimeoAPI.API.Video.CastMember> cast = new List<global::MediaBrowser.Plugins.Vimeo.VimeoAPI.API.Video.CastMember>();
             foreach (var item in x.Element("rsp").Element("cast").Elements("member"))
             {
-                cast.Add(Video.CastMember.FromElementFull(item));
+                cast.Add(global::MediaBrowser.Plugins.Vimeo.VimeoAPI.API.Video.CastMember.FromElementFull(item));
             }
             return cast;
         }
@@ -1292,16 +1290,16 @@ namespace Vimeo.API
 #endif
 
         //.getInfo
-        public Video vimeo_videos_getInfo(string video_id)
+        public global::MediaBrowser.Plugins.Vimeo.VimeoAPI.API.Video vimeo_videos_getInfo(string video_id)
         {
             var x = ExecuteGetRequest("vimeo.videos.getInfo", 
                 new Dictionary<string,string>{{"video_id",video_id}});
             if (!IsResponseOK(x)) return null;
-            return Video.FromElement(x.Element("rsp").Element("video"), true);
+            return global::MediaBrowser.Plugins.Vimeo.VimeoAPI.API.Video.FromElement(x.Element("rsp").Element("video"), true);
         }
 
         //.getLikers
-        public Video.Likers vimeo_videos_getLikers(string video_id, int? page, int? per_page)
+        public global::MediaBrowser.Plugins.Vimeo.VimeoAPI.API.Video.Likers vimeo_videos_getLikers(string video_id, int? page, int? per_page)
         {
             Dictionary<string, string> parameters = new Dictionary<string, string>{
                 {"video_id", video_id}};
@@ -1309,7 +1307,7 @@ namespace Vimeo.API
             if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
             var x = ExecuteGetRequest("vimeo.videos.getLikers", parameters);
             if (!IsResponseOK(x)) return null;
-            return Video.Likers.FromElement(x.Element("rsp").Element("likers"));
+            return global::MediaBrowser.Plugins.Vimeo.VimeoAPI.API.Video.Likers.FromElement(x.Element("rsp").Element("likers"));
         }
 
         //.getLikes
@@ -1356,7 +1354,7 @@ namespace Vimeo.API
             var x = ExecuteGetRequest("vimeo.videos.getThumbnailUrls", new Dictionary<string,string>{
                 {"video_id", video_id}});
             if (!IsResponseOK(x)) return null;
-            return Video.GetThumbnails(x.Element("rsp").Element("thumbnails"));
+            return global::MediaBrowser.Plugins.Vimeo.VimeoAPI.API.Video.GetThumbnails(x.Element("rsp").Element("thumbnails"));
         }
 
         //.getUploaded

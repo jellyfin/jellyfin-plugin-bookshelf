@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Xml.Linq;
 
-namespace Vimeo.API
+namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
 {
     public class Activities : List<Activity>
     {
@@ -45,7 +42,7 @@ namespace Vimeo.API
         public string time;
         public Contact active_user;
         public Forum forum;
-        public Video video;
+        public global::MediaBrowser.Plugins.Vimeo.VimeoAPI.API.Video video;
         public Comment comment;
         public Group group;
         public Channel channel;
@@ -62,19 +59,19 @@ namespace Vimeo.API
             };
             if (e.Element("video") != null)
             {
-                a.video = new Video
+                a.video = new global::MediaBrowser.Plugins.Vimeo.VimeoAPI.API.Video
                 {
                     id = e.Element("video").Attribute("id").Value,
                     title = e.Element("video").Element("title").Value,
-                    urls = new List<Video.Url>()
+                    urls = new List<global::MediaBrowser.Plugins.Vimeo.VimeoAPI.API.Video.Url>()
                     {
-                        new Video.Url{
+                        new global::MediaBrowser.Plugins.Vimeo.VimeoAPI.API.Video.Url{
                             type="video",
                             Value=e.Element("video").Element("url").Value
                         }
                     },
                     owner = Contact.FromElement(e.Element("video").Element("owner")),
-                    thumbnails = Video.GetThumbnails(e.Element("video").Element("thumbnails"))
+                    thumbnails = global::MediaBrowser.Plugins.Vimeo.VimeoAPI.API.Video.GetThumbnails(e.Element("video").Element("thumbnails"))
                 };
             }
             if (e.Element("forum") != null)

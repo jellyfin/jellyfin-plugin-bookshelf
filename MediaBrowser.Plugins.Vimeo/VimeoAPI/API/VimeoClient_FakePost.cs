@@ -1,21 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Common;
-using System.Net;
-using System.Xml.Linq;
-#if WINDOWS
+﻿#if WINDOWS
 using System.Web;
 #endif
 #if VFW
 using VFW2;
 using System.Windows.Forms;
 #endif
-using System.IO;
-using System.Diagnostics;
 
-namespace Vimeo.API
+namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
 {
 #if WINDOWS && !UPLOAD
     public partial class VimeoClient

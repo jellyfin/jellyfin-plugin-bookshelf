@@ -3,7 +3,7 @@ using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Plugins.Vimeo.Configuration;
 using System.Threading;
-using Vimeo.API;
+using MediaBrowser.Plugins.Vimeo.VimeoAPI.API;
 
 namespace MediaBrowser.Plugins.Vimeo
 {
@@ -12,13 +12,13 @@ namespace MediaBrowser.Plugins.Vimeo
     /// </summary>
     public class Plugin : BasePlugin<PluginConfiguration>
     {
-        //public static VimeoClient vc;
+        public static VimeoClient vc;
 
         public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer)
             : base(applicationPaths, xmlSerializer)
         {
             Instance = this;
-            
+            vc = new VimeoClient("b3f7452b9822b91cede55a3315bee7e021c876c0", "eb62bfd0a204c316a4f05b1d3a9d88726718a893");
         }
 
         /// <summary>

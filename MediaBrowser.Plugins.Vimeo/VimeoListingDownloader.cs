@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using MediaBrowser.Plugins.Vimeo.VimeoAPI.API;
 
 namespace MediaBrowser.Plugins.Vimeo
 {
@@ -31,52 +32,22 @@ namespace MediaBrowser.Plugins.Vimeo
         /// <summary>
         /// The trailer feed URL
         /// </summary>
-        private const string FeedUrl = "http://vimeo.com/api/v2/brad/videos.xml?callback=showThumbs";
+       // private const string FeedUrl = "http://vimeo.com/api/v2/brad/videos.xml?callback=showThumbs";
 
         /// <summary>
         /// Downloads a list of trailer info's from the apple url
         /// </summary>
         /// <returns>Task{List{TrailerInfo}}.</returns>
-        public async Task<List<VimeoInfo>> GetVimeoList(CancellationToken cancellationToken)
+        public async Task<Videos> GetVimeoList(String catID, CancellationToken cancellationToken)
         {
-            var stream = await _httpClient.Get(new HttpRequestOptions
+            var videos = Plugin.vc.vimeo_channels_getVideos(catID, true);
+
+            foreach (var vid in videos)
             {
-                Url = FeedUrl,
-                CancellationToken = cancellationToken,
-                UserAgent = "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.28 Safari/537.36"
-
-            }).ConfigureAwait(false);
-
-            var list = new List<VimeoInfo>();
-
-            using (var reader = XmlReader.Create(stream, new XmlReaderSettings { Async = true }))
-            {
-                await reader.MoveToContentAsync().ConfigureAwait(false);
-
-                while (await reader.ReadAsync().ConfigureAwait(false))
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    if (reader.NodeType == XmlNodeType.Element)
-                    {
-                        switch (reader.Name)
-                        {
-                            case "video":
-                            {
-                                var trailer = FetchInfo(reader.ReadSubtree());
-                                if (trailer.Privacy == "anywhere")
-                                {
-                                    await GetUrl(trailer);
-                                    list.Add(trailer);
-                                }
-                                break;
-                            }
-                        }
-                    }
-                }
+                GetUrl(vid);
             }
 
-            return list;
+            return videos;
         }
 
         /// <summary>
@@ -86,7 +57,7 @@ namespace MediaBrowser.Plugins.Vimeo
         /// <returns>TrailerInfo.</returns>
 
         private static readonly CultureInfo UsCulture = new CultureInfo("en-US");
-        
+
         /// <summary>
         /// Fetches from the info node
         /// </summary>
@@ -105,7 +76,7 @@ namespace MediaBrowser.Plugins.Vimeo
                 {
                     case "id":
                         info.ID = reader.ReadElementContentAsInt();
-                    break;
+                        break;
                     case "title":
                         info.Name = reader.ReadStringSafe();
                         break;
@@ -119,16 +90,16 @@ namespace MediaBrowser.Plugins.Vimeo
                         info.Privacy = reader.ReadStringSafe();
                         break;
                     case "upload_date":
-                    {
-                        DateTime date;
-
-                        if (DateTime.TryParse(reader.ReadStringSafe(), UsCulture, DateTimeStyles.None, out date))
                         {
-                            info.UploadDate = date.ToUniversalTime();
+                            DateTime date;
+
+                            if (DateTime.TryParse(reader.ReadStringSafe(), UsCulture, DateTimeStyles.None, out date))
+                            {
+                                info.UploadDate = date.ToUniversalTime();
+                            }
+                            break;
                         }
-                        break;
-                    }
- 
+
                     default:
                         reader.Skip();
                         break;
@@ -137,14 +108,30 @@ namespace MediaBrowser.Plugins.Vimeo
             return info;
         }
 
-        private async Task<String> GetUrl(VimeoInfo i)
+
+        public async Task<Videos> GetSearchVimeoList(String searchTerm, CancellationToken cancellationToken)
+        {
+            Videos search = Plugin.vc.vimeo_videos_search(true, null, null, searchTerm, VimeoClient.VideosSortMethod.Default,
+                null);
+
+            foreach (var s in search)
+            {
+                await GetUrl(s);
+            }
+
+            return search;
+        }
+
+        private async Task<String> GetUrl(VimeoAPI.API.Video v)
         {
             var reg = new RootObject();
 
-            using (var json = await _httpClient.Get("http://player.vimeo.com/v2/video/" + i.ID + "/config?autoplay=0&byline=0&bypass_privacy=1&context=clip.main&default_to_hd=1&portrait=0&title=0", CancellationToken.None).ConfigureAwait(false))
+            using (var json = await _httpClient.Get("http://player.vimeo.com/v2/video/" + v.id + "/config?autoplay=0&byline=0&bypass_privacy=1&context=clip.main&default_to_hd=1&portrait=0&title=0", CancellationToken.None).ConfigureAwait(false))
             {
                 reg = _jsonSerializer.DeserializeFromStream<RootObject>(json);
             }
+
+
 
             //var HD = reg.request.files.h264.hd;
             var SD = reg.request.files.h264.sd;
@@ -158,13 +145,12 @@ namespace MediaBrowser.Plugins.Vimeo
             }
             else
             {*/
-                i.VideoWidth = SD.width;
-                i.VideoHeight = SD.height;
-                i.VideoBitRate = SD.bitrate;
-                i.URL = SD.url;
-            //}
+            v.width = SD.width;
+            v.height = SD.height;
+            v.urls[0].Value = SD.url;
 
-            return i.URL;
+
+            return v.urls[0].Value;
         }
     }
 }
