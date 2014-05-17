@@ -20,7 +20,7 @@ namespace MediaBrowser.Plugins.Vimeo
 {
     class VimeoChannelDownloader
     {
-        private ILogger _logger;
+        private readonly ILogger _logger;
         private IHttpClient _httpClient;
         private IJsonSerializer _jsonSerializer;
 

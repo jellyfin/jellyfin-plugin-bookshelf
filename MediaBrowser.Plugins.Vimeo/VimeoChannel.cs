@@ -19,7 +19,7 @@ namespace MediaBrowser.Plugins.Vimeo
     {
         private readonly IHttpClient _httpClient;
         private readonly ILogger _logger;
-        private IJsonSerializer _jsonSerializer;
+        private readonly IJsonSerializer _jsonSerializer;
 
         public VimeoChannel(IHttpClient httpClient, IJsonSerializer jsonSerializer, ILogManager logManager)
         {
