@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
+using Vimeo.API;
 
 namespace MediaBrowser.Plugins.Vimeo
 {
@@ -35,10 +36,10 @@ namespace MediaBrowser.Plugins.Vimeo
         public async Task<ChannelItemResult> GetChannelItems(InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
             IEnumerable<ChannelItemInfo> items;
-
+            
             if (query.CategoryId == null)
             {
-                items = await GetChannels(query.CategoryId, cancellationToken).ConfigureAwait(false);
+                items = await GetChannels(cancellationToken).ConfigureAwait(false);
             }
             else
             {
@@ -52,10 +53,19 @@ namespace MediaBrowser.Plugins.Vimeo
             };
         }
 
-        private async Task<IEnumerable<ChannelItemInfo>> GetChannels(String catID, CancellationToken cancellationToken)
+        private async Task<IEnumerable<ChannelItemInfo>> GetChannels(CancellationToken cancellationToken)
         {
-            //var downloader = new VimeoChannelDownloader(_logger, _jsonSerializer, _httpClient);
-            //downloader.GetVimeoChannelList(catID, cancellationToken);
+            var downloader = new VimeoChannelDownloader(_logger, _jsonSerializer, _httpClient);
+            var channels = await downloader.GetVimeoChannelList(cancellationToken);
+           
+            return channels.Select(i => new ChannelItemInfo
+            {
+                Type = ChannelItemType.Category,
+                ImageUrl = i.logo_url,
+                Name = i.name,
+                Id = i.id.GetMD5().ToString("N"),
+                Overview = i.description
+            });
         }
 
         private async Task<IEnumerable<ChannelItemInfo>> GetChannelItems(CancellationToken cancellationToken)

@@ -14,6 +14,7 @@ using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
 using System.Xml.XPath;
+using Vimeo.API;
 
 namespace MediaBrowser.Plugins.Vimeo
 {
@@ -30,14 +31,11 @@ namespace MediaBrowser.Plugins.Vimeo
             _httpClient = httpClient;
         }
 
-        public async Task<List<VimeoInfo>> GetVimeoChannelList(String catID, CancellationToken cancellationToken)
+        public async Task<Channels> GetVimeoChannelList(CancellationToken cancellationToken)
         {
-            var list = new List<VimeoInfo>();
-            var url = "https://vimeo.com/channels/page:1/sort:subscribers";
-
-            
-
-            return null;
+            VimeoClient vc = new VimeoClient("b3f7452b9822b91cede55a3315bee7e021c876c0", "eb62bfd0a204c316a4f05b1d3a9d88726718a893");
+            var channels = vc.vimeo_channels_getAll(_logger);
+            return channels;
         }
 
     }
