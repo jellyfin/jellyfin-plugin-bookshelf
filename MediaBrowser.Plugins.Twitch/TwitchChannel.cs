@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Web;
-using MediaBrowser.Common.Extensions;
-using MediaBrowser.Common.Net;
+﻿using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Channels;
 using MediaBrowser.Controller.Drawing;
 using MediaBrowser.Controller.Entities;
@@ -13,11 +6,16 @@ using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
-using MediaBrowser.Plugins.Vimeo;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Web;
 
 namespace MediaBrowser.Plugins.Twitch
 {
-    public class TwitchChannel : IChannel
+    public class TwitchChannel : IChannel, IRequiresMediaInfoCallback
     {
         private readonly IHttpClient _httpClient;
         private readonly ILogger _logger;
@@ -47,7 +45,7 @@ namespace MediaBrowser.Plugins.Twitch
             }
             else
             {
-                 items = await GetChannelItems(query.CategoryId, cancellationToken).ConfigureAwait(false);
+                items = await GetChannelItems(query.CategoryId, cancellationToken).ConfigureAwait(false);
             }
 
             return new ChannelItemResult
@@ -61,7 +59,7 @@ namespace MediaBrowser.Plugins.Twitch
         {
             var downloader = new TwitchChannelDownloader(_logger, _jsonSerializer, _httpClient);
             var channels = await downloader.GetTwitchChannelList(cancellationToken);
-           
+
             return channels.top.Select(i => new ChannelItemInfo
             {
                 Type = ChannelItemType.Category,
@@ -77,11 +75,6 @@ namespace MediaBrowser.Plugins.Twitch
             var videos = await downloader.GetStreamList(catID, cancellationToken)
                 .ConfigureAwait(false);
 
-            foreach (var v in videos.streams.ToList())
-            {
-                await getURL(videos, v);
-            }
-
             return videos.streams.Select(i => new ChannelItemInfo
             {
                 ContentType = ChannelMediaContentType.Clip,
@@ -92,7 +85,7 @@ namespace MediaBrowser.Plugins.Twitch
                 //Overview = i.channel.,
                 Type = ChannelItemType.Media,
                 Id = i.channel._id.ToString("N"),
-               // PremiereDate = i.upload_date,
+                // PremiereDate = i.upload_date,
 
                 MediaSources = new List<ChannelMediaInfo>
                 {
@@ -101,27 +94,35 @@ namespace MediaBrowser.Plugins.Twitch
                          Path = i.channel.playURL,
                     }
                 }
+
             });
         }
 
-        private async Task getURL(RootObject r, Stream s)
+        public async Task<IEnumerable<ChannelMediaInfo>> GetChannelItemMediaInfo(string id, CancellationToken cancellationToken)
         {
-            using (var json = await _httpClient.Get("http://api.twitch.tv/api/channels/" + s.channel.name + "/access_token", CancellationToken.None).ConfigureAwait(false))
+            using (var json = await _httpClient.Get("http://api.twitch.tv/api/channels/" + id + "/access_token", cancellationToken).ConfigureAwait(false))
             {
-                r = _jsonSerializer.DeserializeFromStream<RootObject>(json);
+                var r = _jsonSerializer.DeserializeFromStream<RootObject>(json);
+
+                var token = HttpUtility.UrlEncode(r.token);
+
+                var playURL = "http://usher.twitch.tv/api/channel/hls/" + id + ".m3u8?token=" + token + "&sig=" +
+                                    r.sig;
+
+                return new List<ChannelMediaInfo>
+                {
+                    new ChannelMediaInfo
+                    {
+                        Path = playURL
+                    }
+                };
             }
-
-            var token = HttpUtility.UrlEncode(r.token);
-
-            s.channel.playURL = "http://usher.twitch.tv/api/channel/hls/" + s.channel.name + ".m3u8?token=" + token + "&sig=" +
-                                r.sig;
         }
-        
 
         public Task<DynamicImageResponse> GetChannelImage(ImageType type, CancellationToken cancellationToken)
         {
             switch (type)
-            {   
+            {
                 case ImageType.Thumb:
                 case ImageType.Primary:
                     {
@@ -153,7 +154,7 @@ namespace MediaBrowser.Plugins.Twitch
             get { return "Twitch TV"; }
         }
 
-    
+
 
         public ChannelInfo GetChannelInfo()
         {

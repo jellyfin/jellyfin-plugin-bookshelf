@@ -1,7 +1,8 @@
 ﻿using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Serialization;
-using MediaBrowser.Plugins.Vimeo.Configuration;
+using MediaBrowser.Plugins.Twitch.Configuration;
+
 namespace MediaBrowser.Plugins.Twitch
 {
     /// <summary>
@@ -23,7 +24,7 @@ namespace MediaBrowser.Plugins.Twitch
         /// <value>The name.</value>
         public override string Name
         {
-            get { return "Twitch TV"; }
+            get { return "Twitch"; }
         }
 
         /// <summary>
