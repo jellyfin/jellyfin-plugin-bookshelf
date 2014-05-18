@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Xml.Linq;
 
-namespace Vimeo.API
+namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
 {
     public class Albums : List<Album>
     {
@@ -15,17 +13,14 @@ namespace Vimeo.API
 
         public static Albums FromElement(XElement e)
         {
-            Albums es = new Albums
+            var es = new Albums
             {
                 on_this_page = int.Parse(e.Attribute("on_this_page").Value),
                 page = int.Parse(e.Attribute("page").Value),
                 perpage = int.Parse(e.Attribute("perpage").Value),
                 total = int.Parse(e.Attribute("total").Value)
             };
-            foreach (var item in e.Elements("album"))
-            {
-                es.Add(Album.FromElement(item));
-            }
+            es.AddRange(e.Elements("album").Select(Album.FromElement));
             return es;
         }
     }

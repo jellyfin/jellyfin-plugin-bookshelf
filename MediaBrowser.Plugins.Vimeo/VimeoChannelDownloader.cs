@@ -14,7 +14,7 @@ using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
 using System.Xml.XPath;
-using Vimeo.API;
+using MediaBrowser.Plugins.Vimeo.VimeoAPI.API;
 
 namespace MediaBrowser.Plugins.Vimeo
 {
@@ -33,8 +33,8 @@ namespace MediaBrowser.Plugins.Vimeo
 
         public async Task<Channels> GetVimeoChannelList(CancellationToken cancellationToken)
         {
-            VimeoClient vc = new VimeoClient("b3f7452b9822b91cede55a3315bee7e021c876c0", "eb62bfd0a204c316a4f05b1d3a9d88726718a893");
-            var channels = vc.vimeo_channels_getAll(_logger);
+
+            var channels = Plugin.vc.vimeo_channels_getAll();
             return channels;
         }
 

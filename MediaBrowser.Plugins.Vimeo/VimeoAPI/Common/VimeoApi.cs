@@ -1,24 +1,17 @@
-﻿using System;
+﻿#if WINDOWS
+using System.Web;
+#endif
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
-#if WINDOWS
 using System.Web;
-#endif
-using System.Web;
-using System.Xml;
-using System.Xml.Serialization;
-using System.Collections.Generic;
-using Common;
-using System.Diagnostics;
-using System.Linq;
-using System.Xml.Linq;
-namespace Vimeo.API
-{
-#if WINDOWS_PHONE
-    public class WebProxy { } //Dum-dum.
-#endif
 
+namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.Common
+{
     public class AdvancedAPI
     {
         public const string RequestTokenUrl = "http://vimeo.com/oauth/request_token?";
@@ -107,15 +100,15 @@ namespace Vimeo.API
         public static string BuildOAuthApiRequestUrl(string url, string token, string tokenSecret, out Dictionary<string, string> parameters, string httpMethod, string consumerKey, string consumerSecret, bool addCallBack=true)
         {
             var oAuth = new OAuthBase();
-            string nonce = oAuth.GenerateNonce();
-            string timeStamp = oAuth.GenerateTimeStamp();
+            var nonce = oAuth.GenerateNonce();
+            var timeStamp = oAuth.GenerateTimeStamp();
 
             string normalizedUrl;
             string normalizedRequestParameters;
 
             var uri = new Uri(url);
 
-            string sig = oAuth.GenerateSignature(uri, consumerKey,
+            var sig = oAuth.GenerateSignature(uri, consumerKey,
                     consumerSecret,
                     token, tokenSecret, httpMethod, timeStamp, nonce,
                     OAuthSignatureType.HMACSHA1,
@@ -165,7 +158,7 @@ namespace Vimeo.API
 
         public string GetUnauthorizedRequestToken(WebProxy proxy)
         {
-            string url = BuildOAuthApiRequestUrl(RequestTokenUrl);
+            var url = BuildOAuthApiRequestUrl(RequestTokenUrl);
             return ExecuteGetCommand(url, null, null, proxy);
         }
 
@@ -189,13 +182,7 @@ namespace Vimeo.API
         {
             if (string.IsNullOrEmpty(url)) return null;
             var vars = url.Split('?', '&');
-            foreach (var item in vars)
-            {
-                var pair = item.Split('=');
-                if (pair[0] == parameterName)
-                    return pair[1];
-            }
-            return null;
+            return (from item in vars select item.Split('=') into pair where pair[0] == parameterName select pair[1]).FirstOrDefault();
         }
   
         public static string GetVimeoVideoIdFromURL(string videoURL)

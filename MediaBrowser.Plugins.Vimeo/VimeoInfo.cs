@@ -63,6 +63,13 @@ namespace MediaBrowser.Plugins.Vimeo
         public Mobile mobile { get; set; }
         public Hd hd { get; set; }
         public Sd sd { get; set; }
+
+        public H264()
+        {
+            mobile = new Mobile();
+            hd = new Hd();
+            sd = new Sd();
+        }
     }
 
     public class Hls
@@ -76,6 +83,13 @@ namespace MediaBrowser.Plugins.Vimeo
         public H264 h264 { get; set; }
         public Hls hls { get; set; }
         public List<string> codecs { get; set; }
+
+        public Files()
+        {
+            h264 = new H264();
+            hls = new Hls();
+            codecs = new List<string>();
+        }
     }
 
     public class Cookie
@@ -132,11 +146,16 @@ namespace MediaBrowser.Plugins.Vimeo
         public Build build { get; set; }
         public Urls urls { get; set; }
         public string signature { get; set; }
-    }
 
-    public class Rating
-    {
-        public int id { get; set; }
+        public Request()
+        {
+            files = new Files();
+            flags = new Flags();
+            cookie = new Cookie();
+            build = new Build();
+            urls = new Urls();
+            
+        }
     }
 
     public class Owner
@@ -158,7 +177,6 @@ namespace MediaBrowser.Plugins.Vimeo
 
     public class Video
     {
-        public Rating rating { get; set; }
         public int allow_hd { get; set; }
         public int height { get; set; }
         public Owner owner { get; set; }
@@ -175,6 +193,12 @@ namespace MediaBrowser.Plugins.Vimeo
         public int width { get; set; }
         public string embed_permission { get; set; }
         public double fps { get; set; }
+
+        public Video()
+        {
+            owner = new Owner();
+            thumbs = new Thumbs();
+        }
     }
 
     public class Build2
@@ -183,16 +207,20 @@ namespace MediaBrowser.Plugins.Vimeo
         public string rpc { get; set; }
     }
 
-    public class BylineBadge
+    public class Badge
     {
-        public string url { get; set; }
-        public string type { get; set; }
+        public string name { get; set; }
+        public string img { get; set; }
+        public string svg { get; set; }
+        public int height { get; set; }
+        public int width { get; set; }
+        public string link { get; set; }
+        public string img_2x { get; set; }
     }
 
     public class Settings
     {
         public int fullscreen { get; set; }
-        public BylineBadge byline_badge { get; set; }
         public int byline { get; set; }
         public int like { get; set; }
         public int playbar { get; set; }
@@ -206,8 +234,13 @@ namespace MediaBrowser.Plugins.Vimeo
         public int watch_later { get; set; }
         public int portrait { get; set; }
         public int embed { get; set; }
-        public int badge { get; set; }
+        public Badge badge { get; set; }
         public int volume { get; set; }
+
+        public Settings()
+        {
+            badge = new Badge();
+        }
     }
 
     public class Embed
@@ -222,6 +255,11 @@ namespace MediaBrowser.Plugins.Vimeo
         public int on_site { get; set; }
         public int loop { get; set; }
         public int autoplay { get; set; }
+
+        public Embed()
+        {
+            settings = new Settings();
+        }
     }
 
     public class User
@@ -232,7 +270,7 @@ namespace MediaBrowser.Plugins.Vimeo
         public int owner { get; set; }
         public int watch_later { get; set; }
         public int id { get; set; }
-        public int mod { get; set; }
+        public bool mod { get; set; }
     }
 
     public class RootObject
@@ -246,5 +284,14 @@ namespace MediaBrowser.Plugins.Vimeo
         public Embed embed { get; set; }
         public string vimeo_url { get; set; }
         public User user { get; set; }
+
+        public RootObject()
+        {
+            request = new Request();
+            video = new Video();
+            build = new Build2();
+            embed = new Embed();
+            user = new User();
+        }
     }
 }

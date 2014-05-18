@@ -2,23 +2,19 @@
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Plugins.Vimeo.Configuration;
-using System.Threading;
-using MediaBrowser.Plugins.Vimeo.VimeoAPI.API;
-
-namespace MediaBrowser.Plugins.Vimeo
+namespace MediaBrowser.Plugins.Twitch
 {
     /// <summary>
     /// Class Plugin
     /// </summary>
     public class Plugin : BasePlugin<PluginConfiguration>
     {
-        public static VimeoClient vc;
-
+        
         public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer)
             : base(applicationPaths, xmlSerializer)
         {
             Instance = this;
-            vc = new VimeoClient("b3f7452b9822b91cede55a3315bee7e021c876c0", "eb62bfd0a204c316a4f05b1d3a9d88726718a893");
+            
         }
 
         /// <summary>
@@ -27,7 +23,7 @@ namespace MediaBrowser.Plugins.Vimeo
         /// <value>The name.</value>
         public override string Name
         {
-            get { return "Vimeo"; }
+            get { return "Twitch TV"; }
         }
 
         /// <summary>
@@ -38,7 +34,7 @@ namespace MediaBrowser.Plugins.Vimeo
         {
             get
             {
-                return "Vimeo videos for your collection.";
+                return "Twitch TV streams in your collection.";
             }
         }
 

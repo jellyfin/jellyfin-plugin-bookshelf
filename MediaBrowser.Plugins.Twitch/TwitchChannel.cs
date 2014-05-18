@@ -1,26 +1,29 @@
-﻿using MediaBrowser.Common.Extensions;
-using MediaBrowser.Common.Net;  
-using MediaBrowser.Controller.Channels;
-using MediaBrowser.Controller.Drawing;
-using MediaBrowser.Controller.Providers;
-using MediaBrowser.Model.Entities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
+using MediaBrowser.Common.Extensions;
+using MediaBrowser.Common.Net;
+using MediaBrowser.Controller.Channels;
+using MediaBrowser.Controller.Drawing;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Providers;
+using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
+using MediaBrowser.Plugins.Vimeo;
 
-namespace MediaBrowser.Plugins.Vimeo
+namespace MediaBrowser.Plugins.Twitch
 {
-    public class VimeoChannel : IChannel
+    public class TwitchChannel : IChannel
     {
         private readonly IHttpClient _httpClient;
         private readonly ILogger _logger;
         private readonly IJsonSerializer _jsonSerializer;
 
-        public VimeoChannel(IHttpClient httpClient, IJsonSerializer jsonSerializer, ILogManager logManager)
+        public TwitchChannel(IHttpClient httpClient, IJsonSerializer jsonSerializer, ILogManager logManager)
         {
             _httpClient = httpClient;
             _logger = logManager.GetLogger(GetType().Name);
@@ -29,30 +32,7 @@ namespace MediaBrowser.Plugins.Vimeo
 
         public async Task<IEnumerable<ChannelItemInfo>> Search(ChannelSearchInfo searchInfo, Controller.Entities.User user, CancellationToken cancellationToken)
         {
-            var downloader = new VimeoListingDownloader(_logger, _jsonSerializer, _httpClient);
-            var search = await downloader.GetSearchVimeoList(searchInfo.SearchTerm, cancellationToken);
-
-            return search.Select(i => new ChannelItemInfo
-            {
-                ContentType = ChannelMediaContentType.Clip,
-                ImageUrl = i.thumbnails[0].Url,
-                IsInfiniteStream = false,
-                MediaType = ChannelMediaType.Video,
-                Name = i.title,
-                Overview = i.description,
-                Type = ChannelItemType.Media,
-                Id = i.urls[0].Value.GetMD5().ToString("N"),
-
-                MediaSources = new List<ChannelMediaInfo>
-                {
-                    new ChannelMediaInfo
-                    {
-                         Path = i.urls[0].Value,
-                         Height = i.height,
-                         Width = i.width
-                    }
-                }
-            });
+            return null;
         }
 
         public async Task<ChannelItemResult> GetChannelItems(InternalChannelItemQuery query, CancellationToken cancellationToken)
@@ -72,60 +52,77 @@ namespace MediaBrowser.Plugins.Vimeo
 
             return new ChannelItemResult
             {
-                Items = items.ToList(),
-                CacheLength = TimeSpan.FromDays(3)
+                Items = items.ToList()//,
+                //CacheLength = TimeSpan.FromDays(3)
             };
         }
 
         private async Task<IEnumerable<ChannelItemInfo>> GetChannels(CancellationToken cancellationToken)
         {
-            var downloader = new VimeoChannelDownloader(_logger, _jsonSerializer, _httpClient);
-            var channels = await downloader.GetVimeoChannelList(cancellationToken);
+            var downloader = new TwitchChannelDownloader(_logger, _jsonSerializer, _httpClient);
+            var channels = await downloader.GetTwitchChannelList(cancellationToken);
            
-            return channels.Select(i => new ChannelItemInfo
+            return channels.top.Select(i => new ChannelItemInfo
             {
                 Type = ChannelItemType.Category,
-                ImageUrl = i.logo_url,
-                Name = i.name,
-                Id = i.id,
-                Overview = i.description
+                ImageUrl = i.game.box.large,
+                Name = i.game.name,
+                Id = i.game.name
             });
         }
 
         private async Task<IEnumerable<ChannelItemInfo>> GetChannelItems(String catID, CancellationToken cancellationToken)
         {
-            var downloader = new VimeoListingDownloader(_logger, _jsonSerializer, _httpClient);
-            var videos = await downloader.GetVimeoList(catID, cancellationToken)
+            var downloader = new TwitchListingDownloader(_logger, _jsonSerializer, _httpClient);
+            var videos = await downloader.GetStreamList(catID, cancellationToken)
                 .ConfigureAwait(false);
 
-            return videos.Select(i => new ChannelItemInfo
+            foreach (var v in videos.streams.ToList())
+            {
+                await getURL(videos, v);
+            }
+
+            return videos.streams.Select(i => new ChannelItemInfo
             {
                 ContentType = ChannelMediaContentType.Clip,
-                ImageUrl = i.thumbnails[2].Url,
-                IsInfiniteStream = false,
+                ImageUrl = i.preview.large,
+                IsInfiniteStream = true,
                 MediaType = ChannelMediaType.Video,
-                Name = i.title,
-                Overview = i.description,
+                Name = i.channel.name,
+                //Overview = i.channel.,
                 Type = ChannelItemType.Media,
-                Id = i.id,
+                Id = i.channel._id.ToString("N"),
                // PremiereDate = i.upload_date,
 
                 MediaSources = new List<ChannelMediaInfo>
                 {
                     new ChannelMediaInfo
                     {
-                         Path = i.urls.Find(item => item.type == "player").Value,
-                         Height = i.height,
-                         Width = i.width
+                         Path = i.channel.playURL,
                     }
                 }
             });
         }
 
+        private async Task getURL(RootObject r, Stream s)
+        {
+            using (var json = await _httpClient.Get("http://api.twitch.tv/api/channels/" + s.channel.name + "/access_token", CancellationToken.None).ConfigureAwait(false))
+            {
+                r = _jsonSerializer.DeserializeFromStream<RootObject>(json);
+            }
+
+            var token = HttpUtility.UrlEncode(r.token);
+
+            s.channel.playURL = "http://usher.twitch.tv/api/channel/hls/" + s.channel.name + ".m3u8?token=" + token + "&sig=" +
+                                r.sig;
+        }
+        
+
         public Task<DynamicImageResponse> GetChannelImage(ImageType type, CancellationToken cancellationToken)
         {
             switch (type)
-            {
+            {   
+                case ImageType.Thumb:
                 case ImageType.Primary:
                     {
                         var path = GetType().Namespace + ".Images." + type.ToString().ToLower() + ".jpg";
@@ -133,18 +130,6 @@ namespace MediaBrowser.Plugins.Vimeo
                         return Task.FromResult(new DynamicImageResponse
                         {
                             Format = ImageFormat.Jpg,
-                            HasImage = true,
-                            Stream = GetType().Assembly.GetManifestResourceStream(path)
-                        });
-                    }
-                case ImageType.Backdrop:
-                case ImageType.Thumb:
-                    {
-                        var path = GetType().Namespace + ".Images." + type.ToString().ToLower() + ".png";
-
-                        return Task.FromResult(new DynamicImageResponse
-                        {
-                            Format = ImageFormat.Png,
                             HasImage = true,
                             Stream = GetType().Assembly.GetManifestResourceStream(path)
                         });
@@ -160,32 +145,21 @@ namespace MediaBrowser.Plugins.Vimeo
             {
                 ImageType.Thumb,
                 ImageType.Primary,
-                ImageType.Backdrop
             };
-        }
-
-        public string HomePageUrl
-        {
-            get { return "http://mediabrowser3.com"; }
-        }
-
-        public bool IsEnabledFor(User user)
-        {
-            return true;
         }
 
         public string Name
         {
-            get { return "Vimeo"; }
+            get { return "Twitch TV"; }
         }
 
-   
+    
 
         public ChannelInfo GetChannelInfo()
         {
             return new ChannelInfo
             {
-                CanSearch = true,
+                CanSearch = false,
 
                 ContentTypes = new List<ChannelMediaContentType>
                  {
@@ -199,7 +173,7 @@ namespace MediaBrowser.Plugins.Vimeo
             };
         }
 
-        public bool IsEnabledFor(Controller.Entities.User user)
+        public bool IsEnabledFor(User user)
         {
             return true;
         }

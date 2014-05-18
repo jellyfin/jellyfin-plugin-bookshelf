@@ -1,20 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Common;
-using System.Net;
-using System.Xml.Linq;
-using System.Web;
-#if VFW
-using VFW2;
-using System.Windows.Forms;
-#endif
-using System.IO;
 using System.Diagnostics;
+using System.Linq;
+using System.Net;
+using System.Web;
+using System.Xml.Linq;
 using MediaBrowser.Model.Logging;
+using MediaBrowser.Plugins.Vimeo.VimeoAPI.Common;
 
-namespace Vimeo.API
+namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
 {
     [Serializable]
     public partial class VimeoClient
@@ -26,163 +20,6 @@ namespace Vimeo.API
         protected const string HMACSHA1SignatureType = "HMAC-SHA1";
         protected const string delimiter = "%2C";
 
-#if VFW
-        public const bool IsVFW = true;
-        public string Token
-        {
-            get { return VFWSettings.Default.oauth_token; }
-            set { VFWSettings.Default.oauth_token = value; }
-        }
-        public string TokenSecret
-        {
-            get
-            { return VFWSettings.Default.oauth_token_secret; }
-            set { VFWSettings.Default.oauth_token_secret = value; }
-        }
-        public string UserId
-        {
-            get { return VFWSettings.Default.userid; }
-            set { VFWSettings.Default.userid = value; }
-        }
-        public string UserName
-        {
-            get { return VFWSettings.Default.username; }
-            set { VFWSettings.Default.username = value; }
-        }
-        public long FreeQuota
-        {
-            get { return VFWSettings.Default.quota_free; }
-            set { VFWSettings.Default.quota_free = value; }
-        }
-        public long MaxQuota
-        {
-            get { return VFWSettings.Default.quota_max; }
-            set { VFWSettings.Default.quota_max = value; }
-        }
-        public long UsedQuota
-        {
-            get { return VFWSettings.Default.quota_used; }
-            set { VFWSettings.Default.quota_used = value; }
-        }
-        public bool AllowsHD
-        {
-            get { return VFWSettings.Default.quota_hd; }
-            set { VFWSettings.Default.quota_hd = value; }
-        }
-        public int QuotaResets
-        {
-            get { return VFWSettings.Default.quota_resets; }
-            set { VFWSettings.Default.quota_resets = value; }
-        }
-        public WebProxy Proxy
-        {
-            get
-            {
-                if (!VFWSettings.Default.UseProxy) return null;
-                return new WebProxy(VFWSettings.Default.ProxyUrl, VFWSettings.Default.ProxyPort);
-            }
-            set
-            {
-                if (value == null) VFWSettings.Default.UseProxy = false;
-                else
-                {
-                    VFWSettings.Default.ProxyUrl = value.Address.Host;
-                    VFWSettings.Default.ProxyPort = value.Address.Port;
-                    VFWSettings.Default.UseProxy = VFWSettings.Default.ProxyUrl.Trim().Length > 0;
-                }
-            }
-        }
-
-        public void SaveSettings()
-        {
-            VFWSettings.Default.Save();
-        }
-
-        public VideosSortMethod DefaultVideosSortMethod
-        {
-            get
-            {
-                try { return VFWSettings.Default.VideosSort; }
-                catch
-                {
-                    VFWSettings.Default.VideosSort = VideosSortMethod.Default;
-                    return VideosSortMethod.Default;
-                }
-            }
-            set
-            {
-                VFWSettings.Default.VideosSort =value;
-            }
-        }
-        public ContactsSortMethods DefaultContactsSortMethod
-        {
-            get
-            {
-                try { return VFWSettings.Default.ContactsSort; }
-                catch
-                {
-                    VFWSettings.Default.ContactsSort = ContactsSortMethods.Default;
-                    return ContactsSortMethods.Default;
-                }
-            }
-            set
-            {
-                VFWSettings.Default.ContactsSort = value;
-            }
-        }
-        public ChannelsSortMethods DefaultGroupsSortMethod
-        {
-            get
-            {
-                try
-                { return VFWSettings.Default.GroupsSort; }
-                catch
-                {
-                    VFWSettings.Default.GroupsSort = ChannelsSortMethods.Default;
-                    return ChannelsSortMethods.Default;
-                }
-            }
-            set
-            {
-                VFWSettings.Default.GroupsSort = value;
-            }
-        }
-        public ChannelsSortMethods DefaultChannelsSortMethod
-        {
-            get
-            {
-                try { return VFWSettings.Default.ChannelsSort; }
-                catch
-                {
-                    VFWSettings.Default.ChannelsSort = ChannelsSortMethods.Default;
-                    return ChannelsSortMethods.Default;
-                }
-            }
-            set
-            {
-                VFWSettings.Default.ChannelsSort = value;
-            }
-        }
-        public AlbumsSortMethods DefaultAlbumsSortMethod
-        {
-            get
-            {
-                try
-                {
-                    return VFWSettings.Default.AlbumsSort;
-                }
-                catch
-                {
-                    VFWSettings.Default.AlbumsSort = AlbumsSortMethods.Default;
-                    return AlbumsSortMethods.Default;
-                }
-            }
-            set
-            {
-                VFWSettings.Default.AlbumsSort = AlbumsSortMethods.Default;
-            }
-        }
-#else
         public const bool IsVFW = false;
         public string Token;
         public string TokenSecret;
@@ -193,13 +30,7 @@ namespace Vimeo.API
         public long UsedQuota;
         public bool AllowsHD;
         public int QuotaResets;
-#if WINDOWS_PHONE
-        public readonly WebProxy proxy = null;
-#else
         public WebProxy Proxy;
-#endif
-#endif
-
         public Person Me;
 
         public VimeoClient(string consumerKey, string consumerSecret, string permission="delete")
@@ -231,9 +62,6 @@ namespace Vimeo.API
             var q = VimeoAPI.GetAccessToken(Proxy, Token, TokenSecret, verifier);
             Token = AdvancedAPI.GetParameterValue(q, OAuthTokenKey);
             TokenSecret = AdvancedAPI.GetParameterValue(q, OAuthTokenSecretKey);
-#if VFW
-            SaveSettings();
-#endif
         }
 
         public string GetRequestUrl(string baseUrl, string method, Dictionary<string, string> parameters)
@@ -275,9 +103,6 @@ namespace Vimeo.API
         {
             if (url == null)
             {
-#if DEBUG && VFW
-                MessageBox.Show("url is null in ExecuteGetRequest");
-#endif
                 return null;
             }
             //mysterious error comes out of this hole
@@ -338,9 +163,6 @@ namespace Vimeo.API
                 if ((Me = vimeo_people_getInfo(UserId)) == null) return false;
             UserId = loginResponse.userid;
             UserName = loginResponse.username;
-#if VFW
-            SaveSettings();
-#endif
             return true;
         }
 
@@ -362,9 +184,6 @@ namespace Vimeo.API
             UsedQuota = quotaResponse.used;
             QuotaResets = quotaResponse.resets;
             AllowsHD = quotaResponse.hd_quota;
-#if VFW
-            SaveSettings();
-#endif
             return true;
         }
 
@@ -385,24 +204,22 @@ namespace Vimeo.API
         //.happenedToUser
         public Activities vimeo_activity_happenedToUser(string user_id, int? page=null, int? per_page=null)
         {
-            Dictionary<string, string> parameters = new Dictionary<string, string>
+            var parameters = new Dictionary<string, string>
                 {{"user_id", user_id}};
             if (page.HasValue) parameters.Add("page", page.Value.ToString());
             if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
             var x = ExecuteGetRequest("vimeo.activity.happenedToUser", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Activities.FromElement(x.Element("rsp").Element("activities"));
+            return !IsResponseOK(x) ? null : Activities.FromElement(x.Element("rsp").Element("activities"));
         }
 
         //.userDid
         public Activities vimeo_activity_userDid(string user_id, int? page=null, int? per_page=null)
         {
-            Dictionary<string, string> parameters = new Dictionary<string, string> { { "user_id", user_id } };
+            var parameters = new Dictionary<string, string> { { "user_id", user_id } };
             if (page.HasValue) parameters.Add("page", page.Value.ToString());
             if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
             var x = ExecuteGetRequest("vimeo.activity.userDid", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Activities.FromElement(x.Element("rsp").Element("activities"));
+            return !IsResponseOK(x) ? null : Activities.FromElement(x.Element("rsp").Element("activities"));
         }
         #endregion
 
@@ -426,14 +243,13 @@ namespace Vimeo.API
         //.create
         public string vimeo_albums_create(string title, string description, string video_id, string videos=null)
         {
-            Dictionary<string, string> parameters = new Dictionary<string, string>{
+            var parameters = new Dictionary<string, string>{
                 {"title",title},
                 {"description",description},
                 {"video_id",video_id}};
             if (!string.IsNullOrEmpty(videos)) parameters.Add("videos", videos);
             var x = ExecuteGetRequest("vimeo.albums.create", parameters);
-            if (!IsResponseOK(x)) return null;
-            return x.Element("rsp").Element("album").Attribute("id").Value;
+            return !IsResponseOK(x) ? null : x.Element("rsp").Element("album").Attribute("id").Value;
         }
 
         //.delete
@@ -450,7 +266,7 @@ namespace Vimeo.API
         }
         public Albums vimeo_albums_getAll(string user_id, AlbumsSortMethods sortMethod=AlbumsSortMethods.Default, int? page=null, int? per_page=null)
         {
-            Dictionary<string, string> parameters = new Dictionary<string, string>{
+            var parameters = new Dictionary<string, string>{
                 {"user_id",user_id}};
             if (page.HasValue) parameters.Add("page", page.Value.ToString());
             if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
@@ -460,14 +276,13 @@ namespace Vimeo.API
                     sortMethod == AlbumsSortMethods.Oldest ? "oldest" :
                     sortMethod == AlbumsSortMethods.Alphabetical ? "alphabetical" : "");
             var x = ExecuteGetRequest("vimeo.albums.getAll", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Albums.FromElement(x.Element("rsp").Element("albums"));
+            return !IsResponseOK(x) ? null : Albums.FromElement(x.Element("rsp").Element("albums"));
         }
 
         //.getVideos
         public Videos vimeo_albums_getVideos(string album_id, bool full_response=false, string password=null, int? page=null, int? per_page=null)
         {
-            Dictionary<string, string> parameters = new Dictionary<string, string>{
+            var parameters = new Dictionary<string, string>{
                 {"album_id",album_id},
                 {"full_response", full_response ? "1" : "0"}};
 
@@ -476,20 +291,18 @@ namespace Vimeo.API
             if (!string.IsNullOrEmpty(password)) parameters.Add("password", password);
 
             var x = ExecuteGetRequest("vimeo.albums.getVideos", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Videos.FromElement(x.Element("rsp").Element("videos"), full_response);
+            return !IsResponseOK(x) ? null : Videos.FromElement(x.Element("rsp").Element("videos"), full_response);
         }
 
         //.getWatchLater
         public Videos vimeo_albums_getWatchLater(bool full_response=false, int? page=null, int? per_page=null)
         {
-            Dictionary<string, string> parameters = new Dictionary<string, string>{
+            var parameters = new Dictionary<string, string>{
                 {"full_response", full_response ? "1" : "0"}};
             if (page.HasValue) parameters.Add("page", page.Value.ToString());
             if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
             var x = ExecuteGetRequest("vimeo.albums.getWatchLater", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Videos.FromElement(x.Element("rsp").Element("videos"), full_response);
+            return !IsResponseOK(x) ? null : Videos.FromElement(x.Element("rsp").Element("videos"), full_response);
         }
 
         //.removeFromWatchLater
@@ -551,9 +364,8 @@ namespace Vimeo.API
         {
             Newest, Oldest, Alphabetical, MostVideos, MostSubscribed, MostRecentlyUpdated, Default
         }
-        public Channels vimeo_channels_getAll(ILogger log, string user_id=null, ChannelsSortMethods sortMethod=ChannelsSortMethods.Default, int? page=null, int? per_page=null)
+        public Channels vimeo_channels_getAll(string user_id=null, ChannelsSortMethods sortMethod=ChannelsSortMethods.Default, int? page=null, int? per_page=null)
         {
-            log.Debug("Called");
             var parameters = new Dictionary<string, string>();
             if (!string.IsNullOrEmpty(user_id)) parameters.Add("user_id", user_id);
             if (sortMethod != ChannelsSortMethods.Default)
@@ -569,13 +381,7 @@ namespace Vimeo.API
             if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
 
             var x = ExecuteGetRequest("vimeo.channels.getAll", parameters);
-            if (!IsResponseOK(x))
-            {
-                log.Debug("BAD");
-                return null;
-            }
-            log.Debug("GOOD");
-            return Channels.FromElement(x.Element("rsp").Element("channels"));
+            return !IsResponseOK(x) ? null : Channels.FromElement(x.Element("rsp").Element("channels"));
         }
 
         //.getInfo
@@ -583,8 +389,7 @@ namespace Vimeo.API
         {
             var x = ExecuteGetRequest("vimeo.channels.getInfo",
                 new Dictionary<string, string> { { "channel_id", channel_id } });
-            if (!IsResponseOK(x)) return null;
-            return Channel.FromElement(x.Element("rsp").Element("channel"));
+            return !IsResponseOK(x) ? null : Channel.FromElement(x.Element("rsp").Element("channel"));
         }
 
         //.getModerated
@@ -604,8 +409,7 @@ namespace Vimeo.API
             if (page.HasValue) parameters.Add("page", page.Value.ToString());
             if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
             var x = ExecuteGetRequest("vimeo.channels.getModerated", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Channels.FromElement(x.Element("rsp").Element("channels"));
+            return !IsResponseOK(x) ? null : Channels.FromElement(x.Element("rsp").Element("channels"));
         }
 
         //.getModerators
@@ -615,8 +419,7 @@ namespace Vimeo.API
             if (page.HasValue) parameters.Add("page", page.Value.ToString());
             if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
             var x = ExecuteGetRequest("vimeo.channels.getModerators", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Channel.Moderators.FromElement(x.Element("rsp").Element("moderators"));
+            return !IsResponseOK(x) ? null : Channel.Moderators.FromElement(x.Element("rsp").Element("moderators"));
         }
 
         //.getSubscribers
@@ -626,14 +429,13 @@ namespace Vimeo.API
             if (page.HasValue) parameters.Add("page", page.Value.ToString());
             if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
             var x = ExecuteGetRequest("vimeo.channels.getSubscribers", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Contacts.FromElement(x.Element("rsp").Element("subscribers"),"subscriber");
+            return !IsResponseOK(x) ? null : Contacts.FromElement(x.Element("rsp").Element("subscribers"),"subscriber");
         }
 
         //.getVideos
         public Videos vimeo_channels_getVideos(string channel_id, bool full_response=false, int? page=null, int? per_page=null)
         {
-            Dictionary<string, string> parameters = new Dictionary<string, string>{
+            var parameters = new Dictionary<string, string>{
                 {"channel_id",channel_id},
                 {"full_response", full_response ? "1" : "0"}};
 
@@ -641,8 +443,7 @@ namespace Vimeo.API
             if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
 
             var x = ExecuteGetRequest("vimeo.channels.getVideos", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Videos.FromElement(x.Element("rsp").Element("videos"), full_response);
+            return !IsResponseOK(x) ? null : Videos.FromElement(x.Element("rsp").Element("videos"), full_response);
         }
 
         //.removeVideo
@@ -678,42 +479,39 @@ namespace Vimeo.API
         }
         public Contacts vimeo_contacts_getAll(string user_id, int? page, int? per_page, ContactsSortMethods sort)
         {
-            string _sort = sort == ContactsSortMethods.Alphabetical ? "alphabetical" :
+            var _sort = sort == ContactsSortMethods.Alphabetical ? "alphabetical" :
                 sort == ContactsSortMethods.MostCredited ? "most_credited" :
                 sort == ContactsSortMethods.Newest ? "newest" :
                 sort == ContactsSortMethods.Oldest ? "oldest" : "";
-            Dictionary<string, string> parameters = new Dictionary<string, string>();
+            var parameters = new Dictionary<string, string>();
             if (page.HasValue) parameters.Add("page", page.Value.ToString());
             if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
             if (sort != ContactsSortMethods.Default) parameters.Add("sort", _sort);
             parameters.Add("user_id", user_id);
             var x = ExecuteGetRequest("vimeo.contacts.getAll", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Contacts.FromElement(x.Element("rsp").Element("contacts"));
+            return !IsResponseOK(x) ? null : Contacts.FromElement(x.Element("rsp").Element("contacts"));
         }
 
         //.getMutual
         public Contacts vimeo_contacts_getMutual(string user_id, int? page=null, int? per_page=null)
         {
-            Dictionary<string, string> parameters = new Dictionary<string, string>();
+            var parameters = new Dictionary<string, string>();
             if (page.HasValue) parameters.Add("page", page.Value.ToString());
             if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
             parameters.Add("user_id", user_id);
             var x = ExecuteGetRequest("vimeo.contacts.getMutual", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Contacts.FromElement(x.Element("rsp").Element("contacts"));
+            return !IsResponseOK(x) ? null : Contacts.FromElement(x.Element("rsp").Element("contacts"));
         }
 
         //.getOnline
         public Contacts vimeo_contacts_getOnline(string user_id, int? page=null, int? per_page=null)
         {
-            Dictionary<string, string> parameters = new Dictionary<string, string>();
+            var parameters = new Dictionary<string, string>();
             if (page.HasValue) parameters.Add("page", page.Value.ToString());
             if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
             parameters.Add("user_id", user_id);
             var x = ExecuteGetRequest("vimeo.contacts.getOnline", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Contacts.FromElement(x.Element("rsp").Element("contacts"));
+            return !IsResponseOK(x) ? null : Contacts.FromElement(x.Element("rsp").Element("contacts"));
         }
 
         //.getWhoAdded
@@ -723,18 +521,17 @@ namespace Vimeo.API
         }
         public Contacts vimeo_contacts_getWhoAdded(string user_id, int? page, int? per_page, ContactsSortMethods sort)
         {
-            string _sort = sort == ContactsSortMethods.Alphabetical ? "alphabetical" :
+            var _sort = sort == ContactsSortMethods.Alphabetical ? "alphabetical" :
                 sort == ContactsSortMethods.MostCredited ? "most_credited" :
                 sort == ContactsSortMethods.Newest ? "newest" :
                 sort == ContactsSortMethods.Oldest ? "oldest" : "";
-            Dictionary<string, string> parameters = new Dictionary<string, string>();
+            var parameters = new Dictionary<string, string>();
             if (page.HasValue) parameters.Add("page", page.Value.ToString());
             if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
             if (sort != ContactsSortMethods.Default) parameters.Add("sort", _sort);
             parameters.Add("user_id", user_id);
             var x = ExecuteGetRequest("vimeo.contacts.getWhoAdded", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Contacts.FromElement(x.Element("rsp").Element("contacts"));
+            return !IsResponseOK(x) ? null : Contacts.FromElement(x.Element("rsp").Element("contacts"));
         }
         #endregion
 
@@ -765,8 +562,7 @@ namespace Vimeo.API
             if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
 
             var x = ExecuteGetRequest("vimeo.groups.getAddable", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Groups.FromElement(x.Element("rsp").Element("groups"));
+            return !IsResponseOK(x) ? null : Groups.FromElement(x.Element("rsp").Element("groups"));
         }
 
         //.getAll
@@ -787,30 +583,14 @@ namespace Vimeo.API
             if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
 
             var x = ExecuteGetRequest("vimeo.groups.getAll", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Groups.FromElement(x.Element("rsp").Element("groups"));
+            return !IsResponseOK(x) ? null : Groups.FromElement(x.Element("rsp").Element("groups"));
         }
-
-        //.getFiles
-#if DEPRECATED
-        public Files vimeo_groups_getFiles(string group_id, int? page, int? per_page)
-        {
-            var parameters = new Dictionary<string, string> { { "group_id", group_id } };
-            if (page.HasValue) parameters.Add("page", page.Value.ToString());
-            if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
-
-            var x = ExecuteGetRequest("vimeo.groups.getFiles", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Files.FromElement(x.Element("rsp").Element("files"));
-        }
-#endif
 
         //.getInfo
         public Groups vimeo_groups_getInfo(string group_id)
         {
             var x = ExecuteGetRequest("vimeo.groups.getAll", new Dictionary<string,string>{{"group_id", group_id}} );
-            if (!IsResponseOK(x)) return null;
-            return Groups.FromElement(x.Element("rsp").Element("groups"));
+            return !IsResponseOK(x) ? null : Groups.FromElement(x.Element("rsp").Element("groups"));
         }
 
         //.getMembers
@@ -823,16 +603,15 @@ namespace Vimeo.API
             if (!IsResponseOK(x)) return null;
 
             var e = x.Element("rsp").Element("members");
-            Contacts cs = new Contacts();
-            cs.on_this_page = int.Parse(e.Attribute("on_this_page").Value);
-            cs.page = int.Parse(e.Attribute("page").Value);
-            cs.perpage = int.Parse(e.Attribute("perpage").Value);
-            cs.total = int.Parse(e.Attribute("total").Value);
-
-            foreach (var item in e.Elements("member"))
+            var cs = new Contacts
             {
-                cs.Add(Contact.FromElement(item));
-            }
+                on_this_page = int.Parse(e.Attribute("on_this_page").Value),
+                page = int.Parse(e.Attribute("page").Value),
+                perpage = int.Parse(e.Attribute("perpage").Value),
+                total = int.Parse(e.Attribute("total").Value)
+            };
+            cs.AddRange(e.Elements("member").Select(Contact.FromElement));
+
             return cs;
         }
 
@@ -844,8 +623,7 @@ namespace Vimeo.API
             if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
 
             var x = ExecuteGetRequest("vimeo.groups.getModerators", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Contacts.FromElement(x.Element("rsp").Element("moderators"), "moderator");
+            return !IsResponseOK(x) ? null : Contacts.FromElement(x.Element("rsp").Element("moderators"), "moderator");
         }
 
         //.getVideoComments
@@ -857,8 +635,7 @@ namespace Vimeo.API
             if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
 
             var x = ExecuteGetRequest("vimeo.groups.getVideoComments", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Comments.FromElement(x.Element("rsp").Element("comments"));
+            return !IsResponseOK(x) ? null : Comments.FromElement(x.Element("rsp").Element("comments"));
         }
 
         //.getVideos
@@ -868,7 +645,7 @@ namespace Vimeo.API
         }
         public Videos vimeo_groups_getVideos(string group_id, bool full_response=false, GroupVideosSortMethods sortMethod=GroupVideosSortMethods.Default, int? page=null, int? per_page=null)
         {
-            Dictionary<string, string> parameters = new Dictionary<string, string>{
+            var parameters = new Dictionary<string, string>{
                 {"group_id",group_id},
                 {"full_response", full_response ? "1" : "0"}};
 
@@ -886,8 +663,7 @@ namespace Vimeo.API
                     sortMethod == GroupVideosSortMethods.Random ? "random" : "");
 
             var x = ExecuteGetRequest("vimeo.groups.getVideos", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Videos.FromElement(x.Element("rsp").Element("videos"),full_response);
+            return !IsResponseOK(x) ? null : Videos.FromElement(x.Element("rsp").Element("videos"),full_response);
         }
 
         //.join
@@ -918,8 +694,7 @@ namespace Vimeo.API
             if (page.HasValue) parameters.Add("page", page.Value.ToString());
             if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
             var x = ExecuteGetRequest("vimeo.groups.forums.getTopicComments", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Comments.FromElement(x.Element("rsp").Element("comments"));
+            return !IsResponseOK(x) ? null : Comments.FromElement(x.Element("rsp").Element("comments"));
         }
 
         //.getTopics
@@ -931,8 +706,7 @@ namespace Vimeo.API
             if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
 
             var x = ExecuteGetRequest("vimeo.groups.forums.getTopics", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Topics.FromElement(x.Element("rsp").Element("topics"));
+            return !IsResponseOK(x) ? null : Topics.FromElement(x.Element("rsp").Element("topics"));
         }
         #endregion
 
@@ -949,17 +723,18 @@ namespace Vimeo.API
         public vimeo_oauth_checkAccessTokenResponse vimeo_oauth_checkAccessToken()
         {
             var x = ExecuteGetRequest("vimeo.oauth.checkAccessToken", null);
-            var r = new vimeo_oauth_checkAccessTokenResponse();
-            r.stat = "n/a";
+            var r = new vimeo_oauth_checkAccessTokenResponse {stat = "n/a"};
             try
             {
                 r.stat = (string)x.Element("rsp").Attribute("stat");
                 r.token = (string)x.Element("rsp").Element("oauth").Element("token").Value;
                 r.permission = (string)x.Element("rsp").Element("oauth").Element("permission").Value;
-                r.user = new UserIdNameDisplay();
-                r.user.display_name = (string)x.Element("rsp").Element("oauth").Element("user").Attribute("display_name");
-                r.user.id = (string)x.Element("rsp").Element("oauth").Element("user").Attribute("id");
-                r.user.username = (string)(string)x.Element("rsp").Element("oauth").Element("user").Attribute("username");
+                r.user = new UserIdNameDisplay
+                {
+                    display_name = (string) x.Element("rsp").Element("oauth").Element("user").Attribute("display_name"),
+                    id = (string) x.Element("rsp").Element("oauth").Element("user").Attribute("id"),
+                    username = (string) (string) x.Element("rsp").Element("oauth").Element("user").Attribute("username")
+                };
             }
             catch
             {
@@ -979,7 +754,7 @@ namespace Vimeo.API
         //.addSubscription
         public bool vimeo_people_addSubscription(string user_id, bool likes, bool appears, bool uploads)
         {
-            string types = 
+            var types = 
                 (likes ? "likes" + delimiter : "") +
                 (appears ? "appears" + delimiter : "") +
                 (uploads ? "uploads" : "");
@@ -995,10 +770,12 @@ namespace Vimeo.API
         {
             var x = ExecuteGetRequest("vimeo.people.findByEmail", new Dictionary<string, string> { { "user_id", user_id } });
             if (!IsResponseOK(x)) return null;
-            UserIdNameDisplay r = new UserIdNameDisplay();
-            r.id = x.Element("rsp").Element("user").Attribute("id").Value;
-            r.username = x.Element("rsp").Element("user").Element("username").Value;
-            r.display_name = x.Element("rsp").Element("user").Element("display_name").Value;
+            var r = new UserIdNameDisplay
+            {
+                id = x.Element("rsp").Element("user").Attribute("id").Value,
+                username = x.Element("rsp").Element("user").Element("username").Value,
+                display_name = x.Element("rsp").Element("user").Element("display_name").Value
+            };
             return r;
         }
 
@@ -1006,16 +783,14 @@ namespace Vimeo.API
         public Person vimeo_people_getInfo(string user_id)
         {
             var x = ExecuteGetRequest("vimeo.people.getInfo", new Dictionary<string, string>() { { "user_id", user_id } });
-            if (!IsResponseOK(x)) return null;
-            return Person.FromElement(x.Element("rsp").Element("person"));
+            return !IsResponseOK(x) ? null : Person.FromElement(x.Element("rsp").Element("person"));
         }
 
         //.getPortraitUrls
         public List<Thumbnail> vimeo_people_getPortraitUrls(string user_id)
         {
             var x = ExecuteGetRequest("vimeo.people.getPortraitUrls", new Dictionary<string, string>() { { "user_id", user_id } });
-            if (!IsResponseOK(x)) return null;
-            return Person.GetPortraits(x.Element("rsp").Element("portraits"));
+            return !IsResponseOK(x) ? null : Person.GetPortraits(x.Element("rsp").Element("portraits"));
         }
 
         //.getSubscriptions
@@ -1025,20 +800,19 @@ namespace Vimeo.API
         }
         public Subscriptions vimeo_people_getSubscriptions(int? page, int? per_page, bool likes, bool uploads, bool appears, bool channel, bool group)
         {
-            string types =
+            var types =
                 (likes ? "likes" + delimiter : "") +
                 (uploads ? "uploads" + delimiter : "") +
                 (appears ? "appears" + delimiter : "") +
                 (channel ? "channel" + delimiter : "") +
                 (group ? "group" : "");
             //if (types[types.Length - 1] == delimiter) types = types.Substring(0, types.Length - 1);
-            Dictionary<string, string> parameters = new Dictionary<string,string>();
+            var parameters = new Dictionary<string,string>();
             if (page.HasValue) parameters.Add("page", page.Value.ToString());
             if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
             parameters.Add("types", types);
             var x = ExecuteGetRequest("vimeo.people.getSubscriptions", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Subscriptions.FromElement(x.Element("rsp").Element("subscriptions"));
+            return !IsResponseOK(x) ? null : Subscriptions.FromElement(x.Element("rsp").Element("subscriptions"));
         }
 
         //.removeContact
@@ -1051,7 +825,7 @@ namespace Vimeo.API
         //.removeSubscription
         public bool vimeo_people_removeSubscription(string user_id, bool likes, bool appears, bool uploads)
         {
-            string types =
+            var types =
                 (likes ? "likes" + delimiter : "") +
                 (appears ? "appears" + delimiter : "") +
                 (uploads ? "uploads" : "");
@@ -1079,8 +853,7 @@ namespace Vimeo.API
         public vimeo_test_loginResponse vimeo_test_login()
         {
             var x = ExecuteGetRequest("vimeo.test.login", null);
-            var r = new vimeo_test_loginResponse();
-            r.stat = "n/a";
+            var r = new vimeo_test_loginResponse {stat = "n/a"};
             try
             {
                 r.stat = (string)x.Element("rsp").Attribute("stat");
@@ -1105,7 +878,7 @@ namespace Vimeo.API
         //.addCast
         public bool vimeo_videos_addCast(string role, string user_id, string video_id)
         {
-            Dictionary<string, string> parameters = new Dictionary<string, string>(){
+            var parameters = new Dictionary<string, string>(){
                 {"user_id", user_id},
                 {"video_id", video_id}};
             if (!string.IsNullOrEmpty(role))
@@ -1116,7 +889,7 @@ namespace Vimeo.API
         //.addPhotos
         public bool vimeo_videos_addPhotos(string photo_urls, string video_id)
         {
-            Dictionary<string, string> parameters = new Dictionary<string, string>{
+            var parameters = new Dictionary<string, string>{
                 {"photo_urls", photo_urls},
                 {"video_id", video_id}};
             return IsResponseOK("vimeo.videos.addPhotos", parameters);
@@ -1152,7 +925,7 @@ namespace Vimeo.API
         }
         public Videos vimeo_videos_getAll(bool full_response, int? page, int? per_page, VideosSortMethod sortMethod, string user_id)
         {
-            Dictionary<string, string> parameters = new Dictionary<string, string>{
+            var parameters = new Dictionary<string, string>{
                 {"full_response", full_response ? "1" : "0"}};
             if (page.HasValue) parameters.Add("page", page.Value.ToString());
             if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
@@ -1164,14 +937,13 @@ namespace Vimeo.API
                 sortMethod == VideosSortMethod.MostLiked ? "most_liked" : "");
             parameters.Add("user_id", user_id);
             var x = ExecuteGetRequest("vimeo.videos.getAll", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Videos.FromElement(x.Element("rsp").Element("videos"), full_response);
+            return !IsResponseOK(x) ? null : Videos.FromElement(x.Element("rsp").Element("videos"), full_response);
         }
 
         //.getAppearsIn
         public Videos vimeo_videos_getAppearsIn(bool full_response, int? page, int? per_page, VideosSortMethod sortMethod, string user_id)
         {
-            Dictionary<string, string> parameters = new Dictionary<string, string>{
+            var parameters = new Dictionary<string, string>{
                 {"full_response", full_response ? "1" : "0"}};
             if (page.HasValue) parameters.Add("page", page.Value.ToString());
             if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
@@ -1183,14 +955,13 @@ namespace Vimeo.API
                 sortMethod == VideosSortMethod.MostLiked ? "most_liked" : "");
             parameters.Add("user_id", user_id);
             var x = ExecuteGetRequest("vimeo.videos.getAppearsIn", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Videos.FromElement(x.Element("rsp").Element("videos"), full_response);
+            return !IsResponseOK(x) ? null : Videos.FromElement(x.Element("rsp").Element("videos"), full_response);
         }
 
         //.getByTag
         public Videos vimeo_videos_getByTag(bool full_response, int? page, int? per_page, VideosSortMethod sortMethod, string tag)
         {
-            Dictionary<string, string> parameters = new Dictionary<string, string>{
+            var parameters = new Dictionary<string, string>{
                 {"full_response", full_response ? "1" : "0"}};
             if (page.HasValue) parameters.Add("page", page.Value.ToString());
             if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
@@ -1202,25 +973,18 @@ namespace Vimeo.API
                 sortMethod == VideosSortMethod.MostLiked ? "most_liked" : "");
             parameters.Add("tag", tag);
             var x = ExecuteGetRequest("vimeo.videos.getByTag", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Videos.FromElement(x.Element("rsp").Element("videos"), full_response);
+            return !IsResponseOK(x) ? null : Videos.FromElement(x.Element("rsp").Element("videos"), full_response);
         }
 
         //.getCast
         public List<Video.CastMember> vimeo_videos_getCast(string video_id, int? page, int? per_page)
         {
-            Dictionary<string, string> parameters = new Dictionary<string, string>{
+            var parameters = new Dictionary<string, string>{
                 {"video_id", video_id}};
             if (page.HasValue) parameters.Add("page", page.Value.ToString());
             if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
             var x = ExecuteGetRequest("vimeo.videos.getCast", parameters);
-            if (!IsResponseOK(x)) return null;
-            List<Video.CastMember> cast = new List<Video.CastMember>();
-            foreach (var item in x.Element("rsp").Element("cast").Elements("member"))
-            {
-                cast.Add(Video.CastMember.FromElementFull(item));
-            }
-            return cast;
+            return !IsResponseOK(x) ? null : x.Element("rsp").Element("cast").Elements("member").Select(Video.CastMember.FromElementFull).ToList();
         }
 
         //.getCollections
@@ -1235,81 +999,33 @@ namespace Vimeo.API
             var x = ExecuteGetRequest("vimeo.videos.getCollections",
                 new Dictionary<string, string> { { "video_id", video_id } });
             if (!IsResponseOK(x)) return null;
-            List<Collection> cs = new List<Collection>();
+            var cs = new List<Collection>();
             if (x.Element("rsp").Element("collections") == null) return cs;
-            foreach (var item in x.Element("rsp").Element("collections").Elements("collection"))
+            cs.AddRange(x.Element("rsp").Element("collections").Elements("collection").Select(item => new Collection()
             {
-                cs.Add(new Collection()
-                {
-                    id = item.Attribute("id").Value,
-                    name = item.Attribute("name").Value,
-                    type = item.Attribute("type").Value
-                });
-            }
+                id = item.Attribute("id").Value, name = item.Attribute("name").Value, type = item.Attribute("type").Value
+            }));
             return cs;
         }
 
-        //.getContactsLiked
-#if DEPRECATED
-        public Videos vimeo_videos_getContactsLiked(bool full_response, int? page, int? per_page, VideosSortMethod sortMethod, string user_id)
-        {
-            Dictionary<string, string> parameters = new Dictionary<string, string>{
-                {"full_response", full_response ? "1" : "0"}};
-            if (page.HasValue) parameters.Add("page", page.Value.ToString());
-            if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
-            if (sortMethod != VideosSortMethod.Default)
-                parameters.Add("sort", sortMethod == VideosSortMethod.Newest ? "newest" :
-                sortMethod == VideosSortMethod.Oldest ? "oldest" :
-                sortMethod == VideosSortMethod.MostPlayed ? "most_played" :
-                sortMethod == VideosSortMethod.MostCommented ? "most_commented" :
-                sortMethod == VideosSortMethod.MostLiked ? "most_liked" : "");
-            parameters.Add("user_id", user_id);
-            var x = ExecuteGetRequest("vimeo.videos.getContactsLiked", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Videos.FromElement(x.Element("rsp").Element("videos"), full_response);
-        }
-#endif
-
-        //.getContactsUploaded
-#if DEPRECATED
-        public Videos vimeo_videos_getContactsUploaded(bool full_response, int? page, int? per_page, VideosSortMethod sortMethod, string user_id)
-        {
-            Dictionary<string, string> parameters = new Dictionary<string, string>{
-                {"full_response", full_response ? "1" : "0"}};
-            if (page.HasValue) parameters.Add("page", page.Value.ToString());
-            if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
-            if (sortMethod != VideosSortMethod.Default)
-                parameters.Add("sort", sortMethod == VideosSortMethod.Newest ? "newest" :
-                sortMethod == VideosSortMethod.Oldest ? "oldest" :
-                sortMethod == VideosSortMethod.MostPlayed ? "most_played" :
-                sortMethod == VideosSortMethod.MostCommented ? "most_commented" :
-                sortMethod == VideosSortMethod.MostLiked ? "most_liked" : "");
-            parameters.Add("user_id", user_id);
-            var x = ExecuteGetRequest("vimeo.videos.getContactsUploaded", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Videos.FromElement(x.Element("rsp").Element("videos"), full_response);
-        }
-#endif
 
         //.getInfo
         public Video vimeo_videos_getInfo(string video_id)
         {
             var x = ExecuteGetRequest("vimeo.videos.getInfo", 
                 new Dictionary<string,string>{{"video_id",video_id}});
-            if (!IsResponseOK(x)) return null;
-            return Video.FromElement(x.Element("rsp").Element("video"), true);
+            return !IsResponseOK(x) ? null : global::MediaBrowser.Plugins.Vimeo.VimeoAPI.API.Video.FromElement(x.Element("rsp").Element("video"), true);
         }
 
         //.getLikers
         public Video.Likers vimeo_videos_getLikers(string video_id, int? page, int? per_page)
         {
-            Dictionary<string, string> parameters = new Dictionary<string, string>{
+            var parameters = new Dictionary<string, string>{
                 {"video_id", video_id}};
             if (page.HasValue) parameters.Add("page", page.Value.ToString());
             if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
             var x = ExecuteGetRequest("vimeo.videos.getLikers", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Video.Likers.FromElement(x.Element("rsp").Element("likers"));
+            return !IsResponseOK(x) ? null : Video.Likers.FromElement(x.Element("rsp").Element("likers"));
         }
 
         //.getLikes
@@ -1327,14 +1043,13 @@ namespace Vimeo.API
                 sortMethod == VideosSortMethod.MostLiked ? "most_liked" : "");
             parameters.Add("user_id", user_id);
             var x = ExecuteGetRequest("vimeo.videos.getLikes", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Videos.FromElement(x.Element("rsp").Element("videos"), full_response);
+            return !IsResponseOK(x) ? null : Videos.FromElement(x.Element("rsp").Element("videos"), full_response);
         }
 
         //.getSubscriptions
         public Videos vimeo_videos_getSubscriptions(bool full_response, int? page, int? per_page, VideosSortMethod sortMethod, string user_id)
         {
-            Dictionary<string, string> parameters = new Dictionary<string, string>{
+            var parameters = new Dictionary<string, string>{
                 {"full_response", full_response ? "1" : "0"}};
             if (page.HasValue) parameters.Add("page", page.Value.ToString());
             if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
@@ -1346,8 +1061,7 @@ namespace Vimeo.API
                 sortMethod == VideosSortMethod.MostLiked ? "most_liked" : "");
             parameters.Add("user_id", user_id);
             var x = ExecuteGetRequest("vimeo.videos.getSubscriptions", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Videos.FromElement(x.Element("rsp").Element("videos"), full_response);
+            return !IsResponseOK(x) ? null : Videos.FromElement(x.Element("rsp").Element("videos"), full_response);
         }
 
         //.getThumbnailUrls
@@ -1355,8 +1069,7 @@ namespace Vimeo.API
         {
             var x = ExecuteGetRequest("vimeo.videos.getThumbnailUrls", new Dictionary<string,string>{
                 {"video_id", video_id}});
-            if (!IsResponseOK(x)) return null;
-            return Video.GetThumbnails(x.Element("rsp").Element("thumbnails"));
+            return !IsResponseOK(x) ? null : Video.GetThumbnails(x.Element("rsp").Element("thumbnails"));
         }
 
         //.getUploaded
@@ -1374,8 +1087,7 @@ namespace Vimeo.API
                 sortMethod == VideosSortMethod.MostLiked ? "most_liked" : "");
             parameters.Add("user_id", user_id);
             var x = ExecuteGetRequest("vimeo.videos.getUploaded", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Videos.FromElement(x.Element("rsp").Element("videos"), full_response);
+            return !IsResponseOK(x) ? null : Videos.FromElement(x.Element("rsp").Element("videos"), full_response);
         }
 
         //.removeCast
@@ -1397,7 +1109,7 @@ namespace Vimeo.API
         //.search
         public Videos vimeo_videos_search(bool full_response, int? page, int? per_page, string query, VideosSortMethod sortMethod, string user_id)
         {
-            Dictionary<string, string> parameters = new Dictionary<string, string>{
+            var parameters = new Dictionary<string, string>{
                 {"full_response", full_response ? "1" : "0"},
                 {"query", query}};
             if (page.HasValue) parameters.Add("page", page.Value.ToString());
@@ -1412,8 +1124,7 @@ namespace Vimeo.API
                 sortMethod == VideosSortMethod.SearchRelevant ? "relevant" : "");
             
             var x = ExecuteGetRequest("vimeo.videos.search", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Videos.FromElement(x.Element("rsp").Element("videos"), full_response);
+            return !IsResponseOK(x) ? null : Videos.FromElement(x.Element("rsp").Element("videos"), full_response);
         }
 
         //.setDescription
@@ -1471,7 +1182,7 @@ namespace Vimeo.API
         public bool vimeo_videos_setPrivacy(string video_id, string privacy, string users=null, string password=null)
         {
             privacy = privacy.Trim().ToLower();
-            Dictionary<string, string> parameters = new Dictionary<string, string>{
+            var parameters = new Dictionary<string, string>{
                 {"video_id",video_id},
                 {"privacy",privacy}};
             switch (privacy)
@@ -1502,14 +1213,13 @@ namespace Vimeo.API
             string reply_to_comment_id,
             string comment_text)
         {
-            Dictionary<string, string> parameters = new Dictionary<string, string>{
+            var parameters = new Dictionary<string, string>{
                 {"video_id", video_id},
                 {"comment_text", comment_text}};
             if (!string.IsNullOrEmpty(reply_to_comment_id))
                 parameters.Add("reply_to_comment_id", reply_to_comment_id);
             var x = ExecuteGetRequest("vimeo.videos.comments.addComment", parameters);
-            if (!IsResponseOK(x)) return null;
-            return x.Element("rsp").Element("comment").Attribute("id").Value;
+            return !IsResponseOK(x) ? null : x.Element("rsp").Element("comment").Attribute("id").Value;
         }
 
         //.deleteComment
@@ -1531,15 +1241,14 @@ namespace Vimeo.API
         //.getList
         public Comments vimeo_videos_comments_getList(string video_id, int? page, int? per_page)
         {
-            Dictionary<string, string> parameters = new Dictionary<string, string>{
+            var parameters = new Dictionary<string, string>{
                 {"video_id", video_id}};
 
             if (page.HasValue) parameters.Add("page", page.Value.ToString());
             if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
 
             var x = ExecuteGetRequest("vimeo.videos.comments.getList", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Comments.FromElement(x.Element("rsp").Element("comments"));
+            return !IsResponseOK(x) ? null : Comments.FromElement(x.Element("rsp").Element("comments"));
         }
         #endregion
 
@@ -1547,7 +1256,7 @@ namespace Vimeo.API
         //.checkTicket
         public Ticket vimeo_videos_upload_checkTicket(string ticket_id)
         {
-            Dictionary<string, string> parameters = new Dictionary<string, string> { { "ticket_id", ticket_id } };
+            var parameters = new Dictionary<string, string> { { "ticket_id", ticket_id } };
             var x = ExecuteGetRequest("vimeo.videos.upload.checkTicket", parameters);
             if (!IsResponseOK(x)) return null;
             if (x.Element("rsp").Element("ticket").Attribute("valid").Value != "1") return new Ticket();
@@ -1565,10 +1274,9 @@ namespace Vimeo.API
         }
         public string vimeo_videos_upload_complete(string filename, string ticket_id)
         {
-            Dictionary<string, string> parameters = new Dictionary<string, string> { { "filename", filename }, { "ticket_id", ticket_id } };
+            var parameters = new Dictionary<string, string> { { "filename", filename }, { "ticket_id", ticket_id } };
             var x = ExecuteGetRequest("vimeo.videos.upload.complete", parameters);
-            if (!IsResponseOK(x)) return null;
-            return x.Element("rsp").Element("ticket").Attribute("video_id").Value;
+            return !IsResponseOK(x) ? null : x.Element("rsp").Element("ticket").Attribute("video_id").Value;
         }
 
         //.getQuota
@@ -1601,19 +1309,17 @@ namespace Vimeo.API
         public vimeo_videos_upload_getQuotaResponse vimeo_videos_upload_getQuota()
         {
             var x = ExecuteGetRequest("vimeo.videos.upload.getQuota", null);
-            if (!IsResponseOK(x)) return null;
-            return vimeo_videos_upload_getQuotaResponse.FromElement(x.Element("rsp"));
+            return !IsResponseOK(x) ? null : vimeo_videos_upload_getQuotaResponse.FromElement(x.Element("rsp"));
         }
 
         //.getTicket
         public Ticket vimeo_videos_upload_getTicket(string video_id=null, string mode=null)
         {
-            Dictionary<string, string> parameters = new Dictionary<string, string>();
+            var parameters = new Dictionary<string, string>();
             if (!string.IsNullOrEmpty(video_id)) parameters.Add("video_id", video_id);
             if (!string.IsNullOrEmpty(mode)) parameters.Add("mode", mode);
             var x = ExecuteGetRequest("vimeo.videos.upload.getTicket", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Ticket.FromElement(x.Element("rsp").Element("ticket"));
+            return !IsResponseOK(x) ? null : Ticket.FromElement(x.Element("rsp").Element("ticket"));
         }
 
         //.verifyChunks
@@ -1623,10 +1329,9 @@ namespace Vimeo.API
         }
         public Chunks vimeo_videos_upload_verifyChunks(string ticket_id)
         {
-            Dictionary<string, string> parameters = new Dictionary<string, string> { { "ticket_id", ticket_id } };
+            var parameters = new Dictionary<string, string> { { "ticket_id", ticket_id } };
             var x = ExecuteGetRequest("vimeo.videos.upload.verifyChunks", parameters);
-            if (!IsResponseOK(x)) return null;
-            return Chunks.FromElement(x.Element("rsp").Element("ticket"));
+            return !IsResponseOK(x) ? null : Chunks.FromElement(x.Element("rsp").Element("ticket"));
         }
         #endregion
         #endregion

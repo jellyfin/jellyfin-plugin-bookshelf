@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Common.Net;
+﻿using System.Linq;
+using MediaBrowser.Common.Net;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Plugins.Vimeo.Extensions;
@@ -8,12 +9,10 @@ using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using MediaBrowser.Plugins.Vimeo.VimeoAPI.API;
 
 namespace MediaBrowser.Plugins.Vimeo
 {
-    /// <summary>
-    /// Fetches Apple's list of current movie trailers
-    /// </summary>
     public class VimeoListingDownloader
     {
 
@@ -28,143 +27,100 @@ namespace MediaBrowser.Plugins.Vimeo
             _httpClient = httpClient;
         }
 
-        /// <summary>
-        /// The trailer feed URL
-        /// </summary>
-        private const string FeedUrl = "http://vimeo.com/api/v2/brad/videos.xml?callback=showThumbs";
-
-        /// <summary>
-        /// Downloads a list of trailer info's from the apple url
-        /// </summary>
-        /// <returns>Task{List{TrailerInfo}}.</returns>
-        public async Task<List<VimeoInfo>> GetVimeoList(CancellationToken cancellationToken)
+        public async Task<Videos> GetVimeoList(String catID, CancellationToken cancellationToken)
         {
-            var stream = await _httpClient.Get(new HttpRequestOptions
+            var videos = Plugin.vc.vimeo_channels_getVideos(catID, true);
+
+            foreach (var vid in videos.ToList())
             {
-                Url = FeedUrl,
-                CancellationToken = cancellationToken,
-                UserAgent = "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.28 Safari/537.36"
+                // if vimeo say cannot be embed then need to delete as cannot get video file3
 
-            }).ConfigureAwait(false);
-
-            var list = new List<VimeoInfo>();
-
-            using (var reader = XmlReader.Create(stream, new XmlReaderSettings { Async = true }))
-            {
-                await reader.MoveToContentAsync().ConfigureAwait(false);
-
-                while (await reader.ReadAsync().ConfigureAwait(false))
+                if (vid.embed_privacy == "anywhere")
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    if (reader.NodeType == XmlNodeType.Element)
-                    {
-                        switch (reader.Name)
-                        {
-                            case "video":
-                            {
-                                var trailer = FetchInfo(reader.ReadSubtree());
-                                if (trailer.Privacy == "anywhere")
-                                {
-                                    await GetUrl(trailer);
-                                    list.Add(trailer);
-                                }
-                                break;
-                            }
-                        }
-                    }
+                    await GetUrl(vid);
+                }
+                else
+                {
+                    videos.Remove(vid);
                 }
             }
 
-            return list;
+            return videos;
         }
-
-        /// <summary>
-        /// Fetches trailer info from an xml node
-        /// </summary>
-        /// <param name="reader">The reader.</param>
-        /// <returns>TrailerInfo.</returns>
-
-        private static readonly CultureInfo UsCulture = new CultureInfo("en-US");
         
-        /// <summary>
-        /// Fetches from the info node
-        /// </summary>
-        /// <param name="reader">The reader.</param>
-        /// <param name="info">The info.</param>
-        private VimeoInfo FetchInfo(XmlReader reader)
+        public async Task<Videos> GetSearchVimeoList(String searchTerm, CancellationToken cancellationToken)
         {
-            var info = new VimeoInfo { };
+            var search = Plugin.vc.vimeo_videos_search(true, null, null, searchTerm, VimeoClient.VideosSortMethod.Default,
+                null);
 
-            reader.MoveToContent();
-            reader.Read();
-
-            while (reader.NodeType == XmlNodeType.Element)
+            foreach (var s in search.ToList())
             {
-                switch (reader.Name)
+                // if vimeo say cannot be embed then need to delete as cannot get video file
+                if (s.embed_privacy == "anywhere")
                 {
-                    case "id":
-                        info.ID = reader.ReadElementContentAsInt();
-                    break;
-                    case "title":
-                        info.Name = reader.ReadStringSafe();
-                        break;
-                    case "description":
-                        info.Description = reader.ReadStringSafe();
-                        break;
-                    case "thumbnail_medium":
-                        info.Thumbnail = reader.ReadStringSafe();
-                        break;
-                    case "embed_privacy":
-                        info.Privacy = reader.ReadStringSafe();
-                        break;
-                    case "upload_date":
-                    {
-                        DateTime date;
-
-                        if (DateTime.TryParse(reader.ReadStringSafe(), UsCulture, DateTimeStyles.None, out date))
-                        {
-                            info.UploadDate = date.ToUniversalTime();
-                        }
-                        break;
-                    }
- 
-                    default:
-                        reader.Skip();
-                        break;
+                    await GetUrl(s);
+                }
+                else
+                {
+                    search.Remove(s);
                 }
             }
-            return info;
+
+            return search;
         }
 
-        private async Task<String> GetUrl(VimeoInfo i)
+        private async Task GetUrl(VimeoAPI.API.Video v)
         {
-            var reg = new RootObject();
+            RootObject reg;
 
-            using (var json = await _httpClient.Get("http://player.vimeo.com/v2/video/" + i.ID + "/config?autoplay=0&byline=0&bypass_privacy=1&context=clip.main&default_to_hd=1&portrait=0&title=0", CancellationToken.None).ConfigureAwait(false))
+            using (var json = await _httpClient.Get("http://player.vimeo.com/v2/video/" + v.id + "/config?autoplay=0&byline=0&bypass_privacy=1&context=clip.main&default_to_hd=1&portrait=0&title=0", CancellationToken.None).ConfigureAwait(false))
             {
                 reg = _jsonSerializer.DeserializeFromStream<RootObject>(json);
             }
 
-            //var HD = reg.request.files.h264.hd;
-            var SD = reg.request.files.h264.sd;
-
-            /*if (HD.url == null)
+            if (reg.request.files.h264 != null)
             {
-                i.VideoWidth = HD.width;
-                i.VideoHeight = HD.height;
-                i.VideoBitRate = HD.bitrate;
-                i.URL = HD.url;
-            }
-            else
-            {*/
-                i.VideoWidth = SD.width;
-                i.VideoHeight = SD.height;
-                i.VideoBitRate = SD.bitrate;
-                i.URL = SD.url;
-            //}
+                if (v.is_hd)
+                {
+                    var hd = reg.request.files.h264.hd;
+                    if (hd != null)
+                    {
+                        /*
+                        _logger.Debug("Name : " + v.title);
+                        _logger.Debug("Description : " + v.description);
+                        _logger.Debug("Upload d : " + v.upload_date);
+                        _logger.Debug("Mod d : " + v.modified_date);
+                        _logger.Debug("likes : " + v.number_of_likes);
+                        _logger.Debug("comments : " + v.number_of_comments);
+                        _logger.Debug("Width : " + v.width);
+                        _logger.Debug("Owner : " + v.owner);
+                        _logger.Debug("Thumb : " + v.thumbnails[0].Url);
 
-            return i.URL;
+                        _logger.Debug("HD URL " + hd.url);*/
+                        v.width = hd.width;
+                        v.height = hd.height;
+                        v.urls.Add(new VimeoAPI.API.Video.Url
+                        {
+                            type = "player",
+                            Value = hd.url
+                        });
+                    }
+                }
+                else
+                {
+                    var sd = reg.request.files.h264.sd;
+                    if (sd != null)
+                    {
+                        v.width = sd.width;
+                        v.height = sd.height;
+                        v.urls.Add(new VimeoAPI.API.Video.Url
+                        {
+                            type = "player",
+                            Value = sd.url
+                        });
+                    }
+                }
+            }
         }
     }
 }

@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Xml.Linq;
 
-namespace Vimeo.API
+namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
 {
     public class Contacts : List<Contact>
     {
@@ -19,15 +17,14 @@ namespace Vimeo.API
         }
         public static Contacts FromElement(XElement e, string elementName)
         {
-            Contacts cs = new Contacts();
-            cs.on_this_page = int.Parse(e.Attribute("on_this_page").Value);
-            cs.page = int.Parse(e.Attribute("page").Value);
-            cs.perpage = int.Parse(e.Attribute("perpage").Value);
-            cs.total = int.Parse(e.Attribute("total").Value);
-            foreach (var c in e.Elements(elementName))
+            var cs = new Contacts
             {
-                cs.Add(Contact.FromElement(c));
-            }
+                on_this_page = int.Parse(e.Attribute("on_this_page").Value),
+                page = int.Parse(e.Attribute("page").Value),
+                perpage = int.Parse(e.Attribute("perpage").Value),
+                total = int.Parse(e.Attribute("total").Value)
+            };
+            cs.AddRange(e.Elements(elementName).Select(Contact.FromElement));
             return cs;
         }
     }
@@ -47,18 +44,19 @@ namespace Vimeo.API
 
         public static Contact FromElement(XElement e)
         {
-            Contact c = new Contact();
-            c.display_name = e.Attribute("display_name").Value;
-            c.id = e.Attribute("id").Value;
-            c.is_plus = e.Attribute("is_plus").Value == "1";
-            c.is_staff = e.Attribute("is_staff").Value == "1";
-            c.mutual = e.Attribute("mutual") != null ? (e.Attribute("mutual").Value == "1") : false;
-            c.profileurl = e.Attribute("profileurl").Value;
-            c.realname = e.Attribute("realname").Value;
-            c.username = e.Attribute("username").Value;
-            c.videosurl = e.Attribute("videosurl").Value;
-            c.portraits = Person.GetPortraits(e.Element("portraits"));
-            return c;
+            return new Contact
+            {
+                display_name = e.Attribute("display_name").Value,
+                id = e.Attribute("id").Value,
+                is_plus = e.Attribute("is_plus").Value == "1",
+                is_staff = e.Attribute("is_staff").Value == "1",
+                mutual = e.Attribute("mutual") != null && (e.Attribute("mutual").Value == "1"),
+                profileurl = e.Attribute("profileurl").Value,
+                realname = e.Attribute("realname").Value,
+                username = e.Attribute("username").Value,
+                videosurl = e.Attribute("videosurl").Value,
+                portraits = Person.GetPortraits(e.Element("portraits"))
+            };
         }
     }
 }

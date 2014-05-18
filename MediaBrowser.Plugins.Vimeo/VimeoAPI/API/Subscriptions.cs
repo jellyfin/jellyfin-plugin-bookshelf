@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Xml.Linq;
 
-namespace Vimeo.API
+namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
 {
     public class Subscriptions : List<Subscription>
     {
@@ -15,15 +13,14 @@ namespace Vimeo.API
 
         public static Subscriptions FromElement(XElement e)
         {
-            Subscriptions ss = new Subscriptions();
-            ss.on_this_page = int.Parse(e.Attribute("on_this_page").Value);
-            ss.page = int.Parse(e.Attribute("page").Value);
-            ss.perpage = int.Parse(e.Attribute("perpage").Value);
-            ss.total = int.Parse(e.Attribute("total").Value);
-            foreach (var s in e.Elements("subscription"))
+            var ss = new Subscriptions
             {
-                ss.Add(Subscription.FromElement(s));
-            }
+                on_this_page = int.Parse(e.Attribute("on_this_page").Value),
+                page = int.Parse(e.Attribute("page").Value),
+                perpage = int.Parse(e.Attribute("perpage").Value),
+                total = int.Parse(e.Attribute("total").Value)
+            };
+            ss.AddRange(e.Elements("subscription").Select(Subscription.FromElement));
             return ss;
         }
     }
@@ -44,8 +41,7 @@ namespace Vimeo.API
 
         public static Subscription FromElement(XElement e)
         {
-            Subscription s = new Subscription();
-            s.subject_id = e.Attribute("subject_id").Value;
+            var s = new Subscription {subject_id = e.Attribute("subject_id").Value};
             switch (e.Attribute("type").Value)
             {
                 case "likes":

@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Xml.Linq;
 
-namespace Vimeo.API
+namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
 {
     public class Files : List<File>
     {
@@ -15,17 +13,14 @@ namespace Vimeo.API
 
         public static Files FromElement(XElement e)
         {
-            Files es = new Files
+            var es = new Files
             {
                 on_this_page = int.Parse(e.Attribute("on_this_page").Value),
                 page = int.Parse(e.Attribute("page").Value),
                 perpage = int.Parse(e.Attribute("perpage").Value),
                 total = int.Parse(e.Attribute("total").Value)
             };
-            foreach (var item in e.Elements("file"))
-            {
-                es.Add(File.FromElement(item));
-            }
+            es.AddRange(e.Elements("file").Select(File.FromElement));
             return es;
         }
     }
