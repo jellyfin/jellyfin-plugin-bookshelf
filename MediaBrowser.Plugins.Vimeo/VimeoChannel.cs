@@ -214,7 +214,7 @@ namespace MediaBrowser.Plugins.Vimeo
                     {
                         
                         var hd = r.request.files.h264.hd;
-                        if (hd != null)
+                        if (hd != null && !string.IsNullOrEmpty(hd.url))
                         {
                             mediaInfo.Add(
                                 new ChannelMediaInfo
@@ -227,7 +227,7 @@ namespace MediaBrowser.Plugins.Vimeo
                         }
                         
                         var sd = r.request.files.h264.sd;
-                        if (sd != null)
+                        if (sd != null && !string.IsNullOrEmpty(sd.url))
                         {
                             mediaInfo.Add(
                                 new ChannelMediaInfo
@@ -240,7 +240,7 @@ namespace MediaBrowser.Plugins.Vimeo
                         }
 
                         var mob = r.request.files.h264.sd;
-                        if (mob != null)
+                        if (mob != null && !string.IsNullOrEmpty(mob.url))
                         {
                             mediaInfo.Add(
                                 new ChannelMediaInfo
