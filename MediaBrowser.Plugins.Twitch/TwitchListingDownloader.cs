@@ -1,12 +1,9 @@
-﻿using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using MediaBrowser.Common.Net;
+﻿using MediaBrowser.Common.Net;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
-using MediaBrowser.Plugins.Vimeo;
-using MediaBrowser.Plugins.Vimeo.Extensions;
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 namespace MediaBrowser.Plugins.Twitch
 {
     public class TwitchListingDownloader

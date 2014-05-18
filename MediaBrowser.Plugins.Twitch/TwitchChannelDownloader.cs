@@ -1,17 +1,16 @@
-﻿using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using MediaBrowser.Common.Net;
+﻿using MediaBrowser.Common.Net;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace MediaBrowser.Plugins.Twitch
 {
     class TwitchChannelDownloader
     {
         private readonly ILogger _logger;
-        private IHttpClient _httpClient;
-        private IJsonSerializer _jsonSerializer;
+        private readonly IHttpClient _httpClient;
+        private readonly IJsonSerializer _jsonSerializer;
 
         public TwitchChannelDownloader(ILogger logManager, IJsonSerializer jsonSerializer, IHttpClient httpClient)
         {

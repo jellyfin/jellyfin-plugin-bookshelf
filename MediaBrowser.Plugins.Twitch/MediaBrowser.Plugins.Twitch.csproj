@@ -64,14 +64,9 @@
     <Compile Include="TwitchChannelDownloader.cs" />
     <Compile Include="TwitchListingDownloader.cs" />
     <Compile Include="Configuration\PluginConfiguration.cs" />
-    <Compile Include="Configuration\VimeoConfigurationPage.cs" />
-    <Compile Include="Extensions\XmlExtensions.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TwitchChannel.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Configuration\configPage.html" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Images\primary.jpg" />

@@ -1,7 +1,7 @@
-﻿using System;
-using MediaBrowser.Model.Plugins;
+﻿using MediaBrowser.Model.Plugins;
+using System;
 
-namespace MediaBrowser.Plugins.Vimeo.Configuration
+namespace MediaBrowser.Plugins.Twitch.Configuration
 {
     /// <summary>
     /// Class PluginConfiguration
@@ -10,15 +10,5 @@ namespace MediaBrowser.Plugins.Vimeo.Configuration
     {
 
         public String Username { get; set; }
-
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PluginConfiguration" /> class.
-        /// </summary>
-        public PluginConfiguration()
-            : base()
-        {
-            
-        }
     }
 }
