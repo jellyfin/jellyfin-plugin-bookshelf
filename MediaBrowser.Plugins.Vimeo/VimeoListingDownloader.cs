@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Common.Net;
+﻿using System.Linq;
+using MediaBrowser.Common.Net;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Plugins.Vimeo.Extensions;
@@ -30,9 +31,18 @@ namespace MediaBrowser.Plugins.Vimeo
         {
             var videos = Plugin.vc.vimeo_channels_getVideos(catID, true);
 
-            foreach (var vid in videos)
+            foreach (var vid in videos.ToList())
             {
-                await GetUrl(vid);
+                // if vimeo say cannot be embed then need to delete as cannot get video file3
+
+                if (vid.embed_privacy == "anywhere")
+                {
+                    await GetUrl(vid);
+                }
+                else
+                {
+                    videos.Remove(vid);
+                }
             }
 
             return videos;
@@ -40,12 +50,20 @@ namespace MediaBrowser.Plugins.Vimeo
         
         public async Task<Videos> GetSearchVimeoList(String searchTerm, CancellationToken cancellationToken)
         {
-            Videos search = Plugin.vc.vimeo_videos_search(true, null, null, searchTerm, VimeoClient.VideosSortMethod.Default,
+            var search = Plugin.vc.vimeo_videos_search(true, null, null, searchTerm, VimeoClient.VideosSortMethod.Default,
                 null);
 
-            foreach (var s in search)
+            foreach (var s in search.ToList())
             {
-                await GetUrl(s);
+                // if vimeo say cannot be embed then need to delete as cannot get video file
+                if (s.embed_privacy == "anywhere")
+                {
+                    await GetUrl(s);
+                }
+                else
+                {
+                    search.Remove(s);
+                }
             }
 
             return search;
