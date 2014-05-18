@@ -1,27 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace MediaBrowser.Plugins.Vimeo
 {
-
-    public class VimeoInfo
-    {
-        public int ID { get; set; }
-        public String Name { get; set; }
-        public String URL { get; set; }
-        public String Description { get; set; }
-        public DateTime UploadDate { get; set; }
-        public String Username { get; set; }
-        public String Thumbnail { get; set; }
-        public String Privacy { get; set; }
-        public int VideoHeight { get; set; }
-        public int VideoWidth { get; set; }
-        public int VideoBitRate { get; set; }
-    }
-
     public class Mobile
     {
         public int profile { get; set; }

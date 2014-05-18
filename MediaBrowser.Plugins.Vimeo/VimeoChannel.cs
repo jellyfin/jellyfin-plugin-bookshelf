@@ -14,7 +14,7 @@ using MediaBrowser.Model.Serialization;
 
 namespace MediaBrowser.Plugins.Vimeo
 {
-    public class VimeoChannel : IChannel
+    public class VimeoChannel : IChannel, IRequiresMediaInfoCallback
     {
         private readonly IHttpClient _httpClient;
         private readonly ILogger _logger;
@@ -108,17 +108,9 @@ namespace MediaBrowser.Plugins.Vimeo
                 Overview = i.description,
                 Type = ChannelItemType.Media,
                 Id = i.id,
-               // PremiereDate = i.upload_date,
-
-                MediaSources = new List<ChannelMediaInfo>
-                {
-                    new ChannelMediaInfo
-                    {
-                         Path = i.urls.Find(item => item.type == "player").Value,
-                         Height = i.height,
-                         Width = i.width
-                    }
-                }
+                RunTimeTicks = i.duration,
+                //Tags = new List<string>();
+               
             });
         }
 
@@ -202,6 +194,68 @@ namespace MediaBrowser.Plugins.Vimeo
         public bool IsEnabledFor(Controller.Entities.User user)
         {
             return true;
+        }
+
+        public async Task<IEnumerable<ChannelMediaInfo>> GetChannelItemMediaInfo(string id, CancellationToken cancellationToken)
+        {
+            using (var json = await _httpClient.Get(
+                "http://player.vimeo.com/v2/video/" + id +
+                "/config?autoplay=0&byline=0&bypass_privacy=1&context=clip.main&default_to_hd=1&portrait=0&title=0",
+                CancellationToken.None).ConfigureAwait(false))
+            {
+                var r = _jsonSerializer.DeserializeFromStream<RootObject>(json);
+
+                var mediaInfo = new List<ChannelMediaInfo>();
+                    
+
+                if (r.request != null && r.request.files != null)
+                {
+                    if (r.request.files.h264 != null)
+                    {
+                        
+                        var hd = r.request.files.h264.hd;
+                        if (hd != null)
+                        {
+                            mediaInfo.Add(
+                                new ChannelMediaInfo
+                                {
+                                    Height = hd.height,
+                                    Width = hd.width,
+                                    Path = hd.url
+                                }
+                            );
+                        }
+                        
+                        var sd = r.request.files.h264.sd;
+                        if (sd != null)
+                        {
+                            mediaInfo.Add(
+                                new ChannelMediaInfo
+                                {
+                                    Height = sd.height,
+                                    Width = sd.width,
+                                    Path = sd.url
+                                }
+                             );
+                        }
+
+                        var mob = r.request.files.h264.sd;
+                        if (mob != null)
+                        {
+                            mediaInfo.Add(
+                                new ChannelMediaInfo
+                                {
+                                    Height = mob.height,
+                                    Width = mob.width,
+                                    Path = mob.url
+                                }
+                             );
+                        }
+                    }
+                }
+
+                return mediaInfo;
+            }
         }
     }
 }

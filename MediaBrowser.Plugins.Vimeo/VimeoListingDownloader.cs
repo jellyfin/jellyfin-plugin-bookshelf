@@ -37,7 +37,7 @@ namespace MediaBrowser.Plugins.Vimeo
 
                 if (vid.embed_privacy == "anywhere")
                 {
-                    await GetUrl(vid);
+                    //await GetUrl(vid);
                 }
                 else
                 {
