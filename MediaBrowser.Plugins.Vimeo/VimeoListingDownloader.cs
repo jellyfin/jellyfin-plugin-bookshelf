@@ -67,8 +67,20 @@ namespace MediaBrowser.Plugins.Vimeo
                     var hd = reg.request.files.h264.hd;
                     if (hd != null)
                     {
-                        // if (hd.width != 0) v.width = hd.width;
-                        // if (hd.height != 0) v.height = hd.height;
+                        /*
+                        _logger.Debug("Name : " + v.title);
+                        _logger.Debug("Description : " + v.description);
+                        _logger.Debug("Upload d : " + v.upload_date);
+                        _logger.Debug("Mod d : " + v.modified_date);
+                        _logger.Debug("likes : " + v.number_of_likes);
+                        _logger.Debug("comments : " + v.number_of_comments);
+                        _logger.Debug("Width : " + v.width);
+                        _logger.Debug("Owner : " + v.owner);
+                        _logger.Debug("Thumb : " + v.thumbnails[0].Url);
+
+                        _logger.Debug("HD URL " + hd.url);*/
+                        v.width = hd.width;
+                        v.height = hd.height;
                         v.urls.Add(new VimeoAPI.API.Video.Url
                         {
                             type = "player",
@@ -81,8 +93,8 @@ namespace MediaBrowser.Plugins.Vimeo
                     var sd = reg.request.files.h264.sd;
                     if (sd != null)
                     {
-                        //v.width = sd.width;
-                        //v.height = sd.height;
+                        v.width = sd.width;
+                        v.height = sd.height;
                         v.urls.Add(new VimeoAPI.API.Video.Url
                         {
                             type = "player",

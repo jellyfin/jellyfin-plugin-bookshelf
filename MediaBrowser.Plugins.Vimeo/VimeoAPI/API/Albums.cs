@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Xml.Linq;
 
 namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
@@ -12,17 +13,14 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
 
         public static Albums FromElement(XElement e)
         {
-            Albums es = new Albums
+            var es = new Albums
             {
                 on_this_page = int.Parse(e.Attribute("on_this_page").Value),
                 page = int.Parse(e.Attribute("page").Value),
                 perpage = int.Parse(e.Attribute("perpage").Value),
                 total = int.Parse(e.Attribute("total").Value)
             };
-            foreach (var item in e.Elements("album"))
-            {
-                es.Add(Album.FromElement(item));
-            }
+            es.AddRange(e.Elements("album").Select(Album.FromElement));
             return es;
         }
     }
@@ -36,7 +34,7 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
         public int total_videos;
         public string url;
         public string video_sort_method;
-        public global::MediaBrowser.Plugins.Vimeo.VimeoAPI.API.Video thumbnail_video;
+        public Video thumbnail_video;
 
         public static Album FromElement(XElement e)
         {
@@ -49,7 +47,7 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
                 total_videos = int.Parse(e.Element("total_videos").Value),
                 url = e.Element("url").Value,
                 video_sort_method = e.Element("video_sort_method").Value,
-                thumbnail_video = new global::MediaBrowser.Plugins.Vimeo.VimeoAPI.API.Video
+                thumbnail_video = new Video
                 {
                     id = e.Element("thumbnail_video").Attribute("id").Value,
                     owner = new Contact
@@ -57,7 +55,7 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
                         id = e.Element("thumbnail_video").Attribute("owner").Value
                     },
                     title = e.Element("thumbnail_video").Element("title").Value,
-                    thumbnails = global::MediaBrowser.Plugins.Vimeo.VimeoAPI.API.Video.GetThumbnails(e.Element("thumbnail_video").Element("thumbnails"))
+                    thumbnails = Video.GetThumbnails(e.Element("thumbnail_video").Element("thumbnails"))
                 }
             };
         }

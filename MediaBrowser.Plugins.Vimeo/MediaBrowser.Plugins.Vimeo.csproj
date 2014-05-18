@@ -75,7 +75,6 @@
     <Compile Include="VimeoAPI\API\Topics.cs" />
     <Compile Include="VimeoAPI\API\Videos.cs" />
     <Compile Include="VimeoAPI\API\VimeoClient.cs" />
-    <Compile Include="VimeoAPI\API\VimeoClient_FakePost.cs" />
     <Compile Include="VimeoAPI\Common\OAuthBase.cs" />
     <Compile Include="VimeoAPI\Common\VimeoApi.cs" />
     <Compile Include="VimeoChannelDownloader.cs" />

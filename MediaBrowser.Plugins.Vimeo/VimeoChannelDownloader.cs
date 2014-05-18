@@ -34,7 +34,7 @@ namespace MediaBrowser.Plugins.Vimeo
         public async Task<Channels> GetVimeoChannelList(CancellationToken cancellationToken)
         {
 
-            var channels = Plugin.vc.vimeo_channels_getAll(_logger);
+            var channels = Plugin.vc.vimeo_channels_getAll();
             return channels;
         }
 

@@ -4,6 +4,7 @@ using System.Diagnostics;
 #endif
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Web;
@@ -42,8 +43,8 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.Common
             public int Compare(QueryParameter x, QueryParameter y)
             {
                 return x.Name == y.Name 
-                    ? string.Compare(x.Value, y.Value) 
-                    : string.Compare(x.Name, y.Name);
+                    ? String.CompareOrdinal(x.Value, y.Value) 
+                    : String.CompareOrdinal(x.Name, y.Name);
             }
         }
 
@@ -85,11 +86,8 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.Common
 
             if (string.IsNullOrEmpty(data))
                 throw new ArgumentNullException("data");
-#if WINDOWS_PHONE
-            byte[] dataBuffer = Encoding.UTF8.GetBytes(data);
-#else
+
             byte[] dataBuffer = Encoding.ASCII.GetBytes(data);
-#endif
             byte[] hashBytes = hashAlgorithm.ComputeHash(dataBuffer);
 
             return Convert.ToBase64String(hashBytes);
@@ -111,15 +109,12 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.Common
 
             if (!string.IsNullOrEmpty(parameters))
             {
-                string[] p = parameters.Split('&');
-                foreach (string s in p)
+                var p = parameters.Split('&');
+                foreach (var s in p.Where(s => !string.IsNullOrEmpty(s)))
                 {
-                    if (string.IsNullOrEmpty(s)/* || s.StartsWith(OAuthParameterPrefix)*/) 
-                        continue;
-
                     if (s.IndexOf('=') > -1)
                     {
-                        string[] temp = s.Split('=');
+                        var temp = s.Split('=');
                         result.Add(new QueryParameter(temp[0], temp[1]));
                     }
                     else
@@ -142,7 +137,7 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.Common
         {
             var result = new StringBuilder();
 
-            foreach (char symbol in value)
+            foreach (var symbol in value)
             {
                 if (unreservedChars.IndexOf(symbol) != -1)
                     result.Append(symbol);
@@ -161,10 +156,9 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.Common
         protected string NormalizeRequestParameters(IList<QueryParameter> parameters)
         {
             var sb = new StringBuilder();
-            QueryParameter p;
-            for (int i = 0; i < parameters.Count; i++)
+            for (var i = 0; i < parameters.Count; i++)
             {
-                p = parameters[i];
+                QueryParameter p = parameters[i];
                 sb.AppendFormat("{0}={1}", p.Name, p.Value);
 
                 if (i < parameters.Count - 1)
@@ -215,7 +209,7 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.Common
             normalizedUrl = null;
             normalizedRequestParameters = null;
 
-            List<QueryParameter> parameters = GetQueryParameters(url.Query);
+            var parameters = GetQueryParameters(url.Query);
             parameters.Add(new QueryParameter(OAuthVersionKey, OAuthVersion));
             parameters.Add(new QueryParameter(OAuthNonceKey, nonce));
             parameters.Add(new QueryParameter(OAuthTimestampKey, timeStamp));
@@ -229,22 +223,15 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.Common
             if (!string.IsNullOrEmpty(token))
                 parameters.Add(new QueryParameter(OAuthTokenKey, token));
 
-            for (int i = 0; i < parameters.Count; i++)
+            for (var i = 0; i < parameters.Count; i++)
             {
                 var item = parameters[i];
-#if WINDOWS
+
                 var dups = parameters.FindAll(o => o.Name == item.Name);
-                for (int j = 0; j < dups.Count; j++)
+                foreach (var t in dups.Where(t => t != item))
                 {
-                    if (dups[j] != item) parameters.Remove(dups[j]);
+                    parameters.Remove(t);
                 }
-#elif WINDOWS_PHONE
-                for (int j = parameters.Count - 1; j > i; j++)
-                {
-                    if (parameters[j].Name == parameters[i].Name)
-                        parameters.RemoveAt(j);
-                }
-#endif
             }
 
             parameters.Sort(new QueryParameterComparer());
@@ -333,7 +320,7 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.Common
                     return HttpUtility.UrlEncode(
                         string.Format("{0}&{1}", consumerSecret, tokenSecret));
                 case OAuthSignatureType.HMACSHA1:
-                    string signatureBase = GenerateSignatureBase(url, consumerKey, 
+                    var signatureBase = GenerateSignatureBase(url, consumerKey, 
                         token, tokenSecret, 
                         httpMethod, timeStamp, nonce, HMACSHA1SignatureType,
                         out normalizedUrl, out normalizedRequestParameters, addCallBack);
@@ -364,7 +351,7 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.Common
         public virtual string GenerateTimeStamp()
         {
             // Default implementation of UNIX time of the current UTC time
-            TimeSpan ts = DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1, 0, 0, 0, 0));
+            var ts = DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1, 0, 0, 0, 0));
             return ((Int64)ts.TotalSeconds).ToString();
         }
 

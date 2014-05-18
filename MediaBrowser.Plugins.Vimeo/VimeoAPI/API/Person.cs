@@ -35,7 +35,7 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
 
         public static Person FromElement(XElement e)
         {
-            Person p = new Person();
+            var p = new Person();
             try
             {
                 p.created_on = e.Attribute("created_on").Value;
@@ -69,16 +69,10 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
 
         public static List<Thumbnail> GetPortraits(XElement e)
         {
-            var portraits = new List<Thumbnail>();
-            foreach (var portrait in e.Elements("portrait").ToList())
+            return e.Elements("portrait").ToList().Select(portrait => new Thumbnail
             {
-                Thumbnail t = new Thumbnail();
-                t.Height = int.Parse(portrait.Attribute("height").Value);
-                t.Width = int.Parse(portrait.Attribute("width").Value);
-                t.Url = portrait.Value;
-                portraits.Add(t);
-            }
-            return portraits;
+                Height = int.Parse(portrait.Attribute("height").Value), Width = int.Parse(portrait.Attribute("width").Value), Url = portrait.Value
+            }).ToList();
         }
     }
 }

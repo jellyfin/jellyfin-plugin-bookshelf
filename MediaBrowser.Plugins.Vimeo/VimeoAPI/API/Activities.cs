@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Xml.Linq;
 
 namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
@@ -12,17 +13,14 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
 
         public static Activities FromElement(XElement e)
         {
-            Activities es = new Activities
+            var es = new Activities
             {
                 on_this_page = int.Parse(e.Attribute("on_this_page").Value),
                 page = int.Parse(e.Attribute("page").Value),
                 perpage = int.Parse(e.Attribute("perpage").Value),
                 total = int.Parse(e.Attribute("total").Value)
             };
-            foreach (var item in e.Elements("activity"))
-            {
-                es.Add(Activity.FromElement(item));
-            }
+            es.AddRange(e.Elements("activity").Select(Activity.FromElement));
             return es;
         }
     }

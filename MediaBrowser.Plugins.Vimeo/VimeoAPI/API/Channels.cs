@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Xml.Linq;
 
 namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
@@ -12,17 +13,14 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
 
         public static Channels FromElement(XElement e)
         {
-            Channels es = new Channels
+            var es = new Channels
             {
                 on_this_page = int.Parse(e.Attribute("on_this_page").Value),
                 page = int.Parse(e.Attribute("page").Value),
                 perpage = int.Parse(e.Attribute("perpage").Value),
                 total = int.Parse(e.Attribute("total").Value)
             };
-            foreach (var item in e.Elements("channel"))
-            {
-                es.Add(Channel.FromElement(item));
-            }
+            es.AddRange(e.Elements("channel").Select(Channel.FromElement));
             return es;
         }
     }
@@ -63,40 +61,38 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
 
             public static Moderators FromElement(XElement e)
             {
-                Moderators es = new Moderators
+                var es = new Moderators
                 {
                     on_this_page = int.Parse(e.Attribute("on_this_page").Value),
                     page = int.Parse(e.Attribute("page").Value),
                     perpage = int.Parse(e.Attribute("perpage").Value),
                     total = int.Parse(e.Attribute("total").Value)
                 };
-                foreach (var item in e.Elements("subscriber"))
-                {
-                    es.Add(Moderator.FromElement(item));
-                }
+                es.AddRange(e.Elements("subscriber").Select(Moderator.FromElement));
                 return es;
             }
         }
 
         public class Moderator : Contact
         {
-            
             public bool is_creator;
 
             public new static Moderator FromElement(XElement e)
             {
                 //Subscriber m = (Subscriber)(Contact.FromElement(e));
-                Moderator c = new Moderator();
-                c.display_name = e.Attribute("display_name").Value;
-                c.id = e.Attribute("id").Value;
-                c.is_plus = e.Attribute("is_plus").Value == "1";
-                c.is_staff = e.Attribute("is_staff").Value == "1";
-                c.profileurl = e.Attribute("profileurl").Value;
-                c.realname = e.Attribute("realname").Value;
-                c.username = e.Attribute("username").Value;
-                c.videosurl = e.Attribute("videosurl").Value;
-                c.portraits = Person.GetPortraits(e.Element("portraits"));
-                c.is_creator = e.Attribute("is_creator").Value == "1";
+                var c = new Moderator
+                {
+                    display_name = e.Attribute("display_name").Value,
+                    id = e.Attribute("id").Value,
+                    is_plus = e.Attribute("is_plus").Value == "1",
+                    is_staff = e.Attribute("is_staff").Value == "1",
+                    profileurl = e.Attribute("profileurl").Value,
+                    realname = e.Attribute("realname").Value,
+                    username = e.Attribute("username").Value,
+                    videosurl = e.Attribute("videosurl").Value,
+                    portraits = Person.GetPortraits(e.Element("portraits")),
+                    is_creator = e.Attribute("is_creator").Value == "1"
+                };
                 return c;
             }
         }
