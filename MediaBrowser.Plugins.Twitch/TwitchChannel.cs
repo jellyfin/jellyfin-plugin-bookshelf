@@ -94,7 +94,6 @@ namespace MediaBrowser.Plugins.Twitch
                          Path = i.channel.playURL,
                     }
                 }
-
             });
         }
 
