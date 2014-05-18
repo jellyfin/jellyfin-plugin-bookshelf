@@ -28,6 +28,15 @@ namespace MediaBrowser.Plugins.Twitch
             _jsonSerializer = jsonSerializer;
         }
 
+        public string DataVersion
+        {
+            get
+            {
+                // Increment as needed to invalidate all caches
+                return "1";
+            }
+        }
+
         public async Task<IEnumerable<ChannelItemInfo>> Search(ChannelSearchInfo searchInfo, Controller.Entities.User user, CancellationToken cancellationToken)
         {
             return null;

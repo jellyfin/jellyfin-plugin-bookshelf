@@ -1,6 +1,7 @@
 ﻿using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.Logging;
 using MediaBrowser.Plugins.Trailers.Extensions;
 using System;
 using System.Collections.Generic;
@@ -27,10 +28,10 @@ namespace MediaBrowser.Plugins.Trailers
         /// Downloads a list of trailer info's from the apple url
         /// </summary>
         /// <returns>Task{List{TrailerInfo}}.</returns>
-        public static async Task<List<TrailerInfo>> GetTrailerList(IHttpClient httpClient, CancellationToken cancellationToken)
+        public static async Task<List<TrailerInfo>> GetTrailerList(IHttpClient httpClient, ILogger logger, CancellationToken cancellationToken)
         {
-            var url = Plugin.Instance.Configuration.EnableHDTrailers ? 
-                HDTrailerFeedUrl : 
+            var url = Plugin.Instance.Configuration.EnableHDTrailers ?
+                HDTrailerFeedUrl :
                 TrailerFeedUrl;
 
             var stream = await httpClient.Get(new HttpRequestOptions
@@ -57,7 +58,7 @@ namespace MediaBrowser.Plugins.Trailers
                         switch (reader.Name)
                         {
                             case "movieinfo":
-                                var trailer = FetchTrailerInfo(reader.ReadSubtree());
+                                var trailer = FetchTrailerInfo(reader.ReadSubtree(), logger);
                                 list.Add(trailer);
                                 break;
                         }
@@ -73,7 +74,7 @@ namespace MediaBrowser.Plugins.Trailers
         /// </summary>
         /// <param name="reader">The reader.</param>
         /// <returns>TrailerInfo.</returns>
-        private static TrailerInfo FetchTrailerInfo(XmlReader reader)
+        private static TrailerInfo FetchTrailerInfo(XmlReader reader, ILogger logger)
         {
             var trailerInfo = new TrailerInfo { };
 
@@ -86,7 +87,7 @@ namespace MediaBrowser.Plugins.Trailers
                     switch (reader.Name)
                     {
                         case "info":
-                            FetchInfo(reader.ReadSubtree(), trailerInfo);
+                            FetchInfo(reader.ReadSubtree(), trailerInfo, logger);
                             break;
                         case "cast":
                             FetchCast(reader.ReadSubtree(), trailerInfo);
@@ -111,13 +112,13 @@ namespace MediaBrowser.Plugins.Trailers
         }
 
         private static readonly CultureInfo UsCulture = new CultureInfo("en-US");
-        
+
         /// <summary>
         /// Fetches from the info node
         /// </summary>
         /// <param name="reader">The reader.</param>
         /// <param name="info">The info.</param>
-        private static void FetchInfo(XmlReader reader, TrailerInfo info)
+        private static void FetchInfo(XmlReader reader, TrailerInfo info, ILogger logger)
         {
             reader.MoveToContent();
             reader.Read();
@@ -129,6 +130,30 @@ namespace MediaBrowser.Plugins.Trailers
                     case "title":
                         info.Name = reader.ReadStringSafe();
                         break;
+                    case "runtime":
+                        {
+                            var val = reader.ReadStringSafe();
+
+                            if (!string.IsNullOrWhiteSpace(val))
+                            {
+                                var parts = val.Split(':');
+
+                                if (parts.Length == 2)
+                                {
+                                    int mins;
+                                    int secs;
+
+                                    if (int.TryParse(parts[0], NumberStyles.Any, UsCulture, out mins) &&
+                                        int.TryParse(parts[1], NumberStyles.Any, UsCulture, out secs))
+                                    {
+                                        var totalSeconds = (mins*60) + secs;
+
+                                        info.RunTimeTicks = TimeSpan.FromSeconds(totalSeconds).Ticks;
+                                    }
+                                }
+                            }
+                            break;
+                        }
                     case "rating":
                         {
                             var rating = reader.ReadStringSafe();
@@ -230,15 +255,15 @@ namespace MediaBrowser.Plugins.Trailers
                     switch (reader.Name)
                     {
                         case "name":
-                        {
-                            var val = reader.ReadStringSafe();
-
-                            if (!string.IsNullOrWhiteSpace(val))
                             {
-                                info.Genres.Add(val);
+                                var val = reader.ReadStringSafe();
+
+                                if (!string.IsNullOrWhiteSpace(val))
+                                {
+                                    info.Genres.Add(val);
+                                }
+                                break;
                             }
-                            break;
-                        }
                         default:
                             reader.Skip();
                             break;
@@ -265,15 +290,15 @@ namespace MediaBrowser.Plugins.Trailers
                     switch (reader.Name)
                     {
                         case "name":
-                        {
-                            var name = reader.ReadStringSafe();
-
-                            if (!string.IsNullOrWhiteSpace(name))
                             {
-                                info.People.Add(new PersonInfo { Name = name, Type = PersonType.Actor });
+                                var name = reader.ReadStringSafe();
+
+                                if (!string.IsNullOrWhiteSpace(name))
+                                {
+                                    info.People.Add(new PersonInfo { Name = name, Type = PersonType.Actor });
+                                }
+                                break;
                             }
-                            break;
-                        }
                         default:
                             reader.Skip();
                             break;

@@ -40,6 +40,8 @@ namespace MediaBrowser.Plugins.Trailers
         public DateTime? PremiereDate { get; set; }
         public int? ProductionYear { get; set; }
 
+        public long? RunTimeTicks { get; set; }
+
         public TrailerInfo()
         {
             Studios = new List<string>();

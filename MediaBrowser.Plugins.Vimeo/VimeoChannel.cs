@@ -27,6 +27,15 @@ namespace MediaBrowser.Plugins.Vimeo
             _jsonSerializer = jsonSerializer;
         }
 
+        public string DataVersion
+        {
+            get
+            {
+                // Increment as needed to invalidate all caches
+                return "1";
+            }
+        }
+
         public async Task<IEnumerable<ChannelItemInfo>> Search(ChannelSearchInfo searchInfo, Controller.Entities.User user, CancellationToken cancellationToken)
         {
             var downloader = new VimeoListingDownloader(_logger, _jsonSerializer, _httpClient);
@@ -108,8 +117,8 @@ namespace MediaBrowser.Plugins.Vimeo
                 Overview = i.description,
                 Type = ChannelItemType.Media,
                 Id = i.id,
-                RunTimeTicks = i.duration,
-                //Tags = new List<string>();
+                RunTimeTicks = TimeSpan.FromSeconds(i.duration).Ticks,
+                Tags = i.tags == null ? new List<string>() : i.tags.Select(t => t.title).ToList()
                
             });
         }
