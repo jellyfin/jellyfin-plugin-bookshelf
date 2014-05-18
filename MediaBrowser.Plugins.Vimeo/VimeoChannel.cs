@@ -108,8 +108,8 @@ namespace MediaBrowser.Plugins.Vimeo
                 Overview = i.description,
                 Type = ChannelItemType.Media,
                 Id = i.id,
-                RunTimeTicks = i.duration,
-                //Tags = new List<string>();
+                RunTimeTicks = TimeSpan.FromSeconds(i.duration).Ticks,
+               
                
             });
         }

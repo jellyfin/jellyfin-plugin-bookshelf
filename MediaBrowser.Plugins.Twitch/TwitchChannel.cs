@@ -50,8 +50,8 @@ namespace MediaBrowser.Plugins.Twitch
 
             return new ChannelItemResult
             {
-                Items = items.ToList()//,
-                //CacheLength = TimeSpan.FromDays(3)
+                Items = items.ToList(),
+                CacheLength = TimeSpan.FromDays(1)
             };
         }
 
@@ -82,18 +82,8 @@ namespace MediaBrowser.Plugins.Twitch
                 IsInfiniteStream = true,
                 MediaType = ChannelMediaType.Video,
                 Name = i.channel.name,
-                //Overview = i.channel.,
                 Type = ChannelItemType.Media,
-                Id = i.channel._id.ToString("N"),
-                // PremiereDate = i.upload_date,
-
-                MediaSources = new List<ChannelMediaInfo>
-                {
-                    new ChannelMediaInfo
-                    {
-                         Path = i.channel.playURL,
-                    }
-                }
+                Id = i.channel.name,
             });
         }
 
