@@ -3,6 +3,7 @@ using MediaBrowser.Controller.Channels;
 using MediaBrowser.Controller.Drawing;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
+using MediaBrowser.Model.Channels;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
@@ -59,8 +60,8 @@ namespace MediaBrowser.Plugins.Twitch
 
             return new ChannelItemResult
             {
-                Items = items.ToList()//,
-                //CacheLength = TimeSpan.FromDays(3)
+                Items = items.ToList(),
+                CacheLength = TimeSpan.FromDays(3)
             };
         }
 
@@ -94,15 +95,7 @@ namespace MediaBrowser.Plugins.Twitch
                 //Overview = i.channel.,
                 Type = ChannelItemType.Media,
                 Id = i.channel._id.ToString("N"),
-                // PremiereDate = i.upload_date,
-
-                MediaSources = new List<ChannelMediaInfo>
-                {
-                    new ChannelMediaInfo
-                    {
-                         Path = i.channel.playURL,
-                    }
-                }
+                // PremiereDate = i.upload_date
             });
         }
 
