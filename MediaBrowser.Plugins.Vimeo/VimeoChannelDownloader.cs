@@ -20,10 +20,16 @@ namespace MediaBrowser.Plugins.Vimeo
             _httpClient = httpClient;
         }
 
-        public async Task<Channels> GetVimeoChannelList(CancellationToken cancellationToken)
+        public async Task<Channels> GetVimeoChannelList(int? startIndex, int? limit, CancellationToken cancellationToken)
         {
+            int? page = null;
 
-            var channels = Plugin.vc.vimeo_channels_getAll();
+            if (startIndex.HasValue && limit.HasValue)
+            {
+                page = 1 + (startIndex.Value / limit.Value) % limit.Value;
+            }
+
+            var channels = Plugin.vc.vimeo_channels_getAll(page: page, per_page: limit);
             return channels;
         }
 

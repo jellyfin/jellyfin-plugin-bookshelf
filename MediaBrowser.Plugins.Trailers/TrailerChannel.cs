@@ -4,22 +4,34 @@ using MediaBrowser.Controller.Channels;
 using MediaBrowser.Controller.Drawing;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
+using MediaBrowser.Model.Channels;
 using MediaBrowser.Model.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using MediaBrowser.Model.Logging;
 
 namespace MediaBrowser.Plugins.Trailers
 {
     public class TrailerChannel : IChannel
     {
         private readonly IHttpClient _httpClient;
+        private readonly ILogger _logger;
 
-        public TrailerChannel(IHttpClient httpClient)
+        public TrailerChannel(IHttpClient httpClient, ILogger logger)
         {
             _httpClient = httpClient;
+            _logger = logger;
+        }
+
+        public string DataVersion
+        {
+            get
+            {
+                return "5";
+            }
         }
 
         public async Task<ChannelItemResult> GetChannelItems(InternalChannelItemQuery query, CancellationToken cancellationToken)
@@ -35,7 +47,7 @@ namespace MediaBrowser.Plugins.Trailers
 
         private async Task<IEnumerable<ChannelItemInfo>> GetChannelItems(CancellationToken cancellationToken)
         {
-            var trailers = await AppleTrailerListingDownloader.GetTrailerList(_httpClient, cancellationToken)
+            var trailers = await AppleTrailerListingDownloader.GetTrailerList(_httpClient, _logger, cancellationToken)
                 .ConfigureAwait(false);
 
             var now = DateTime.UtcNow;
@@ -59,6 +71,7 @@ namespace MediaBrowser.Plugins.Trailers
                 PremiereDate = i.PremiereDate,
                 ProductionYear = i.ProductionYear,
                 Studios = i.Studios,
+                RunTimeTicks = i.RunTimeTicks,
 
                 MediaSources = new List<ChannelMediaInfo>
                 {

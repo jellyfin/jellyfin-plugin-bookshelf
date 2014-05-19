@@ -1,16 +1,17 @@
 ﻿using MediaBrowser.Common.Extensions;
-using MediaBrowser.Common.Net;  
+using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Channels;
 using MediaBrowser.Controller.Drawing;
 using MediaBrowser.Controller.Providers;
+using MediaBrowser.Model.Channels;
 using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.Logging;
+using MediaBrowser.Model.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Model.Logging;
-using MediaBrowser.Model.Serialization;
 
 namespace MediaBrowser.Plugins.Vimeo
 {
@@ -25,6 +26,15 @@ namespace MediaBrowser.Plugins.Vimeo
             _httpClient = httpClient;
             _logger = logManager.GetLogger(GetType().Name);
             _jsonSerializer = jsonSerializer;
+        }
+
+        public string DataVersion
+        {
+            get
+            {
+                // Increment as needed to invalidate all caches
+                return "4";
+            }
         }
 
         public async Task<IEnumerable<ChannelItemInfo>> Search(ChannelSearchInfo searchInfo, Controller.Entities.User user, CancellationToken cancellationToken)
@@ -57,48 +67,43 @@ namespace MediaBrowser.Plugins.Vimeo
 
         public async Task<ChannelItemResult> GetChannelItems(InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
-            IEnumerable<ChannelItemInfo> items;
-
-            _logger.Debug("cat ID : " + query.CategoryId);
-
-            if (query.CategoryId == null)
+            if (string.IsNullOrEmpty(query.CategoryId))
             {
-                items = await GetChannels(cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                 items = await GetChannelItems(query.CategoryId, cancellationToken).ConfigureAwait(false);
+                return await GetChannels(query, cancellationToken).ConfigureAwait(false);
             }
 
-            return new ChannelItemResult
-            {
-                Items = items.ToList(),
-                CacheLength = TimeSpan.FromDays(3)
-            };
+            return await GetChannelItemsInternal(query, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<IEnumerable<ChannelItemInfo>> GetChannels(CancellationToken cancellationToken)
+        private async Task<ChannelItemResult> GetChannels(InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
             var downloader = new VimeoChannelDownloader(_logger, _jsonSerializer, _httpClient);
-            var channels = await downloader.GetVimeoChannelList(cancellationToken);
-           
-            return channels.Select(i => new ChannelItemInfo
+            var channels = await downloader.GetVimeoChannelList(query.StartIndex, query.Limit, cancellationToken);
+
+            var items = channels.Select(i => new ChannelItemInfo
             {
                 Type = ChannelItemType.Category,
                 ImageUrl = i.logo_url,
                 Name = i.name,
                 Id = i.id,
                 Overview = i.description
-            });
+            }).ToList();
+
+            return new ChannelItemResult
+            {
+                Items = items,
+                CacheLength = TimeSpan.FromDays(1),
+                TotalRecordCount = channels.total
+            };
         }
 
-        private async Task<IEnumerable<ChannelItemInfo>> GetChannelItems(String catID, CancellationToken cancellationToken)
+        private async Task<ChannelItemResult> GetChannelItemsInternal(InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
             var downloader = new VimeoListingDownloader(_logger, _jsonSerializer, _httpClient);
-            var videos = await downloader.GetVimeoList(catID, cancellationToken)
+            var videos = await downloader.GetVimeoList(query.CategoryId, query.StartIndex, query.Limit, cancellationToken)
                 .ConfigureAwait(false);
 
-            return videos.Select(i => new ChannelItemInfo
+            var items = videos.Select(i => new ChannelItemInfo
             {
                 ContentType = ChannelMediaContentType.Clip,
                 ImageUrl = i.thumbnails[2].Url,
@@ -109,9 +114,16 @@ namespace MediaBrowser.Plugins.Vimeo
                 Type = ChannelItemType.Media,
                 Id = i.id,
                 RunTimeTicks = TimeSpan.FromSeconds(i.duration).Ticks,
-               
-               
+                //Tags = i.tags == null ? new List<string>() : i.tags.Select(t => t.title).ToList()
+
             });
+
+            return new ChannelItemResult
+            {
+                Items = items.ToList(),
+                CacheLength = TimeSpan.FromDays(1),
+                TotalRecordCount = videos.total
+            };
         }
 
         public Task<DynamicImageResponse> GetChannelImage(ImageType type, CancellationToken cancellationToken)
@@ -171,13 +183,14 @@ namespace MediaBrowser.Plugins.Vimeo
             get { return "Vimeo"; }
         }
 
-   
+
 
         public ChannelInfo GetChannelInfo()
         {
             return new ChannelInfo
             {
                 CanSearch = true,
+                MaxPageSize = 50,
 
                 ContentTypes = new List<ChannelMediaContentType>
                  {
@@ -206,15 +219,15 @@ namespace MediaBrowser.Plugins.Vimeo
                 var r = _jsonSerializer.DeserializeFromStream<RootObject>(json);
 
                 var mediaInfo = new List<ChannelMediaInfo>();
-                    
+
 
                 if (r.request != null && r.request.files != null)
                 {
                     if (r.request.files.h264 != null)
                     {
-                        
+
                         var hd = r.request.files.h264.hd;
-                        if (hd != null)
+                        if (hd != null && !string.IsNullOrEmpty(hd.url))
                         {
                             mediaInfo.Add(
                                 new ChannelMediaInfo
@@ -225,9 +238,9 @@ namespace MediaBrowser.Plugins.Vimeo
                                 }
                             );
                         }
-                        
+
                         var sd = r.request.files.h264.sd;
-                        if (sd != null)
+                        if (sd != null && !string.IsNullOrEmpty(sd.url))
                         {
                             mediaInfo.Add(
                                 new ChannelMediaInfo
@@ -240,7 +253,7 @@ namespace MediaBrowser.Plugins.Vimeo
                         }
 
                         var mob = r.request.files.h264.sd;
-                        if (mob != null)
+                        if (mob != null && !string.IsNullOrEmpty(mob.url))
                         {
                             mediaInfo.Add(
                                 new ChannelMediaInfo

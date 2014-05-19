@@ -1,21 +1,16 @@
-﻿using System.Linq;
-using MediaBrowser.Common.Net;
+﻿using MediaBrowser.Common.Net;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
-using MediaBrowser.Plugins.Vimeo.Extensions;
+using MediaBrowser.Plugins.Vimeo.VimeoAPI.API;
 using System;
-using System.Collections.Generic;
-using System.Globalization;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
-using MediaBrowser.Plugins.Vimeo.VimeoAPI.API;
 
 namespace MediaBrowser.Plugins.Vimeo
 {
     public class VimeoListingDownloader
     {
-
         private ILogger _logger;
         private readonly IHttpClient _httpClient;
         private readonly IJsonSerializer _jsonSerializer;
@@ -27,9 +22,16 @@ namespace MediaBrowser.Plugins.Vimeo
             _httpClient = httpClient;
         }
 
-        public async Task<Videos> GetVimeoList(String catID, CancellationToken cancellationToken)
+        public async Task<Videos> GetVimeoList(String catID, int? startIndex, int? limit, CancellationToken cancellationToken)
         {
-            var videos = Plugin.vc.vimeo_channels_getVideos(catID, true);
+            int? page = null;
+
+            if (startIndex.HasValue && limit.HasValue)
+            {
+                page = 1 + (startIndex.Value / limit.Value) % limit.Value;
+            }
+
+            var videos = Plugin.vc.vimeo_channels_getVideos(catID, true, page: page, per_page: limit);
 
             foreach (var vid in videos.ToList().Where(vid => vid.embed_privacy != "anywhere"))
             {

@@ -3,6 +3,7 @@ using MediaBrowser.Controller.Channels;
 using MediaBrowser.Controller.Drawing;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
+using MediaBrowser.Model.Channels;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
@@ -28,6 +29,15 @@ namespace MediaBrowser.Plugins.Twitch
             _jsonSerializer = jsonSerializer;
         }
 
+        public string DataVersion
+        {
+            get
+            {
+                // Increment as needed to invalidate all caches
+                return "1";
+            }
+        }
+
         public async Task<IEnumerable<ChannelItemInfo>> Search(ChannelSearchInfo searchInfo, Controller.Entities.User user, CancellationToken cancellationToken)
         {
             return null;
@@ -51,7 +61,7 @@ namespace MediaBrowser.Plugins.Twitch
             return new ChannelItemResult
             {
                 Items = items.ToList(),
-                CacheLength = TimeSpan.FromDays(1)
+                CacheLength = TimeSpan.FromDays(3)
             };
         }
 
@@ -82,8 +92,10 @@ namespace MediaBrowser.Plugins.Twitch
                 IsInfiniteStream = true,
                 MediaType = ChannelMediaType.Video,
                 Name = i.channel.name,
+                //Overview = i.channel.,
                 Type = ChannelItemType.Media,
-                Id = i.channel.name,
+                Id = i.channel._id.ToString("N"),
+                // PremiereDate = i.upload_date
             });
         }
 
