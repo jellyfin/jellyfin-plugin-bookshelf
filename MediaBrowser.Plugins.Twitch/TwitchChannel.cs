@@ -94,7 +94,7 @@ namespace MediaBrowser.Plugins.Twitch
                 Name = i.channel.name,
                 //Overview = i.channel.,
                 Type = ChannelItemType.Media,
-                Id = i.channel._id.ToString("N"),
+                Id = i.channel.name,
                 // PremiereDate = i.upload_date
             });
         }
