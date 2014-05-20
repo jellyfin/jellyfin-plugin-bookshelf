@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Xml.Linq;
+using MediaBrowser.Model.Logging;
 
 namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
 {
@@ -20,7 +23,8 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
                 perpage = int.Parse(e.Attribute("perpage").Value),
                 total = int.Parse(e.Attribute("total").Value)
             };
-            es.AddRange(e.Elements("category").Select(Category.FromElement));
+            es.AddRange(e.Elements("category").Select(Category.FromElement).Where(item => item.subCategories.Any() ));
+            
             return es;
         }
     }
@@ -34,32 +38,51 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
         public int total_videos;
         public int total_channels;
         public int total_groups;
-
+        public bool subCat = false;
         public string image;
 
         public List<Channel> subCategories;
 
         public static Category FromElement(XElement e)
         {
-            return new Category
+            var cat = new Category
             {
                 id = e.Attribute("word").Value,
                 name = e.Element("name").Value,
+                subCategories = GetSubCategories(e.Element("subcategories")),
                 //total_videos = int.Parse(e.Element("total_videos").Value),
-                //total_channels = int.Parse(e.Element("total_channels").Value),
-                //total_groups = int.Parse(e.Element("total_groups").Value),
-                //image = "https://f.vimeocdn.com/images_v6/ins_cat_"+e.Attribute("word").Value+".jpg",
-                //subCategories = GetSubCategories(e.Element("subcategories"))
+                // total_channels = int.Parse(e.Element("total_channels").Value),
+                // total_groups = int.Parse(e.Element("total_groups").Value),
+
             };
+
+            cat.image = "https://f.vimeocdn.com/images_v6/ins_cat_" + cat.id + ".jpg";
+            return cat;
         }
 
         private static List<Channel> GetSubCategories(XElement e)
         {
-            return e.Elements("subcategory").ToList().Select(c => new Channel
+            var subList = new List<Channel>();
+
+            try
             {
-                //id = c.Attribute("word").Value,
-                //name = c.Attribute("name").Value
-            }).ToList();
+                var xElement = e.Element("subcategory");
+                if (xElement != null)
+                {
+                    subList.AddRange(e.Elements("subcategory").Select(item => new Channel
+                    {
+                        id = item.Attribute("word").Value,
+                        name = item.Attribute("name").Value
+                    }));
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("ERROR! " + ex);
+                
+            }
+
+            return subList;
         }
     }
 }

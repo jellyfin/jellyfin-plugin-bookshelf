@@ -1,4 +1,5 @@
 ﻿using MediaBrowser.Common.Net;
+using MediaBrowser.Controller.Channels;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Plugins.Vimeo.VimeoAPI.API;
@@ -20,16 +21,16 @@ namespace MediaBrowser.Plugins.Vimeo
             _httpClient = httpClient;
         }
 
-        public async Task<Channels> GetVimeoChannelList(int? startIndex, int? limit, CancellationToken cancellationToken)
+        public async Task<Channels> GetVimeoChannelList(InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
             int? page = null;
 
-            if (startIndex.HasValue && limit.HasValue)
+            if (query.StartIndex.HasValue && query.Limit.HasValue)
             {
-                page = 1 + (startIndex.Value / limit.Value) % limit.Value;
+                page = 1 + (query.StartIndex.Value / query.Limit.Value) % query.Limit.Value;
             }
 
-            var channels = Plugin.vc.vimeo_channels_getAll(page: page, per_page: limit);
+            var channels = Plugin.vc.vimeo_categories_getRelatedChannels(query.CategoryId,page: page, per_page: query.Limit);
             return channels;
         }
 

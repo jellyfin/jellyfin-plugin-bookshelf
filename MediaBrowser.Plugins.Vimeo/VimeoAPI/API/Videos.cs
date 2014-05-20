@@ -247,7 +247,7 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
 
                     v.thumbnails = GetThumbnails(e.Element("thumbnails"));
 
-                    /*v.tags = new List<Tag>();
+                    v.tags = new List<Tag>();
                     try
                     {
                         if (e.Element("tags") != null && e.Element("tags").Elements("tag") != null)
@@ -261,11 +261,10 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
                     catch (Exception ex)
                     {
                         //Debug.WriteLine("snazy - " + ex);
-                    }*/
+                    }
                 }
                 catch (Exception ex)
                 {
-                    //Debug.WriteLine("snazy2 - " + ex);
                 }
                 return v;
             }

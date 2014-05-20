@@ -53,13 +53,13 @@ namespace MediaBrowser.Plugins.NotifyMyAndroidNotifications
             if (string.IsNullOrEmpty(request.Description))
             {
                 parameters.Add("event", request.Name);
+                parameters.Add("description", "-");
             }
             else
             {
                 parameters.Add("event", request.Name);
                 parameters.Add("description", request.Description);
             }
-
 
             _logger.Debug("NotifyMyAndroid to {0} - {1} - {2}", options.Token, request.Name, request.Description);
 
