@@ -349,6 +349,60 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
         }
         #endregion
 
+        #region vimeo.categories
+
+        public Categories vimeo_categories_getAll(int? page = null, int? per_page = null)
+        {
+            var parameters = new Dictionary<string, string>();
+
+            if (page.HasValue) parameters.Add("page", page.Value.ToString());
+            if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
+
+            var x = ExecuteGetRequest("vimeo.categories.getAll", parameters);
+            return !IsResponseOK(x) ? null : Categories.FromElement(x.Element("rsp").Element("categories"));
+        }
+
+        public Category vimeo_categories_getInfo(string category)
+        {
+            var x = ExecuteGetRequest("vimeo.categories.getInfo",
+                new Dictionary<string, string> { { "category", category } });
+            return !IsResponseOK(x) ? null : Category.FromElement(x.Element("rsp").Element("category"));
+        }
+
+        public Channels vimeo_categories_getRelatedChannels(string category, int? page = null, int? per_page = null)
+        {
+            var parameters = new Dictionary<string, string> {{"category", category}};
+            if (page.HasValue) parameters.Add("page", page.Value.ToString());
+            if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
+            var x = ExecuteGetRequest("vimeo.categories.getRelatedChannels", parameters);
+            return !IsResponseOK(x) ? null : Channels.FromElement(x.Element("rsp").Element("channels"));
+        }
+
+        public Groups vimeo_categories_getRelatedGroups(string category, int? page = null, int? per_page = null)
+        {
+            var parameters = new Dictionary<string, string> { { "category", category } };
+            if (page.HasValue) parameters.Add("page", page.Value.ToString());
+            if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
+
+            var x = ExecuteGetRequest("vimeo.categories.getRelatedGroups", parameters);
+            return !IsResponseOK(x) ? null : Groups.FromElement(x.Element("rsp").Element("groups"));
+        }
+
+        public Videos vimeo_categories_getRelatedVideos(string category, bool full_response = false, int? page = null, int? per_page = null)
+        {
+            var parameters = new Dictionary<string, string>{
+                {"category", category},
+                {"full_response", full_response ? "1" : "0"}};
+
+            if (page.HasValue) parameters.Add("page", page.Value.ToString());
+            if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
+
+            var x = ExecuteGetRequest("vimeo.categories.getRelatedVideos", parameters);
+            return !IsResponseOK(x) ? null : Videos.FromElement(x.Element("rsp").Element("videos"), full_response);
+        }
+
+        #endregion
+
         #region vimeo.channels
         //.addVideo
         public bool vimeo_channels_addVideo(string video_id, string channel_id)

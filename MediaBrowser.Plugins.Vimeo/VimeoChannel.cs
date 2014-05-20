@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using MediaBrowser.Plugins.Vimeo.VimeoAPI.API;
 
 namespace MediaBrowser.Plugins.Vimeo
 {
@@ -33,7 +34,7 @@ namespace MediaBrowser.Plugins.Vimeo
             get
             {
                 // Increment as needed to invalidate all caches
-                return "4";
+                return "6";
             }
         }
 
@@ -69,23 +70,88 @@ namespace MediaBrowser.Plugins.Vimeo
         {
             if (string.IsNullOrEmpty(query.CategoryId))
             {
+                return await GetCategories(query, cancellationToken).ConfigureAwait(false);
+            }
+
+            var catSplit = query.CategoryId.Split('_');
+            query.CategoryId = catSplit[1];
+            
+            if (catSplit[0] == "cat")
+            {
+                return await GetSubCategories(query, cancellationToken).ConfigureAwait(false);
+            } 
+            
+            if (catSplit[0] == "subcat")
+            {
+                if (catSplit[1] == "allVideos")
+                {
+                    query.CategoryId = catSplit[2];
+                    return await GetChannelItemsInternal(query, cancellationToken).ConfigureAwait(false);
+                }
                 return await GetChannels(query, cancellationToken).ConfigureAwait(false);
             }
 
             return await GetChannelItemsInternal(query, cancellationToken).ConfigureAwait(false);
         }
 
+        private async Task<ChannelItemResult> GetCategories(InternalChannelItemQuery query, CancellationToken cancellationToken)
+        {
+            var downloader = new VimeoCategoryDownloader(_logger, _jsonSerializer, _httpClient);
+            var channels = await downloader.GetVimeoCategoryList(query.StartIndex, query.Limit, cancellationToken);
+
+            var items = channels.Select(i => new ChannelItemInfo
+            {
+                Type = ChannelItemType.Category,
+                ImageUrl = i.image,
+                Name = i.name,
+                Id = "cat_" + i.id,
+            }).ToList();
+
+            return new ChannelItemResult
+            {
+                Items = items,
+                CacheLength = TimeSpan.FromDays(1),
+                TotalRecordCount = channels.total
+            };
+        }
+
+        private async Task<ChannelItemResult> GetSubCategories(InternalChannelItemQuery query, CancellationToken cancellationToken)
+        {
+            var downloader = new VimeoCategoryDownloader(_logger, _jsonSerializer, _httpClient);
+            var channels = await downloader.GetVimeoSubCategory(query.CategoryId, cancellationToken);
+
+            channels.subCategories.Add(new VimeoAPI.API.Channel
+            {
+                id = "allVideos_" + query.CategoryId,
+                name = "All Videos"
+            });
+
+            var items = channels.subCategories.Select(i => new ChannelItemInfo
+            {
+                Type = ChannelItemType.Category,
+                //ImageUrl = i,
+                Name = i.name,
+                Id = "subcat_" + i.id,
+            }).ToList();
+
+            return new ChannelItemResult
+            {
+                Items = items,
+                CacheLength = TimeSpan.FromDays(1),
+            };
+        }
+
         private async Task<ChannelItemResult> GetChannels(InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
             var downloader = new VimeoChannelDownloader(_logger, _jsonSerializer, _httpClient);
-            var channels = await downloader.GetVimeoChannelList(query.StartIndex, query.Limit, cancellationToken);
+            var channels = await downloader.GetVimeoChannelList(query, cancellationToken);
 
             var items = channels.Select(i => new ChannelItemInfo
             {
                 Type = ChannelItemType.Category,
                 ImageUrl = i.logo_url,
                 Name = i.name,
-                Id = i.id,
+                Id = "chan_" + i.id,
                 Overview = i.description
             }).ToList();
 
@@ -114,7 +180,7 @@ namespace MediaBrowser.Plugins.Vimeo
                 Type = ChannelItemType.Media,
                 Id = i.id,
                 RunTimeTicks = TimeSpan.FromSeconds(i.duration).Ticks,
-                //Tags = i.tags == null ? new List<string>() : i.tags.Select(t => t.title).ToList()
+                Tags = i.tags == null ? new List<string>() : i.tags.Select(t => t.title).ToList()
 
             });
 

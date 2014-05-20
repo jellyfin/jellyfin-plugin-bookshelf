@@ -62,6 +62,7 @@
     </Compile>
     <Compile Include="VimeoAPI\API\Activities.cs" />
     <Compile Include="VimeoAPI\API\Albums.cs" />
+    <Compile Include="VimeoAPI\API\Categories.cs" />
     <Compile Include="VimeoAPI\API\Channels.cs" />
     <Compile Include="VimeoAPI\API\Comments.cs" />
     <Compile Include="VimeoAPI\API\Contacts.cs" />
@@ -77,6 +78,7 @@
     <Compile Include="VimeoAPI\API\VimeoClient.cs" />
     <Compile Include="VimeoAPI\Common\OAuthBase.cs" />
     <Compile Include="VimeoAPI\Common\VimeoApi.cs" />
+    <Compile Include="VimeoCategoryDownloader.cs" />
     <Compile Include="VimeoChannelDownloader.cs" />
     <Compile Include="VimeoInfo.cs" />
     <Compile Include="VimeoListingDownloader.cs" />
