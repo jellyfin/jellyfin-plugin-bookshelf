@@ -92,10 +92,8 @@ namespace MediaBrowser.Plugins.Twitch
                 IsInfiniteStream = true,
                 MediaType = ChannelMediaType.Video,
                 Name = i.channel.name,
-                //Overview = i.channel.,
                 Type = ChannelItemType.Media,
-                Id = i.channel.name,
-                // PremiereDate = i.upload_date
+                Id = i.channel.name
             });
         }
 

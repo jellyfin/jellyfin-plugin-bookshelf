@@ -69,10 +69,65 @@ namespace MediaBrowser.Plugins.Vimeo
         {
             if (string.IsNullOrEmpty(query.CategoryId))
             {
+                return await GetCategories(query, cancellationToken).ConfigureAwait(false);
+            }
+
+            var catSplit = query.CategoryId.Split('_');
+
+            if (catSplit[0] == "cat")
+            {
+                return await GetSubCategories(query, cancellationToken).ConfigureAwait(false);
+            } 
+            
+            if (catSplit[0] == "subcat")
+            {
                 return await GetChannels(query, cancellationToken).ConfigureAwait(false);
             }
 
             return await GetChannelItemsInternal(query, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<ChannelItemResult> GetCategories(InternalChannelItemQuery query, CancellationToken cancellationToken)
+        {
+            var downloader = new VimeoCategoryDownloader(_logger, _jsonSerializer, _httpClient);
+            var channels = await downloader.GetVimeoCategoryList(query.StartIndex, query.Limit, cancellationToken);
+
+
+
+            var items = channels.Select(i => new ChannelItemInfo
+            {
+                Type = ChannelItemType.Category,
+                ImageUrl = i.image,
+                Name = i.name,
+                Id = "cat_" + i.id,
+            }).ToList();
+
+            return new ChannelItemResult
+            {
+                Items = items,
+                CacheLength = TimeSpan.FromDays(1),
+                TotalRecordCount = channels.total
+            };
+        }
+
+        private async Task<ChannelItemResult> GetSubCategories(InternalChannelItemQuery query, CancellationToken cancellationToken)
+        {
+            var downloader = new VimeoCategoryDownloader(_logger, _jsonSerializer, _httpClient);
+            var channels = await downloader.GetVimeoSubCategory(query.CategoryId, cancellationToken);
+
+            var items = channels.subCategories.Select(i => new ChannelItemInfo
+            {
+                Type = ChannelItemType.Category,
+                //ImageUrl = i,
+                Name = i.name,
+                Id = "subcat_" + i.id,
+            }).ToList();
+
+            return new ChannelItemResult
+            {
+                Items = items,
+                CacheLength = TimeSpan.FromDays(1),
+            };
         }
 
         private async Task<ChannelItemResult> GetChannels(InternalChannelItemQuery query, CancellationToken cancellationToken)
@@ -85,7 +140,7 @@ namespace MediaBrowser.Plugins.Vimeo
                 Type = ChannelItemType.Category,
                 ImageUrl = i.logo_url,
                 Name = i.name,
-                Id = i.id,
+                Id = "chan_" + i.id,
                 Overview = i.description
             }).ToList();
 
