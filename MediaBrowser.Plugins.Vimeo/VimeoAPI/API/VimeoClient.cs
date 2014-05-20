@@ -378,6 +378,29 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
             return !IsResponseOK(x) ? null : Channels.FromElement(x.Element("rsp").Element("channels"));
         }
 
+        public Groups vimeo_categories_getRelatedGroups(string category, int? page = null, int? per_page = null)
+        {
+            var parameters = new Dictionary<string, string> { { "category", category } };
+            if (page.HasValue) parameters.Add("page", page.Value.ToString());
+            if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
+
+            var x = ExecuteGetRequest("vimeo.categories.getRelatedGroups", parameters);
+            return !IsResponseOK(x) ? null : Groups.FromElement(x.Element("rsp").Element("groups"));
+        }
+
+        public Videos vimeo_categories_getRelatedVideos(string category, bool full_response = false, int? page = null, int? per_page = null)
+        {
+            var parameters = new Dictionary<string, string>{
+                {"category", category},
+                {"full_response", full_response ? "1" : "0"}};
+
+            if (page.HasValue) parameters.Add("page", page.Value.ToString());
+            if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
+
+            var x = ExecuteGetRequest("vimeo.categories.getRelatedVideos", parameters);
+            return !IsResponseOK(x) ? null : Videos.FromElement(x.Element("rsp").Element("videos"), full_response);
+        }
+
         #endregion
 
         #region vimeo.channels

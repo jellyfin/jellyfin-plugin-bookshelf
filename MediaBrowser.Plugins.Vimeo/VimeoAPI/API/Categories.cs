@@ -50,12 +50,15 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
                 id = e.Attribute("word").Value,
                 name = e.Element("name").Value,
                 subCategories = GetSubCategories(e.Element("subcategories")),
-                //total_videos = int.Parse(e.Element("total_videos").Value),
-                // total_channels = int.Parse(e.Element("total_channels").Value),
-                // total_groups = int.Parse(e.Element("total_groups").Value),
-
             };
 
+            /*if (e.Element("total_videos") != null)
+                cat.total_videos = int.Parse(e.Element("total_videos").Value);
+            if (e.Element("total_channels") != null)
+                cat.total_channels = int.Parse(e.Element("total_channels").Value);
+            if (e.Element("total_groups") != null)
+                cat.total_groups = int.Parse(e.Element("total_groups").Value);
+            */
             cat.image = "https://f.vimeocdn.com/images_v6/ins_cat_" + cat.id + ".jpg";
             return cat;
         }
@@ -79,7 +82,6 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
             catch (Exception ex)
             {
                 Debug.WriteLine("ERROR! " + ex);
-                
             }
 
             return subList;

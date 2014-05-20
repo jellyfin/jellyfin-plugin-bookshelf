@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using MediaBrowser.Plugins.Vimeo.VimeoAPI.API;
 
 namespace MediaBrowser.Plugins.Vimeo
 {
@@ -82,6 +83,11 @@ namespace MediaBrowser.Plugins.Vimeo
             
             if (catSplit[0] == "subcat")
             {
+                if (catSplit[1] == "allVideos")
+                {
+                    query.CategoryId = catSplit[2];
+                    return await GetChannelItemsInternal(query, cancellationToken).ConfigureAwait(false);
+                }
                 return await GetChannels(query, cancellationToken).ConfigureAwait(false);
             }
 
@@ -113,6 +119,12 @@ namespace MediaBrowser.Plugins.Vimeo
         {
             var downloader = new VimeoCategoryDownloader(_logger, _jsonSerializer, _httpClient);
             var channels = await downloader.GetVimeoSubCategory(query.CategoryId, cancellationToken);
+
+            channels.subCategories.Add(new VimeoAPI.API.Channel
+            {
+                id = "allVideos_" + query.CategoryId,
+                name = "All Videos"
+            });
 
             var items = channels.subCategories.Select(i => new ChannelItemInfo
             {
