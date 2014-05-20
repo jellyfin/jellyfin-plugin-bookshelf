@@ -88,6 +88,10 @@ namespace MediaBrowser.Plugins.Vimeo
                     query.CategoryId = catSplit[2];
                     return await GetChannelItemsInternal(query, cancellationToken).ConfigureAwait(false);
                 }
+
+
+                if (catSplit[1] == "allChannels") query.CategoryId = catSplit[2];
+                
                 return await GetChannels(query, cancellationToken).ConfigureAwait(false);
             }
 
@@ -124,6 +128,12 @@ namespace MediaBrowser.Plugins.Vimeo
             {
                 id = "allVideos_" + query.CategoryId,
                 name = "All Videos"
+            });
+
+            channels.subCategories.Add(new VimeoAPI.API.Channel
+            {
+                id = "allChannels_" + query.CategoryId,
+                name = "All Channels"
             });
 
             var items = channels.subCategories.Select(i => new ChannelItemInfo
