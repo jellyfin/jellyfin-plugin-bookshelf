@@ -9,8 +9,11 @@ namespace MediaBrowser.Plugins.Vimeo.Configuration
     public class PluginConfiguration : BasePluginConfiguration
     {
 
+        public String AccessCode { get; set; }
+        public String Token { get; set; }
+        public String SecretToken { get; set; }
+        public String TokenURL { get; set; }
         public String Username { get; set; }
-
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PluginConfiguration" /> class.

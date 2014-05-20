@@ -34,7 +34,7 @@ namespace MediaBrowser.Plugins.Vimeo
             get
             {
                 // Increment as needed to invalidate all caches
-                return "6";
+                return "7";
             }
         }
 
@@ -78,6 +78,10 @@ namespace MediaBrowser.Plugins.Vimeo
             
             if (catSplit[0] == "cat")
             {
+                if (catSplit[1] == "myChannels")
+                {
+                    return await GetPersonalChannels(query, cancellationToken).ConfigureAwait(false);
+                }
                 return await GetSubCategories(query, cancellationToken).ConfigureAwait(false);
             } 
             
@@ -88,7 +92,6 @@ namespace MediaBrowser.Plugins.Vimeo
                     query.CategoryId = catSplit[2];
                     return await GetChannelItemsInternal(query, cancellationToken).ConfigureAwait(false);
                 }
-
 
                 if (catSplit[1] == "allChannels") query.CategoryId = catSplit[2];
                 
@@ -102,6 +105,15 @@ namespace MediaBrowser.Plugins.Vimeo
         {
             var downloader = new VimeoCategoryDownloader(_logger, _jsonSerializer, _httpClient);
             var channels = await downloader.GetVimeoCategoryList(query.StartIndex, query.Limit, cancellationToken);
+
+            if (Plugin.Instance.Configuration.Token != "" && Plugin.Instance.Configuration.SecretToken != "")
+            {
+                channels.Add(new Category
+                {
+                    id = "myChannels",
+                    name = "My Channels"
+                });
+            }
 
             var items = channels.Select(i => new ChannelItemInfo
             {
@@ -199,6 +211,29 @@ namespace MediaBrowser.Plugins.Vimeo
                 Items = items.ToList(),
                 CacheLength = TimeSpan.FromDays(1),
                 TotalRecordCount = videos.total
+            };
+        }
+
+        private async Task<ChannelItemResult> GetPersonalChannels(InternalChannelItemQuery query, CancellationToken cancellationToken)
+        {
+            var downloader = new VimeoChannelDownloader(_logger, _jsonSerializer, _httpClient);
+            var pChannels = await downloader.GetPersonalChannelList(query, cancellationToken);
+
+
+            var items = pChannels.Select(i => new ChannelItemInfo
+            {
+                Type = ChannelItemType.Category,
+                ImageUrl = i.logo_url,
+                Name = i.name,
+                Id = "chan_" + i.id,
+                Overview = i.description
+            }).ToList();
+
+            return new ChannelItemResult
+            {
+                Items = items,
+                CacheLength = TimeSpan.FromDays(1),
+                TotalRecordCount = pChannels.total
             };
         }
 
