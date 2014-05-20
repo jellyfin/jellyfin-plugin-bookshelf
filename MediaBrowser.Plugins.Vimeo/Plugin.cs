@@ -19,7 +19,7 @@ namespace MediaBrowser.Plugins.Vimeo
             Instance = this;
             vc = new VimeoClient("b3f7452b9822b91cede55a3315bee7e021c876c0", "eb62bfd0a204c316a4f05b1d3a9d88726718a893");
 
-            if (Instance.Configuration.Token != "" && Instance.Configuration.SecretToken != "")
+            if (Instance.Configuration.Token != null && Instance.Configuration.SecretToken != null)
             {
                 vc.Token = Instance.Configuration.Token;
                 vc.TokenSecret = Instance.Configuration.SecretToken;

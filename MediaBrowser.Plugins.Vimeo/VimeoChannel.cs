@@ -106,7 +106,7 @@ namespace MediaBrowser.Plugins.Vimeo
             var downloader = new VimeoCategoryDownloader(_logger, _jsonSerializer, _httpClient);
             var channels = await downloader.GetVimeoCategoryList(query.StartIndex, query.Limit, cancellationToken);
 
-            if (Plugin.Instance.Configuration.Token != "" && Plugin.Instance.Configuration.SecretToken != "")
+            if (Plugin.Instance.Configuration.Token != null && Plugin.Instance.Configuration.SecretToken != null)
             {
                 channels.Add(new Category
                 {

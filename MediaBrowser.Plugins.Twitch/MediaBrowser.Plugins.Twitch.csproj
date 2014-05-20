@@ -72,10 +72,11 @@
     <EmbeddedResource Include="Images\primary.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Images\thumb.jpg" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <Content Include="Images\backdrop.png" />
+    <Content Include="Images\thumb.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
