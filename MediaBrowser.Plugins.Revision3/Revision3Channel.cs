@@ -38,7 +38,7 @@ namespace MediaBrowser.Plugins.Revision3
             get
             {
                 // Increment as needed to invalidate all caches
-                return "2";
+                return "3";
             }
         }
 
@@ -59,7 +59,7 @@ namespace MediaBrowser.Plugins.Revision3
             }
             else
             {
-                items = await GetChannelItems(query.CategoryId, cancellationToken).ConfigureAwait(false);
+                items = await GetEpisodes(query, cancellationToken).ConfigureAwait(false);
             }
 
             return new ChannelItemResult
@@ -83,10 +83,10 @@ namespace MediaBrowser.Plugins.Revision3
             });
         }
 
-        private async Task<IEnumerable<ChannelItemInfo>> GetChannelItems(String catID, CancellationToken cancellationToken)
+        private async Task<IEnumerable<ChannelItemInfo>> GetEpisodes(InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
             var downloader = new Revision3ListingDownloader(_logger, _jsonSerializer, _httpClient);
-            var videos = await downloader.GetEpisodeList(catID, cancellationToken)
+            var videos = await downloader.GetEpisodeList(query, cancellationToken)
                 .ConfigureAwait(false);
 
             return videos.episodes.Select(i => new ChannelItemInfo
@@ -173,17 +173,6 @@ namespace MediaBrowser.Plugins.Revision3
                             Stream = GetType().Assembly.GetManifestResourceStream(path)
                         });
                     }
-                case ImageType.Primary:
-                    {
-                        var path = GetType().Namespace + ".Images." + type.ToString().ToLower() + ".jpg";
-
-                        return Task.FromResult(new DynamicImageResponse
-                        {
-                            Format = ImageFormat.Jpg,
-                            HasImage = true,
-                            Stream = GetType().Assembly.GetManifestResourceStream(path)
-                        });
-                    }
                 default:
                     throw new ArgumentException("Unsupported image type: " + type);
             }
@@ -194,7 +183,6 @@ namespace MediaBrowser.Plugins.Revision3
             return new List<ImageType>
             {
                 ImageType.Thumb,
-                ImageType.Primary,
                 ImageType.Backdrop
             };
         }
