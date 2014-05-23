@@ -47,15 +47,15 @@ namespace MediaBrowser.Plugins.Twitch
         {
             IEnumerable<ChannelItemInfo> items;
 
-            _logger.Debug("cat ID : " + query.CategoryId);
+            _logger.Debug("cat ID : " + query.FolderId);
 
-            if (query.CategoryId == null)
+            if (query.FolderId == null)
             {
                 items = await GetChannels(cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                items = await GetChannelItems(query.CategoryId, cancellationToken).ConfigureAwait(false);
+                items = await GetChannelItems(query.FolderId, cancellationToken).ConfigureAwait(false);
             }
 
             return new ChannelItemResult
@@ -72,7 +72,7 @@ namespace MediaBrowser.Plugins.Twitch
 
             return channels.top.Select(i => new ChannelItemInfo
             {
-                Type = ChannelItemType.Category,
+                Type = ChannelItemType.Folder,
                 ImageUrl = i.game.box.large,
                 Name = i.game.name,
                 Id = i.game.name

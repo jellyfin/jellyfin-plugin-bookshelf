@@ -30,7 +30,7 @@ namespace MediaBrowser.Plugins.Vimeo
                 page = 1 + (query.StartIndex.Value / query.Limit.Value) % query.Limit.Value;
             }
 
-            var channels = Plugin.vc.vimeo_categories_getRelatedChannels(query.CategoryId,page: page, per_page: query.Limit);
+            var channels = Plugin.vc.vimeo_categories_getRelatedChannels(query.FolderId, page: page, per_page: query.Limit);
             return channels;
         }
 
