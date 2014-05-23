@@ -133,11 +133,13 @@ namespace MediaBrowser.Plugins.Trailers
             throw new NotImplementedException();
         }
 
-        public ChannelInfo GetChannelInfo()
+        public ChannelFeatures GetChannelFeatures()
         {
-            return new ChannelInfo
+            return new ChannelFeatures
             {
                 CanSearch = false,
+
+                CanGetAllMedia = true,
 
                 ContentTypes = new List<ChannelMediaContentType>
                  {
@@ -149,6 +151,18 @@ namespace MediaBrowser.Plugins.Trailers
                        ChannelMediaType.Video
                   }
             };
+        }
+
+
+        public Task<ChannelItemResult> GetAllMedia(InternalAllChannelItemsQuery query, CancellationToken cancellationToken)
+        {
+            return GetChannelItems(new InternalChannelItemQuery
+            {
+                Limit = query.Limit,
+                StartIndex = query.StartIndex,
+                User = query.User
+
+            }, cancellationToken);
         }
     }
 }

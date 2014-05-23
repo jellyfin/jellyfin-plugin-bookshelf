@@ -12,7 +12,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Plugins.Vimeo.VimeoAPI.API;
 
 namespace MediaBrowser.Plugins.Vimeo
 {
@@ -236,7 +235,7 @@ namespace MediaBrowser.Plugins.Vimeo
 
         public string HomePageUrl
         {
-            get { return "http://mediabrowser3.com"; }
+            get { return "https://vimeo.com"; }
         }
 
         public bool IsEnabledFor(User user)
@@ -251,9 +250,9 @@ namespace MediaBrowser.Plugins.Vimeo
 
 
 
-        public ChannelInfo GetChannelInfo()
+        public ChannelFeatures GetChannelFeatures()
         {
-            return new ChannelInfo
+            return new ChannelFeatures
             {
                 CanSearch = true,
                 MaxPageSize = 50,
@@ -335,6 +334,12 @@ namespace MediaBrowser.Plugins.Vimeo
 
                 return mediaInfo;
             }
+        }
+
+        public Task<ChannelItemResult> GetAllMedia(InternalAllChannelItemsQuery query, CancellationToken cancellationToken)
+        {
+            // Unsupported by this channel
+            throw new NotImplementedException();
         }
     }
 }

@@ -34,7 +34,7 @@ namespace MediaBrowser.Plugins.Twitch
             get
             {
                 // Increment as needed to invalidate all caches
-                return "1";
+                return "2";
             }
         }
 
@@ -155,9 +155,9 @@ namespace MediaBrowser.Plugins.Twitch
 
 
 
-        public ChannelInfo GetChannelInfo()
+        public ChannelFeatures GetChannelFeatures()
         {
-            return new ChannelInfo
+            return new ChannelFeatures
             {
                 CanSearch = false,
 
@@ -169,13 +169,27 @@ namespace MediaBrowser.Plugins.Twitch
                 MediaTypes = new List<ChannelMediaType>
                   {
                        ChannelMediaType.Video
-                  }
+                  },
+
+                // https://github.com/justintv/Twitch-API/blob/master/v3_resources/streams.md
+                  MaxPageSize = 100
             };
         }
 
         public bool IsEnabledFor(User user)
         {
             return true;
+        }
+
+        public Task<ChannelItemResult> GetAllMedia(InternalAllChannelItemsQuery query, CancellationToken cancellationToken)
+        {
+            // Unsupported by this channel
+            throw new NotImplementedException();
+        }
+
+        public string HomePageUrl
+        {
+            get { return "http://www.twitch.tv/"; }
         }
     }
 }
