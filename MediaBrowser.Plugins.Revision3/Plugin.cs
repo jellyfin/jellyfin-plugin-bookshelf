@@ -1,30 +1,21 @@
 ﻿using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Serialization;
-using MediaBrowser.Plugins.Vimeo.Configuration;
-using MediaBrowser.Plugins.Vimeo.VimeoAPI.API;
+using MediaBrowser.Plugins.Revision3.Configuration;
 
-namespace MediaBrowser.Plugins.Vimeo
+namespace MediaBrowser.Plugins.Revision3
 {
     /// <summary>
     /// Class Plugin
     /// </summary>
     public class Plugin : BasePlugin<PluginConfiguration>
     {
-        public static VimeoClient vc;
-
+        
         public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer)
             : base(applicationPaths, xmlSerializer)
         {
             Instance = this;
-            vc = new VimeoClient("b3f7452b9822b91cede55a3315bee7e021c876c0", "eb62bfd0a204c316a4f05b1d3a9d88726718a893");
-
-            if (Instance.Configuration.Token != null && Instance.Configuration.SecretToken != null)
-            {
-                vc.Token = Instance.Configuration.Token;
-                vc.TokenSecret = Instance.Configuration.SecretToken;
-                vc.Login();
-            }
+            
         }
 
         /// <summary>
@@ -33,7 +24,7 @@ namespace MediaBrowser.Plugins.Vimeo
         /// <value>The name.</value>
         public override string Name
         {
-            get { return "Vimeo"; }
+            get { return "Revision3"; }
         }
 
         /// <summary>
@@ -44,7 +35,7 @@ namespace MediaBrowser.Plugins.Vimeo
         {
             get
             {
-                return "Vimeo videos for your collection.";
+                return "Revision3 shows in your collection.";
             }
         }
 

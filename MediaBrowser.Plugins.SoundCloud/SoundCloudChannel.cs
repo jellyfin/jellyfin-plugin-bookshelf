@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Common.Net;
+﻿using System.Net.Mime;
+using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Channels;
 using MediaBrowser.Controller.Drawing;
 using MediaBrowser.Controller.Entities;
@@ -14,15 +15,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace MediaBrowser.Plugins.Twitch
+namespace MediaBrowser.Plugins.SoundCloud
 {
-    public class TwitchChannel : IChannel, IRequiresMediaInfoCallback
+    public class SoundCloudChannel : IChannel
     {
         private readonly IHttpClient _httpClient;
         private readonly ILogger _logger;
         private readonly IJsonSerializer _jsonSerializer;
 
-        public TwitchChannel(IHttpClient httpClient, IJsonSerializer jsonSerializer, ILogManager logManager)
+        public SoundCloudChannel(IHttpClient httpClient, IJsonSerializer jsonSerializer, ILogManager logManager)
         {
             _httpClient = httpClient;
             _logger = logManager.GetLogger(GetType().Name);
@@ -34,8 +35,13 @@ namespace MediaBrowser.Plugins.Twitch
             get
             {
                 // Increment as needed to invalidate all caches
-                return "2";
+                return "4";
             }
+        }
+
+        public bool IsEnabledFor(Controller.Entities.User user)
+        {
+            return true;
         }
 
         public async Task<IEnumerable<ChannelItemInfo>> Search(ChannelSearchInfo searchInfo, Controller.Entities.User user, CancellationToken cancellationToken)
@@ -47,15 +53,15 @@ namespace MediaBrowser.Plugins.Twitch
         {
             IEnumerable<ChannelItemInfo> items;
 
-            _logger.Debug("cat ID : " + query.FolderId);
-
             if (query.FolderId == null)
             {
                 items = await GetChannels(cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                items = await GetChannelItems(query.FolderId, cancellationToken).ConfigureAwait(false);
+                var catSplit = query.FolderId.Split('_');
+                query.FolderId = catSplit[1];
+                items = await GetTracks(query, cancellationToken).ConfigureAwait(false);
             }
 
             return new ChannelItemResult
@@ -67,55 +73,48 @@ namespace MediaBrowser.Plugins.Twitch
 
         private async Task<IEnumerable<ChannelItemInfo>> GetChannels(CancellationToken cancellationToken)
         {
-            var downloader = new TwitchChannelDownloader(_logger, _jsonSerializer, _httpClient);
-            var channels = await downloader.GetTwitchChannelList(cancellationToken);
-
-            return channels.top.Select(i => new ChannelItemInfo
+            return new List<ChannelItemInfo>
             {
-                Type = ChannelItemType.Folder,
-                ImageUrl = i.game.box.large,
-                Name = i.game.name,
-                Id = i.game.name
-            });
+                new ChannelItemInfo
+                {
+                    Name = "Hot",
+                    Id = "cat_hot",
+                    Type = ChannelItemType.Folder
+                },
+                new ChannelItemInfo
+                {
+                    Name = "Latest",
+                    Id = "cat_latest",
+                    Type = ChannelItemType.Folder
+                }
+            };
         }
 
-        private async Task<IEnumerable<ChannelItemInfo>> GetChannelItems(String catID, CancellationToken cancellationToken)
+        private async Task<IEnumerable<ChannelItemInfo>> GetTracks(InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
-            var downloader = new TwitchListingDownloader(_logger, _jsonSerializer, _httpClient);
-            var videos = await downloader.GetStreamList(catID, cancellationToken)
+            var downloader = new SoundCloudListingDownloader(_logger, _jsonSerializer, _httpClient);
+            var songs = await downloader.GetTrackList(query, cancellationToken)
                 .ConfigureAwait(false);
 
-            return videos.streams.Select(i => new ChannelItemInfo
+            return songs.Select(i => new ChannelItemInfo
             {
-                ContentType = ChannelMediaContentType.Clip,
-                ImageUrl = i.preview.large,
-                IsInfiniteStream = true,
-                MediaType = ChannelMediaType.Video,
-                Name = i.channel.name,
+                ContentType = ChannelMediaContentType.Song,
+                ImageUrl = i.artwork_url,
+                IsInfiniteStream = false,
+                MediaType = ChannelMediaType.Audio,
+                Name = i.title,
                 Type = ChannelItemType.Media,
-                Id = i.channel.name
-            });
-        }
+                Id = i.id.ToString(),
+                RunTimeTicks = TimeSpan.FromMilliseconds(i.duration).Ticks,
 
-        public async Task<IEnumerable<ChannelMediaInfo>> GetChannelItemMediaInfo(string id, CancellationToken cancellationToken)
-        {
-            using (var json = await _httpClient.Get("http://api.twitch.tv/api/channels/" + id + "/access_token", cancellationToken).ConfigureAwait(false))
-            {
-                var r = _jsonSerializer.DeserializeFromStream<RootObject>(json);
-
-                var token = HttpUtility.UrlEncode(r.token);
-
-                var playURL = "http://usher.twitch.tv/api/channel/hls/" + id + ".m3u8?token=" + token + "&sig=" +
-                                    r.sig;
-
-                return new List<ChannelMediaInfo>
+                MediaSources = new List<ChannelMediaInfo>
                 {
                     new ChannelMediaInfo
                     {
-                        Path = playURL
+                        Path = i.stream_url + "?client_id=78fd88dde7ebf8fdcad08106f6d56ab6"
                     }
-                };
-            }
+                }
+            });
         }
 
         public Task<DynamicImageResponse> GetChannelImage(ImageType type, CancellationToken cancellationToken)
@@ -130,17 +129,6 @@ namespace MediaBrowser.Plugins.Twitch
                         return Task.FromResult(new DynamicImageResponse
                         {
                             Format = ImageFormat.Png,
-                            HasImage = true,
-                            Stream = GetType().Assembly.GetManifestResourceStream(path)
-                        });
-                    }
-                case ImageType.Primary:
-                    {
-                        var path = GetType().Namespace + ".Images." + type.ToString().ToLower() + ".jpg";
-
-                        return Task.FromResult(new DynamicImageResponse
-                        {
-                            Format = ImageFormat.Jpg,
                             HasImage = true,
                             Stream = GetType().Assembly.GetManifestResourceStream(path)
                         });
@@ -162,7 +150,7 @@ namespace MediaBrowser.Plugins.Twitch
 
         public string Name
         {
-            get { return "Twitch TV"; }
+            get { return "SoundCloud"; }
         }
 
 
@@ -175,22 +163,14 @@ namespace MediaBrowser.Plugins.Twitch
 
                 ContentTypes = new List<ChannelMediaContentType>
                  {
-                     ChannelMediaContentType.Clip
+                     ChannelMediaContentType.Song
                  },
 
                 MediaTypes = new List<ChannelMediaType>
                   {
-                       ChannelMediaType.Video
+                       ChannelMediaType.Audio
                   },
-
-                // https://github.com/justintv/Twitch-API/blob/master/v3_resources/streams.md
-                  MaxPageSize = 100
             };
-        }
-
-        public bool IsEnabledFor(User user)
-        {
-            return true;
         }
 
         public Task<ChannelItemResult> GetAllMedia(InternalAllChannelItemsQuery query, CancellationToken cancellationToken)
@@ -201,7 +181,7 @@ namespace MediaBrowser.Plugins.Twitch
 
         public string HomePageUrl
         {
-            get { return "http://www.twitch.tv/"; }
+            get { return "http://www.soundcloud.com/"; }
         }
     }
 }

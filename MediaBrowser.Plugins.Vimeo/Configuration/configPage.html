@@ -12,12 +12,21 @@
 
                     <ul class="ulForm" data-role="listview">
                         <li>
-                            <label for="txtVimeoUser">
-                                Vimeo Username:
+                            <label for="txtTokenAuth">
+                                Vimeo Token URL:
                             </label>
-                            <input type="number" id="txtVimeoUser" name="txtVimeoUser" />
+                            <input type="text" id="txtTokenAuth" name="txtTokenAuth" />
                             <div class="fieldDescription">
-                                Your Vimeo Username
+                                Please enter this URL in to your browser. You will need to accept the prompt.
+                            </div>
+                        </li>
+                        <li>
+                            <label for="txtAccessCode">
+                                Vimeo Access Code:
+                            </label>
+                            <input type="password" id="txtAccessCode" name="txtAccessCode" />
+                            <div class="fieldDescription">
+                                Enter the access code that you recive from the link above.
                             </div>
                         </li>
                         <li>
@@ -32,21 +41,41 @@
 
         <script type="text/javascript">
 
-            var TrailersConfigurationPage = {
+            var secretToken;
+            var Token;
+
+            var VimeoConfigurationPage = {
                 pluginUniqueId: "756f3030-72f7-4606-82a3-7cd1d01c0d85"
             };
 
             $('.vimeoConfigurationPage').on('pageshow', function (event) {
 
-                Dashboard.showLoadingMsg();
-
                 var page = this;
 
-                ApiClient.getPluginConfiguration(TrailersConfigurationPage.pluginUniqueId).done(function (config) {
+                Dashboard.showLoadingMsg();
 
-                    $('#txtVimeoUser', page).val(config.Username || "");
-                    
-                    Dashboard.hideLoadingMsg();
+                ApiClient.getPluginConfiguration(VimeoConfigurationPage.pluginUniqueId).done(function (config) {
+
+                    $('#txtTokenAuth', page).val(config.TokenURL || '');
+                    $('#txtAccessCode', page).val(config.AccessCode || '');
+
+                    Token = config.Token || '';
+                    secretToken = config.SecretToken || '';
+
+                    //if (config.AccessCode == "") {
+                        $.ajax({
+                            type: "GET",
+                            url: ApiClient.getUrl("Vimeo/Auth/Request"),
+                            dataType: "json"
+
+                        }).done(function(data) {
+                            $('#txtTokenAuth', page).val(data.TokenURL || "");
+                            Token = data.Token;
+                            secretToken = data.SecretToken;
+
+                            Dashboard.hideLoadingMsg();
+                        });
+                    //}
                 });
             });
 
@@ -56,13 +85,17 @@
 
                 var form = this;
 
-                ApiClient.getPluginConfiguration(TrailersConfigurationPage.pluginUniqueId).done(function (config) {
+                ApiClient.getPluginConfiguration(VimeoConfigurationPage.pluginUniqueId).done(function (config) {
 
-                    var uname = $('#txtVimeoUser', form).val();
+                    var accessCode = $('#txtAccessCode', form).val();
+                    var tokenURL = $('#txtTokenAuth', form).val();
 
-                    config.Username = uname ? uname : null;
+                    config.AccessCode = accessCode ? accessCode : null;
+                    config.Token = Token ? Token : null;
+                    config.SecretToken = secretToken ? secretToken : null;
+                    config.TokenURL = tokenURL ? tokenURL : null;
 
-                    ApiClient.updatePluginConfiguration(TrailersConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
+                    ApiClient.updatePluginConfiguration(VimeoConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
                 });
 
                 // Disable default form submission

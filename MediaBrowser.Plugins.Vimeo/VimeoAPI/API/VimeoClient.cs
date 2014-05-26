@@ -52,6 +52,16 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
             TokenSecret = AdvancedAPI.GetParameterValue(q, OAuthTokenSecretKey);
         }
 
+        public string GetToken()
+        {
+            return Token;
+        }
+
+        public string GetSecretToken()
+        {
+            return TokenSecret;
+        }
+
         public string GenerateAuthorizationUrl()
         {
             return VimeoAPI.GetAuthorizationUrl(OAuthTokenKey + "=" + Token);
