@@ -12,7 +12,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Plugins.Vimeo.VimeoAPI.API;
 
 namespace MediaBrowser.Plugins.Vimeo
 {
@@ -68,13 +67,13 @@ namespace MediaBrowser.Plugins.Vimeo
 
         public async Task<ChannelItemResult> GetChannelItems(InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrEmpty(query.CategoryId))
+            if (string.IsNullOrEmpty(query.FolderId))
             {
                 return await GetCategories(query, cancellationToken).ConfigureAwait(false);
             }
 
-            var catSplit = query.CategoryId.Split('_');
-            query.CategoryId = catSplit[1];
+            var catSplit = query.FolderId.Split('_');
+            query.FolderId = catSplit[1];
             
             if (catSplit[0] == "cat")
             {
@@ -89,7 +88,7 @@ namespace MediaBrowser.Plugins.Vimeo
             {
                 if (catSplit[1] == "allVideos")
                 {
-                    query.CategoryId = catSplit[2];
+                    query.FolderId = catSplit[2];
                     return await GetChannelItemsInternal(query, cancellationToken).ConfigureAwait(false);
                 }
 
@@ -117,7 +116,7 @@ namespace MediaBrowser.Plugins.Vimeo
 
             var items = channels.Select(i => new ChannelItemInfo
             {
-                Type = ChannelItemType.Category,
+                Type = ChannelItemType.Folder,
                 ImageUrl = i.image,
                 Name = i.name,
                 Id = "cat_" + i.id,
@@ -134,11 +133,11 @@ namespace MediaBrowser.Plugins.Vimeo
         private async Task<ChannelItemResult> GetSubCategories(InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
             var downloader = new VimeoCategoryDownloader(_logger, _jsonSerializer, _httpClient);
-            var channels = await downloader.GetVimeoSubCategory(query.CategoryId, cancellationToken);
+            var channels = await downloader.GetVimeoSubCategory(query.FolderId, cancellationToken);
 
             channels.subCategories.Add(new VimeoAPI.API.Channel
             {
-                id = "allVideos_" + query.CategoryId,
+                id = "allVideos_" + query.FolderId,
                 name = "All Videos"
             });
 
@@ -150,7 +149,7 @@ namespace MediaBrowser.Plugins.Vimeo
 
             var items = channels.subCategories.Select(i => new ChannelItemInfo
             {
-                Type = ChannelItemType.Category,
+                Type = ChannelItemType.Folder,
                 //ImageUrl = i,
                 Name = i.name,
                 Id = "subcat_" + i.id,
@@ -170,7 +169,7 @@ namespace MediaBrowser.Plugins.Vimeo
 
             var items = channels.Select(i => new ChannelItemInfo
             {
-                Type = ChannelItemType.Category,
+                Type = ChannelItemType.Folder,
                 ImageUrl = i.logo_url,
                 Name = i.name,
                 Id = "chan_" + i.id,
@@ -188,7 +187,7 @@ namespace MediaBrowser.Plugins.Vimeo
         private async Task<ChannelItemResult> GetChannelItemsInternal(InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
             var downloader = new VimeoListingDownloader(_logger, _jsonSerializer, _httpClient);
-            var videos = await downloader.GetVimeoList(query.CategoryId, query.StartIndex, query.Limit, cancellationToken)
+            var videos = await downloader.GetVimeoList(query.FolderId, query.StartIndex, query.Limit, cancellationToken)
                 .ConfigureAwait(false);
 
             var items = videos.Select(i => new ChannelItemInfo
@@ -281,7 +280,7 @@ namespace MediaBrowser.Plugins.Vimeo
 
         public string HomePageUrl
         {
-            get { return "http://mediabrowser3.com"; }
+            get { return "https://vimeo.com"; }
         }
 
         public bool IsEnabledFor(User user)
@@ -296,9 +295,9 @@ namespace MediaBrowser.Plugins.Vimeo
 
 
 
-        public ChannelInfo GetChannelInfo()
+        public ChannelFeatures GetChannelFeatures()
         {
-            return new ChannelInfo
+            return new ChannelFeatures
             {
                 CanSearch = true,
                 MaxPageSize = 50,
@@ -380,6 +379,12 @@ namespace MediaBrowser.Plugins.Vimeo
 
                 return mediaInfo;
             }
+        }
+
+        public Task<ChannelItemResult> GetAllMedia(InternalAllChannelItemsQuery query, CancellationToken cancellationToken)
+        {
+            // Unsupported by this channel
+            throw new NotImplementedException();
         }
     }
 }
