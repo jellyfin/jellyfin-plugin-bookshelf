@@ -42,6 +42,11 @@ namespace MediaBrowser.Plugins.Revision3
             }
         }
 
+        public string HomePageUrl
+        {
+            get { return "http://revision3.com"; }
+        }
+
         public async Task<IEnumerable<ChannelItemInfo>> Search(ChannelSearchInfo searchInfo, User user, CancellationToken cancellationToken)
         {
             return null;
@@ -51,9 +56,9 @@ namespace MediaBrowser.Plugins.Revision3
         {
             IEnumerable<ChannelItemInfo> items;
 
-            _logger.Debug("cat ID : " + query.CategoryId);
+            _logger.Debug("cat ID : " + query.FolderId);
 
-            if (query.CategoryId == null)
+            if (query.FolderId == null)
             {
                 items = await GetChannels(cancellationToken).ConfigureAwait(false);
             }
@@ -76,7 +81,7 @@ namespace MediaBrowser.Plugins.Revision3
 
             return channels.shows.Select(i => new ChannelItemInfo
             {
-                Type = ChannelItemType.Category,
+                Type = ChannelItemType.Folder,
                 ImageUrl = i.images.logo_200,
                 Name = i.name,
                 Id = i.id
@@ -194,9 +199,9 @@ namespace MediaBrowser.Plugins.Revision3
 
 
 
-        public ChannelInfo GetChannelInfo()
+        public ChannelFeatures GetChannelFeatures()
         {
-            return new ChannelInfo
+            return new ChannelFeatures
             {
                 CanSearch = false,
 
@@ -210,6 +215,12 @@ namespace MediaBrowser.Plugins.Revision3
                        ChannelMediaType.Video
                   }
             };
+        }
+
+        public Task<ChannelItemResult> GetAllMedia(InternalAllChannelItemsQuery query, CancellationToken cancellationToken)
+        {
+            // Unsupported by this channel
+            throw new NotImplementedException();
         }
 
         public bool IsEnabledFor(User user)

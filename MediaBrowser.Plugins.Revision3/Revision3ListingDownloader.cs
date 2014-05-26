@@ -26,7 +26,7 @@ namespace MediaBrowser.Plugins.Revision3
             RootObject reg;
 
             using (var json = await _httpClient.Get("http://revision3.com/api/getEpisodes.json?api_key=0b1faede6785d04b78735b139ddf2910f34ad601&show_id="
-                + query.CategoryId, CancellationToken.None).ConfigureAwait(false))
+                + query.FolderId, CancellationToken.None).ConfigureAwait(false))
             {
                 reg = _jsonSerializer.DeserializeFromStream<RootObject>(json);
             }
