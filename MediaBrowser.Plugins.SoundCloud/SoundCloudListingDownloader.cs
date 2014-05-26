@@ -24,19 +24,30 @@ namespace MediaBrowser.Plugins.SoundCloud
 
         public async Task<List<RootObject>> GetTrackList(InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
-            List<RootObject> reg;
+            // need to get this working. Its not returning a limit or a start index value? ...
+            
+            int? page = null;
             var url = "";
-            if (query.FolderId == "hot")
-                url = "http://api.soundcloud.com/tracks.json?client_id=78fd88dde7ebf8fdcad08106f6d56ab6&filter=streamable&limit=30&order=hotness";
-            if (query.FolderId == "latest")
-                url = "http://api.soundcloud.com/tracks.json?client_id=78fd88dde7ebf8fdcad08106f6d56ab6&filter=streamable&limit=30&order=created_at";
 
-            using (var json = await _httpClient.Get(url, CancellationToken.None).ConfigureAwait(false))
+            if (query.StartIndex.HasValue && query.Limit.HasValue)
             {
-                reg = _jsonSerializer.DeserializeFromStream<List<RootObject>>(json);
+                page = 1 + (query.StartIndex.Value / query.Limit.Value) % query.Limit.Value;
             }
 
-            return reg;
+            _logger.Debug("LIMIT : " + (query.Limit.HasValue ? query.Limit.Value : 30));
+
+
+            var limit = query.Limit.HasValue ? query.Limit.Value : 30;
+            
+            if (query.FolderId == "hot")
+                url = "http://api.soundcloud.com/tracks.json?client_id=78fd88dde7ebf8fdcad08106f6d56ab6&filter=streamable&limit="+limit+"&order=hotness&offset=" + page;
+            if (query.FolderId == "latest")
+                url = "http://api.soundcloud.com/tracks.json?client_id=78fd88dde7ebf8fdcad08106f6d56ab6&filter=streamable&limit=" + limit + "&order=created_at&offset=" + page;
+            
+            using (var json = await _httpClient.Get(url, CancellationToken.None).ConfigureAwait(false))
+            {
+                return _jsonSerializer.DeserializeFromStream<List<RootObject>>(json);
+            }
         }
        
     }

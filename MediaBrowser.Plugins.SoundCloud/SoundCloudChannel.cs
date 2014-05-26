@@ -35,7 +35,7 @@ namespace MediaBrowser.Plugins.SoundCloud
             get
             {
                 // Increment as needed to invalidate all caches
-                return "3";
+                return "4";
             }
         }
 
@@ -93,10 +93,10 @@ namespace MediaBrowser.Plugins.SoundCloud
         private async Task<IEnumerable<ChannelItemInfo>> GetTracks(InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
             var downloader = new SoundCloudListingDownloader(_logger, _jsonSerializer, _httpClient);
-            var videos = await downloader.GetTrackList(query, cancellationToken)
+            var songs = await downloader.GetTrackList(query, cancellationToken)
                 .ConfigureAwait(false);
 
-            return videos.Select(i => new ChannelItemInfo
+            return songs.Select(i => new ChannelItemInfo
             {
                 ContentType = ChannelMediaContentType.Song,
                 ImageUrl = i.artwork_url,
