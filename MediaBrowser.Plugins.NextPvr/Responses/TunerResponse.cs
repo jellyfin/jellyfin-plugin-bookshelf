@@ -20,7 +20,7 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
         {
             return _root.Tuners.Select(i => new LiveTvTunerInfo()
             {
-                Name = i.tunerName               
+                Name = i.tunerName
             }).ToList();
         }
 

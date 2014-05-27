@@ -85,13 +85,13 @@ namespace MediaBrowser.Plugins.NextPvr
                 
                 var sid = clientKeys.sid;
                 var salt = clientKeys.salt;
-                _logger.Info(sid);
+                _logger.Info(string.Format("[NextPvr] Sid: {0}", sid));
                 
                 var loggedIn = await Login(sid,salt, cancellationToken).ConfigureAwait(false);
 
                 if (loggedIn)
                 {
-                    _logger.Info("[NextPvr] Session initiated. LoggedIn.");
+                    _logger.Info("[NextPvr] Session initiated.");
                     Sid = sid;
                 }
             }
@@ -106,10 +106,10 @@ namespace MediaBrowser.Plugins.NextPvr
         /// <returns></returns>
         private async Task<bool> Login(string sid,string salt, CancellationToken cancellationToken)
         {
-            _logger.Debug("[NextPvr] Start Login procedure");
+            _logger.Debug(string.Format("[NextPvr] Start Login procedure for Sid: {0} & Salt: {1}",sid,salt));
             var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
             var pin = Plugin.Instance.Configuration.Pin;
-            _logger.Info(pin);
+            _logger.Info(string.Format("[NextPvr] Pin: {0}",pin));
 
             var strb = new StringBuilder();
             var md5Result = EncryptionHelper.GetMd5Hash(strb.Append(":").Append(EncryptionHelper.GetMd5Hash(pin)).Append(":").Append(salt).ToString());
@@ -133,7 +133,7 @@ namespace MediaBrowser.Plugins.NextPvr
         /// <returns>Task{IEnumerable{ChannelInfo}}.</returns>
         public async Task<IEnumerable<ChannelInfo>> GetChannelsAsync(CancellationToken cancellationToken)
         {
-            _logger.Debug("[NextPvr] Start GetChannels Async");
+            _logger.Debug("[NextPvr] Start GetChannels Async, retrieve all channels");
             await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
 
             var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
@@ -157,7 +157,7 @@ namespace MediaBrowser.Plugins.NextPvr
         /// <returns>Task{IEnumerable{RecordingInfo}}</returns>
         public async Task<IEnumerable<RecordingInfo>> GetRecordingsAsync(CancellationToken cancellationToken)
         {
-            _logger.Debug("[NextPvr] Start GetRecordings Async");
+            _logger.Debug("[NextPvr] Start GetRecordings Async, retrieve all 'Pending', 'Inprogress' and 'Completed' recordings ");
             await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
 
             var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
@@ -214,7 +214,7 @@ namespace MediaBrowser.Plugins.NextPvr
         /// <returns></returns>
         public async Task DeleteRecordingAsync(string recordingId, CancellationToken cancellationToken)
         {
-            _logger.Debug("[NextPvr] Start Delete Recording Async");
+            _logger.Debug(string.Format("[NextPvr] Start Delete Recording Async for recordingId: {0}",recordingId));
             await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
 
             var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
@@ -231,10 +231,10 @@ namespace MediaBrowser.Plugins.NextPvr
 
                 if (error == null || error == true)
                 {
-                    _logger.Error("[NextPvr] Failed to cancel the recording");
-                    throw new ApplicationException("Failed to cancel the recording");
+                    _logger.Error(string.Format("[NextPvr] Failed to delete the recording for recordingId: {0}",recordingId));
+                    throw new ApplicationException(string.Format("Failed to delete the recording for recordingId: {0}", recordingId));
                 }
-                _logger.Debug("[NextPvr] Deleted Recording: {0}", recordingId);
+                _logger.Debug("[NextPvr] Deleted Recording with recordingId: {0}", recordingId);
             }
         }
 
@@ -255,7 +255,7 @@ namespace MediaBrowser.Plugins.NextPvr
         /// <returns></returns>
         public async Task CancelTimerAsync(string timerId, CancellationToken cancellationToken)
         {
-            _logger.Debug("[NextPvr] Start Cancel Recording Async");
+            _logger.Debug(string.Format("[NextPvr] Start Cancel Recording Async for recordingId: {0}",timerId));
             await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
 
             var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
@@ -272,10 +272,10 @@ namespace MediaBrowser.Plugins.NextPvr
 
                 if (error == null || error == true)
                 {
-                    _logger.Error("[NextPvr] Failed to cancel the recording: {0}", timerId);
-                    throw new ApplicationException("Failed to cancel the recording");
+                    _logger.Error(string.Format("[NextPvr] Failed to cancel the recording for recordingId: {0}", timerId));
+                    throw new ApplicationException(string.Format("Failed to cancel the recording for recordingId: {0}", timerId));
                 }
-                _logger.Debug("[NextPvr] Cancelled Recording: {0}", timerId);
+                _logger.Debug(string.Format("[NextPvr] Cancelled Recording for recordingId: {0}", timerId));
             }
         }
 
@@ -287,7 +287,7 @@ namespace MediaBrowser.Plugins.NextPvr
         /// <returns></returns>
         public async Task CreateTimerAsync(TimerInfo info, CancellationToken cancellationToken)
         {
-            _logger.Debug("[NextPvr] Start CreateTimer Async");
+            _logger.Debug(string.Format("[NextPvr] Start CreateTimer Async for ChannelId: {0} & Name: {1}",info.ChannelId, info.Name));
             await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
 
             var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
@@ -312,7 +312,7 @@ namespace MediaBrowser.Plugins.NextPvr
             timerSettings.pre_padding_min = info.PrePaddingSeconds / 60;
 
             var postContent = _jsonSerializer.SerializeToString(timerSettings);
-            _logger.Debug("[NextPvr] TimerSettings for CreateTimer: {0}", postContent);
+            _logger.Debug(string.Format("[NextPvr] TimerSettings CreateTimer: {0} for ChannelId: {1} & Name: {2}", postContent,info.ChannelId,info.Name));
 
             options.RequestContent = postContent;
             options.RequestContentType = "application/json";
@@ -323,7 +323,7 @@ namespace MediaBrowser.Plugins.NextPvr
             }
             catch (HttpException ex)
             {
-                _logger.Debug("[NextPvr] " + ex.Message);
+                _logger.Debug(string.Format("[NextPvr] CreateTimer async with exception: {0}",ex.Message));
                 throw new LiveTvConflictException();
             }
         }
@@ -335,7 +335,7 @@ namespace MediaBrowser.Plugins.NextPvr
         /// <returns></returns>
         public async Task<IEnumerable<TimerInfo>> GetTimersAsync(CancellationToken cancellationToken)
         {
-            _logger.Debug("[NextPvr] Start GetTimer Async");
+            _logger.Debug("[NextPvr] Start GetTimer Async, retrieve the 'Pending' recordings");
             await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
             var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
 
@@ -390,7 +390,7 @@ namespace MediaBrowser.Plugins.NextPvr
         /// <returns></returns>
         public async Task<IEnumerable<SeriesTimerInfo>> GetSeriesTimersAsync(CancellationToken cancellationToken)
         {
-            _logger.Debug("[NextPvr] Start GetSeriesTimer Async");
+            _logger.Debug("[NextPvr] Start GetSeriesTimer Async, retrieve the recurring recordings");
             await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
             var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
 
@@ -435,7 +435,7 @@ namespace MediaBrowser.Plugins.NextPvr
         /// <returns></returns>
         public async Task CreateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
         {
-            _logger.Debug("[NextPvr] Start CreateSeriesTimer Async");
+            _logger.Debug(string.Format("[NextPvr] Start CreateSeriesTimer Async for ChannelId: {0} & Name: {1}",info.ChannelId, info.Name));
             await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
             var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
 
@@ -475,7 +475,7 @@ namespace MediaBrowser.Plugins.NextPvr
             timerSettings.pre_padding_min = info.PrePaddingSeconds / 60;
 
             var postContent = _jsonSerializer.SerializeToString(timerSettings);
-            _logger.Debug("[NextPvr] TimerSettings for CreateSeriesTimer: {0}", postContent);
+            _logger.Debug("[NextPvr] TimerSettings CreateSeriesTimer: {0} for ChannelId: {1} & Name: {2}",postContent,info.ChannelId, info.Name);
 
             options.RequestContent = postContent;
             options.RequestContentType = "application/json";
@@ -486,7 +486,7 @@ namespace MediaBrowser.Plugins.NextPvr
             }
             catch (HttpException ex)
             {
-                _logger.Debug("[NextPvr] " + ex.Message);
+                _logger.Debug(string.Format("[NextPvr] CreateSeries async with exception: {0} ",ex.Message));
                 throw new LiveTvConflictException();
             }
         }
@@ -499,7 +499,7 @@ namespace MediaBrowser.Plugins.NextPvr
         /// <returns></returns>
         public async Task UpdateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
         {
-            _logger.Debug("[NextPvr] Start UpdateSeriesTimer Async");
+            _logger.Debug(string.Format("[NextPvr] Start UpdateSeriesTimer Async for ChannelId: {0} & Name: {1}",info.ChannelId, info.Name));
             await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
             var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
 
@@ -520,7 +520,7 @@ namespace MediaBrowser.Plugins.NextPvr
             timerSettings.extend_end_time_min = 0;
 
             var postContent = _jsonSerializer.SerializeToString(timerSettings);
-            _logger.Debug("[NextPvr] TimerSettings for UpdateSeriesTimer: {0}", postContent);
+            _logger.Debug(string.Format("[NextPvr] TimerSettings UpdateSeriesTimer: {0} for ChannelId: {1} & Name: {2}", postContent ,info.ChannelId, info.Name));
 
             options.RequestContent = postContent;
             options.RequestContentType = "application/json";
@@ -531,7 +531,7 @@ namespace MediaBrowser.Plugins.NextPvr
             }
             catch (HttpException ex)
             {
-                _logger.Debug("[NextPvr] " + ex.Message);
+                _logger.Debug(string.Format("[NextPvr] UpdateSeries async with exception: {0}",ex.Message));
                 throw new LiveTvConflictException();
             }
         }
@@ -544,7 +544,7 @@ namespace MediaBrowser.Plugins.NextPvr
         /// <returns></returns>
         public async Task UpdateTimerAsync(TimerInfo info, CancellationToken cancellationToken)
         {
-            _logger.Debug("[NextPvr] Start UpdateTimer Async");
+            _logger.Debug(string.Format("[NextPvr] Start UpdateTimer Async for ChannelId: {0} & Name: {1}",info.ChannelId, info.Name));
             await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
 
             var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
@@ -562,7 +562,7 @@ namespace MediaBrowser.Plugins.NextPvr
             timerSettings.pre_padding_min = info.PrePaddingSeconds / 60;
 
             var postContent = _jsonSerializer.SerializeToString(timerSettings);
-            _logger.Debug("[NextPvr] TimerSettings for UpdateTimer: {0}", postContent);
+            _logger.Debug(string.Format("[NextPvr] TimerSettings UpdateTimer: {0} for ChannelId: {1} & Name: {2}",postContent,info.ChannelId, info.Name));
 
             options.RequestContent = postContent;
             options.RequestContentType = "application/json";
@@ -573,7 +573,7 @@ namespace MediaBrowser.Plugins.NextPvr
             }
             catch (HttpException ex)
             {
-                _logger.Debug("[NextPvr] " + ex.Message);
+                _logger.Debug(string.Format("[NextPvr] UpdateTimer Async with exception: {0}" ,ex.Message));
                 throw new LiveTvConflictException();
             }
         }
@@ -586,7 +586,7 @@ namespace MediaBrowser.Plugins.NextPvr
         /// <returns></returns>
         public async Task CancelSeriesTimerAsync(string timerId, CancellationToken cancellationToken)
         {
-            _logger.Debug("[NextPvr] Start Cancel SeriesRecording Async");
+            _logger.Debug(string.Format("[NextPvr] Start Cancel SeriesRecording Async for recordingId: {0}",timerId));
             await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
 
             var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
@@ -603,10 +603,10 @@ namespace MediaBrowser.Plugins.NextPvr
 
                 if (error == null || error == true)
                 {
-                    _logger.Error("[NextPvr] Failed to cancel the recording: {0}", timerId);
-                    throw new ApplicationException("Failed to cancel the recording");
+                    _logger.Error(string.Format("[NextPvr] Failed to cancel the recording with recordingId: {0}", timerId));
+                    throw new ApplicationException(string.Format("Failed to cancel the recording with recordingId: {0}", timerId));
                 }
-                _logger.Debug("[NextPvr] Cancelled Recording: {0}", timerId);
+                _logger.Debug("[NextPvr] Cancelled Recording for recordingId: {0}", timerId);
             }
         }
 
@@ -629,7 +629,7 @@ namespace MediaBrowser.Plugins.NextPvr
 
             using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
             {
-                return new TimerDefaultsResponse().GetScheduleSettings(stream, _jsonSerializer); //Debug information??
+                return new TimerDefaultsResponse().GetScheduleSettings(stream, _jsonSerializer); 
             }
         }
 
@@ -760,7 +760,7 @@ namespace MediaBrowser.Plugins.NextPvr
 
         public async Task<IEnumerable<ProgramInfo>> GetProgramsAsync(string channelId, DateTime startDateUtc, DateTime endDateUtc, CancellationToken cancellationToken)
         {
-            _logger.Debug("[NextPvr] Start GetPrograms Async");
+            _logger.Debug("[NextPvr] Start GetPrograms Async, retrieve all Programs");
             await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
             var baseUrl = Plugin.Instance.Configuration.WebServiceUrl;
 
@@ -824,7 +824,6 @@ namespace MediaBrowser.Plugins.NextPvr
             using (var stream = await _httpClient.Get(optionsTuner).ConfigureAwait(false))
             {
                 var tuners = new TunerResponse(stream, _jsonSerializer);
-
                 tvTunerInfos = tuners.LiveTvTunerInfos();
             }
             
