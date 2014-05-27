@@ -155,10 +155,9 @@ namespace MediaBrowser.Plugins.Trailers
                    {
                         ChannelItemSortField.CommunityRating,
                         ChannelItemSortField.Name,
-                        ChannelItemSortField.DateAdded,
-                        ChannelItemSortField.ContentReleaseDate,
-                        ChannelItemSortField.Runtime,
-                        ChannelItemSortField.UserPlayCount
+                        ChannelItemSortField.DateCreated,
+                        ChannelItemSortField.ReleaseDate,
+                        ChannelItemSortField.Runtime
                    }
             };
         }
