@@ -217,12 +217,6 @@ namespace MediaBrowser.Plugins.Revision3
             };
         }
 
-        public Task<ChannelItemResult> GetAllMedia(InternalAllChannelItemsQuery query, CancellationToken cancellationToken)
-        {
-            // Unsupported by this channel
-            throw new NotImplementedException();
-        }
-
         public bool IsEnabledFor(User user)
         {
             return true;

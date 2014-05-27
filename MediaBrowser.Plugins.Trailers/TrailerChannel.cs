@@ -6,12 +6,12 @@ using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Channels;
 using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Model.Logging;
 
 namespace MediaBrowser.Plugins.Trailers
 {
@@ -139,7 +139,7 @@ namespace MediaBrowser.Plugins.Trailers
             {
                 CanSearch = false,
 
-                CanGetAllMedia = true,
+                IsSingleMediaList = true,
 
                 ContentTypes = new List<ChannelMediaContentType>
                  {
@@ -149,20 +149,19 @@ namespace MediaBrowser.Plugins.Trailers
                 MediaTypes = new List<ChannelMediaType>
                   {
                        ChannelMediaType.Video
-                  }
+                  },
+
+                SupportsSortOrderToggle = true,
+
+                DefaultSortFields = new List<ChannelItemSortField>
+                   {
+                        ChannelItemSortField.CommunityRating,
+                        ChannelItemSortField.Name,
+                        ChannelItemSortField.ReleaseDate,
+                        ChannelItemSortField.Runtime,
+                        ChannelItemSortField.UserPlayCount
+                   }
             };
-        }
-
-
-        public Task<ChannelItemResult> GetAllMedia(InternalAllChannelItemsQuery query, CancellationToken cancellationToken)
-        {
-            return GetChannelItems(new InternalChannelItemQuery
-            {
-                Limit = query.Limit,
-                StartIndex = query.StartIndex,
-                User = query.User
-
-            }, cancellationToken);
         }
     }
 }

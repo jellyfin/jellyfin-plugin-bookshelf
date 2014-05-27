@@ -173,12 +173,6 @@ namespace MediaBrowser.Plugins.SoundCloud
             };
         }
 
-        public Task<ChannelItemResult> GetAllMedia(InternalAllChannelItemsQuery query, CancellationToken cancellationToken)
-        {
-            // Unsupported by this channel
-            throw new NotImplementedException();
-        }
-
         public string HomePageUrl
         {
             get { return "http://www.soundcloud.com/"; }
