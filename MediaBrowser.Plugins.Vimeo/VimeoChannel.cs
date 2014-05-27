@@ -296,9 +296,9 @@ namespace MediaBrowser.Plugins.Vimeo
 
 
 
-        public ChannelFeatures GetChannelFeatures()
+        public InternalChannelFeatures GetChannelFeatures()
         {
-            return new ChannelFeatures
+            return new InternalChannelFeatures
             {
                 CanSearch = true,
                 MaxPageSize = 50,

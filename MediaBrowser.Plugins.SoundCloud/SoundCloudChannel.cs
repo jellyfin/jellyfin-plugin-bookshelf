@@ -155,9 +155,9 @@ namespace MediaBrowser.Plugins.SoundCloud
 
 
 
-        public ChannelFeatures GetChannelFeatures()
+        public InternalChannelFeatures GetChannelFeatures()
         {
-            return new ChannelFeatures
+            return new InternalChannelFeatures
             {
                 CanSearch = false,
 

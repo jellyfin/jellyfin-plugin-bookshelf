@@ -133,13 +133,11 @@ namespace MediaBrowser.Plugins.Trailers
             throw new NotImplementedException();
         }
 
-        public ChannelFeatures GetChannelFeatures()
+        public InternalChannelFeatures GetChannelFeatures()
         {
-            return new ChannelFeatures
+            return new InternalChannelFeatures
             {
                 CanSearch = false,
-
-                IsSingleMediaList = true,
 
                 ContentTypes = new List<ChannelMediaContentType>
                  {
@@ -157,7 +155,8 @@ namespace MediaBrowser.Plugins.Trailers
                    {
                         ChannelItemSortField.CommunityRating,
                         ChannelItemSortField.Name,
-                        ChannelItemSortField.ReleaseDate,
+                        ChannelItemSortField.DateAdded,
+                        ChannelItemSortField.ContentReleaseDate,
                         ChannelItemSortField.Runtime,
                         ChannelItemSortField.UserPlayCount
                    }
