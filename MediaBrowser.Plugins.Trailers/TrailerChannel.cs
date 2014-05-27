@@ -47,7 +47,7 @@ namespace MediaBrowser.Plugins.Trailers
                         case ChannelItemSortField.Runtime:
                             items = items.OrderByDescending(i => i.RunTimeTicks ?? 0);
                             break;
-                        case ChannelItemSortField.ReleaseDate:
+                        case ChannelItemSortField.PremiereDate:
                             items = items.OrderByDescending(i => i.PremiereDate ?? DateTime.MinValue);
                             break;
                         case ChannelItemSortField.DateCreated:
@@ -68,7 +68,7 @@ namespace MediaBrowser.Plugins.Trailers
                         case ChannelItemSortField.Runtime:
                             items = items.OrderBy(i => i.RunTimeTicks ?? 0);
                             break;
-                        case ChannelItemSortField.ReleaseDate:
+                        case ChannelItemSortField.PremiereDate:
                             items = items.OrderBy(i => i.PremiereDate ?? DateTime.MinValue);
                             break;
                         case ChannelItemSortField.DateCreated:
@@ -202,7 +202,7 @@ namespace MediaBrowser.Plugins.Trailers
                         ChannelItemSortField.CommunityRating,
                         ChannelItemSortField.Name,
                         ChannelItemSortField.DateCreated,
-                        ChannelItemSortField.ReleaseDate,
+                        ChannelItemSortField.PremiereDate,
                         ChannelItemSortField.Runtime
                    }
             };
