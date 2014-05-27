@@ -38,6 +38,52 @@ namespace MediaBrowser.Plugins.Trailers
         {
             var items = await GetChannelItems(cancellationToken).ConfigureAwait(false);
 
+            if (query.SortBy.HasValue)
+            {
+                if (query.SortDescending)
+                {
+                    switch (query.SortBy.Value)
+                    {
+                        case ChannelItemSortField.Runtime:
+                            items = items.OrderByDescending(i => i.RunTimeTicks ?? 0);
+                            break;
+                        case ChannelItemSortField.ReleaseDate:
+                            items = items.OrderByDescending(i => i.PremiereDate ?? DateTime.MinValue);
+                            break;
+                        case ChannelItemSortField.DateCreated:
+                            items = items.OrderByDescending(i => i.DateCreated ?? DateTime.MinValue);
+                            break;
+                        case ChannelItemSortField.CommunityRating:
+                            items = items.OrderByDescending(i => i.CommunityRating ?? 0);
+                            break;
+                        default:
+                            items = items.OrderByDescending(i => i.Name);
+                            break;
+                    }
+                }
+                else
+                {
+                    switch (query.SortBy.Value)
+                    {
+                        case ChannelItemSortField.Runtime:
+                            items = items.OrderBy(i => i.RunTimeTicks ?? 0);
+                            break;
+                        case ChannelItemSortField.ReleaseDate:
+                            items = items.OrderBy(i => i.PremiereDate ?? DateTime.MinValue);
+                            break;
+                        case ChannelItemSortField.DateCreated:
+                            items = items.OrderBy(i => i.DateCreated ?? DateTime.MinValue);
+                            break;
+                        case ChannelItemSortField.CommunityRating:
+                            items = items.OrderBy(i => i.CommunityRating ?? 0);
+                            break;
+                        default:
+                            items = items.OrderBy(i => i.Name);
+                            break;
+                    }
+                }
+            }
+
             return new ChannelItemResult
             {
                 Items = items.ToList(),
