@@ -6,12 +6,12 @@ using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Channels;
 using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Model.Logging;
 
 namespace MediaBrowser.Plugins.Trailers
 {
@@ -37,6 +37,52 @@ namespace MediaBrowser.Plugins.Trailers
         public async Task<ChannelItemResult> GetChannelItems(InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
             var items = await GetChannelItems(cancellationToken).ConfigureAwait(false);
+
+            if (query.SortBy.HasValue)
+            {
+                if (query.SortDescending)
+                {
+                    switch (query.SortBy.Value)
+                    {
+                        case ChannelItemSortField.Runtime:
+                            items = items.OrderByDescending(i => i.RunTimeTicks ?? 0);
+                            break;
+                        case ChannelItemSortField.PremiereDate:
+                            items = items.OrderByDescending(i => i.PremiereDate ?? DateTime.MinValue);
+                            break;
+                        case ChannelItemSortField.DateCreated:
+                            items = items.OrderByDescending(i => i.DateCreated ?? DateTime.MinValue);
+                            break;
+                        case ChannelItemSortField.CommunityRating:
+                            items = items.OrderByDescending(i => i.CommunityRating ?? 0);
+                            break;
+                        default:
+                            items = items.OrderByDescending(i => i.Name);
+                            break;
+                    }
+                }
+                else
+                {
+                    switch (query.SortBy.Value)
+                    {
+                        case ChannelItemSortField.Runtime:
+                            items = items.OrderBy(i => i.RunTimeTicks ?? 0);
+                            break;
+                        case ChannelItemSortField.PremiereDate:
+                            items = items.OrderBy(i => i.PremiereDate ?? DateTime.MinValue);
+                            break;
+                        case ChannelItemSortField.DateCreated:
+                            items = items.OrderBy(i => i.DateCreated ?? DateTime.MinValue);
+                            break;
+                        case ChannelItemSortField.CommunityRating:
+                            items = items.OrderBy(i => i.CommunityRating ?? 0);
+                            break;
+                        default:
+                            items = items.OrderBy(i => i.Name);
+                            break;
+                    }
+                }
+            }
 
             return new ChannelItemResult
             {
@@ -133,13 +179,11 @@ namespace MediaBrowser.Plugins.Trailers
             throw new NotImplementedException();
         }
 
-        public ChannelFeatures GetChannelFeatures()
+        public InternalChannelFeatures GetChannelFeatures()
         {
-            return new ChannelFeatures
+            return new InternalChannelFeatures
             {
                 CanSearch = false,
-
-                CanGetAllMedia = true,
 
                 ContentTypes = new List<ChannelMediaContentType>
                  {
@@ -149,20 +193,19 @@ namespace MediaBrowser.Plugins.Trailers
                 MediaTypes = new List<ChannelMediaType>
                   {
                        ChannelMediaType.Video
-                  }
+                  },
+
+                SupportsSortOrderToggle = true,
+
+                DefaultSortFields = new List<ChannelItemSortField>
+                   {
+                        ChannelItemSortField.CommunityRating,
+                        ChannelItemSortField.Name,
+                        ChannelItemSortField.DateCreated,
+                        ChannelItemSortField.PremiereDate,
+                        ChannelItemSortField.Runtime
+                   }
             };
-        }
-
-
-        public Task<ChannelItemResult> GetAllMedia(InternalAllChannelItemsQuery query, CancellationToken cancellationToken)
-        {
-            return GetChannelItems(new InternalChannelItemQuery
-            {
-                Limit = query.Limit,
-                StartIndex = query.StartIndex,
-                User = query.User
-
-            }, cancellationToken);
         }
     }
 }

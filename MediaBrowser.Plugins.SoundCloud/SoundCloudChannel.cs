@@ -155,9 +155,9 @@ namespace MediaBrowser.Plugins.SoundCloud
 
 
 
-        public ChannelFeatures GetChannelFeatures()
+        public InternalChannelFeatures GetChannelFeatures()
         {
-            return new ChannelFeatures
+            return new InternalChannelFeatures
             {
                 CanSearch = false,
 
@@ -171,12 +171,6 @@ namespace MediaBrowser.Plugins.SoundCloud
                        ChannelMediaType.Audio
                   },
             };
-        }
-
-        public Task<ChannelItemResult> GetAllMedia(InternalAllChannelItemsQuery query, CancellationToken cancellationToken)
-        {
-            // Unsupported by this channel
-            throw new NotImplementedException();
         }
 
         public string HomePageUrl

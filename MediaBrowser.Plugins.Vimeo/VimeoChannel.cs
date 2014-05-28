@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using MediaBrowser.Plugins.Vimeo.VimeoAPI.API;
 
 namespace MediaBrowser.Plugins.Vimeo
 {
@@ -92,7 +93,7 @@ namespace MediaBrowser.Plugins.Vimeo
                     return await GetChannelItemsInternal(query, cancellationToken).ConfigureAwait(false);
                 }
 
-                if (catSplit[1] == "allChannels") query.CategoryId = catSplit[2];
+                if (catSplit[1] == "allChannels") query.FolderId = catSplit[2];
                 
                 return await GetChannels(query, cancellationToken).ConfigureAwait(false);
             }
@@ -143,7 +144,7 @@ namespace MediaBrowser.Plugins.Vimeo
 
             channels.subCategories.Add(new VimeoAPI.API.Channel
             {
-                id = "allChannels_" + query.CategoryId,
+                id = "allChannels_" + query.FolderId,
                 name = "All Channels"
             });
 
@@ -221,7 +222,7 @@ namespace MediaBrowser.Plugins.Vimeo
 
             var items = pChannels.Select(i => new ChannelItemInfo
             {
-                Type = ChannelItemType.Category,
+                Type = ChannelItemType.Folder,
                 ImageUrl = i.logo_url,
                 Name = i.name,
                 Id = "chan_" + i.id,
@@ -295,9 +296,9 @@ namespace MediaBrowser.Plugins.Vimeo
 
 
 
-        public ChannelFeatures GetChannelFeatures()
+        public InternalChannelFeatures GetChannelFeatures()
         {
-            return new ChannelFeatures
+            return new InternalChannelFeatures
             {
                 CanSearch = true,
                 MaxPageSize = 50,

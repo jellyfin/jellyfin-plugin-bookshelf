@@ -167,9 +167,9 @@ namespace MediaBrowser.Plugins.Twitch
 
 
 
-        public ChannelFeatures GetChannelFeatures()
+        public InternalChannelFeatures GetChannelFeatures()
         {
-            return new ChannelFeatures
+            return new InternalChannelFeatures
             {
                 CanSearch = false,
 
@@ -191,12 +191,6 @@ namespace MediaBrowser.Plugins.Twitch
         public bool IsEnabledFor(User user)
         {
             return true;
-        }
-
-        public Task<ChannelItemResult> GetAllMedia(InternalAllChannelItemsQuery query, CancellationToken cancellationToken)
-        {
-            // Unsupported by this channel
-            throw new NotImplementedException();
         }
 
         public string HomePageUrl
