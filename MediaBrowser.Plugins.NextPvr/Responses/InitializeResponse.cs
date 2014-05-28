@@ -13,7 +13,7 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
 
             if (root.SIDValidation != null)
             {
-                logger.Debug("[NextPvr] connection validation: {0}", json.SerializeToString(root));
+                logger.Debug("[NextPvr] Connection validation: {0}", json.SerializeToString(root));
                 return root.SIDValidation.validated;
             }
             logger.Error("[NextPvr] Failed to validate your connection with NextPvr.");
