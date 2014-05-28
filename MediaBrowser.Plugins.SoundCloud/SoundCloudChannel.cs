@@ -153,9 +153,11 @@ namespace MediaBrowser.Plugins.SoundCloud
             get { return "SoundCloud"; }
         }
 
-        public ChannelFeatures GetChannelFeatures()
+
+
+        public InternalChannelFeatures GetChannelFeatures()
         {
-            return new ChannelFeatures
+            return new InternalChannelFeatures
             {
                 CanSearch = false,
 
@@ -168,14 +170,7 @@ namespace MediaBrowser.Plugins.SoundCloud
                   {
                        ChannelMediaType.Audio
                   },
-                  MaxPageSize = 200
             };
-        }
-
-        public Task<ChannelItemResult> GetAllMedia(InternalAllChannelItemsQuery query, CancellationToken cancellationToken)
-        {
-            // Unsupported by this channel
-            throw new NotImplementedException();
         }
 
         public string HomePageUrl
