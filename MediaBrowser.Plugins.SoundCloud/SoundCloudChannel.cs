@@ -153,8 +153,6 @@ namespace MediaBrowser.Plugins.SoundCloud
             get { return "SoundCloud"; }
         }
 
-
-
         public ChannelFeatures GetChannelFeatures()
         {
             return new ChannelFeatures
@@ -170,6 +168,7 @@ namespace MediaBrowser.Plugins.SoundCloud
                   {
                        ChannelMediaType.Audio
                   },
+                  MaxPageSize = 200
             };
         }
 
