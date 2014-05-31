@@ -151,7 +151,6 @@ namespace MediaBrowser.Plugins.Vimeo
             var items = channels.subCategories.Select(i => new ChannelItemInfo
             {
                 Type = ChannelItemType.Folder,
-                //ImageUrl = i,
                 Name = i.name,
                 Id = "subcat_" + i.id,
             }).ToList();
@@ -202,7 +201,8 @@ namespace MediaBrowser.Plugins.Vimeo
                 Type = ChannelItemType.Media,
                 Id = i.id,
                 RunTimeTicks = TimeSpan.FromSeconds(i.duration).Ticks,
-                Tags = i.tags == null ? new List<string>() : i.tags.Select(t => t.title).ToList()
+                Tags = i.tags == null ? new List<string>() : i.tags.Select(t => t.title).ToList(),
+                DateCreated = DateTime.Parse(i.upload_date)
 
             });
 
@@ -311,7 +311,16 @@ namespace MediaBrowser.Plugins.Vimeo
                 MediaTypes = new List<ChannelMediaType>
                   {
                        ChannelMediaType.Video
-                  }
+                  },
+
+                SupportsSortOrderToggle = true,
+
+                DefaultSortFields = new List<ChannelItemSortField>
+                   {
+                        ChannelItemSortField.Name,
+                        ChannelItemSortField.DateCreated,
+                        ChannelItemSortField.Runtime
+                   }
             };
         }
 
@@ -382,10 +391,37 @@ namespace MediaBrowser.Plugins.Vimeo
             }
         }
 
-        public Task<ChannelItemResult> GetAllMedia(InternalAllChannelItemsQuery query, CancellationToken cancellationToken)
+        public IOrderedEnumerable<ChannelItemInfo> OrderItems(List<ChannelItemInfo> items, InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
-            // Unsupported by this channel
-            throw new NotImplementedException();
+            if (query.SortBy.HasValue)
+            {
+                if (query.SortDescending)
+                {
+                    switch (query.SortBy.Value)
+                    {
+                        case ChannelItemSortField.Runtime:
+                            return items.OrderByDescending(i => i.RunTimeTicks ?? 0);
+                        case ChannelItemSortField.DateCreated:
+                            return items.OrderByDescending(i => i.DateCreated ?? DateTime.MinValue);
+                        default:
+                            return items.OrderByDescending(i => i.Name);
+                    }
+                }
+                else
+                {
+                    switch (query.SortBy.Value)
+                    {
+                        case ChannelItemSortField.Runtime:
+                            return items.OrderBy(i => i.RunTimeTicks ?? 0);
+                        case ChannelItemSortField.DateCreated:
+                            return items.OrderBy(i => i.DateCreated ?? DateTime.MinValue);
+                        default:
+                            return items.OrderBy(i => i.Name);
+                    }
+                }
+            }
+
+            return items.OrderBy(i => i.Name);
         }
     }
 }

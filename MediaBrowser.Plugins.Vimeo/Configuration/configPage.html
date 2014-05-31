@@ -17,16 +17,17 @@
                             </label>
                             <input type="text" id="txtTokenAuth" name="txtTokenAuth" />
                             <div class="fieldDescription">
-                                Please enter this URL in to your browser. You will need to accept the prompt.
+                                Your Vimeo Token URL
                             </div>
                         </li>
+
                         <li>
                             <label for="txtAccessCode">
                                 Vimeo Access Code:
                             </label>
                             <input type="password" id="txtAccessCode" name="txtAccessCode" />
                             <div class="fieldDescription">
-                                Enter the access code that you recive from the link above.
+                                Your Vimeo Access Code
                             </div>
                         </li>
                         <li>
@@ -63,18 +64,18 @@
                     secretToken = config.SecretToken || '';
 
                     //if (config.AccessCode == "") {
-                        $.ajax({
-                            type: "GET",
-                            url: ApiClient.getUrl("Vimeo/Auth/Request"),
-                            dataType: "json"
+                    $.ajax({
+                        type: "GET",
+                        url: ApiClient.getUrl("Vimeo/Auth/Request"),
+                        dataType: "json"
 
-                        }).done(function(data) {
-                            $('#txtTokenAuth', page).val(data.TokenURL || "");
-                            Token = data.Token;
-                            secretToken = data.SecretToken;
+                    }).done(function (data) {
+                        $('#txtTokenAuth', page).val(data.TokenURL || "");
+                        Token = data.Token;
+                        secretToken = data.SecretToken;
 
-                            Dashboard.hideLoadingMsg();
-                        });
+                        Dashboard.hideLoadingMsg();
+                    });
                     //}
                 });
             });

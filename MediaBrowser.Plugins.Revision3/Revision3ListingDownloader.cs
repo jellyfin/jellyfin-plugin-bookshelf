@@ -21,17 +21,14 @@ namespace MediaBrowser.Plugins.Revision3
             _httpClient = httpClient;
         }
 
-        public async Task<RootObject> GetEpisodeList(InternalChannelItemQuery query, CancellationToken cancellationToken)
+        public async Task<RootObject> GetEpisodeList(int offset, InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
-            RootObject reg;
-
-            using (var json = await _httpClient.Get("http://revision3.com/api/getEpisodes.json?api_key=0b1faede6785d04b78735b139ddf2910f34ad601&show_id="
-                + query.FolderId, CancellationToken.None).ConfigureAwait(false))
+            using (var json = await _httpClient.Get(
+                String.Format("http://revision3.com/api/getEpisodes.json?api_key=0b1faede6785d04b78735b139ddf2910f34ad601&show_id={0}&offset={1}&limit={2}",
+                query.FolderId, offset, query.Limit), CancellationToken.None).ConfigureAwait(false))
             {
-                reg = _jsonSerializer.DeserializeFromStream<RootObject>(json);
+                return _jsonSerializer.DeserializeFromStream<RootObject>(json);
             }
-
-            return reg;
         }
        
     }
