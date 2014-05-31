@@ -1,4 +1,10 @@
-﻿using MediaBrowser.Common.Net;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Web;
+using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Channels;
 using MediaBrowser.Controller.Drawing;
 using MediaBrowser.Controller.Entities;
@@ -7,12 +13,6 @@ using MediaBrowser.Model.Channels;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Web;
 
 namespace MediaBrowser.Plugins.Twitch
 {
@@ -38,63 +38,82 @@ namespace MediaBrowser.Plugins.Twitch
             }
         }
 
-        public async Task<IEnumerable<ChannelItemInfo>> Search(ChannelSearchInfo searchInfo, Controller.Entities.User user, CancellationToken cancellationToken)
+        public async Task<IEnumerable<ChannelItemInfo>> Search(ChannelSearchInfo searchInfo, User user, CancellationToken cancellationToken)
         {
             return null;
         }
 
         public async Task<ChannelItemResult> GetChannelItems(InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
-            IEnumerable<ChannelItemInfo> items;
+            ChannelItemResult result;
 
             _logger.Debug("cat ID : " + query.FolderId);
 
             if (query.FolderId == null)
             {
-                items = await GetChannels(cancellationToken).ConfigureAwait(false);
+                result = await GetChannelsInternal(query, cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                items = await GetChannelItems(query.FolderId, cancellationToken).ConfigureAwait(false);
+                result = await GetChannelItemsInternal(query, cancellationToken).ConfigureAwait(false);
             }
 
-            return new ChannelItemResult
-            {
-                Items = items.ToList(),
-                CacheLength = TimeSpan.FromDays(3)
-            };
+            return result;
         }
 
-        private async Task<IEnumerable<ChannelItemInfo>> GetChannels(CancellationToken cancellationToken)
+        private async Task<ChannelItemResult> GetChannelsInternal(InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
+            var offset = query.StartIndex.GetValueOrDefault();
             var downloader = new TwitchChannelDownloader(_logger, _jsonSerializer, _httpClient);
-            var channels = await downloader.GetTwitchChannelList(cancellationToken);
+            var channels = await downloader.GetTwitchChannelList(offset, cancellationToken);
 
-            return channels.top.Select(i => new ChannelItemInfo
+            var items = channels.top.OrderByDescending(x => x.viewers)
+                .Select(i => new ChannelItemInfo
             {
                 Type = ChannelItemType.Folder,
                 ImageUrl = i.game.box.large,
                 Name = i.game.name,
-                Id = i.game.name
+                Id = i.game.name,
+                CommunityRating = Convert.ToSingle(i.viewers),
             });
+
+            return new ChannelItemResult
+            {
+                Items = items.ToList(),
+                TotalRecordCount = channels._total,
+                CacheLength = TimeSpan.FromDays(3)
+            };
         }
 
-        private async Task<IEnumerable<ChannelItemInfo>> GetChannelItems(String catID, CancellationToken cancellationToken)
+        private async Task<ChannelItemResult> GetChannelItemsInternal(InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
+            var offset = query.StartIndex.GetValueOrDefault();
             var downloader = new TwitchListingDownloader(_logger, _jsonSerializer, _httpClient);
-            var videos = await downloader.GetStreamList(catID, cancellationToken)
+            var videos = await downloader.GetStreamList(query.FolderId, offset, cancellationToken)
                 .ConfigureAwait(false);
 
-            return videos.streams.Select(i => new ChannelItemInfo
+            var items = videos.streams.OrderByDescending(x => x.viewers)
+                .Select(i => new ChannelItemInfo
             {
                 ContentType = ChannelMediaContentType.Clip,
                 ImageUrl = i.preview.large,
                 IsInfiniteStream = true,
                 MediaType = ChannelMediaType.Video,
                 Name = i.channel.name,
+                Id = i.channel.name,
                 Type = ChannelItemType.Media,
-                Id = i.channel.name
+                CommunityRating = Convert.ToSingle(i.viewers),
+                DateCreated = !String.IsNullOrEmpty(i.channel.created_at) ? 
+                    Convert.ToDateTime(i.channel.created_at) : (DateTime?)null,
+                Overview = i.channel.status,
             });
+
+            return new ChannelItemResult
+            {
+                Items = items.ToList(),
+                TotalRecordCount = videos._total,
+                CacheLength = TimeSpan.FromDays(3)
+            };
         }
 
         public async Task<IEnumerable<ChannelMediaInfo>> GetChannelItemMediaInfo(string id, CancellationToken cancellationToken)
@@ -174,17 +193,22 @@ namespace MediaBrowser.Plugins.Twitch
                 CanSearch = false,
 
                 ContentTypes = new List<ChannelMediaContentType>
-                 {
-                     ChannelMediaContentType.Clip
-                 },
+                {
+                    ChannelMediaContentType.Clip
+                },
 
                 MediaTypes = new List<ChannelMediaType>
-                  {
-                       ChannelMediaType.Video
-                  },
+                {
+                    ChannelMediaType.Video
+                },
 
                 // https://github.com/justintv/Twitch-API/blob/master/v3_resources/streams.md
-                  MaxPageSize = 100
+                MaxPageSize = 100,
+
+                DefaultSortFields = new List<ChannelItemSortField>
+                {
+                    ChannelItemSortField.CommunityRating,
+                },
             };
         }
 

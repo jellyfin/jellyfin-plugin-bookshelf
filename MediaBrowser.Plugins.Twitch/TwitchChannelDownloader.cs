@@ -1,8 +1,9 @@
-﻿using MediaBrowser.Common.Net;
-using MediaBrowser.Model.Logging;
-using MediaBrowser.Model.Serialization;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using MediaBrowser.Common.Net;
+using MediaBrowser.Model.Logging;
+using MediaBrowser.Model.Serialization;
 
 namespace MediaBrowser.Plugins.Twitch
 {
@@ -19,11 +20,11 @@ namespace MediaBrowser.Plugins.Twitch
             _httpClient = httpClient;
         }
 
-        public async Task<RootObject> GetTwitchChannelList(CancellationToken cancellationToken)
+        public async Task<RootObject> GetTwitchChannelList(int offset, CancellationToken cancellationToken)
         {
             RootObject reg;
 
-            using (var json = await _httpClient.Get("https://api.twitch.tv/kraken/games/top?limit=100", CancellationToken.None).ConfigureAwait(false))
+            using (var json = await _httpClient.Get(String.Format("https://api.twitch.tv/kraken/games/top?limit=100&offset={0}", offset), CancellationToken.None).ConfigureAwait(false))
             {
                 reg = _jsonSerializer.DeserializeFromStream<RootObject>(json);
             }
