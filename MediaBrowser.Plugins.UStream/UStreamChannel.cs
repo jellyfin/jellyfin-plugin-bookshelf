@@ -1,7 +1,9 @@
 ﻿using System.IO;
+using System.Linq.Expressions;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Web.UI;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Channels;
 using MediaBrowser.Controller.Drawing;
@@ -38,7 +40,7 @@ namespace MediaBrowser.Plugins.UStream
             get
             {
                 // Increment as needed to invalidate all caches
-                return "1";
+                return "3";
             }
         }
 
@@ -65,15 +67,16 @@ namespace MediaBrowser.Plugins.UStream
             else
             {
                 var folderID = query.FolderId.Split('_');
-                query.FolderId = folderID[2];
+                query.FolderId = folderID[1];
 
                 if (folderID[0] == "subcat")
-                { 
-                    return await GetSubCategories(query, cancellationToken).ConfigureAwait(false);
-                } 
-                else if (folderID[0] == "shows")
                 {
-                    //result = await Get(query, cancellationToken).ConfigureAwait(false);
+                    return await GetSubCategories(query, cancellationToken).ConfigureAwait(false);
+                }
+                if (folderID[0] == "stream")
+                {
+                    query.FolderId = folderID[2];
+                    return await GetStreams(folderID[1], query, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -85,19 +88,27 @@ namespace MediaBrowser.Plugins.UStream
             var page = new HtmlDocument();
             var items = new List<ChannelItemInfo>();
 
-            using (var site = await _httpClient.Get("http://ustream.tv", CancellationToken.None).ConfigureAwait(false))
+            
+            using (
+                var site = await _httpClient.Get("http://www.ustream.tv/", CancellationToken.None).ConfigureAwait(false))
             {
-                page.Load(site);
-                foreach (var node in page.DocumentNode.SelectNodes("//li[contains(@class, \"categories\")]/ul//a"))
+                page.Load(site, Encoding.UTF8);
+                if (page.DocumentNode != null)
                 {
-                    items.Add(new ChannelItemInfo
+                    foreach (var node in page.DocumentNode.SelectNodes("//ul[contains(@class, \"unstyled\")]/li[contains(@class, \"state\")]//a"))
                     {
-                        Name = node.InnerText,
-                        Id = "subcat_" + node.Attributes["href"].Value.Split('/').Last(),
-                    });
+                        HtmlAttribute link = node.Attributes["href"];
+                        items.Add(new ChannelItemInfo
+                        {
+                            Name = node.InnerText,
+                            Id = "subcat_" + link.Value.Split('/').Last(),
+                            Type = ChannelItemType.Folder,
+                        });
+                    }
                 }
             }
-            
+
+
             return new ChannelItemResult
             {
                 Items = items.ToList(),
@@ -112,13 +123,19 @@ namespace MediaBrowser.Plugins.UStream
 
             using (var site = await _httpClient.Get(String.Format("http://www.ustream.tv/new/explore/{0}/all", query.FolderId), CancellationToken.None).ConfigureAwait(false))
             {
-                page.Load(site);
+                page.Load(site, Encoding.UTF8);
                 foreach (var node in page.DocumentNode.SelectNodes("//select[@id=\"FilterSubCategory\"]/option"))
                 {
+                    HtmlAttribute link = node.Attributes["value"];
+                    
+                    if (link.Value == "") continue;
+
+                    _logger.Debug("PASSED");
                     items.Add(new ChannelItemInfo
                     {
                         Name = node.InnerText,
-                        Id = "stream_" + node.Attributes["value"].Value,
+                        Id = "stream_" + query.FolderId + "_" + link.Value,
+                        Type = ChannelItemType.Folder,
                     });
                 }
             }
@@ -130,20 +147,46 @@ namespace MediaBrowser.Plugins.UStream
             };
         }
 
-        private async Task<ChannelItemResult> GetEpisodes(InternalChannelItemQuery query, CancellationToken cancellationToken)
+        private async Task<ChannelItemResult> GetStreams(string mainCategory, InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
+            var page = new HtmlDocument();
+            var items = new List<ChannelItemInfo>();
+            RootObject reg;
+
+            using (var json = await _httpClient.Get(String.Format("http://www.ustream.tv/ajax-alwayscache/new/explore/{0}/all.json?subCategory={1}&type=live&location=anywhere&page={2}", mainCategory, query.FolderId, 1), CancellationToken.None).ConfigureAwait(false))
+            {
+                reg = _jsonSerializer.DeserializeFromStream<RootObject>(json);
+
+                page.LoadHtml(reg.pageContent);
+                foreach (var node in page.DocumentNode.SelectNodes("//div[contains(@class, \"media-item\")]"))
+                {
+                    var url = node.SelectSingleNode(".//img/parent::a/@href").InnerText;
+                    var title = node.SelectSingleNode(".//h4/a/text()").InnerText;
+                    var thumb = node.SelectSingleNode(".//img/@src").InnerText;
+                    //HtmlAttribute link = node.Attributes["value"];
+
+                    //if (link.Value == "") continue;
+
+                    _logger.Debug("PASSED");
+                    items.Add(new ChannelItemInfo
+                    {
+                        Name = title,
+                        ImageUrl = thumb,
+                        Id = "streamtty_",
+                        Type = ChannelItemType.Media,
+                    });
+                }
+            }
+
             
 
             //var orderedEpisodes = OrderItems(episodes.ToList(), query, cancellationToken);
 
-            /*return new ChannelItemResult
+            return new ChannelItemResult
             {
-                Items = episodes.ToList(),
-                TotalRecordCount = videos.total,
+                Items = items.ToList(),
                 CacheLength = TimeSpan.FromDays(3)
-            };*/
-
-            return null;
+            };
         }
 
         public Task<DynamicImageResponse> GetChannelImage(ImageType type, CancellationToken cancellationToken)
@@ -178,7 +221,7 @@ namespace MediaBrowser.Plugins.UStream
 
         public string Name
         {
-            get { return "Revision 3"; }
+            get { return "UStream"; }
         }
 
 

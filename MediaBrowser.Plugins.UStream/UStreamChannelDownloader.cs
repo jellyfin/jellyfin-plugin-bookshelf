@@ -21,14 +21,7 @@ namespace MediaBrowser.Plugins.UStream
 
         public async Task<RootObject> GetRevision3ChannelList(CancellationToken cancellationToken)
         {
-            RootObject reg;
-
-            using (var json = await _httpClient.Get("http://revision3.com/api/getShows.json?api_key=0b1faede6785d04b78735b139ddf2910f34ad601&grouping=latest", CancellationToken.None).ConfigureAwait(false))
-            {
-                reg = _jsonSerializer.DeserializeFromStream<RootObject>(json);
-            }
-
-            return reg;
+            return null;
         }
 
     }
