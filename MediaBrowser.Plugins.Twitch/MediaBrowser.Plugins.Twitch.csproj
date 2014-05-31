@@ -72,8 +72,8 @@
     <EmbeddedResource Include="Images\primary.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Images\backdrop.png" />
-    <Content Include="Images\thumb.png" />
+    <EmbeddedResource Include="Images\backdrop.png" />
+    <EmbeddedResource Include="Images\thumb.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
