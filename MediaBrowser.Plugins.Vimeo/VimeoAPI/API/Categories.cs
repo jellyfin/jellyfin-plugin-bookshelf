@@ -16,16 +16,21 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
 
         public static Categories FromElement(XElement e)
         {
-            var es = new Categories
+            if (e.Attribute("on_this_page") != null)
             {
-                on_this_page = int.Parse(e.Attribute("on_this_page").Value),
-                page = int.Parse(e.Attribute("page").Value),
-                perpage = int.Parse(e.Attribute("perpage").Value),
-                total = int.Parse(e.Attribute("total").Value)
-            };
-            es.AddRange(e.Elements("category").Select(Category.FromElement).Where(item => item.subCategories.Any() ));
-            
-            return es;
+                var es = new Categories
+                {
+                    on_this_page = int.Parse(e.Attribute("on_this_page").Value),
+                    page = int.Parse(e.Attribute("page").Value),
+                    perpage = int.Parse(e.Attribute("perpage").Value),
+                    total = int.Parse(e.Attribute("total").Value)
+                };
+                es.AddRange(e.Elements("category").Select(Category.FromElement).Where(item => item.subCategories.Any()));
+
+                return es;
+            }
+
+            return null;
         }
     }
 
@@ -81,7 +86,7 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("ERROR! " + ex);
+                //Debug.WriteLine("ERROR! " + ex);
             }
 
             return subList;

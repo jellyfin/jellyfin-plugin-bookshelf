@@ -41,6 +41,25 @@ namespace MediaBrowser.Plugins.Vimeo
             return videos;
         }
 
+        public async Task<Videos> GetCategoryVideoList(String catID, int? startIndex, int? limit, CancellationToken cancellationToken)
+        {
+            int? page = null;
+
+            if (startIndex.HasValue && limit.HasValue)
+            {
+                page = 1 + (startIndex.Value / limit.Value) % limit.Value;
+            }
+
+            var videos = Plugin.vc.vimeo_categories_getRelatedVideos(catID, true, page: page, per_page: limit);
+
+            foreach (var vid in videos.ToList().Where(vid => vid.embed_privacy != "anywhere"))
+            {
+                videos.Remove(vid);
+            }
+
+            return videos;
+        }
+
         public async Task<Videos> GetSearchVimeoList(String searchTerm, CancellationToken cancellationToken)
         {
             var search = Plugin.vc.vimeo_videos_search(true, null, null, searchTerm, VimeoClient.VideosSortMethod.Default,

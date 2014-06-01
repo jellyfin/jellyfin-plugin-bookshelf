@@ -20,7 +20,7 @@ using System.Web;
 
 namespace MediaBrowser.Plugins.Revision3
 {
-    public class Revision3Channel : IChannel, IRequiresMediaInfoCallback
+    public class Revision3Channel : IChannel
     {
         private readonly IHttpClient _httpClient;
         private readonly ILogger _logger;
@@ -38,7 +38,7 @@ namespace MediaBrowser.Plugins.Revision3
             get
             {
                 // Increment as needed to invalidate all caches
-                return "3";
+                return "6";
             }
         }
 
@@ -54,112 +54,81 @@ namespace MediaBrowser.Plugins.Revision3
 
         public async Task<ChannelItemResult> GetChannelItems(InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
-            IEnumerable<ChannelItemInfo> items;
+            ChannelItemResult result;
 
             _logger.Debug("cat ID : " + query.FolderId);
 
             if (query.FolderId == null)
             {
-                items = await GetChannels(cancellationToken).ConfigureAwait(false);
+                result = await GetChannels(cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                items = await GetEpisodes(query, cancellationToken).ConfigureAwait(false);
+                result = await GetEpisodes(query, cancellationToken).ConfigureAwait(false);
             }
 
-            return new ChannelItemResult
-            {
-                Items = items.ToList(),
-                CacheLength = TimeSpan.FromDays(3)
-            };
+            return result;
         }
 
-        private async Task<IEnumerable<ChannelItemInfo>> GetChannels(CancellationToken cancellationToken)
+        private async Task<ChannelItemResult> GetChannels(CancellationToken cancellationToken)
         {
             var downloader = new Revision3ChannelDownloader(_logger, _jsonSerializer, _httpClient);
             var channels = await downloader.GetRevision3ChannelList(cancellationToken);
 
-            return channels.shows.Select(i => new ChannelItemInfo
+            var shows = channels.shows.Select(i => new ChannelItemInfo
             {
                 Type = ChannelItemType.Folder,
                 ImageUrl = i.images.logo_200,
                 Name = i.name,
-                Id = i.id
+                Id = i.id,
+                Overview = i.summary
             });
+
+            return new ChannelItemResult
+            {
+                Items = shows.ToList(),
+                TotalRecordCount = channels.total,
+                CacheLength = TimeSpan.FromDays(3)
+            };
         }
 
-        private async Task<IEnumerable<ChannelItemInfo>> GetEpisodes(InternalChannelItemQuery query, CancellationToken cancellationToken)
+        private async Task<ChannelItemResult> GetEpisodes(InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
+            var offset = query.StartIndex.GetValueOrDefault();
             var downloader = new Revision3ListingDownloader(_logger, _jsonSerializer, _httpClient);
-            var videos = await downloader.GetEpisodeList(query, cancellationToken)
+            var videos = await downloader.GetEpisodeList(offset, query, cancellationToken)
                 .ConfigureAwait(false);
 
-            return videos.episodes.Select(i => new ChannelItemInfo
+            var episodes = videos.episodes.Select(i => new ChannelItemInfo
             {
                 ContentType = ChannelMediaContentType.Clip,
-                ImageUrl = i.images.medium,
+                ImageUrl = !String.IsNullOrEmpty(i.images.medium) ? i.images.medium : "",
                 MediaType = ChannelMediaType.Video,
                 Name = i.name,
                 Type = ChannelItemType.Media,
-                Id = i.slug
-            });
-        }
-
-        public async Task<IEnumerable<ChannelMediaInfo>> GetChannelItemMediaInfo(string id, CancellationToken cancellationToken)
-        {
-            using (
-                var stream =
-                    await
-                        _httpClient.Get("http://revision3.com/" + id, cancellationToken)
-                            .ConfigureAwait(false))
-            {
-                using (var reader = new StreamReader(stream))
+                Id = i.slug,
+                /*RunTimeTicks = TimeSpan.FromSeconds(i.duration).Ticks,
+                DateCreated = !String.IsNullOrEmpty(i.published) ?
+                    Convert.ToDateTime(i.published) : DateTime.MinValue,
+                Overview = !String.IsNullOrEmpty(i.summary) ? i.summary : "",
+                */
+                MediaSources = new List<ChannelMediaInfo>
                 {
-                    var html = await reader.ReadToEndAsync().ConfigureAwait(false);
-
-                    var HD = Regex.Match(html, "value=\"(?<url>.*)\">MP4: HD", RegexOptions.IgnoreCase);
-                    var Large = Regex.Match(html, "value=\"(?<url>.*)\">MP4: Large", RegexOptions.IgnoreCase);
-                    var Phone = Regex.Match(html, "value=\"(?<url>.*)\">MP4: Phone", RegexOptions.IgnoreCase);
-                    var webHD = Regex.Match(html, "value=\"(?<url>.*)\">WebM: HD", RegexOptions.IgnoreCase);
-                    var webLarge = Regex.Match(html, "value=\"(?<url>.*)\">WebM: Large", RegexOptions.IgnoreCase);
-                    var webPhone = Regex.Match(html, "value=\"(?<url>.*)\">WebM: Phone", RegexOptions.IgnoreCase);
-
-                    var video = new List<ChannelMediaInfo>();
-
-                    if (HD.Success)
+                    new ChannelMediaInfo
                     {
-                        var url = HD.Groups["url"].Value;
-                        video.Add(new ChannelMediaInfo { Path = url });
+                        Path = i.media.hd720p30.url
                     }
-                    if (Large.Success)
-                    {
-                        var url = Large.Groups["url"].Value;
-                        video.Add(new ChannelMediaInfo { Path = url });
-                    }
-                    if (Phone.Success)
-                    {
-                        var url = Phone.Groups["url"].Value;
-                        video.Add(new ChannelMediaInfo { Path = url });
-                    }
-                    if (webHD.Success)
-                    {
-                        var url = webHD.Groups["url"].Value;
-                        video.Add(new ChannelMediaInfo { Path = url });
-                    }
-                    if (webLarge.Success)
-                    {
-                        var url = webLarge.Groups["url"].Value;
-                        video.Add(new ChannelMediaInfo { Path = url });
-                    }
-                    if (webPhone.Success)
-                    {
-                        var url = webPhone.Groups["url"].Value;
-                        video.Add(new ChannelMediaInfo { Path = url });
-                    }
-
-                    return video;
                 }
-            }
+            });
+
+            //var orderedEpisodes = OrderItems(episodes.ToList(), query, cancellationToken);
+
+            return new ChannelItemResult
+            {
+                Items = episodes.ToList(),
+                TotalRecordCount = videos.total,
+                CacheLength = TimeSpan.FromDays(3)
+            };
         }
 
         public Task<DynamicImageResponse> GetChannelImage(ImageType type, CancellationToken cancellationToken)
@@ -204,16 +173,25 @@ namespace MediaBrowser.Plugins.Revision3
             return new InternalChannelFeatures
             {
                 CanSearch = false,
-
+                MaxPageSize = 25,
                 ContentTypes = new List<ChannelMediaContentType>
-                 {
-                     ChannelMediaContentType.Clip
-                 },
+                {
+                    ChannelMediaContentType.Clip
+                },
 
                 MediaTypes = new List<ChannelMediaType>
-                  {
-                       ChannelMediaType.Video
-                  }
+                {
+                    ChannelMediaType.Video
+                },
+
+                SupportsSortOrderToggle = true,
+
+                DefaultSortFields = new List<ChannelItemSortField>
+                {
+                    ChannelItemSortField.DateCreated,
+                    ChannelItemSortField.Name,
+                    ChannelItemSortField.Runtime
+                },
             };
         }
 
@@ -258,6 +236,39 @@ namespace MediaBrowser.Plugins.Revision3
                 i++;
             }
             return stringBuilder.ToString();
+        }
+
+        public IOrderedEnumerable<ChannelItemInfo> OrderItems(List<ChannelItemInfo> items, InternalChannelItemQuery query, CancellationToken cancellationToken)
+        {
+            if (query.SortBy.HasValue)
+            {
+                if (query.SortDescending)
+                {
+                    switch (query.SortBy.Value)
+                    {
+                        case ChannelItemSortField.Runtime:
+                            return items.OrderByDescending(i => i.RunTimeTicks ?? 0);
+                        case ChannelItemSortField.DateCreated:
+                            return items.OrderByDescending(i => i.DateCreated ?? DateTime.MinValue);
+                        default:
+                            return items.OrderByDescending(i => i.Name);
+                    }
+                }
+                else
+                {
+                    switch (query.SortBy.Value)
+                    {
+                        case ChannelItemSortField.Runtime:
+                            return items.OrderBy(i => i.RunTimeTicks ?? 0);
+                        case ChannelItemSortField.DateCreated:
+                            return items.OrderBy(i => i.DateCreated ?? DateTime.MinValue);
+                        default:
+                            return items.OrderBy(i => i.Name);
+                    }
+                }
+            }
+
+            return items.OrderBy(i => i.Name);
         }
     }
 }

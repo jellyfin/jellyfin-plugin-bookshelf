@@ -9,6 +9,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Web;
+using MediaBrowser.Model.Logging;
 
 namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.Common
 {
@@ -24,8 +25,11 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.Common
         string consumerSecret;
         string requestPermission;
 
-        public AdvancedAPI(string consumerKey, string consumerSecret, string permission="delete")
+        private ILogger _logger;
+
+        public AdvancedAPI(ILogger logger, string consumerKey, string consumerSecret, string permission="delete")
         {
+            _logger = logger;
             ChangeKey(consumerKey, consumerSecret, permission);
         }
 
@@ -42,7 +46,7 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.Common
             using (var wc = new WebClient())
 			{
                 if (proxy != null) wc.Proxy = proxy;
-                Debug.WriteLine("GET: " + url, "ExecuteGetCommand");
+                _logger.Debug("GET: " + url);
 
 				if (!string.IsNullOrEmpty(userName) && !string.IsNullOrEmpty(password))
 					wc.Credentials = new NetworkCredential(userName, password);
@@ -54,20 +58,20 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.Common
 						using (var reader = new StreamReader(stream))
 						{
                             var r = reader.ReadToEnd();
-                            Debug.WriteLine("OK: " + url + "\n[" + r.Length + "B]: " + r.Substring(0,Math.Min(256, r.Length)), "ExecuteGetCommand");
+                            _logger.Debug("\nOK: " + url + "\n[" + r.Length + "B]: " + r.Substring(0, Math.Min(256, r.Length)));
 							return r;
 						}
 					}
 				}
 				catch (WebException ex)
 				{
-                    Debug.WriteLine("FAIL: " + url, "ExecuteGetCommand");
-                    Debug.WriteLine("MSG: " + ex.Message, "ExecuteGetCommand");
+                    _logger.Debug("\nFAIL: " + url);
+                    _logger.Debug("\nMSG: " + ex.Message);
 
 					// Handle HTTP 404 errors gracefully and return a null string 
                     // to indicate there is no content.
 					if (ex.Response is HttpWebResponse)
-                        Debug.WriteLine("RSP: " + (ex.Response as HttpWebResponse).StatusCode.ToString(), "ExecuteGetCommand");
+                        _logger.Debug("\nRSP: " + (ex.Response as HttpWebResponse).StatusCode);
                        
                     return null; //wtf was the other one for then? hmm
 				}

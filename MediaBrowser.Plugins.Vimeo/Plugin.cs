@@ -1,5 +1,6 @@
 ﻿using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
+using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Plugins.Vimeo.Configuration;
 using MediaBrowser.Plugins.Vimeo.VimeoAPI.API;
@@ -12,12 +13,15 @@ namespace MediaBrowser.Plugins.Vimeo
     public class Plugin : BasePlugin<PluginConfiguration>
     {
         public static VimeoClient vc;
+        private readonly ILogger _logger;
 
-        public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer)
+        public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer, ILogManager logManager)
             : base(applicationPaths, xmlSerializer)
         {
+            _logger = logManager.GetLogger(GetType().Name);
+
             Instance = this;
-            vc = new VimeoClient("b3f7452b9822b91cede55a3315bee7e021c876c0", "eb62bfd0a204c316a4f05b1d3a9d88726718a893");
+            vc = new VimeoClient(_logger, "b3f7452b9822b91cede55a3315bee7e021c876c0", "eb62bfd0a204c316a4f05b1d3a9d88726718a893");
 
             if (Instance.Configuration.Token != null && Instance.Configuration.SecretToken != null)
             {

@@ -60,7 +60,7 @@ namespace MediaBrowser.Plugins.Revision3
         public string youtube_summary { get; set; }
         public string description { get; set; }
         public string details { get; set; }
-        public string duration { get; set; }
+        public int duration { get; set; }
         public string keywords { get; set; }
         public string visibility { get; set; }
         public string published { get; set; }
@@ -112,7 +112,6 @@ namespace MediaBrowser.Plugins.Revision3
     {
         public int total { get; set; }
         public List<Show> shows { get; set; }
-
         public List<Episode> episodes { get; set; }
     }
 }

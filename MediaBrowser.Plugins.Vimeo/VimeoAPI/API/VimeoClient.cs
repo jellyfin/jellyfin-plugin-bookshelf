@@ -33,9 +33,12 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
         public WebProxy Proxy;
         public Person Me;
 
-        public VimeoClient(string consumerKey, string consumerSecret, string permission="delete")
+        private ILogger _logger;
+
+        public VimeoClient(ILogger logger, string consumerKey, string consumerSecret, string permission="delete")
         {
-            VimeoAPI = new AdvancedAPI(consumerKey, consumerSecret, permission);
+            _logger = logger;
+            VimeoAPI = new AdvancedAPI(_logger, consumerKey, consumerSecret, permission);
             Trace.WriteLine("This software uses VimeoDotNet to connect to Vimeo API. To support this project visit http://support.saeedoo.com.");
         }
 
@@ -81,6 +84,8 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
         }
         public string GetRequestUrl(string baseUrl, string method, Dictionary<string, string> parameters, out Dictionary<string, string> oauth_parameters, string httpMethod = "GET")
         {
+            _logger.Debug("Auth Token - " + OAuthTokenKey + " = " + Token);
+
             if (parameters == null) parameters = new Dictionary<string, string>();
             string url = baseUrl;
             if (!string.IsNullOrEmpty(method))
@@ -125,7 +130,7 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
             }
             catch
             {
-                Debug.WriteLine("Error when executing get request\nwith url: " + url, "ExecuteGetRequest");
+                _logger.Debug("Error when executing get request\nwith url: " + url);
                 return null;
             }
         }
@@ -369,7 +374,7 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
             if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
 
             var x = ExecuteGetRequest("vimeo.categories.getAll", parameters);
-            return !IsResponseOK(x) ? null : Categories.FromElement(x.Element("rsp").Element("categories"));
+            return !IsResponseOK(x) ? null : (Categories.FromElement(x.Element("rsp").Element("categories")));
         }
 
         public Category vimeo_categories_getInfo(string category)
@@ -385,7 +390,10 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
             if (page.HasValue) parameters.Add("page", page.Value.ToString());
             if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
             var x = ExecuteGetRequest("vimeo.categories.getRelatedChannels", parameters);
-            return !IsResponseOK(x) ? null : Channels.FromElement(x.Element("rsp").Element("channels"));
+            var xElement = x.Element("rsp");
+            if (xElement.HasElements)
+                return !IsResponseOK(x) ? null : Channels.FromElement(xElement.Element("channels"));
+            return null;
         }
 
         public Groups vimeo_categories_getRelatedGroups(string category, int? page = null, int? per_page = null)
