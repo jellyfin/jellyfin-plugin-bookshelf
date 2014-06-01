@@ -19,7 +19,7 @@ using System.Web;
 
 namespace MediaBrowser.Plugins.TuneIn
 {
-    public class TuneInChannel : IChannel
+    public class TuneInChannel : IChannel, IRequiresMediaInfoCallback
     {
         private readonly IHttpClient _httpClient;
         private readonly ILogger _logger;
@@ -37,7 +37,7 @@ namespace MediaBrowser.Plugins.TuneIn
             get
             {
                 // Increment as needed to invalidate all caches
-                return "4";
+                return "1";
             }
         }
 
@@ -53,27 +53,36 @@ namespace MediaBrowser.Plugins.TuneIn
 
         public async Task<ChannelItemResult> GetChannelItems(InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
-            IEnumerable<ChannelItemInfo> items;
 
             if (query.FolderId == null)
             {
-                items = await GetMain(cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                var catSplit = query.FolderId.Split('_');
-                query.FolderId = catSplit[1];
-                items = await GetTracks(query, cancellationToken).ConfigureAwait(false);
+                return await GetMainMenu(cancellationToken).ConfigureAwait(false);
             }
 
-            return new ChannelItemResult
+            var channelID = query.FolderId.Split('_');
+
+            if (channelID[0] == "subcat")
             {
-                Items = items.ToList(),
-                CacheLength = TimeSpan.FromDays(3)
-            };
+                query.FolderId = channelID[1];
+                return await GetSubMenu(query, cancellationToken).ConfigureAwait(false);
+            }
+
+            if (channelID[0] == "subsubcat")
+            {
+                query.FolderId = channelID[1];
+                return await GetSubSubMenu(query, cancellationToken).ConfigureAwait(false);
+            }
+
+            if (channelID[0] == "stations")
+            {
+                query.FolderId = channelID[1];
+                return await GetStations(query, cancellationToken).ConfigureAwait(false);
+            }
+
+            return null;
         }
 
-        private async Task<ChannelItemResult> GetMain(CancellationToken cancellationToken)
+        private async Task<ChannelItemResult> GetMainMenu(CancellationToken cancellationToken)
         {
             var page = new HtmlDocument();
             var items = new List<ChannelItemInfo>();
@@ -86,7 +95,7 @@ namespace MediaBrowser.Plugins.TuneIn
                 {
                     var body = page.DocumentNode.SelectSingleNode("//body");
 
-                    foreach (var node in body.SelectNodes("./outline[@URL and not(@type=\"audio\")]"))
+                    foreach (var node in body.SelectNodes("./outline"))
                     {
                         items.Add(new ChannelItemInfo
                         {
@@ -97,52 +106,139 @@ namespace MediaBrowser.Plugins.TuneIn
                     }
                 }
             }
-        }
 
-        private async Task<IEnumerable<ChannelItemInfo>> GetChannels(CancellationToken cancellationToken)
-        {
-            return new List<ChannelItemInfo>
+            return new ChannelItemResult
             {
-                new ChannelItemInfo
-                {
-                    Name = "Hot",
-                    Id = "cat_hot",
-                    Type = ChannelItemType.Folder
-                },
-                new ChannelItemInfo
-                {
-                    Name = "Latest",
-                    Id = "cat_latest",
-                    Type = ChannelItemType.Folder
-                }
+                Items = items,
+                CacheLength = TimeSpan.FromDays(3)
             };
         }
 
-        private async Task<IEnumerable<ChannelItemInfo>> GetTracks(InternalChannelItemQuery query, CancellationToken cancellationToken)
+        private async Task<ChannelItemResult> GetSubMenu(InternalChannelItemQuery query, CancellationToken cancellationToken)
         {
-            var downloader = new SoundCloudListingDownloader(_logger, _jsonSerializer, _httpClient);
-            var songs = await downloader.GetTrackList(query, cancellationToken)
-                .ConfigureAwait(false);
+            var page = new HtmlDocument();
+            var items = new List<ChannelItemInfo>();
 
-            return songs.Select(i => new ChannelItemInfo
+            using (
+                var site = await _httpClient.Get(query.FolderId, CancellationToken.None).ConfigureAwait(false))
             {
-                ContentType = ChannelMediaContentType.Song,
-                ImageUrl = i.artwork_url,
-                IsInfiniteStream = false,
-                MediaType = ChannelMediaType.Audio,
-                Name = i.title,
-                Type = ChannelItemType.Media,
-                Id = i.id.ToString(),
-                RunTimeTicks = TimeSpan.FromMilliseconds(i.duration).Ticks,
-
-                MediaSources = new List<ChannelMediaInfo>
+                page.Load(site, Encoding.UTF8);
+                if (page.DocumentNode != null)
                 {
-                    new ChannelMediaInfo
+                    var body = page.DocumentNode.SelectSingleNode("//body");
+
+                    foreach (var node in body.SelectNodes("./outline"))
                     {
-                        Path = i.stream_url + "?client_id=78fd88dde7ebf8fdcad08106f6d56ab6"
+                        items.Add(new ChannelItemInfo
+                        {
+                            Name = node.Attributes["text"].Value,
+                            Id = "stations_" + node.Attributes["url"].Value,
+                            Type = ChannelItemType.Folder,
+                        });
                     }
                 }
-            });
+            }
+
+            return new ChannelItemResult
+            {
+                Items = items,
+                CacheLength = TimeSpan.FromDays(3)
+            };
+        }
+
+        private async Task<ChannelItemResult> GetSubSubMenu(InternalChannelItemQuery query, CancellationToken cancellationToken)
+        {
+            var page = new HtmlDocument();
+            var items = new List<ChannelItemInfo>();
+
+            using (
+                var site = await _httpClient.Get(query.FolderId, CancellationToken.None).ConfigureAwait(false))
+            {
+                page.Load(site, Encoding.UTF8);
+                if (page.DocumentNode != null)
+                {
+                    var body = page.DocumentNode.SelectSingleNode("//body");
+
+                    foreach (var node in body.SelectNodes("./outline"))
+                    {
+                        items.Add(new ChannelItemInfo
+                        {
+                            Name = node.Attributes["text"].Value,
+                            Id = "stations_" + node.Attributes["url"].Value,
+                            Type = ChannelItemType.Folder,
+                        });
+                    }
+                }
+            }
+
+            return new ChannelItemResult
+            {
+                Items = items,
+                CacheLength = TimeSpan.FromDays(3)
+            };
+        }
+
+        private async Task<ChannelItemResult> GetStations(InternalChannelItemQuery query, CancellationToken cancellationToken)
+        {
+            var page = new HtmlDocument();
+            var items = new List<ChannelItemInfo>();
+
+            using (
+                var site = await _httpClient.Get(query.FolderId, CancellationToken.None).ConfigureAwait(false))
+            {
+                page.Load(site, Encoding.UTF8);
+                if (page.DocumentNode != null)
+                {
+                    var body = page.DocumentNode.SelectSingleNode("//body/outline");
+
+                    foreach (var node in body.SelectNodes("./outline"))
+                    {
+                        items.Add(new ChannelItemInfo
+                        {
+                            Name = node.Attributes["text"].Value,
+                            Id = "stream_" + node.Attributes["url"].Value,
+                            Type = ChannelItemType.Media,
+                            ContentType = ChannelMediaContentType.Podcast,
+                            ImageUrl = node.Attributes["image"].Value,
+                            MediaType = ChannelMediaType.Audio
+                        });
+                    }
+                }
+            }
+
+            return new ChannelItemResult
+            {
+                Items = items,
+                CacheLength = TimeSpan.FromDays(3)
+            };
+        }
+
+        public async Task<IEnumerable<ChannelMediaInfo>> GetChannelItemMediaInfo(string id, CancellationToken cancellationToken)
+        {
+            var channelID = id.Split('_');
+            var page = new HtmlDocument();
+            var items = new List<ChannelMediaInfo>();
+
+            using (
+                var site = await _httpClient.Get(channelID[1] + "&c=ebrowse", CancellationToken.None).ConfigureAwait(false))
+            {
+                page.Load(site, Encoding.UTF8);
+                if (page.DocumentNode != null)
+                {
+                    var body = page.DocumentNode.SelectSingleNode("//body");
+
+                    foreach (var node in body.SelectNodes("./outline"))
+                    {
+                        items.Add(new ChannelMediaInfo
+                        {
+                            Path = node.Attributes["URL"].Value.Replace("&amp;", "&"),
+                            AudioBitrate = Convert.ToInt16(node.Attributes["bitrate"].Value)
+                        });
+                    }
+                }
+            }
+
+            return items;
         }
 
         public Task<DynamicImageResponse> GetChannelImage(ImageType type, CancellationToken cancellationToken)
@@ -205,5 +301,7 @@ namespace MediaBrowser.Plugins.TuneIn
         {
             get { return "http://www.tunein.com/"; }
         }
+
+        
     }
 }

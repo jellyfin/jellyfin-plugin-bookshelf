@@ -74,10 +74,11 @@ namespace MediaBrowser.Plugins.Vimeo
             }
 
             var catSplit = query.FolderId.Split('_');
-            query.FolderId = catSplit[1];
+            
             
             if (catSplit[0] == "cat")
             {
+                query.FolderId = catSplit[1];
                 if (catSplit[1] == "myChannels")
                 {
                     return await GetPersonalChannels(query, cancellationToken).ConfigureAwait(false);
@@ -89,10 +90,12 @@ namespace MediaBrowser.Plugins.Vimeo
             {
                 if (catSplit[1] == "allVideos")
                 {
-                    query.FolderId = catSplit[2];
+                    //query.FolderId = catSplit[2];
                     return await GetChannelItemsInternal(query, cancellationToken).ConfigureAwait(false);
                 }
 
+                query.FolderId = catSplit[1];
+                
                 if (catSplit[1] == "allChannels") query.FolderId = catSplit[2];
                 
                 return await GetChannels(query, cancellationToken).ConfigureAwait(false);
@@ -162,35 +165,73 @@ namespace MediaBrowser.Plugins.Vimeo
             };
         }
 
-        private async Task<ChannelItemResult> GetChannels(InternalChannelItemQuery query, CancellationToken cancellationToken)
+        private async Task<ChannelItemResult> GetChannels(InternalChannelItemQuery query,
+            CancellationToken cancellationToken)
         {
             var downloader = new VimeoChannelDownloader(_logger, _jsonSerializer, _httpClient);
             var channels = await downloader.GetVimeoChannelList(query, cancellationToken);
 
-            var items = channels.Select(i => new ChannelItemInfo
+            var items = new List<ChannelItemInfo>();
+            var videos = new Videos();
+
+            if (channels != null)
             {
-                Type = ChannelItemType.Folder,
-                ImageUrl = i.logo_url,
-                Name = i.name,
-                Id = "chan_" + i.id,
-                Overview = i.description
-            }).ToList();
+                items = channels.Select(i => new ChannelItemInfo
+                {
+                    Type = ChannelItemType.Folder,
+                    ImageUrl = i.logo_url,
+                    Name = i.name,
+                    Id = "chan_" + i.id,
+                    Overview = i.description
+                }).ToList();
+            }
+            else
+            {
+                var downloader2 = new VimeoListingDownloader(_logger, _jsonSerializer, _httpClient);
+                 videos = await downloader2.GetCategoryVideoList(query.FolderId, query.StartIndex, query.Limit, cancellationToken);
+
+                items = videos.Select(i => new ChannelItemInfo
+                {
+                    ContentType = ChannelMediaContentType.Clip,
+                    ImageUrl = i.thumbnails[2].Url,
+                    IsInfiniteStream = false,
+                    MediaType = ChannelMediaType.Video,
+                    Name = i.title,
+                    Overview = i.description,
+                    Type = ChannelItemType.Media,
+                    Id = i.id,
+                    RunTimeTicks = TimeSpan.FromSeconds(i.duration).Ticks,
+                    Tags = i.tags == null ? new List<string>() : i.tags.Select(t => t.title).ToList(),
+                    DateCreated = DateTime.Parse(i.upload_date)
+                }).ToList();
+            }
 
             return new ChannelItemResult
             {
                 Items = items,
                 CacheLength = TimeSpan.FromDays(1),
-                TotalRecordCount = channels.total
+                TotalRecordCount = channels == null ? videos.total : channels.total
             };
         }
 
-        private async Task<ChannelItemResult> GetChannelItemsInternal(InternalChannelItemQuery query, CancellationToken cancellationToken)
+        private async Task<ChannelItemResult> GetChannelItemsInternal(InternalChannelItemQuery query,
+            CancellationToken cancellationToken)
         {
             var downloader = new VimeoListingDownloader(_logger, _jsonSerializer, _httpClient);
-            var videos = await downloader.GetVimeoList(query.FolderId, query.StartIndex, query.Limit, cancellationToken)
-                .ConfigureAwait(false);
+            var catSplit = query.FolderId.Split('_');
+            var videos = new Videos();
 
-            var items = videos.Select(i => new ChannelItemInfo
+            if (catSplit.Count() == 3)
+            {
+                if (catSplit[1] == "allVideos")
+                    videos = await downloader.GetCategoryVideoList(catSplit[2], query.StartIndex, query.Limit, cancellationToken).ConfigureAwait(false);
+                else
+                    videos = await downloader.GetVimeoList(catSplit[2], query.StartIndex, query.Limit, cancellationToken).ConfigureAwait(false);
+            }
+            else
+                videos = await downloader.GetVimeoList(catSplit[1], query.StartIndex, query.Limit, cancellationToken).ConfigureAwait(false);
+
+        var items = videos.Select(i => new ChannelItemInfo
             {
                 ContentType = ChannelMediaContentType.Clip,
                 ImageUrl = i.thumbnails[2].Url,

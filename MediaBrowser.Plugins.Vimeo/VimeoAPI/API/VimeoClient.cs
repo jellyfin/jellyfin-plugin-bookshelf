@@ -390,7 +390,10 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
             if (page.HasValue) parameters.Add("page", page.Value.ToString());
             if (per_page.HasValue) parameters.Add("per_page", per_page.Value.ToString());
             var x = ExecuteGetRequest("vimeo.categories.getRelatedChannels", parameters);
-            return !IsResponseOK(x) ? null : Channels.FromElement(x.Element("rsp").Element("channels"));
+            var xElement = x.Element("rsp");
+            if (xElement.HasElements)
+                return !IsResponseOK(x) ? null : Channels.FromElement(xElement.Element("channels"));
+            return null;
         }
 
         public Groups vimeo_categories_getRelatedGroups(string category, int? page = null, int? per_page = null)

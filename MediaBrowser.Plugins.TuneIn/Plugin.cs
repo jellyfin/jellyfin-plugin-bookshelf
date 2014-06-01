@@ -1,7 +1,7 @@
 ﻿using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Serialization;
-using MediaBrowser.Plugins.SoundCloud.Configuration;
+using MediaBrowser.Plugins.TuneIn.Configuration;
 
 namespace MediaBrowser.Plugins.TuneIn
 {

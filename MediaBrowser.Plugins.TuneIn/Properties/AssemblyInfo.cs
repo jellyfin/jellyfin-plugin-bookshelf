@@ -4,11 +4,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("MediaBrowser.Plugins.SoundCloud")]
+[assembly: AssemblyTitle("MediaBrowser.Plugins.TuneIn")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("MediaBrowser.Plugins.SoundCloud")]
+[assembly: AssemblyProduct("MediaBrowser.Plugins.TuneIn")]
 [assembly: AssemblyCopyright("Copyright ©  2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -19,7 +19,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("bb250039-f5b1-45e2-b10a-a64ae170411b")]
+[assembly: Guid("10b82431-f939-4507-a8e2-9509dd3fd6ae")]
 
 // Version information for an assembly consists of the following four values:
 //

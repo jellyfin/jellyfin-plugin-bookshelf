@@ -18,21 +18,5 @@ namespace MediaBrowser.Plugins.Trailers.Configuration
         /// </summary>
         /// <value><c>true</c> if [enable local trailer downloads]; otherwise, <c>false</c>.</value>
         public bool EnableLocalTrailerDownloads { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether [enable HD trailers].
-        /// </summary>
-        /// <value><c>true</c> if [enable HD trailers]; otherwise, <c>false</c>.</value>
-        public bool EnableHDTrailers { get; set; }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PluginConfiguration" /> class.
-        /// </summary>
-        public PluginConfiguration()
-            : base()
-        {
-            MaxTrailerAge = 120;
-            EnableHDTrailers = true;
-        }
     }
 }

@@ -46,6 +46,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.Chapte
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.UStream", "MediaBrowser.Plugins.UStream\MediaBrowser.Plugins.UStream.csproj", "{426F5D98-93BA-43EE-BE13-4F8F7CDF03C4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.TuneIn", "MediaBrowser.Plugins.TuneIn\MediaBrowser.Plugins.TuneIn.csproj", "{4443D2C9-46AF-4CEA-B462-C111093DF4D0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -168,6 +170,12 @@ Global
 		{426F5D98-93BA-43EE-BE13-4F8F7CDF03C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{426F5D98-93BA-43EE-BE13-4F8F7CDF03C4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{426F5D98-93BA-43EE-BE13-4F8F7CDF03C4}.Release|x86.ActiveCfg = Release|Any CPU
+		{4443D2C9-46AF-4CEA-B462-C111093DF4D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4443D2C9-46AF-4CEA-B462-C111093DF4D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4443D2C9-46AF-4CEA-B462-C111093DF4D0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4443D2C9-46AF-4CEA-B462-C111093DF4D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4443D2C9-46AF-4CEA-B462-C111093DF4D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4443D2C9-46AF-4CEA-B462-C111093DF4D0}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

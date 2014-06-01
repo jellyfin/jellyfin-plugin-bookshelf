@@ -13,6 +13,9 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
 
         public static Channels FromElement(XElement e)
         {
+            if (!e.HasElements)
+                return null;
+
             var es = new Channels
             {
                 on_this_page = int.Parse(e.Attribute("on_this_page").Value),

@@ -32,6 +32,7 @@ namespace MediaBrowser.Plugins.Vimeo
             }
 
             var channels = Plugin.vc.vimeo_categories_getRelatedChannels(query.FolderId, page: page, per_page: query.Limit);
+
             return channels;
         }
 
