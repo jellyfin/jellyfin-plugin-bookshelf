@@ -21,15 +21,6 @@
                             </div>
                         </li>
                         <li>
-                            <label for="chkHDTrailers">
-                                Stream trailers in HD
-                            </label>
-                            <input id="chkHDTrailers" name="chkHDTrailers" type="checkbox" />
-                            <div class="fieldDescription">
-                                Disable this in low bandwidth environments. When disabled trailers will be limited to 480p.
-                            </div>
-                        </li>
-                        <li>
                             <label for="chkEnableLocalTrailerDownloads">
                                 Enable local trailer downloads for existing movies
                             </label>
@@ -64,7 +55,6 @@
 
                     $('#txtMaxTrailerAge', page).val(config.MaxTrailerAge || "");
                     $('#chkEnableLocalTrailerDownloads', page).checked(config.EnableLocalTrailerDownloads).checkboxradio("refresh");
-                    $('#chkHDTrailers', page).checked(config.EnableHDTrailers).checkboxradio("refresh");
 
                     Dashboard.hideLoadingMsg();
                 });
@@ -83,7 +73,6 @@
                     config.MaxTrailerAge = maxTrailerAge ? maxTrailerAge : null;
 
                     config.EnableLocalTrailerDownloads = $('#chkEnableLocalTrailerDownloads', form).checked();
-                    config.EnableHDTrailers = $('#chkHDTrailers', form).checked();
 
                     ApiClient.updatePluginConfiguration(TrailersConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
                 });

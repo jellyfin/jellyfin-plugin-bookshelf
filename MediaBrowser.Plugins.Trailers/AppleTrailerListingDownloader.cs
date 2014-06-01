@@ -28,9 +28,12 @@ namespace MediaBrowser.Plugins.Trailers
         /// Downloads a list of trailer info's from the apple url
         /// </summary>
         /// <returns>Task{List{TrailerInfo}}.</returns>
-        public static async Task<List<TrailerInfo>> GetTrailerList(IHttpClient httpClient, ILogger logger, CancellationToken cancellationToken)
+        public static async Task<List<TrailerInfo>> GetTrailerList(IHttpClient httpClient, 
+            ILogger logger, 
+            bool hdTrailerList,
+            CancellationToken cancellationToken)
         {
-            var url = Plugin.Instance.Configuration.EnableHDTrailers ?
+            var url = hdTrailerList ?
                 HDTrailerFeedUrl :
                 TrailerFeedUrl;
 
