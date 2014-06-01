@@ -22,7 +22,7 @@ using HtmlAgilityPack;
 
 namespace MediaBrowser.Plugins.UStream
 {
-    public class UStreamChannel : IChannel
+    public class UStreamChannel : IChannel, IRequiresMediaInfoCallback
     {
         private readonly IHttpClient _httpClient;
         private readonly ILogger _logger;
@@ -73,7 +73,7 @@ namespace MediaBrowser.Plugins.UStream
                 {
                     return await GetSubCategories(query, cancellationToken).ConfigureAwait(false);
                 }
-                if (folderID[0] == "stream")
+                if (folderID[0] == "streams")
                 {
                     query.FolderId = folderID[2];
                     return await GetStreams(folderID[1], query, cancellationToken).ConfigureAwait(false);
@@ -134,7 +134,7 @@ namespace MediaBrowser.Plugins.UStream
                     items.Add(new ChannelItemInfo
                     {
                         Name = node.InnerText,
-                        Id = "stream_" + query.FolderId + "_" + link.Value,
+                        Id = "streams_" + query.FolderId + "_" + link.Value,
                         Type = ChannelItemType.Folder,
                     });
                 }
@@ -151,42 +151,62 @@ namespace MediaBrowser.Plugins.UStream
         {
             var page = new HtmlDocument();
             var items = new List<ChannelItemInfo>();
-            RootObject reg;
 
             using (var json = await _httpClient.Get(String.Format("http://www.ustream.tv/ajax-alwayscache/new/explore/{0}/all.json?subCategory={1}&type=live&location=anywhere&page={2}", mainCategory, query.FolderId, 1), CancellationToken.None).ConfigureAwait(false))
             {
-                reg = _jsonSerializer.DeserializeFromStream<RootObject>(json);
-
+                var reg = _jsonSerializer.DeserializeFromStream<RootObject>(json);
+                
                 page.LoadHtml(reg.pageContent);
+                
                 foreach (var node in page.DocumentNode.SelectNodes("//div[contains(@class, \"media-item\")]"))
                 {
-                    var url = node.SelectSingleNode(".//img/parent::a/@href").InnerText;
+                    var url = node.SelectSingleNode(".//img/parent::a").Attributes["href"].Value;
                     var title = node.SelectSingleNode(".//h4/a/text()").InnerText;
-                    var thumb = node.SelectSingleNode(".//img/@src").InnerText;
-                    //HtmlAttribute link = node.Attributes["value"];
+                    var thumb = node.SelectSingleNode(".//img").Attributes["src"].Value;
 
-                    //if (link.Value == "") continue;
-
-                    _logger.Debug("PASSED");
                     items.Add(new ChannelItemInfo
                     {
                         Name = title,
                         ImageUrl = thumb,
-                        Id = "streamtty_",
+                        Id = "stream_" + url,
                         Type = ChannelItemType.Media,
+                        ContentType = ChannelMediaContentType.Clip,
+                        IsInfiniteStream = true,
+                        MediaType = ChannelMediaType.Video,
                     });
                 }
             }
-
-            
-
-            //var orderedEpisodes = OrderItems(episodes.ToList(), query, cancellationToken);
 
             return new ChannelItemResult
             {
                 Items = items.ToList(),
                 CacheLength = TimeSpan.FromDays(3)
             };
+        }
+
+        public async Task<IEnumerable<ChannelMediaInfo>> GetChannelItemMediaInfo(string id, CancellationToken cancellationToken)
+        {
+            var page = new HtmlDocument();
+
+            var channel = id.Split('_');
+
+            using (var site = await _httpClient.Get("http://www.ustream.tv" + channel[1], CancellationToken.None).ConfigureAwait(false))
+            {
+                page.Load(site, Encoding.UTF8);
+                var node =
+                    page.DocumentNode.SelectSingleNode("//a[@data-content-id]").Attributes["data-content-id"].Value;
+
+                return new List<ChannelMediaInfo>
+                {
+                    new ChannelMediaInfo
+                    {
+                        Path = "http://iphone-streaming.ustream.tv/uhls/"+node+"/streams/live/iphone/playlist.m3u8?appType=11&appVersion=2"
+                    }
+
+                };
+               
+            }
+
         }
 
         public Task<DynamicImageResponse> GetChannelImage(ImageType type, CancellationToken cancellationToken)
@@ -328,5 +348,7 @@ namespace MediaBrowser.Plugins.UStream
 
             return items.OrderBy(i => i.Name);
         }
+
+        
     }
 }
