@@ -14,6 +14,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using MediaBrowser.Model.MediaInfo;
 
 namespace MediaBrowser.Plugins.Trailers
 {
@@ -162,14 +163,27 @@ namespace MediaBrowser.Plugins.Trailers
 
         private ChannelMediaInfo GetMediaInfo(TrailerInfo info, bool isHd)
         {
-            return new ChannelMediaInfo
+            var mediaInfo = new ChannelMediaInfo
             {
                 Path = info.TrailerUrl,
                 Width = isHd ? 1280 : 720,
                 Height = isHd ? 720 : 480,
                 IsRemote = true,
-                Container = Path.GetExtension(info.TrailerUrl)
+                Container = Path.GetExtension(info.TrailerUrl),
+                AudioCodec = AudioCodec.AAC,
+                VideoCodec = VideoCodec.H264,
+                AudioChannels = 2,
+                VideoBitrate = isHd ? 11000000 : 1000000,
+                AudioBitrate = isHd ? 128000 : 80000,
+                AudioSampleRate = 44100,
+                Framerate = (float)23.976,
+                VideoProfile = isHd ? "high" : "main",
+                VideoLevel = isHd ? (float)3.1 : 3
             };
+
+            mediaInfo.RequiredHttpHeaders.Add("User-Agent", "QuickTime/7.7.4");
+
+            return mediaInfo;
         }
 
         public Task<DynamicImageResponse> GetChannelImage(ImageType type, CancellationToken cancellationToken)
