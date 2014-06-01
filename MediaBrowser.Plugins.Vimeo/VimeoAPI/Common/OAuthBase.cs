@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Web;
@@ -317,7 +318,7 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.Common
             switch (signatureType)
             {
                 case OAuthSignatureType.PLAINTEXT:
-                    return HttpUtility.UrlEncode(
+                    return WebUtility.UrlEncode(
                         string.Format("{0}&{1}", consumerSecret, tokenSecret));
                 case OAuthSignatureType.HMACSHA1:
                     var signatureBase = GenerateSignatureBase(url, consumerKey, 

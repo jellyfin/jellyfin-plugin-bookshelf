@@ -831,7 +831,7 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.API
                 (appears ? "appears" + delimiter : "") +
                 (uploads ? "uploads" : "");
             //if (types[types.Length - 1] == ',') types = types.Substring(0, types.Length - 1);
-            types = HttpUtility.UrlEncode(types);
+            types = WebUtility.UrlEncode(types);
 
             return IsResponseOK("vimeo.people.addSubscription", new Dictionary<string, string>{
                 {"types", types}, {"user_id", user_id}});

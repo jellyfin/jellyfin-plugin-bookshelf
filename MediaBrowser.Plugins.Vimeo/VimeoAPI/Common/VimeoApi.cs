@@ -118,7 +118,7 @@ namespace MediaBrowser.Plugins.Vimeo.VimeoAPI.Common
                     OAuthSignatureType.HMACSHA1,
                     out normalizedUrl, out normalizedRequestParameters, addCallBack);
 
-            sig = HttpUtility.UrlEncode(sig);
+            sig = WebUtility.UrlEncode(sig);
 
             parameters = new Dictionary<string, string>();
             var query = uri.Query;

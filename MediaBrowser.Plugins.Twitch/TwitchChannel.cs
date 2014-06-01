@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Web;
+﻿using System.Net;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Channels;
 using MediaBrowser.Controller.Drawing;
@@ -13,6 +8,11 @@ using MediaBrowser.Model.Channels;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace MediaBrowser.Plugins.Twitch
 {
@@ -122,7 +122,7 @@ namespace MediaBrowser.Plugins.Twitch
             {
                 var r = _jsonSerializer.DeserializeFromStream<RootObject>(json);
 
-                var token = HttpUtility.UrlEncode(r.token);
+                var token = WebUtility.UrlEncode(r.token);
 
                 var playURL = "http://usher.twitch.tv/api/channel/hls/" + id + ".m3u8?token=" + token + "&sig=" +
                                     r.sig;
