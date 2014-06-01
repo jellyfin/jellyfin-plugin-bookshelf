@@ -9,6 +9,7 @@ using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -31,7 +32,7 @@ namespace MediaBrowser.Plugins.Trailers
         {
             get
             {
-                return "8";
+                return "8-" + (Plugin.Instance.Configuration.MaxTrailerAge ?? 0).ToString(CultureInfo.InvariantCulture);
             }
         }
 

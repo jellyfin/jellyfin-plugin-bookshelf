@@ -65,6 +65,8 @@
     <Compile Include="Configuration\TrailerConfigurationPage.cs" />
     <Compile Include="EntryPoints\LocalTrailerEntryPoint.cs" />
     <Compile Include="Extensions\XmlExtensions.cs" />
+    <Compile Include="Obsolete\CurrentTrailerDownloadTask.cs" />
+    <Compile Include="Obsolete\TrailerCollectionFolder.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ScheduledTasks\LocalTrailerDownloadTask.cs" />
@@ -85,6 +87,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy "$(TargetPath)" "$(SolutionDir)\..\MediaBrowser\ProgramData-Server\Plugins\" /y</PostBuildEvent>
