@@ -1,7 +1,7 @@
 ﻿using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Serialization;
-using MediaBrowser.Plugins.Revision3.Configuration;
+using MediaBrowser.Plugins.UStream.Configuration;
 
 namespace MediaBrowser.Plugins.UStream
 {
