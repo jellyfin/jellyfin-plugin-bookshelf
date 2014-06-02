@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using MediaBrowser.Plugins.Trailers.Entities;
 
 namespace MediaBrowser.Plugins.Trailers.Obsolete
 {

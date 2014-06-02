@@ -1,7 +1,7 @@
 ﻿using MediaBrowser.Common.Extensions;
 using MediaBrowser.Controller.Entities;
 
-namespace MediaBrowser.Plugins.Trailers.Obsolete
+namespace MediaBrowser.Plugins.Trailers.Entities
 {
     /// <summary>
     /// Class TrailerCollectionFolder

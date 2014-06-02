@@ -63,7 +63,7 @@
     <Compile Include="EntryPoints\LocalTrailerEntryPoint.cs" />
     <Compile Include="Extensions\XmlExtensions.cs" />
     <Compile Include="Obsolete\CurrentTrailerDownloadTask.cs" />
-    <Compile Include="Obsolete\TrailerCollectionFolder.cs" />
+    <Compile Include="Entities\TrailerCollectionFolder.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ScheduledTasks\LocalTrailerDownloadTask.cs" />
