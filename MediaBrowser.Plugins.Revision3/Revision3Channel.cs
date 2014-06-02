@@ -9,14 +9,16 @@ using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace MediaBrowser.Plugins.Revision3
 {
-    public class Revision3Channel : IChannel
+    public class Revision3Channel : IChannel, IRequiresMediaInfoCallback
     {
         private readonly IHttpClient _httpClient;
         private readonly ILogger _logger;
@@ -103,18 +105,11 @@ namespace MediaBrowser.Plugins.Revision3
                 Name = i.name,
                 Type = ChannelItemType.Media,
                 Id = i.slug,
-                /*RunTimeTicks = TimeSpan.FromSeconds(i.duration).Ticks,
+                RunTimeTicks = TimeSpan.FromSeconds(i.duration).Ticks,
                 DateCreated = !String.IsNullOrEmpty(i.published) ?
                     Convert.ToDateTime(i.published) : DateTime.MinValue,
                 Overview = !String.IsNullOrEmpty(i.summary) ? i.summary : "",
-                */
-                MediaSources = new List<ChannelMediaInfo>
-                {
-                    new ChannelMediaInfo
-                    {
-                        Path = i.media.hd720p30.url
-                    }
-                }
+
             });
 
             //var orderedEpisodes = OrderItems(episodes.ToList(), query, cancellationToken);
@@ -125,6 +120,63 @@ namespace MediaBrowser.Plugins.Revision3
                 TotalRecordCount = videos.total,
                 CacheLength = TimeSpan.FromDays(3)
             };
+        }
+
+        public async Task<IEnumerable<ChannelMediaInfo>> GetChannelItemMediaInfo(string id, CancellationToken cancellationToken)
+        {
+            using (
+                var stream =
+                    await
+                        _httpClient.Get("http://revision3.com/" + id, cancellationToken)
+                            .ConfigureAwait(false))
+            {
+                using (var reader = new StreamReader(stream))
+                {
+                    var html = await reader.ReadToEndAsync().ConfigureAwait(false);
+
+                    var HD = Regex.Match(html, "value=\"(?<url>.*)\">MP4: HD", RegexOptions.IgnoreCase);
+                    var Large = Regex.Match(html, "value=\"(?<url>.*)\">MP4: Large", RegexOptions.IgnoreCase);
+                    var Phone = Regex.Match(html, "value=\"(?<url>.*)\">MP4: Phone", RegexOptions.IgnoreCase);
+                    var webHD = Regex.Match(html, "value=\"(?<url>.*)\">WebM: HD", RegexOptions.IgnoreCase);
+                    var webLarge = Regex.Match(html, "value=\"(?<url>.*)\">WebM: Large", RegexOptions.IgnoreCase);
+                    var webPhone = Regex.Match(html, "value=\"(?<url>.*)\">WebM: Phone", RegexOptions.IgnoreCase);
+
+                    var video = new List<ChannelMediaInfo>();
+
+                    if (HD.Success)
+                    {
+                        var url = HD.Groups["url"].Value;
+                        video.Add(new ChannelMediaInfo { Path = url });
+                    }
+                    if (Large.Success)
+                    {
+                        var url = Large.Groups["url"].Value;
+                        video.Add(new ChannelMediaInfo { Path = url });
+                    }
+                    if (Phone.Success)
+                    {
+                        var url = Phone.Groups["url"].Value;
+                        video.Add(new ChannelMediaInfo { Path = url });
+                    }
+                    if (webHD.Success)
+                    {
+                        var url = webHD.Groups["url"].Value;
+                        video.Add(new ChannelMediaInfo { Path = url });
+                    }
+                    if (webLarge.Success)
+                    {
+                        var url = webLarge.Groups["url"].Value;
+                        video.Add(new ChannelMediaInfo { Path = url });
+                    }
+                    if (webPhone.Success)
+                    {
+                        var url = webPhone.Groups["url"].Value;
+                        video.Add(new ChannelMediaInfo { Path = url });
+                    }
+
+                    return video;
+                }
+            }
         }
 
         public Task<DynamicImageResponse> GetChannelImage(ImageType type, CancellationToken cancellationToken)
