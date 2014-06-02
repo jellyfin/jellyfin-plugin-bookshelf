@@ -1,5 +1,4 @@
-﻿using System.Net;
-using MediaBrowser.Common.Net;
+﻿using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Channels;
 using MediaBrowser.Controller.Drawing;
 using MediaBrowser.Controller.Entities;
@@ -11,6 +10,7 @@ using MediaBrowser.Model.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -220,6 +220,12 @@ namespace MediaBrowser.Plugins.Twitch
         public string HomePageUrl
         {
             get { return "http://www.twitch.tv/"; }
+        }
+
+
+        public Task<ChannelItemResult> GetAllMedia(InternalAllChannelMediaQuery query, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
     }
 }

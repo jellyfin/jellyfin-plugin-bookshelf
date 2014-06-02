@@ -7,12 +7,12 @@ using MediaBrowser.Model.Channels;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
+using MediaBrowser.Plugins.Vimeo.VimeoAPI.API;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Plugins.Vimeo.VimeoAPI.API;
 
 namespace MediaBrowser.Plugins.Vimeo
 {
@@ -463,6 +463,12 @@ namespace MediaBrowser.Plugins.Vimeo
             }
 
             return items.OrderBy(i => i.Name);
+        }
+
+
+        public Task<ChannelItemResult> GetAllMedia(InternalAllChannelMediaQuery query, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -1,8 +1,6 @@
-﻿using System.Net.Mime;
-using MediaBrowser.Common.Net;
+﻿using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Channels;
 using MediaBrowser.Controller.Drawing;
-using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Channels;
 using MediaBrowser.Model.Entities;
@@ -13,7 +11,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace MediaBrowser.Plugins.SoundCloud
 {
@@ -176,6 +173,12 @@ namespace MediaBrowser.Plugins.SoundCloud
         public string HomePageUrl
         {
             get { return "http://www.soundcloud.com/"; }
+        }
+
+
+        public Task<ChannelItemResult> GetAllMedia(InternalAllChannelMediaQuery query, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -1,8 +1,4 @@
-﻿using System.IO;
-using System.Net;
-using System.Text;
-using System.Text.RegularExpressions;
-using MediaBrowser.Common.Net;
+﻿using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Channels;
 using MediaBrowser.Controller.Drawing;
 using MediaBrowser.Controller.Entities;
@@ -14,9 +10,9 @@ using MediaBrowser.Model.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace MediaBrowser.Plugins.Revision3
 {
@@ -269,6 +265,12 @@ namespace MediaBrowser.Plugins.Revision3
             }
 
             return items.OrderBy(i => i.Name);
+        }
+
+
+        public Task<ChannelItemResult> GetAllMedia(InternalAllChannelMediaQuery query, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
     }
 }

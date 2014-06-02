@@ -298,6 +298,12 @@ namespace MediaBrowser.Plugins.TuneIn
             get { return "http://www.tunein.com/"; }
         }
 
-        
+
+
+
+        public Task<ChannelItemResult> GetAllMedia(InternalAllChannelMediaQuery query, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

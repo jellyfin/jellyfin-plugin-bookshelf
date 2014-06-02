@@ -344,6 +344,12 @@ namespace MediaBrowser.Plugins.UStream
             return items.OrderBy(i => i.Name);
         }
 
-        
+
+
+
+        public Task<ChannelItemResult> GetAllMedia(InternalAllChannelMediaQuery query, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

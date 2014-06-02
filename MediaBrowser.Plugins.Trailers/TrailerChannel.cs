@@ -7,6 +7,7 @@ using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Channels;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
+using MediaBrowser.Model.MediaInfo;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -14,7 +15,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Model.MediaInfo;
 
 namespace MediaBrowser.Plugins.Trailers
 {
@@ -241,6 +241,7 @@ namespace MediaBrowser.Plugins.Trailers
             return new InternalChannelFeatures
             {
                 CanSearch = false,
+                CanGetAllMedia = true,
 
                 ContentTypes = new List<ChannelMediaContentType>
                  {
@@ -263,6 +264,16 @@ namespace MediaBrowser.Plugins.Trailers
                         ChannelItemSortField.Runtime
                    }
             };
+        }
+
+
+        public Task<ChannelItemResult> GetAllMedia(InternalAllChannelMediaQuery query, CancellationToken cancellationToken)
+        {
+            return GetChannelItems(new InternalChannelItemQuery
+            {
+                User = query.User
+
+            }, cancellationToken);
         }
     }
 }
