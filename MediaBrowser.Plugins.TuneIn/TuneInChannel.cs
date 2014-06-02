@@ -263,7 +263,6 @@ namespace MediaBrowser.Plugins.TuneIn
             return new List<ImageType>
             {
                 ImageType.Thumb,
-                ImageType.Primary,
                 ImageType.Backdrop
             };
         }
