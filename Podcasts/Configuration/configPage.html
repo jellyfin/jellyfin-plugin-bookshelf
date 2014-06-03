@@ -1,0 +1,172 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Pod Casts Configuration</title>
+</head>
+<body>
+    <div id="PodCastsConfigurationPage" data-role="page" class="page type-interior pluginConfigurationPage">
+
+        <div data-role="content">
+            <div class="content-primary">
+                <form id="PodCastsConfigurationForm">
+
+                            <p>Add the URLs of PodCast feeds you would like to track here.
+                            </p>
+                            <ul id="ulFeeds" data-role="listview" data-inset="true" data-auto-enhanced="false" data-split-icon="minus"></ul>
+
+                            <button type="submit" data-theme="b">Save</button>
+                            <button type="button" onclick="history.back();">Cancel</button>
+
+                </form>
+            </div>
+            
+    <div data-role="popup" id="feedPopup" class="ui-content" style="max-width:90%; min-width: 400px" data-overlay-theme="a" data-dismissible="false">
+        <h3 style="text-align: center" >New PodCast</h3>
+        <p style="margin-bottom: 20px">
+            Type or paste in an URL for a valid xml RSS feed.
+        </p>
+        <form id="feedForm">
+            <label for="feed" >RSS XML Feed Url:</label>
+            <input id="feed" type="url" style="min-width: 90%" required/>
+
+            <button type="submit" data-theme="b" >Add</button>
+            <button type="button" data-theme="c" onclick="$('#feedPopup').popup('close')">Cancel</button>
+            
+        </form>
+
+    </div>
+
+        </div>
+
+        <script type="text/javascript">
+
+            var PodCastsConfigurationPage = {
+                pluginUniqueId: "8e791e2a-058a-4b12-8493-8bf69d92d685",
+                
+
+                selectDirectory: function () {
+
+                    Dashboard.selectDirectory({
+                        callback: function (path) {
+
+                            if (path) {
+                                $('#txtDownloadPath', $.mobile.activePage).val(path);
+                            }
+                            $('#popupDirectoryPicker', $.mobile.activePage).popup("close");
+                        },
+
+                        header: "Select Path"
+                    });
+
+                },
+                
+                load: function() {
+                    PodCastsConfigurationPage.populateFeedList();
+                },
+                
+                populateFeedList: function() {
+
+                var page = $($.mobile.activePage);
+                var feeds = PodCastsConfigurationPage.config.Feeds;
+
+                var html = "";
+
+                html += '<li data-role="list-divider" class="mediaLocationsHeader"><h3>Pod Cast Feeds</h3>';
+                html += '<span data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-icon="plus" data-iconpos="notext" data-theme="a" data-inline="true" data-mini="true" ';
+                html += 'class="ui-btn ui-btn-up-c ui-shadow ui-btn-corner-all ui-mini ui-btn-inline ui-btn-icon-notext ui-icon-plus" data-icon="plus" onclick="PodCastsConfigurationPage.addFeedPopup();">&nbsp;</span>';
+
+                for (var i = 0; i < feeds.length; i++) {
+
+                    var feed = feeds[i];
+
+                    if (feed) {
+
+                        html += "<li>";
+
+                        html += "<a><h3>" + feed + "</h3></a>";
+
+                        html += "<a data-feedname='" + feed + "' onclick='PodCastsConfigurationPage.deleteFeed(this);' href='#'>Delete</a>";
+
+                        html += "</li>";
+                    }
+                }
+
+                $('#ulFeeds', page).html(html).listview('refresh');
+
+            },
+
+                deleteFeed: function (link) {
+
+                    var name = link.getAttribute('data-feedname');
+
+                    var msg = "Are you sure you wish to delete the " + name + " PodCast feed?";
+
+                    Dashboard.confirm(msg, "Delete PodCast", function (result) {
+
+                        if (result) {
+
+                            console.log("Deleting podcast feed " + name);
+
+                            PodCastsConfigurationPage.config.Feeds = $.grep(PodCastsConfigurationPage.config.Feeds, function (value) {
+                                return value != name;
+                            });
+
+                            PodCastsConfigurationPage.populateFeedList();
+                        }
+                    });
+                },
+                
+                addFeedPopup: function () {
+                    var page = $($.mobile.activePage);
+                    $('#feed', page).val("").focus();
+                    $('#feedPopup', page).popup('open');
+                    $('#feed', page).focus();
+                },
+
+            };
+
+            $('#PodCastsConfigurationPage').on('pageshow', function (event) {
+
+                Dashboard.showLoadingMsg();
+
+                var page = this;
+
+                ApiClient.getPluginConfiguration(PodCastsConfigurationPage.pluginUniqueId).done(function (config) {
+
+                    PodCastsConfigurationPage.config = config;
+
+                    PodCastsConfigurationPage.load();
+
+                    Dashboard.hideLoadingMsg();
+                });
+            });
+
+            $('#feedForm').on('submit', function(e) {
+                var page = $($.mobile.activePage);
+                $('#feedPopup', page).popup('close');
+                var form = this;
+                PodCastsConfigurationPage.config.Feeds.push($('#feed', form).val());
+                PodCastsConfigurationPage.populateFeedList();
+                return false;
+            });
+
+            $('#PodCastsConfigurationForm').on('submit', function (e) {
+
+                Dashboard.showLoadingMsg();
+
+
+                ApiClient.getPluginConfiguration(PodCastsConfigurationPage.pluginUniqueId).done(function (config) {
+                    var page = $($.mobile.activePage);
+
+                    config.Feeds = PodCastsConfigurationPage.config.Feeds;
+
+                    ApiClient.updatePluginConfiguration(PodCastsConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
+                });
+
+                // Disable default form submission
+                return false;
+            });
+        </script>
+    </div>
+</body>
+</html>
