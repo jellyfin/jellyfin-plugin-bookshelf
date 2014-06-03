@@ -1,0 +1,85 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>ArgusTV</title>
+</head>
+<body>
+    <div data-role="page" class="page type-interior pluginConfigurationPage argustvConfigurationPage">
+
+        <div data-role="content">
+            <div class="content-primary">
+                <form class="argustvConfigurationForm">
+
+                    <ul class="ulForm" data-role="listview">
+                        <li>
+                            <label for="txtServerIp">
+                                ArgusTV Server IP:
+                            </label>
+                            <input type="text" id="txtServerIp" name="txtServerIp" />
+                            <div class="fieldDescription">
+                                Only the IP address of the ArgusTV server
+                            </div>
+                        </li>
+                        <li>
+                            <label for="txtServerPort">
+                                ArgusTV Server Port:
+                            </label>
+                            <input type="text" id="txtServerPort" name="txtServerPort" />
+                            <div class="fieldDescription">
+                                Only the port of the ArgusTV server (default: 49943)
+                            </div>
+                        </li>
+                        <li>
+                            <button type="submit" data-theme="b">Save</button>
+                            <button type="button" onclick="history.back();">Cancel</button>
+                        </li>
+                    </ul>
+
+                </form>
+            </div>
+        </div>
+
+
+        <script type="text/javascript">
+
+            var ArgusTVConfigurationPage = {
+                pluginUniqueId: "632abc95-810a-4f15-b97e-86cc1691867b"
+            };
+
+            $('.argustvConfigurationPage').on('pageshow', function (event) {
+
+                Dashboard.showLoadingMsg();
+
+                var page = this;
+
+                ApiClient.getPluginConfiguration(ArgusTVConfigurationPage.pluginUniqueId).done(function (config) {
+
+                    $('#txtServerIp', page).val(config.ServerIp || "");
+                    $('#txtServerPort', page).val(config.ServerPort || "");
+
+
+                    Dashboard.hideLoadingMsg();
+                });
+            });
+
+            $('.argustvConfigurationForm').on('submit', function (e) {
+
+                Dashboard.showLoadingMsg();
+
+                var form = this;
+
+                ApiClient.getPluginConfiguration(ArgusTVConfigurationPage.pluginUniqueId).done(function (config) {
+
+                    config.WebServiceUrl = $('#txtServerIp', form).val();
+                    config.WebServiceUrl = $('#txtServerPort', form).val();
+
+                    ApiClient.updatePluginConfiguration(ArgusTVConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
+                });
+
+                // Disable default form submission
+                return false;
+            });
+        </script>
+    </div>
+</body>
+</html>

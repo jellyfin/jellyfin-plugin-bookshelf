@@ -34,6 +34,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.Vimeo"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.Twitch", "MediaBrowser.Plugins.Twitch\MediaBrowser.Plugins.Twitch.csproj", "{55945DD0-6CBE-494D-AE22-2F2EBDC839C0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.ArgusTV", "MediaBrowser.Plugins.ArgusTV\MediaBrowser.Plugins.ArgusTV.csproj", "{30B2A395-5E43-454F-8093-DAF307D6D4FB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -126,6 +128,12 @@ Global
 		{55945DD0-6CBE-494D-AE22-2F2EBDC839C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{55945DD0-6CBE-494D-AE22-2F2EBDC839C0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{55945DD0-6CBE-494D-AE22-2F2EBDC839C0}.Release|x86.ActiveCfg = Release|Any CPU
+		{30B2A395-5E43-454F-8093-DAF307D6D4FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30B2A395-5E43-454F-8093-DAF307D6D4FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30B2A395-5E43-454F-8093-DAF307D6D4FB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{30B2A395-5E43-454F-8093-DAF307D6D4FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30B2A395-5E43-454F-8093-DAF307D6D4FB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30B2A395-5E43-454F-8093-DAF307D6D4FB}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
