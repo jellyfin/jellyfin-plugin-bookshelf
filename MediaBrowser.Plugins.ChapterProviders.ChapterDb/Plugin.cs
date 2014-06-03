@@ -2,9 +2,9 @@
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
-using MediaBrowser.Plugins.ChapterProviders.TagChimp.Configuration;
+using MediaBrowser.Plugins.ChapterProviders.ChapterDb.Configuration;
 
-namespace MediaBrowser.Plugins.ChapterProviders.TagChimp {
+namespace MediaBrowser.Plugins.ChapterProviders.ChapterDb {
     public class Plugin : BasePlugin<PluginConfiguration>
     {
         public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer)
@@ -19,7 +19,7 @@ namespace MediaBrowser.Plugins.ChapterProviders.TagChimp {
         /// <value>The name.</value>
         public override string Name
         {
-            get { return "tagChimp Chapters Provider"; }
+            get { return "ChapterDb Chapters Provider"; }
         }
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace MediaBrowser.Plugins.ChapterProviders.TagChimp {
         /// <value>The description.</value>
         public override string Description
         {
-            get { return "Gets chapter information from tagChimp.com"; }
+            get { return "Gets chapter information from chapterdb.org"; }
         }
 
         protected ILogger Logger { get; set; }

@@ -1,8 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.Trailers", "MediaBrowser.Plugins.Trailers\MediaBrowser.Plugins.Trailers.csproj", "{2F4C01E2-7C9F-4F08-922E-27AC4A1D53FF}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.RottenTomatoes", "MediaBrowser.Plugins.RottenTomatoes\MediaBrowser.Plugins.RottenTomatoes.csproj", "{71BF266C-BFB0-4821-8909-FF21F95A4B49}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.XbmcMetadata", "MediaBrowser.Plugins.XbmcMetadata\MediaBrowser.Plugins.XbmcMetadata.csproj", "{67F2EC37-873B-4381-A8AB-FAE57A94760C}"
@@ -30,9 +28,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.ProwlN
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.NotifyMyAndroidNotifications", "MediaBrowser.Plugins.NotifyMyAndroidNotifications\MediaBrowser.Plugins.NotifyMyAndroidNotifications.csproj", "{FFA5128A-BEA6-4FFA-9E0B-9E706AC8A544}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.Vimeo", "MediaBrowser.Plugins.Vimeo\MediaBrowser.Plugins.Vimeo.csproj", "{E966032D-3601-44AA-BC6F-94ACFE8840F5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.ChapterProviders.ChapterDb", "MediaBrowser.Plugins.ChapterProviders.ChapterDb\MediaBrowser.Plugins.ChapterProviders.ChapterDb.csproj", "{CE0E1B8D-B4A1-44BF-8DD1-E1B1202898AB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.Twitch", "MediaBrowser.Plugins.Twitch\MediaBrowser.Plugins.Twitch.csproj", "{55945DD0-6CBE-494D-AE22-2F2EBDC839C0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.ChapterProviders.TagChimp", "MediaBrowser.Plugins.ChapterProviders.TagChimp\MediaBrowser.Plugins.ChapterProviders.TagChimp.csproj", "{DA5512B5-E109-4F44-BCA0-D6617CE7F791}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.ArgusTV", "MediaBrowser.Plugins.ArgusTV\MediaBrowser.Plugins.ArgusTV.csproj", "{30B2A395-5E43-454F-8093-DAF307D6D4FB}"
 EndProject
@@ -44,12 +42,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{2F4C01E2-7C9F-4F08-922E-27AC4A1D53FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2F4C01E2-7C9F-4F08-922E-27AC4A1D53FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2F4C01E2-7C9F-4F08-922E-27AC4A1D53FF}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{2F4C01E2-7C9F-4F08-922E-27AC4A1D53FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2F4C01E2-7C9F-4F08-922E-27AC4A1D53FF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2F4C01E2-7C9F-4F08-922E-27AC4A1D53FF}.Release|x86.ActiveCfg = Release|Any CPU
 		{71BF266C-BFB0-4821-8909-FF21F95A4B49}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{71BF266C-BFB0-4821-8909-FF21F95A4B49}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{71BF266C-BFB0-4821-8909-FF21F95A4B49}.Debug|x86.ActiveCfg = Debug|Any CPU
@@ -134,6 +126,18 @@ Global
 		{30B2A395-5E43-454F-8093-DAF307D6D4FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{30B2A395-5E43-454F-8093-DAF307D6D4FB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{30B2A395-5E43-454F-8093-DAF307D6D4FB}.Release|x86.ActiveCfg = Release|Any CPU
+		{CE0E1B8D-B4A1-44BF-8DD1-E1B1202898AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE0E1B8D-B4A1-44BF-8DD1-E1B1202898AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE0E1B8D-B4A1-44BF-8DD1-E1B1202898AB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CE0E1B8D-B4A1-44BF-8DD1-E1B1202898AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE0E1B8D-B4A1-44BF-8DD1-E1B1202898AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CE0E1B8D-B4A1-44BF-8DD1-E1B1202898AB}.Release|x86.ActiveCfg = Release|Any CPU
+		{DA5512B5-E109-4F44-BCA0-D6617CE7F791}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DA5512B5-E109-4F44-BCA0-D6617CE7F791}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DA5512B5-E109-4F44-BCA0-D6617CE7F791}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{DA5512B5-E109-4F44-BCA0-D6617CE7F791}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DA5512B5-E109-4F44-BCA0-D6617CE7F791}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DA5512B5-E109-4F44-BCA0-D6617CE7F791}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

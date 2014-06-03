@@ -322,7 +322,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             }
 
             builder.Append("<customrating>" + SecurityElement.Escape(item.CustomRating ?? string.Empty) + "</customrating>");
-            builder.Append("<lockdata>" + item.DontFetchMeta.ToString().ToLower() + "</lockdata>");
+            builder.Append("<lockdata>" + item.IsLocked.ToString().ToLower() + "</lockdata>");
 
             if (!string.IsNullOrEmpty(item.DisplayMediaType))
             {
