@@ -149,7 +149,6 @@ namespace MediaBrowser.Plugins.SoundCloud
             return new List<ImageType>
             {
                 ImageType.Thumb,
-                ImageType.Primary,
                 ImageType.Backdrop
             };
         }

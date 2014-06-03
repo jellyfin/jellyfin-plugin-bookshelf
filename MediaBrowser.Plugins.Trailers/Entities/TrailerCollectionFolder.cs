@@ -25,6 +25,11 @@ namespace MediaBrowser.Plugins.Trailers.Entities
         /// <returns>BasePluginFolder.</returns>
         public BasePluginFolder GetFolder()
         {
+            if (!Plugin.Instance.Configuration.EnableTrailerFolder)
+            {
+                return null;
+            }
+
             return new TrailerCollectionFolder
             {
                 Id = "Trailers".GetMBId(typeof(TrailerCollectionFolder))
