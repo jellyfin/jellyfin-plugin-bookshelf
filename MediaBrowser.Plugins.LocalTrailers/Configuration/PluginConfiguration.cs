@@ -12,5 +12,10 @@ namespace MediaBrowser.Plugins.LocalTrailers.Configuration
         /// </summary>
         /// <value><c>true</c> if [enable local trailer downloads]; otherwise, <c>false</c>.</value>
         public bool EnableLocalTrailerDownloads { get; set; }
+
+        public PluginConfiguration()
+        {
+            EnableLocalTrailerDownloads = true;
+        }
     }
 }
