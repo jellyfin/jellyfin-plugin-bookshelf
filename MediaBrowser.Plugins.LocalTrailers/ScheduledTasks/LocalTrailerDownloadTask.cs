@@ -63,11 +63,6 @@ namespace MediaBrowser.Plugins.LocalTrailers.ScheduledTasks
         /// <returns>Task.</returns>
         public async Task Execute(CancellationToken cancellationToken, IProgress<double> progress)
         {
-            if (!Plugin.Instance.Configuration.EnableLocalTrailerDownloads)
-            {
-                return;
-            }
-
             var items = _libraryManager.RootFolder
                 .RecursiveChildren
                 .OfType<Movie>()
