@@ -37,7 +37,7 @@ namespace MediaBrowser.Plugins.ChapterProviders.TagChimp.Providers
 
         public string Name
         {
-            get { throw new NotImplementedException(); }
+            get { return "tagChimp"; }
         }
 
         public Task<IEnumerable<RemoteChapterResult>> Search(ChapterSearchRequest request,

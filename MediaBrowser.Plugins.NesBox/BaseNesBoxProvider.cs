@@ -28,7 +28,7 @@ namespace MediaBrowser.Plugins.NesBox
         protected abstract string GameSystem { get; }
         protected abstract Stream GetCatalogStream();
 
-        public Task<ItemUpdateType> FetchAsync(Game item, IDirectoryService directoryService, CancellationToken cancellationToken)
+        public Task<ItemUpdateType> FetchAsync(Game item, MetadataRefreshOptions options, CancellationToken cancellationToken)
         {
             if (Supports(item))
             {

@@ -156,13 +156,13 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
                 }
             }
         }
-        
-        public Task<ItemUpdateType> FetchAsync(Movie item, IDirectoryService directoryService, CancellationToken cancellationToken)
+
+        public Task<ItemUpdateType> FetchAsync(Movie item, MetadataRefreshOptions options, CancellationToken cancellationToken)
         {
             return FetchAsync(item, cancellationToken);
         }
 
-        public Task<ItemUpdateType> FetchAsync(Trailer item, IDirectoryService directoryService, CancellationToken cancellationToken)
+        public Task<ItemUpdateType> FetchAsync(Trailer item, MetadataRefreshOptions options, CancellationToken cancellationToken)
         {
             if (item.IsLocalTrailer)
             {
