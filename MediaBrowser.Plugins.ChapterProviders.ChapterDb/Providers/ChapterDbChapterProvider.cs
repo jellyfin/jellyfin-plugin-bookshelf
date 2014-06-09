@@ -35,7 +35,7 @@ namespace MediaBrowser.Plugins.ChapterProviders.ChapterDb.Providers
 
         public string Name
         {
-            get { throw new NotImplementedException(); }
+            get { return "ChapterDb"; }
         }
 
         public Task<IEnumerable<RemoteChapterResult>> Search(ChapterSearchRequest request,
