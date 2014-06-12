@@ -18,6 +18,7 @@ namespace MediaBrowser.Plugins.ChapterProviders.ChapterDb.Domain
         }
     }
 
+    [XmlRoot("chapterInfo", Namespace = "http://jvance.com/2008/ChapterGrabber")]
     public class Detail
     {
         [XmlAttribute("version")]
