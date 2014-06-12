@@ -116,10 +116,10 @@ namespace MediaBrowser.Plugins.ChapterProviders.ChapterDb.Providers
             var options = GetHttpRequestOptions(cancellationToken, url);
 
             using (var stream = await _httpClient.Get(options).ConfigureAwait(false)) {
-                var result = _xmlSerializer.DeserializeFromStream(typeof(Results), stream) as Results;
+                var result = _xmlSerializer.DeserializeFromStream(typeof(Detail), stream) as Detail;
                 if (result == null) return new ChapterResponse();
 
-                var chapters = result.Detail.First().ChapterCollection.Chapters.Select(x => {
+                var chapters = result.ChapterCollection.Chapters.Select(x => {
                     var c = new RemoteChapterInfo {
                         Name = x.Name,
                         StartPositionTicks = x.Time.Ticks,
