@@ -1,14 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 
-namespace MediaBrowser.Plugins.ChapterProviders.ChapterDb.Domain {
+namespace MediaBrowser.Plugins.ChapterProviders.ChapterDb.Domain
+{
 
     [XmlRoot("results")]
     public class Results
     {
-        [XmlElement("chapterInfo")]
-        public Detail Detail { get; set; }
+        [XmlElement("chapterInfo", Namespace = "http://jvance.com/2008/ChapterGrabber")]
+        public List<Detail> Detail { get; set; }
+
+        public Results()
+        {
+            Detail = new List<Detail>();
+        }
     }
 
     public class Detail
@@ -23,7 +30,7 @@ namespace MediaBrowser.Plugins.ChapterProviders.ChapterDb.Domain {
         public string Client { get; set; }
 
         [XmlAttribute("confirmations")]
-        public int Confirmations { get; set; }
+        public string Confirmations { get; set; }
 
         [XmlElement("title")]
         public string Title { get; set; }
@@ -35,23 +42,39 @@ namespace MediaBrowser.Plugins.ChapterProviders.ChapterDb.Domain {
         public Source Source { get; set; }
 
         [XmlElement("chapters")]
-        public IList<Chapter> Chapters { get; set; }
+        public ChapterCollection ChapterCollection { get; set; }
 
         [XmlElement("createdBy")]
         public string CreatedBy { get; set; }
 
         [XmlElement("createdDate")]
-        public string createdDate { get; set; }
+        public string CreatedDate { get; set; }
+
+        [XmlElement("updateBy")]
+        public string UpdatedBy { get; set; }
+
+        [XmlElement("updatedDate")]
+        public string UpdatedDate { get; set; }
+
+        public Detail()
+        {
+            Ref = new Ref();
+            Source = new Source();
+            ChapterCollection = new ChapterCollection();
+        }
     }
 
     public class Ref
     {
         [XmlElement("chapterSetId")]
-        public int ChapterSetId { get; set; }
+        public string ChapterSetId { get; set; }
     }
 
     public class Source
     {
+        [XmlElement("name")]
+        public string Name { get; set; }
+
         [XmlElement("type")]
         public string Type { get; set; }
 
@@ -61,16 +84,80 @@ namespace MediaBrowser.Plugins.ChapterProviders.ChapterDb.Domain {
         [XmlElement("fps")]
         public string Fps { get; set; }
 
-        [XmlElement("duration")]
+        [XmlIgnore]
         public TimeSpan Duration { get; set; }
+
+        private string duration;
+
+        [XmlElement("duration")]
+        public string DurationString
+        {
+            get { return duration; }
+            set
+            {
+                duration = value;
+                Duration = Helper.ParseTime(value);
+            }
+        }
+
+        public Source()
+        {
+            Duration = TimeSpan.Zero;
+        }
+    }
+
+    public class ChapterCollection
+    {
+        [XmlElement("chapter")]
+        public List<Chapter> Chapters { get; set; }
+
+        public ChapterCollection()
+        {
+            Chapters = new List<Chapter>();
+        }
     }
 
     public class Chapter
     {
-        [XmlAttribute("time")]
+        [XmlIgnore]
         public TimeSpan Time { get; set; }
+
+        private string time;
+
+        [XmlAttribute("time")]
+        public string TimeString
+        {
+            get { return time; }
+            set
+            {
+                time = value;
+                Time = Helper.ParseTime(value);
+            }
+        }
 
         [XmlAttribute("name")]
         public string Name { get; set; }
+
+        public Chapter()
+        {
+            Time = TimeSpan.Zero;
+        }
+    }
+
+    public static class Helper
+    {
+        public static TimeSpan ParseTime(string time)
+        {
+            if (!String.IsNullOrEmpty((time)))
+            {
+                TimeSpan val;
+                if (TimeSpan.TryParse(time, out val))
+                {
+                    return val;
+                }
+            }
+            return TimeSpan.Zero;
+        }
+
     }
 }
