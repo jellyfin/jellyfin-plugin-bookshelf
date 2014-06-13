@@ -19,19 +19,17 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
         private readonly ILibraryManager _libraryManager;
         private readonly IUserManager _userManager;
         private readonly IUserDataManager _userDataRepo;
-        private readonly IItemRepository _itemRepo;
 
         private readonly CultureInfo _usCulture = new CultureInfo("en-US");
 
         private readonly IFileSystem _fileSystem;
         private readonly IServerConfigurationManager _config;
 
-        public EpisodeXmlSaver(ILibraryManager libraryManager, IUserManager userManager, IUserDataManager userDataRepo, IItemRepository itemRepo, IFileSystem fileSystem, IServerConfigurationManager config)
+        public EpisodeXmlSaver(ILibraryManager libraryManager, IUserManager userManager, IUserDataManager userDataRepo, IFileSystem fileSystem, IServerConfigurationManager config)
         {
             _libraryManager = libraryManager;
             _userManager = userManager;
             _userDataRepo = userDataRepo;
-            _itemRepo = itemRepo;
             _fileSystem = fileSystem;
             _config = config;
         }
@@ -104,7 +102,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 builder.Append("<absolute_number>" + SecurityElement.Escape(episode.AbsoluteEpisodeNumber.Value.ToString(_usCulture)) + "</absolute_number>");
             }
             
-            XmlSaverHelpers.AddMediaInfo((Episode)item, _itemRepo, builder);
+            XmlSaverHelpers.AddMediaInfo((Episode)item, builder);
 
             builder.Append("</episodedetails>");
 
