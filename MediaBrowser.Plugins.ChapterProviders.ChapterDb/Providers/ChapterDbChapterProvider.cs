@@ -79,19 +79,21 @@ namespace MediaBrowser.Plugins.ChapterProviders.ChapterDb.Providers
 
                 var details = result.Detail;
 
-                if (!String.IsNullOrEmpty(duration))
-                {
-                    var filtered = details.Where(x => GetTimeString(x.Source.Duration.Ticks).Equals(duration))
-                                          .Select(x => x)
-                                          .OrderByDescending(x => x.Confirmations).ToList();
-
-                    if (filtered.Count > 0)
+                var runtime = request.RuntimeTicks;
+                details = details
+                    .OrderBy(i =>
                     {
-                        details = filtered;
-                    }
-                }
+                        if (!runtime.HasValue)
+                        {
+                            return 0;
+                        }
 
-                var chapters = details.Select(x =>
+                        return Math.Abs(runtime.Value - i.Source.Duration.Ticks);
+                    })
+                    .ThenBy(i => i.Confirmations)
+                    .ToList();
+
+                return details.Select(x =>
                 {
                     var c = new RemoteChapterResult
                     {
@@ -104,8 +106,6 @@ namespace MediaBrowser.Plugins.ChapterProviders.ChapterDb.Providers
 
                     return c;
                 });
-
-                return chapters;
             }
         }
 
