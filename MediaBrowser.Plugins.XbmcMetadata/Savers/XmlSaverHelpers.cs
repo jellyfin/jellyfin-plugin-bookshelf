@@ -187,16 +187,13 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             return builder.ToString();
         }
 
-        public static void AddMediaInfo<T>(T item, IItemRepository itemRepository, StringBuilder builder)
-            where T : BaseItem, IHasMediaStreams
+        public static void AddMediaInfo<T>(T item, StringBuilder builder)
+            where T : BaseItem, IHasMediaSources
         {
             builder.Append("<fileinfo>");
             builder.Append("<streamdetails>");
 
-            foreach (var stream in itemRepository.GetMediaStreams(new MediaStreamQuery
-            {
-                ItemId = item.Id
-            }))
+            foreach (var stream in item.GetMediaSources(false).First().MediaStreams)
             {
                 builder.Append("<" + stream.Type.ToString().ToLower() + ">");
 

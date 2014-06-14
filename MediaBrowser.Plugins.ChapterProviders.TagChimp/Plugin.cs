@@ -19,7 +19,7 @@ namespace MediaBrowser.Plugins.ChapterProviders.TagChimp {
         /// <value>The name.</value>
         public override string Name
         {
-            get { return "tagChimp Chapters Provider"; }
+            get { return "tagChimp"; }
         }
 
         /// <summary>

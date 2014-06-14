@@ -26,9 +26,23 @@ namespace TagChimp
         }
 
         [XmlIgnore]
-        public bool Locked { get; set; }
+        public bool Locked { get; private set; }
+
+        private string episode;
         [XmlElement("episode")]
-        public int Episode { get; set; }
+        public string EpisodeString {
+            get { return episode; }
+            set {
+                episode = value;
+                if (!String.IsNullOrEmpty(value)) {
+                    Episode = Convert.ToInt32(value);
+                }
+            }
+        }
+
+        [XmlIgnore]
+        public int Episode { get; private set; }
+
         [XmlElement("episodeID")]
         public string EpisodeId { get; set; }
         [XmlElement("productionCode")]

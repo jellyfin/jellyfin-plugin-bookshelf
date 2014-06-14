@@ -81,7 +81,7 @@ namespace TagChimp
             items.AddValue("lang", parameters.Language);
             items.AddValue("uid", parameters.UserId);
             items.AddValue("limit", parameters.Limit);
-            items.AddValue("locked", parameters.Locked);
+            items.AddValue("locked", parameters.Locked.ToString().ToLower());
             items.AddValue("amazon", parameters.Asin);
             items.AddValue("imdb", parameters.ImdbId);
             items.AddValue("netflix", parameters.NetflixId);

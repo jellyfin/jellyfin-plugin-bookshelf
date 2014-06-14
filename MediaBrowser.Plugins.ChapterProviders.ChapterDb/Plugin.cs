@@ -19,7 +19,7 @@ namespace MediaBrowser.Plugins.ChapterProviders.ChapterDb {
         /// <value>The name.</value>
         public override string Name
         {
-            get { return "ChapterDb Chapters Provider"; }
+            get { return "ChapterDb"; }
         }
 
         /// <summary>

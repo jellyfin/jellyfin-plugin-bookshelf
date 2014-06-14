@@ -4,7 +4,6 @@ using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Persistence;
 using MediaBrowser.Model.Entities;
 using System.Collections.Generic;
 using System.IO;
@@ -19,17 +18,15 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
         private readonly ILibraryManager _libraryManager;
         private readonly IUserManager _userManager;
         private readonly IUserDataManager _userDataRepo;
-        private readonly IItemRepository _itemRepo;
 
         private readonly IFileSystem _fileSystem;
         private readonly IServerConfigurationManager _config;
         
-        public MovieXmlSaver(ILibraryManager libraryManager, IUserManager userManager, IUserDataManager userDataRepo, IItemRepository itemRepo, IFileSystem fileSystem, IServerConfigurationManager config)
+        public MovieXmlSaver(ILibraryManager libraryManager, IUserManager userManager, IUserDataManager userDataRepo, IFileSystem fileSystem, IServerConfigurationManager config)
         {
             _libraryManager = libraryManager;
             _userManager = userManager;
             _userDataRepo = userDataRepo;
-            _itemRepo = itemRepo;
             _fileSystem = fileSystem;
             _config = config;
         }
@@ -99,7 +96,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 }
             }
 
-            XmlSaverHelpers.AddMediaInfo((Video)item, _itemRepo, builder);
+            XmlSaverHelpers.AddMediaInfo((Video)item, builder);
 
             builder.Append("</" + tag + ">");
 
