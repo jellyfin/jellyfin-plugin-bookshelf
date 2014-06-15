@@ -151,8 +151,8 @@ namespace MediaBrowser.Plugins.ArgusTV
                     Name = channel.Name,
                     Number = i.ToString(CultureInfo.InvariantCulture),
                     Id = channel.GuideChannelId.ToString(),
-                    //ImageUrl = ,
-                    HasImage = false, //TODO: Refactor
+                    //ImageUrl = , //TODO
+                    HasImage = false, //TODO
                 });
                 i++;
             }
@@ -181,17 +181,17 @@ namespace MediaBrowser.Plugins.ArgusTV
                 Overview = Proxies.GuideService.GetProgramById(program.GuideProgramId).Description, 
                 StartDate = program.StartTimeUtc, 
                 EndDate = program.StopTimeUtc,
-                //Genres = program.Category,
-                //OriginalAirDate = ,
+                //Genres = program.Category, //TODO
+                //OriginalAirDate = , //TODO
                 Name = program.Title,
-                //OfficialRating = ,
-                //CommunityRating = ,
+                //OfficialRating = , //TODO
+                //CommunityRating = , //TODO
                 EpisodeTitle = program.SubTitle,
-                //Audio = ,
+                //Audio = , //TODO
                 IsHD = (program.Flags == GuideProgramFlags.HighDefinition), IsRepeat = program.IsRepeat, 
                 IsSeries = GeneralHelpers.ContainsWord(program.Category, "series", StringComparison.OrdinalIgnoreCase),
-                //ImageUrl = ,
-                HasImage = false, //TODO: Refactor
+                //ImageUrl = , //TODO
+                HasImage = false, //TODO
                 IsNews = GeneralHelpers.ContainsWord(program.Category, "news", StringComparison.OrdinalIgnoreCase), 
                 //IsMovie = ,
                 IsKids = GeneralHelpers.ContainsWord(program.Category, "animation", StringComparison.OrdinalIgnoreCase),
@@ -255,8 +255,20 @@ namespace MediaBrowser.Plugins.ArgusTV
         /// <returns></returns>
         public async Task DeleteRecordingAsync(string recordingId, CancellationToken cancellationToken)
         {
+            _logger.Debug(string.Format("[ArgusTV] Start DeleteRecording Async for recordingId: {0}", recordingId));
             await EnsureConnectionAsync(cancellationToken);
-            throw new NotImplementedException();
+
+            try
+            {
+                //TODO
+                //Proxies.ControlService.DeleteRecording(Guid.Parse(recordingId),true);
+                _logger.Debug(string.Format("[ArgusTV] Successful deleted the Recording for recordingId: {0}", recordingId));
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(string.Format("[ArgusTV] It's not possible to delete the recording with recordingId: {0} on the ArgusTV Server with exception {1}", recordingId, ex.Message));
+            }
+
         }
 
         /// <summary>
@@ -281,19 +293,6 @@ namespace MediaBrowser.Plugins.ArgusTV
 
             Proxies.SchedulerService.SaveSchedule(schedule);
 
-            //NextPvr
-            //var timerSettings = await GetDefaultScheduleSettings(cancellationToken).ConfigureAwait(false);
-
-            //timerSettings.allChannels = false;
-            //timerSettings.ChannelOID = int.Parse(info.ChannelId, _usCulture);
-
-            //if (!string.IsNullOrEmpty(info.ProgramId))
-            //{
-            //    timerSettings.epgeventOID = int.Parse(info.ProgramId, _usCulture);
-            //}
-
-            //timerSettings.post_padding_min = info.PostPaddingSeconds / 60;
-            //timerSettings.pre_padding_min = info.PrePaddingSeconds / 60;
         }
 
         /// <summary>
@@ -453,7 +452,14 @@ namespace MediaBrowser.Plugins.ArgusTV
         public async Task<SeriesTimerInfo> GetNewTimerDefaultsAsync(CancellationToken cancellationToken, ProgramInfo program = null)
         {
             await EnsureConnectionAsync(cancellationToken);
-            throw new NotImplementedException();
+
+            var timerDefaults = Proxies.SchedulerService.CreateNewSchedule(ChannelType.Television, ScheduleType.Recording);
+
+            return new SeriesTimerInfo()
+            {
+                PostPaddingSeconds = timerDefaults.PostRecordSeconds != null ? (int) timerDefaults.PostRecordSeconds:0,
+                PrePaddingSeconds =  timerDefaults.PreRecordSeconds != null ? (int) timerDefaults.PreRecordSeconds:0,
+            };
         }
 
         /// <summary>
@@ -500,7 +506,7 @@ namespace MediaBrowser.Plugins.ArgusTV
        /// <value>The name.</value>
         public string Name
         {
-            get { return "ArgusTV"; }
+            get { return "ARGUS TV"; }
         }
 
         public string HomePageUrl

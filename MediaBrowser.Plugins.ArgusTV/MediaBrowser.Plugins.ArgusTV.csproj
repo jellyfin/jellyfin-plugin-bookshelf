@@ -34,11 +34,11 @@
   <ItemGroup>
     <Reference Include="ArgusTV.DataContracts, Version=2.3.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\ArgusTV.SchedulerProxy.2.3.0-beta-8\lib\net45\ArgusTV.DataContracts.dll</HintPath>
+      <HintPath>..\packages\ArgusTV.SchedulerProxy.2.3.0-beta-10\lib\net45\ArgusTV.DataContracts.dll</HintPath>
     </Reference>
     <Reference Include="ArgusTV.ServiceProxy, Version=2.3.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\ArgusTV.SchedulerProxy.2.3.0-beta-8\lib\net45\ArgusTV.ServiceProxy.dll</HintPath>
+      <HintPath>..\packages\ArgusTV.SchedulerProxy.2.3.0-beta-10\lib\net45\ArgusTV.ServiceProxy.dll</HintPath>
     </Reference>
     <Reference Include="MediaBrowser.Common">
       <HintPath>..\packages\MediaBrowser.Common.3.0.357\lib\net45\MediaBrowser.Common.dll</HintPath>
