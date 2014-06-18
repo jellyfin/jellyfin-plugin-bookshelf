@@ -69,7 +69,13 @@
     <EmbeddedResource Include="Configuration\config.html" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Api\Images\" />
+    <EmbeddedResource Include="Api\Images\favicon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Api\Images\square150x150logo.png" />
+    <EmbeddedResource Include="Api\Images\square310x310logo.png" />
+    <EmbeddedResource Include="Api\Images\square70x70logo.png" />
+    <EmbeddedResource Include="Api\Images\wide310x150logo.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />

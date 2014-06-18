@@ -5,10 +5,10 @@ using System.Text;
 
 namespace MediaBrowser.Plugins.WindowsLiveTiles.Api
 {
-    [Route("/WindowsLiveTiles/Bookmark/{UserId}", "GET", Summary = "Gets a live tile bookmark page for a user")]
+    [Route("/WindowsLiveTiles/Bookmark", "GET", Summary = "Gets a live tile bookmark page for a user")]
     public class GetBookmarkPage
     {
-        [ApiMember(Name = "UserId", Description = "User Id", IsRequired = true, DataType = "string", ParameterType = "path", Verb = "GET")]
+        [ApiMember(Name = "UserId", Description = "User Id", IsRequired = true, DataType = "string", ParameterType = "query", Verb = "GET")]
         public string UserId { get; set; }
     }
 
@@ -27,6 +27,13 @@ namespace MediaBrowser.Plugins.WindowsLiveTiles.Api
 
         [ApiMember(Name = "Index", Description = "Index", IsRequired = true, DataType = "int", ParameterType = "path", Verb = "GET")]
         public int Index { get; set; }
+    }
+
+    [Route("/WindowsLiveTiles/images/{Name}", "GET", Summary = "Gets a live tile notification image")]
+    public class GetImage
+    {
+        [ApiMember(Name = "Name", Description = "Name", IsRequired = true, DataType = "string", ParameterType = "path", Verb = "GET")]
+        public string Name { get; set; }
     }
 
     public class PluginApi : IRestfulService, IHasResultFactory
@@ -48,10 +55,15 @@ namespace MediaBrowser.Plugins.WindowsLiveTiles.Api
             return ResultFactory.GetResult(xml, "text/xml");
         }
 
+        public object Get(GetImage request)
+        {
+            var stream = GetType().Assembly.GetManifestResourceStream(GetType().Namespace + ".Images." + request.Name);
+
+            return ResultFactory.GetResult(stream, "image/png");
+        }
+
         public object Get(GetNotifications request)
         {
-            var xml = "";
-
             // TODO: Implement tile scheme
             // http://msdn.microsoft.com/en-us/library/dn455106(v=vs.85).aspx
 
@@ -62,7 +74,15 @@ namespace MediaBrowser.Plugins.WindowsLiveTiles.Api
             // 4: Latest channel media (fallback to latest movie)
             // 5: Current live tv programs (fallback to latest movie)
 
-            return ResultFactory.GetResult(xml, "text/xml");
+            var sb = new StringBuilder();
+
+            sb.Append("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+            sb.Append("<tile>");
+            sb.Append("<visual lang=\"en-US\" version=\"2\">");
+            sb.Append("</visual>");
+            sb.Append("</tile>");
+
+            return ResultFactory.GetResult(sb.ToString(), "text/xml");
         }
 
         private string GetBookmarkPageHtml(string userId)
@@ -76,6 +96,7 @@ namespace MediaBrowser.Plugins.WindowsLiveTiles.Api
 
             sb.Append("<meta name=\"application-name\" content=\"Media Browser\">");
             sb.AppendFormat("<meta name=\"msapplication-config\" content=\"browserconfig.xml?userId={0}\" />", userId);
+            sb.Append("<link rel=\"shortcut icon\" href=\"images/favicon.ico\" />");
 
             sb.Append("<title>Live Tile Bookmark Page</title>");
 
@@ -104,11 +125,11 @@ namespace MediaBrowser.Plugins.WindowsLiveTiles.Api
 
             // TODO: Add MB images as embedded resources, then add api endpoints
 
-            sb.Append("<square70x70logo src=\"images/smalltile.png\"/>");
-            sb.Append("<square150x150logo src=\"images/mediumtile.png\"/>");
-            sb.Append("<wide310x150logo src=\"images/widetile.png\"/>");
-            sb.Append("<square310x310logo src=\"images/largetile.png\"/>");
-            sb.Append("<TileColor>#009900</TileColor>");
+            sb.Append("<square70x70logo src=\"images/square70x70logo.png\"/>");
+            sb.Append("<square150x150logo src=\"images/square150x150logo.png\"/>");
+            sb.Append("<wide310x150logo src=\"images/wide310x150logo.png\"/>");
+            sb.Append("<square310x310logo src=\"images/square310x310logo.png\"/>");
+            sb.Append("<TileColor>#222222</TileColor>");
 
             sb.Append("</tile>");
 

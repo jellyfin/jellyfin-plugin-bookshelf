@@ -36,7 +36,7 @@
 
                     $('#selectUser', page).on('change', function () {
 
-                        var href = ApiClient.getUrl('WindowsLiveTiles/Bookmark/' + this.value);
+                        var href = ApiClient.getUrl('WindowsLiveTiles/Bookmark?userId=' + this.value);
                         $('#btnOpenBookmarkPage', page).attr('href', href);
                     });
 
