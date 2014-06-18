@@ -1,4 +1,6 @@
-﻿using MediaBrowser.Controller.Net;
+﻿using System.Collections.Generic;
+using System.Globalization;
+using MediaBrowser.Controller.Net;
 using ServiceStack;
 using ServiceStack.Web;
 using System.Text;
@@ -67,18 +69,40 @@ namespace MediaBrowser.Plugins.WindowsLiveTiles.Api
             // TODO: Implement tile scheme
             // http://msdn.microsoft.com/en-us/library/dn455106(v=vs.85).aspx
 
-            // 5 sections
-            // 1: Latest movies
-            // 2: Next up
-            // 3: Latest episodes
-            // 4: Latest channel media (fallback to latest movie)
-            // 5: Current live tv programs (fallback to latest movie)
-
             var sb = new StringBuilder();
 
             sb.Append("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
             sb.Append("<tile>");
             sb.Append("<visual lang=\"en-US\" version=\"2\">");
+
+            foreach (var tile in GetTiles(request.UserId, request.Index))
+            {
+                sb.AppendFormat("<binding template=\"{0}\">", tile.Name);
+
+                var index = 0;
+                foreach (var image in tile.Images)
+                {
+                    sb.AppendFormat("<image id=\"{0}\" src=\"{1}\" alt=\"{2}\"/>",
+                        index.ToString(CultureInfo.InvariantCulture),
+                        image,
+                        "alt text");
+
+                    index++;
+                }
+
+                index = 0;
+                foreach (var text in tile.TextLines)
+                {
+                    sb.AppendFormat("<text id=\"{0}\">{1}</text>",
+                        index.ToString(CultureInfo.InvariantCulture),
+                        text);
+                    
+                    index++;
+                }
+
+                sb.Append("</binding>");
+            }
+
             sb.Append("</visual>");
             sb.Append("</tile>");
 
@@ -104,7 +128,7 @@ namespace MediaBrowser.Plugins.WindowsLiveTiles.Api
 
             sb.Append("<body>");
             sb.Append("<p>Instructions for use:</p>");
-            sb.Append("<p>Pin this page in Internet Explorer 11 or greater.</p>");
+            sb.Append("<p>Pin this page to your Windows Start Screen using Internet Explorer 11 or greater.</p>");
             sb.Append("<p><a href=\"http://www.eightforums.com/tutorials/32238-internet-explorer-11-pin-website-start-windows-8-1-a.html\" target=\"_blank\">How to Pin Pages in Internet Explorer</a></p>");
             sb.Append("</body>");
 
@@ -123,8 +147,6 @@ namespace MediaBrowser.Plugins.WindowsLiveTiles.Api
 
             sb.Append("<tile>");
 
-            // TODO: Add MB images as embedded resources, then add api endpoints
-
             sb.Append("<square70x70logo src=\"images/square70x70logo.png\"/>");
             sb.Append("<square150x150logo src=\"images/square150x150logo.png\"/>");
             sb.Append("<wide310x150logo src=\"images/wide310x150logo.png\"/>");
@@ -140,7 +162,7 @@ namespace MediaBrowser.Plugins.WindowsLiveTiles.Api
             sb.AppendFormat("<polling-uri3 src=\"Notifications/{0}/3\"/>", userId);
             sb.AppendFormat("<polling-uri4 src=\"Notifications/{0}/4\"/>", userId);
             sb.AppendFormat("<polling-uri5 src=\"Notifications/{0}/5\"/>", userId);
-            sb.Append("<frequency>1</frequency>");
+            sb.Append("<frequency>30</frequency>");
             sb.Append("<cycle>1</cycle>");
 
             sb.Append("</notification>");
@@ -149,6 +171,33 @@ namespace MediaBrowser.Plugins.WindowsLiveTiles.Api
             sb.Append("</browserconfig>");
 
             return sb.ToString();
+        }
+
+        private IEnumerable<TileTemplate> GetTiles(string userId, int index)
+        {
+            var list = new List<TileTemplate>();
+
+            // 5 sections
+            // 1: Latest movies
+            // 2: Next up
+            // 3: Latest episodes
+            // 4: Latest channel media (fallback to latest movie)
+            // 5: Current live tv programs (fallback to latest movie)
+
+            return list;
+        }
+    }
+
+    public class TileTemplate
+    {
+        public string Name { get; set; }
+        public List<string> Images { get; set; }
+        public List<string> TextLines { get; set; }
+
+        public TileTemplate()
+        {
+            Images = new List<string>();
+            TextLines = new List<string>();
         }
     }
 }
