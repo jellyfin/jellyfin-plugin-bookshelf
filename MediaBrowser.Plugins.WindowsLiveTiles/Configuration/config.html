@@ -1,0 +1,71 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Windows Live Tiles</title>
+</head>
+<body>
+    <div data-role="page" class="page type-interior pluginConfigurationPage windowsLiveTilesConfigurationPage">
+
+        <div data-role="content">
+            <div class="content-primary">
+
+                <form class="windowsLiveTilesConfigurationForm">
+
+                    <ul class="ulForm" data-role="listview">
+                        <li>
+                            <label for="selectUser">Create live tiles for:</label>
+                            <select id="selectUser" data-mini="true"></select>
+                        </li>
+                    </ul>
+                    <p>
+                        <a data-role="button" id="btnOpenBookmarkPage" data-icon="check" target="_blank" href="#" style="text-align: center;">Go</a>
+                    </p>
+                </form>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+
+            (function () {
+
+                var pluginId = "ed3cab5f-3ae2-4b0b-b416-0c16ab7d472d";
+
+                $('.windowsLiveTilesConfigurationPage').on('pageinit', function (event) {
+
+                    var page = this;
+
+                    $('#selectUser', page).on('change', function () {
+
+                        var href = ApiClient.getUrl('WindowsLiveTiles/Bookmark/' + this.value);
+                        $('#btnOpenBookmarkPage', page).attr('href', href);
+                    });
+
+                }).on('pageshow', function (event) {
+
+                    Dashboard.showLoadingMsg();
+
+                    var page = this;
+
+                    ApiClient.getUsers().done(function (users) {
+
+                        $('#selectUser', page).html(users.map(function (user) {
+
+                            return '<option value="' + user.Id + '">' + user.Name + '</option>';
+
+                        })).selectmenu('refresh').trigger('change');
+
+                        Dashboard.hideLoadingMsg();
+                    });
+                });
+
+                $('.windowsLiveTilesConfigurationForm').off('submit').on('submit', function (e) {
+
+                    return false;
+                });
+
+            })();
+
+        </script>
+    </div>
+</body>
+</html>
