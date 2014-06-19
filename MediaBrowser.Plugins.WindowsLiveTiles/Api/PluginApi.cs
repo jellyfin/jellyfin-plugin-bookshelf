@@ -1,27 +1,35 @@
-﻿using System.Collections.Generic;
-using System.Globalization;
+﻿using MediaBrowser.Controller.Entities.Movies;
+using MediaBrowser.Controller.Entities.TV;
+using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Net;
+using MediaBrowser.Model.Entities;
 using ServiceStack;
 using ServiceStack.Web;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using System.Text;
+using MediaBrowser.Common.Extensions;
 
 namespace MediaBrowser.Plugins.WindowsLiveTiles.Api
 {
-    [Route("/WindowsLiveTiles/Bookmark", "GET", Summary = "Gets a live tile bookmark page for a user")]
+    [Route("/WindowsLiveTiles/{UserId}/Bookmark", "GET", Summary = "Gets a live tile bookmark page for a user")]
     public class GetBookmarkPage
     {
-        [ApiMember(Name = "UserId", Description = "User Id", IsRequired = true, DataType = "string", ParameterType = "query", Verb = "GET")]
+        [ApiMember(Name = "UserId", Description = "User Id", IsRequired = true, DataType = "string", ParameterType = "path", Verb = "GET")]
         public string UserId { get; set; }
     }
 
-    [Route("/WindowsLiveTiles/browserconfig", "GET", Summary = "Gets live tile configuration xml")]
+    [Route("/WindowsLiveTiles/{UserId}/browserconfig", "GET", Summary = "Gets live tile configuration xml")]
+    [Route("/WindowsLiveTiles/{UserId}/browserconfig.xml", "GET", Summary = "Gets live tile configuration xml")]
     public class GetBrowserConfig
     {
-        [ApiMember(Name = "UserId", Description = "User Id", IsRequired = true, DataType = "string", ParameterType = "query", Verb = "GET")]
+        [ApiMember(Name = "UserId", Description = "User Id", IsRequired = true, DataType = "string", ParameterType = "path", Verb = "GET")]
         public string UserId { get; set; }
     }
 
-    [Route("/WindowsLiveTiles/Notifications/{UserId}/{Index}", "GET", Summary = "Gets live tile notifications")]
+    [Route("/WindowsLiveTiles/{UserId}/Notifications/{Index}", "GET", Summary = "Gets live tile notifications")]
     public class GetNotifications
     {
         [ApiMember(Name = "UserId", Description = "User Id", IsRequired = true, DataType = "string", ParameterType = "path", Verb = "GET")]
@@ -42,6 +50,15 @@ namespace MediaBrowser.Plugins.WindowsLiveTiles.Api
     {
         public IHttpResultFactory ResultFactory { get; set; }
         public IRequest Request { get; set; }
+
+        private readonly IUserManager _userManager;
+        private readonly IUserDataManager _userDataManager;
+
+        public PluginApi(IUserManager userManager, IUserDataManager userDataManager)
+        {
+            _userManager = userManager;
+            _userDataManager = userDataManager;
+        }
 
         public object Get(GetBookmarkPage request)
         {
@@ -77,7 +94,7 @@ namespace MediaBrowser.Plugins.WindowsLiveTiles.Api
 
             foreach (var tile in GetTiles(request.UserId, request.Index))
             {
-                sb.AppendFormat("<binding template=\"{0}\">", tile.Name);
+                sb.AppendFormat("<binding template=\"{0}\" branding=\"name\">", tile.Name);
 
                 var index = 0;
                 foreach (var image in tile.Images)
@@ -96,7 +113,7 @@ namespace MediaBrowser.Plugins.WindowsLiveTiles.Api
                     sb.AppendFormat("<text id=\"{0}\">{1}</text>",
                         index.ToString(CultureInfo.InvariantCulture),
                         text);
-                    
+
                     index++;
                 }
 
@@ -118,18 +135,27 @@ namespace MediaBrowser.Plugins.WindowsLiveTiles.Api
 
             sb.Append("<head>");
 
-            sb.Append("<meta name=\"application-name\" content=\"Media Browser\">");
-            sb.AppendFormat("<meta name=\"msapplication-config\" content=\"browserconfig.xml?userId={0}\" />", userId);
-            sb.Append("<link rel=\"shortcut icon\" href=\"images/favicon.ico\" />");
+            sb.Append("<meta name=\"application-name\" content=\"Media Browser\" />");
 
-            sb.Append("<title>Live Tile Bookmark Page</title>");
+            var configEndpoint = "browserconfig.xml";
+            var configUrl = Request.AbsoluteUri
+                .Replace("bookmark", "browserconfig.xml", StringComparison.OrdinalIgnoreCase);
+
+            sb.AppendFormat("<meta name=\"msapplication-config\" content=\"{0}\" />", configEndpoint);
+            sb.Append("<link rel=\"shortcut icon\" href=\"../images/favicon.ico\" />");
+
+            sb.Append("<title>Media Browser</title>");
+
+            //sb.Append("<script type=\"text/javascript\">if (!document.referrer){window.location='../dashboard/index.html';}</script>");
 
             sb.Append("</head>");
 
             sb.Append("<body>");
             sb.Append("<p>Instructions for use:</p>");
-            sb.Append("<p>Pin this page to your Windows Start Screen using Internet Explorer 11 or greater.</p>");
+            sb.Append("<p>Pin this page to your Windows start screen using Internet Explorer 11 or greater.</p>");
             sb.Append("<p><a href=\"http://www.eightforums.com/tutorials/32238-internet-explorer-11-pin-website-start-windows-8-1-a.html\" target=\"_blank\">How to Pin Pages in Internet Explorer</a></p>");
+            sb.Append("<p>If this device is used outside your home network, then it is recommended to open this page using a remote address.</p>");
+            sb.Append("<p>Once pinned it will take at least 30 minutes before content will appear on your Windows start screen.</p>");
             sb.Append("</body>");
 
             sb.Append("</html>");
@@ -147,21 +173,21 @@ namespace MediaBrowser.Plugins.WindowsLiveTiles.Api
 
             sb.Append("<tile>");
 
-            sb.Append("<square70x70logo src=\"images/square70x70logo.png\"/>");
-            sb.Append("<square150x150logo src=\"images/square150x150logo.png\"/>");
-            sb.Append("<wide310x150logo src=\"images/wide310x150logo.png\"/>");
-            sb.Append("<square310x310logo src=\"images/square310x310logo.png\"/>");
+            sb.Append("<square70x70logo src=\"../images/square70x70logo.png\"/>");
+            sb.Append("<square150x150logo src=\"../images/square150x150logo.png\"/>");
+            sb.Append("<wide310x150logo src=\"../images/wide310x150logo.png\"/>");
+            sb.Append("<square310x310logo src=\"../images/square310x310logo.png\"/>");
             sb.Append("<TileColor>#222222</TileColor>");
 
             sb.Append("</tile>");
 
             sb.Append("<notification>");
 
-            sb.AppendFormat("<polling-uri src=\"Notifications/{0}/1\"/>", userId);
-            sb.AppendFormat("<polling-uri2 src=\"Notifications/{0}/2\"/>", userId);
-            sb.AppendFormat("<polling-uri3 src=\"Notifications/{0}/3\"/>", userId);
-            sb.AppendFormat("<polling-uri4 src=\"Notifications/{0}/4\"/>", userId);
-            sb.AppendFormat("<polling-uri5 src=\"Notifications/{0}/5\"/>", userId);
+            sb.Append("<polling-uri src=\"Notifications/1\"/>");
+            sb.Append("<polling-uri2 src=\"Notifications/2\"/>");
+            sb.Append("<polling-uri3 src=\"Notifications/3\"/>");
+            sb.Append("<polling-uri4 src=\"Notifications/4\"/>");
+            sb.Append("<polling-uri5 src=\"Notifications/5\"/>");
             sb.Append("<frequency>30</frequency>");
             sb.Append("<cycle>1</cycle>");
 
@@ -175,6 +201,8 @@ namespace MediaBrowser.Plugins.WindowsLiveTiles.Api
 
         private IEnumerable<TileTemplate> GetTiles(string userId, int index)
         {
+            var user = _userManager.GetUserById(new Guid(userId));
+
             var list = new List<TileTemplate>();
 
             // 5 sections
@@ -183,6 +211,89 @@ namespace MediaBrowser.Plugins.WindowsLiveTiles.Api
             // 3: Latest episodes
             // 4: Latest channel media (fallback to latest movie)
             // 5: Current live tv programs (fallback to latest movie)
+
+            // Available templates:
+            // http://msdn.microsoft.com/en-us/library/hh761491.aspx
+
+            var items = user.RootFolder.GetRecursiveChildren(user, true).ToList();
+
+            items = items.Where(i => i is Movie || i is Series).ToList();
+
+            var sortType = "Series";
+
+            switch (index)
+            {
+                case 1:
+                case 2:
+                    sortType = "Movie";
+                    break;
+
+            }
+
+            var sorted = items.Where(i => i.HasImage(ImageType.Primary, 0) && i.HasImage(ImageType.Backdrop, 0)).OrderBy(i => i.GetType().Name.Equals(sortType));
+
+            var userIdGuid = new Guid(userId);
+            switch (index)
+            {
+                // Latest
+                case 1:
+                case 3:
+                    sorted = sorted.ThenByDescending(i =>
+                    {
+                        var series = i as Series;
+                        if (series != null) return series.DateLastEpisodeAdded;
+
+                        return i.DateCreated;
+                    });
+                    break;
+                case 2:
+                case 4:
+                    sorted = sorted.ThenByDescending(i => _userDataManager.GetUserData(userIdGuid, i.GetUserDataKey()).IsFavorite);
+                    break;
+
+            }
+
+            sorted = sorted.ThenBy(i => Guid.NewGuid());
+
+            var item = sorted.FirstOrDefault();
+
+            if (item != null)
+            {
+                var template = new TileTemplate
+                {
+                    Name = "TileWide310x150ImageAndText01"
+                };
+
+                template.TextLines.Add("Watch " + item.Name + " with Media Browser.");
+
+                template.Images.Add(string.Format("../Items/{0}/Images/Backdrop/0?width=300&height=150", item.Id));
+
+                list.Add(template);
+
+
+                template = new TileTemplate
+               {
+                   Name = "TileSquare310x310ImageAndText01"
+               };
+
+                template.TextLines.Add("Watch " + item.Name + " with Media Browser.");
+
+                template.Images.Add(string.Format("../Items/{0}/Images/Primary/0?width=300&height=300", item.Id));
+
+                list.Add(template);
+
+
+                template = new TileTemplate
+                {
+                    Name = "TileSquare150x150PeekImageAndText04"
+                };
+
+                template.TextLines.Add("Watch " + item.Name + " with Media Browser.");
+
+                template.Images.Add(string.Format("../Items/{0}/Images/Primary/0?width=150&height=150", item.Id));
+
+                list.Add(template);
+            }
 
             return list;
         }
