@@ -1,4 +1,6 @@
-﻿using MediaBrowser.Common.IO;
+﻿using System.Globalization;
+using System.Security;
+using MediaBrowser.Common.IO;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
@@ -48,13 +50,23 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             builder.Append("<season>");
 
+            var season = (Season)item;
+
+            if (season.IndexNumber.HasValue)
+            {
+                builder.Append("<seasonnumber>" + SecurityElement.Escape(season.IndexNumber.Value.ToString(CultureInfo.InvariantCulture)) + "</seasonnumber>");
+            }
+
             XmlSaverHelpers.AddCommonNodes((Season)item, builder, _libraryManager, _userManager, _userDataRepo, _fileSystem, _config);
 
             builder.Append("</season>");
 
             var xmlFilePath = GetSavePath(item);
 
-            XmlSaverHelpers.Save(builder, xmlFilePath, new List<string> { });
+            XmlSaverHelpers.Save(builder, xmlFilePath, new List<string>
+            {
+                "seasonnumber"
+            });
         }
 
         public bool IsEnabledFor(IHasMetadata item, ItemUpdateType updateType)

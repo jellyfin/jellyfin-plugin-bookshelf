@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Common.IO;
+﻿using System.Globalization;
+using MediaBrowser.Common.IO;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
@@ -79,11 +80,6 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 builder.Append("<status>" + SecurityElement.Escape(series.Status.Value.ToString()) + "</status>");
             }
 
-            if (series.Studios.Count > 0)
-            {
-                builder.Append("<studio>" + SecurityElement.Escape(series.Studios[0]) + "</studio>");
-            }
-
             if (!string.IsNullOrEmpty(series.AirTime))
             {
                 builder.Append("<airs_time>" + SecurityElement.Escape(series.AirTime) + "</airs_time>");
@@ -97,6 +93,11 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             {
                 builder.Append("<airs_dayofweek>" + SecurityElement.Escape(series.AirDays[0].ToString()) + "</airs_dayofweek>");
             }
+
+            if (series.AnimeSeriesIndex.HasValue)
+            {
+                builder.Append("<animeseriesindex>" + SecurityElement.Escape(series.AnimeSeriesIndex.Value.ToString(CultureInfo.InvariantCulture)) + "</animeseriesindex>");
+            }
             
             builder.Append("</tvshow>");
 
@@ -108,10 +109,10 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                     "season",
                     "episode",
                     "status",
-                    "studio",
                     "airs_time",
                     "airs_dayofweek",
-                    "episodeguide"
+                    "episodeguide",
+                    "animeseriesindex"
                 });
         }
 

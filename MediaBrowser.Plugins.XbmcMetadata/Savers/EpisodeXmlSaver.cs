@@ -3,7 +3,6 @@ using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Persistence;
 using MediaBrowser.Model.Entities;
 using System.Collections.Generic;
 using System.Globalization;
@@ -62,6 +61,11 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 builder.Append("<episode>" + episode.IndexNumber.Value.ToString(_usCulture) + "</episode>");
             }
 
+            if (episode.IndexNumberEnd.HasValue)
+            {
+                builder.Append("<episodenumberend>" + SecurityElement.Escape(episode.IndexNumberEnd.Value.ToString(_usCulture)) + "</episodenumberend>");
+            }
+            
             if (episode.ParentIndexNumber.HasValue)
             {
                 builder.Append("<season>" + episode.ParentIndexNumber.Value.ToString(_usCulture) + "</season>");
@@ -113,6 +117,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                     "aired",
                     "season",
                     "episode",
+                    "episodenumberend",
                     "airsafter_season",
                     "airsbefore_episode",
                     "airsbefore_season",
