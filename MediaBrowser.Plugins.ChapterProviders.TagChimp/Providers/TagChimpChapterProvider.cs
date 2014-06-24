@@ -9,25 +9,28 @@ using MediaBrowser.Controller.Chapters;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Chapters;
 using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
 using TagChimp;
 
 namespace MediaBrowser.Plugins.ChapterProviders.TagChimp.Providers
 {
-    public class TagChimpChapterProvider : IChapterProvider
+    public class TagChimpChapterProvider : IChapterProvider, IHasOrder
     {
         private const string ApiKey = "12222029995372A1980D08F";
         private const string BaseUrl = "https://www.tagchimp.com/ape/search.php?";
 
-        private readonly IHttpClient _httpClient;
         private readonly SemaphoreSlim _resourcePool = new SemaphoreSlim(1, 1);
         private readonly CultureInfo _usCulture = new CultureInfo("en-US");
+        private readonly IHttpClient _httpClient;
         private readonly IXmlSerializer _xmlSerializer;
+        private readonly ILogger _logger;
 
-        public TagChimpChapterProvider(IHttpClient httpClient, IXmlSerializer xmlSerializer)
+        public TagChimpChapterProvider(IHttpClient httpClient, IXmlSerializer xmlSerializer, ILogManager logManager)
         {
             _httpClient = httpClient;
             _xmlSerializer = xmlSerializer;
+            _logger = logManager.GetLogger(GetType().Name);
         }
 
         public Task<ChapterResponse> GetChapters(string id, CancellationToken cancellationToken)
@@ -37,7 +40,7 @@ namespace MediaBrowser.Plugins.ChapterProviders.TagChimp.Providers
 
         public string Name
         {
-            get { throw new NotImplementedException(); }
+            get { return "tagChimp"; }
         }
 
         public Task<IEnumerable<RemoteChapterResult>> Search(ChapterSearchRequest request,
@@ -76,6 +79,7 @@ namespace MediaBrowser.Plugins.ChapterProviders.TagChimp.Providers
                 VideoKind = request.ContentType == VideoContentType.Movie ? "Movie" : "TVShow",
                 ImdbId = imdbId > 0 ? imdbId.ToString() : null,
                 Token = ApiKey,
+                Locked = true,
             };
 
             var url = BaseUrl + p.BuildQueryString();
@@ -105,6 +109,11 @@ namespace MediaBrowser.Plugins.ChapterProviders.TagChimp.Providers
                     return new List<RemoteChapterResult>();
                 }
             }
+        }
+
+        int IHasOrder.Order 
+        {
+            get { return 1; }
         }
     }
 }

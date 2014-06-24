@@ -3,6 +3,7 @@ using MediaBrowser.Common.IO;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
+using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Persistence;
@@ -73,8 +74,25 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                     "review",
                     "style",
                     "imdbid",
+                    "imdb_id",
                     "plotkeyword",
-                    "country"
+                    "country",
+                    "audiodbalbumid",
+                    "audiodbartistid",
+                    "awardsummary",
+                    "enddate",
+                    "lockedfields",
+                    "metascore",
+                    "zap2itid",
+                    "tvrageid",
+                    "gamesdbid",
+
+                    "musicbrainzartistid",
+                    "musicbrainzalbumartistid",
+                    "musicbrainzalbumid",
+                    "musicbrainzreleasegroupid",
+                    "tvdbid",
+                    "collectionitem"
 
         }.ToDictionary(i => i, StringComparer.OrdinalIgnoreCase);
 
@@ -100,12 +118,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             //Add the new node to the document.
             xmlDocument.InsertBefore(xmlDocument.CreateXmlDeclaration("1.0", "UTF-8", "yes"), xmlDocument.DocumentElement);
 
-            var parentPath = Path.GetDirectoryName(path);
-
-            if (!Directory.Exists(parentPath))
-            {
-                Directory.CreateDirectory(parentPath);
-            }
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
 
             var wasHidden = false;
 
@@ -187,16 +200,13 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             return builder.ToString();
         }
 
-        public static void AddMediaInfo<T>(T item, IItemRepository itemRepository, StringBuilder builder)
-            where T : BaseItem, IHasMediaStreams
+        public static void AddMediaInfo<T>(T item, StringBuilder builder)
+            where T : BaseItem, IHasMediaSources
         {
             builder.Append("<fileinfo>");
             builder.Append("<streamdetails>");
 
-            foreach (var stream in itemRepository.GetMediaStreams(new MediaStreamQuery
-            {
-                ItemId = item.Id
-            }))
+            foreach (var stream in item.GetMediaSources(false).First().MediaStreams)
             {
                 builder.Append("<" + stream.Type.ToString().ToLower() + ">");
 
@@ -270,22 +280,27 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
                     var video = item as Video;
 
-                    if (video != null && video.Video3DFormat.HasValue)
+                    if (video != null)
                     {
-                        switch (video.Video3DFormat.Value)
+                        //AddChapters(video, builder, itemRepository);
+
+                        if (video.Video3DFormat.HasValue)
                         {
-                            case Video3DFormat.FullSideBySide:
-                                builder.Append("<3DFormat>FSBS</3DFormat>");
-                                break;
-                            case Video3DFormat.FullTopAndBottom:
-                                builder.Append("<3DFormat>FTAB</3DFormat>");
-                                break;
-                            case Video3DFormat.HalfSideBySide:
-                                builder.Append("<3DFormat>HSBS</3DFormat>");
-                                break;
-                            case Video3DFormat.HalfTopAndBottom:
-                                builder.Append("<3DFormat>HTAB</3DFormat>");
-                                break;
+                            switch (video.Video3DFormat.Value)
+                            {
+                                case Video3DFormat.FullSideBySide:
+                                    builder.Append("<format3d>FSBS</format3d>");
+                                    break;
+                                case Video3DFormat.FullTopAndBottom:
+                                    builder.Append("<format3d>FTAB</format3d>");
+                                    break;
+                                case Video3DFormat.HalfSideBySide:
+                                    builder.Append("<format3d>HSBS</format3d>");
+                                    break;
+                                case Video3DFormat.HalfTopAndBottom:
+                                    builder.Append("<format3d>HTAB</format3d>");
+                                    break;
+                            }
                         }
                     }
                 }
@@ -318,12 +333,30 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             else
             {
                 builder.Append("<plot><![CDATA[" + overview + "]]></plot>");
+            }
+
+            var hasShortOverview = item as IHasShortOverview;
+            if (hasShortOverview != null)
+            {
+                var outline = (hasShortOverview.ShortOverview ?? string.Empty)
+                    .StripHtml()
+                    .Replace("&quot;", "'");
+
+                builder.Append("<outline><![CDATA[" + outline + "]]></outline>");
+            }
+            else
+            {
                 builder.Append("<outline><![CDATA[" + overview + "]]></outline>");
             }
 
             builder.Append("<customrating>" + SecurityElement.Escape(item.CustomRating ?? string.Empty) + "</customrating>");
             builder.Append("<lockdata>" + item.IsLocked.ToString().ToLower() + "</lockdata>");
 
+            if (item.LockedFields.Count > 0)
+            {
+                builder.Append("<lockedfields>" + string.Join("|", item.LockedFields.Select(i => i.ToString()).ToArray()) + "</lockedfields>");
+            }
+            
             if (!string.IsNullOrEmpty(item.DisplayMediaType))
             {
                 builder.Append("<type>" + SecurityElement.Escape(item.DisplayMediaType) + "</type>");
@@ -425,21 +458,35 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             }
 
             var imdb = item.GetProviderId(MetadataProviders.Imdb);
-
             if (!string.IsNullOrEmpty(imdb))
             {
-                builder.Append("<imdbid>" + SecurityElement.Escape(imdb) + "</imdbid>");
+                if (item is Series)
+                {
+                    builder.Append("<imdb_id>" + SecurityElement.Escape(imdb) + "</imdb_id>");
+                }
+                else
+                {
+                    builder.Append("<imdbid>" + SecurityElement.Escape(imdb) + "</imdbid>");
+                }
+            }
+
+            // Series xml saver already saves this
+            if (!(item is Series))
+            {
+                var tvdb = item.GetProviderId(MetadataProviders.Tvdb);
+                if (!string.IsNullOrEmpty(tvdb))
+                {
+                    builder.Append("<tvdbid>" + SecurityElement.Escape(tvdb) + "</tvdbid>");
+                }
             }
 
             var tmdb = item.GetProviderId(MetadataProviders.Tmdb);
-
             if (!string.IsNullOrEmpty(tmdb))
             {
                 builder.Append("<tmdbid>" + SecurityElement.Escape(tmdb) + "</tmdbid>");
             }
 
             var tvcom = item.GetProviderId(MetadataProviders.Tvcom);
-
             if (!string.IsNullOrEmpty(tvcom))
             {
                 builder.Append("<tvcomid>" + SecurityElement.Escape(tvcom) + "</tvcomid>");
@@ -466,6 +513,16 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 {
                     builder.Append("<premiered>" + SecurityElement.Escape(item.PremiereDate.Value.ToString(formatString)) + "</premiered>");
                     builder.Append("<releasedate>" + SecurityElement.Escape(item.PremiereDate.Value.ToString(formatString)) + "</releasedate>");
+                }
+            }
+
+            if (item.EndDate.HasValue)
+            {
+                if (!(item is Episode))
+                {
+                    var formatString = Plugin.Instance.Configuration.ReleaseDateFormat;
+
+                    builder.Append("<enddate>" + SecurityElement.Escape(item.EndDate.Value.ToString(formatString)) + "</enddate>");
                 }
             }
 
@@ -511,6 +568,12 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 {
                     builder.Append("<revenue>" + SecurityElement.Escape(hasBudget.Revenue.Value.ToString(UsCulture)) + "</revenue>");
                 }
+            }
+
+            var hasMetascore = item as IHasMetascore;
+            if (hasMetascore != null && hasMetascore.Metascore.HasValue)
+            {
+                builder.Append("<metascore>" + SecurityElement.Escape(hasMetascore.Metascore.Value.ToString(UsCulture)) + "</metascore>");
             }
 
             // Use original runtime here, actual file runtime later in MediaInfo
@@ -576,6 +639,73 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 }
             }
 
+            var hasAwards = item as IHasAwards;
+            if (hasAwards != null && !string.IsNullOrEmpty(hasAwards.AwardSummary))
+            {
+                builder.Append("<awardsummary>" + SecurityElement.Escape(hasAwards.AwardSummary) + "</awardsummary>");
+            }
+
+            var externalId = item.GetProviderId(MetadataProviders.AudioDbArtist);
+
+            if (!string.IsNullOrEmpty(externalId))
+            {
+                builder.Append("<audiodbartistid>" + SecurityElement.Escape(externalId) + "</audiodbartistid>");
+            }
+
+            externalId = item.GetProviderId(MetadataProviders.AudioDbAlbum);
+
+            if (!string.IsNullOrEmpty(externalId))
+            {
+                builder.Append("<audiodbalbumid>" + SecurityElement.Escape(externalId) + "</audiodbalbumid>");
+            }
+
+            externalId = item.GetProviderId(MetadataProviders.Zap2It);
+
+            if (!string.IsNullOrEmpty(externalId))
+            {
+                builder.Append("<zap2itid>" + SecurityElement.Escape(externalId) + "</zap2itid>");
+            }
+
+            externalId = item.GetProviderId(MetadataProviders.MusicBrainzAlbum);
+
+            if (!string.IsNullOrEmpty(externalId))
+            {
+                builder.Append("<musicbrainzalbumid>" + SecurityElement.Escape(externalId) + "</musicbrainzalbumid>");
+            }
+
+            externalId = item.GetProviderId(MetadataProviders.MusicBrainzAlbumArtist);
+
+            if (!string.IsNullOrEmpty(externalId))
+            {
+                builder.Append("<musicbrainzalbumartistid>" + SecurityElement.Escape(externalId) + "</musicbrainzalbumartistid>");
+            }
+
+            externalId = item.GetProviderId(MetadataProviders.MusicBrainzArtist);
+
+            if (!string.IsNullOrEmpty(externalId))
+            {
+                builder.Append("<musicbrainzartistid>" + SecurityElement.Escape(externalId) + "</musicbrainzartistid>");
+            }
+
+            externalId = item.GetProviderId(MetadataProviders.MusicBrainzReleaseGroup);
+
+            if (!string.IsNullOrEmpty(externalId))
+            {
+                builder.Append("<musicbrainzreleasegroupid>" + SecurityElement.Escape(externalId) + "</musicbrainzreleasegroupid>");
+            }
+
+            externalId = item.GetProviderId(MetadataProviders.Gamesdb);
+            if (!string.IsNullOrEmpty(externalId))
+            {
+                builder.Append("<gamesdbid>" + SecurityElement.Escape(externalId) + "</gamesdbid>");
+            }
+
+            externalId = item.GetProviderId(MetadataProviders.TvRage);
+            if (!string.IsNullOrEmpty(externalId))
+            {
+                builder.Append("<tvrageid>" + SecurityElement.Escape(externalId) + "</tvrageid>");
+            }
+
             if (Plugin.Instance.Configuration.SaveImagePathsInNfo)
             {
                 AddImages(item, builder, fileSystem, config);
@@ -584,6 +714,51 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             AddUserData(item, builder, userManager, userDataRepo);
 
             AddActors(item, builder, libraryManager, fileSystem, config);
+
+            var folder = item as BoxSet;
+            if (folder != null)
+            {
+                AddCollectionItems(folder, builder);
+            }
+        }
+
+        public static void AddChapters(Video item, StringBuilder builder, IItemRepository repository)
+        {
+            var chapters = repository.GetChapters(item.Id);
+
+            foreach (var chapter in chapters)
+            {
+                builder.Append("<chapter>");
+                builder.Append("<name>" + SecurityElement.Escape(chapter.Name) + "</name>");
+
+                var time = TimeSpan.FromTicks(chapter.StartPositionTicks);
+                var ms = Convert.ToInt64(time.TotalMilliseconds);
+
+                builder.Append("<startpositionms>" + SecurityElement.Escape(ms.ToString(UsCulture)) + "</startpositionms>");
+                builder.Append("</chapter>");
+            }
+        }
+
+        public static void AddCollectionItems(Folder item, StringBuilder builder)
+        {
+            var items = item.LinkedChildren
+                .Where(i => i.Type == LinkedChildType.Manual && !string.IsNullOrWhiteSpace(i.ItemName))
+                .ToList();
+
+            foreach (var link in items)
+            {
+                builder.Append("<collectionitem>");
+
+                builder.Append("<name>" + SecurityElement.Escape(link.ItemName) + "</name>");
+                builder.Append("<type>" + SecurityElement.Escape(link.ItemType) + "</type>");
+
+                if (link.ItemYear.HasValue)
+                {
+                    builder.Append("<year>" + SecurityElement.Escape(link.ItemYear.Value.ToString(UsCulture)) + "</year>");
+                }
+
+                builder.Append("</collectionitem>");
+            }
         }
 
         /// <summary>
@@ -668,8 +843,9 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             foreach (var person in actors)
             {
                 builder.Append("<actor>");
-                builder.Append("<name>" + SecurityElement.Escape(person.Name) + "</name>");
-                builder.Append("<role>" + SecurityElement.Escape(person.Role) + "</role>");
+                builder.Append("<name>" + SecurityElement.Escape(person.Name ?? string.Empty) + "</name>");
+                builder.Append("<role>" + SecurityElement.Escape(person.Role ?? string.Empty) + "</role>");
+                builder.Append("<type>" + SecurityElement.Escape(person.Type ?? string.Empty) + "</type>");
 
                 try
                 {

@@ -2,20 +2,17 @@
 using MediaBrowser.Controller.Plugins;
 using System.IO;
 
-namespace MediaBrowser.Plugins.LocalTrailers.Configuration
+namespace MediaBrowser.Plugins.WindowsLiveTiles.Configuration
 {
-    /// <summary>
-    /// Class TrailerConfigurationPage
-    /// </summary>
-    class TrailerConfigurationPage : IPluginConfigurationPage
+    class ConfigPage : IPluginConfigurationPage
     {
         /// <summary>
-        /// Gets the name.
+        /// Gets My Option.
         /// </summary>
-        /// <value>The name.</value>
+        /// <value>The Option.</value>
         public string Name
         {
-            get { return "Trailers"; }
+            get { return Plugin.Name; }
         }
 
         /// <summary>
@@ -24,7 +21,7 @@ namespace MediaBrowser.Plugins.LocalTrailers.Configuration
         /// <returns>Stream.</returns>
         public Stream GetHtmlStream()
         {
-            return GetType().Assembly.GetManifestResourceStream("MediaBrowser.Plugins.LocalTrailers.Configuration.configPage.html");
+            return GetType().Assembly.GetManifestResourceStream(GetType().Namespace + ".config.html");
         }
 
         /// <summary>
@@ -38,7 +35,7 @@ namespace MediaBrowser.Plugins.LocalTrailers.Configuration
 
         public IPlugin Plugin
         {
-            get { return LocalTrailers.Plugin.Instance; }
+            get { return WindowsLiveTiles.Plugin.Instance; }
         }
     }
 }

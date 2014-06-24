@@ -5,6 +5,7 @@ using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Entities;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Security;
 using System.Text;
@@ -64,24 +65,12 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                     string.IsNullOrEmpty(_config.Configuration.PreferredMetadataLanguage) ? "en" : _config.Configuration.PreferredMetadataLanguage);
             }
 
-            var imdb = item.GetProviderId(MetadataProviders.Imdb);
-
-            if (!string.IsNullOrEmpty(imdb))
-            {
-                builder.Append("<imdb_id>" + SecurityElement.Escape(imdb) + "</imdb_id>");
-            }
-
             builder.Append("<season>-1</season>");
             builder.Append("<episode>-1</episode>");
 
             if (series.Status.HasValue)
             {
                 builder.Append("<status>" + SecurityElement.Escape(series.Status.Value.ToString()) + "</status>");
-            }
-
-            if (series.Studios.Count > 0)
-            {
-                builder.Append("<studio>" + SecurityElement.Escape(series.Studios[0]) + "</studio>");
             }
 
             if (!string.IsNullOrEmpty(series.AirTime))
@@ -97,6 +86,11 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             {
                 builder.Append("<airs_dayofweek>" + SecurityElement.Escape(series.AirDays[0].ToString()) + "</airs_dayofweek>");
             }
+
+            if (series.AnimeSeriesIndex.HasValue)
+            {
+                builder.Append("<animeseriesindex>" + SecurityElement.Escape(series.AnimeSeriesIndex.Value.ToString(CultureInfo.InvariantCulture)) + "</animeseriesindex>");
+            }
             
             builder.Append("</tvshow>");
 
@@ -104,14 +98,14 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             XmlSaverHelpers.Save(builder, xmlFilePath, new List<string>
                 {
-                    "imdb_id",
+                    "id",
+                    "episodeguide",
                     "season",
                     "episode",
                     "status",
-                    "studio",
                     "airs_time",
                     "airs_dayofweek",
-                    "episodeguide"
+                    "animeseriesindex"
                 });
         }
 

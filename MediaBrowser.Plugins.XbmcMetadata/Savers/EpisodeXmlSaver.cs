@@ -3,7 +3,6 @@ using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Persistence;
 using MediaBrowser.Model.Entities;
 using System.Collections.Generic;
 using System.Globalization;
@@ -19,19 +18,17 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
         private readonly ILibraryManager _libraryManager;
         private readonly IUserManager _userManager;
         private readonly IUserDataManager _userDataRepo;
-        private readonly IItemRepository _itemRepo;
 
         private readonly CultureInfo _usCulture = new CultureInfo("en-US");
 
         private readonly IFileSystem _fileSystem;
         private readonly IServerConfigurationManager _config;
 
-        public EpisodeXmlSaver(ILibraryManager libraryManager, IUserManager userManager, IUserDataManager userDataRepo, IItemRepository itemRepo, IFileSystem fileSystem, IServerConfigurationManager config)
+        public EpisodeXmlSaver(ILibraryManager libraryManager, IUserManager userManager, IUserDataManager userDataRepo, IFileSystem fileSystem, IServerConfigurationManager config)
         {
             _libraryManager = libraryManager;
             _userManager = userManager;
             _userDataRepo = userDataRepo;
-            _itemRepo = itemRepo;
             _fileSystem = fileSystem;
             _config = config;
         }
@@ -64,6 +61,11 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 builder.Append("<episode>" + episode.IndexNumber.Value.ToString(_usCulture) + "</episode>");
             }
 
+            if (episode.IndexNumberEnd.HasValue)
+            {
+                builder.Append("<episodenumberend>" + SecurityElement.Escape(episode.IndexNumberEnd.Value.ToString(_usCulture)) + "</episodenumberend>");
+            }
+            
             if (episode.ParentIndexNumber.HasValue)
             {
                 builder.Append("<season>" + episode.ParentIndexNumber.Value.ToString(_usCulture) + "</season>");
@@ -104,7 +106,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                 builder.Append("<absolute_number>" + SecurityElement.Escape(episode.AbsoluteEpisodeNumber.Value.ToString(_usCulture)) + "</absolute_number>");
             }
             
-            XmlSaverHelpers.AddMediaInfo((Episode)item, _itemRepo, builder);
+            XmlSaverHelpers.AddMediaInfo((Episode)item, builder);
 
             builder.Append("</episodedetails>");
 
@@ -115,6 +117,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                     "aired",
                     "season",
                     "episode",
+                    "episodenumberend",
                     "airsafter_season",
                     "airsbefore_episode",
                     "airsbefore_season",

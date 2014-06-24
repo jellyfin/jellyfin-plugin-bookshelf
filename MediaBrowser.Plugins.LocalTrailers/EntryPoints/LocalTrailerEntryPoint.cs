@@ -78,11 +78,6 @@ namespace MediaBrowser.Plugins.LocalTrailers.EntryPoints
               .Take(5)
               .ToList();
 
-            if (items.Count == 0 || !Plugin.Instance.Configuration.EnableLocalTrailerDownloads)
-            {
-                return;
-            }
-
             foreach (var item in items)
             {
                 try

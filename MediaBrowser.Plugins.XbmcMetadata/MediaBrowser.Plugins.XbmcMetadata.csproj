@@ -32,17 +32,17 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="MediaBrowser.Common, Version=3.0.5267.16996, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="MediaBrowser.Common, Version=3.0.5287.41950, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\MediaBrowser.Common.3.0.394\lib\net45\MediaBrowser.Common.dll</HintPath>
+      <HintPath>..\packages\MediaBrowser.Common.3.0.411\lib\net45\MediaBrowser.Common.dll</HintPath>
     </Reference>
-    <Reference Include="MediaBrowser.Controller, Version=3.0.5267.16996, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="MediaBrowser.Controller, Version=3.0.5287.41950, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\MediaBrowser.Server.Core.3.0.394\lib\net45\MediaBrowser.Controller.dll</HintPath>
+      <HintPath>..\packages\MediaBrowser.Server.Core.3.0.411\lib\net45\MediaBrowser.Controller.dll</HintPath>
     </Reference>
-    <Reference Include="MediaBrowser.Model, Version=3.0.5267.16995, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="MediaBrowser.Model, Version=3.0.5287.41949, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\MediaBrowser.Common.3.0.394\lib\net45\MediaBrowser.Model.dll</HintPath>
+      <HintPath>..\packages\MediaBrowser.Common.3.0.411\lib\net45\MediaBrowser.Model.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -60,8 +60,21 @@
     <Compile Include="Configuration\PluginConfiguration.cs" />
     <Compile Include="Configuration\ConfigurationPage.cs" />
     <Compile Include="EntryPoint.cs" />
+    <Compile Include="Parsers\BaseNfoParser.cs" />
+    <Compile Include="Parsers\EpisodeNfoParser.cs" />
+    <Compile Include="Parsers\MovieNfoParser.cs" />
+    <Compile Include="Parsers\SeasonNfoParser.cs" />
+    <Compile Include="Parsers\SeriesNfoParser.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Providers\AlbumNfoProvider.cs" />
+    <Compile Include="Providers\ArtistNfoProvider.cs" />
+    <Compile Include="Providers\BaseNfoProvider.cs" />
+    <Compile Include="Providers\BaseVideoNfoProvider.cs" />
+    <Compile Include="Providers\EpisodeNfoProvider.cs" />
+    <Compile Include="Providers\MovieNfoProvider.cs" />
+    <Compile Include="Providers\SeasonNfoProvider.cs" />
+    <Compile Include="Providers\SeriesNfoProvider.cs" />
     <Compile Include="Savers\AlbumXmlSaver.cs" />
     <Compile Include="Savers\ArtistXmlSaver.cs" />
     <Compile Include="Savers\EpisodeXmlSaver.cs" />
