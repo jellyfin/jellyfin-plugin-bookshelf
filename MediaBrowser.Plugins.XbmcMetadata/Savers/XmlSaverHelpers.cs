@@ -74,6 +74,7 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                     "review",
                     "style",
                     "imdbid",
+                    "imdb_id",
                     "plotkeyword",
                     "country",
                     "audiodbalbumid",
@@ -288,16 +289,16 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                             switch (video.Video3DFormat.Value)
                             {
                                 case Video3DFormat.FullSideBySide:
-                                    builder.Append("<3DFormat>FSBS</3DFormat>");
+                                    builder.Append("<format3d>FSBS</format3d>");
                                     break;
                                 case Video3DFormat.FullTopAndBottom:
-                                    builder.Append("<3DFormat>FTAB</3DFormat>");
+                                    builder.Append("<format3d>FTAB</format3d>");
                                     break;
                                 case Video3DFormat.HalfSideBySide:
-                                    builder.Append("<3DFormat>HSBS</3DFormat>");
+                                    builder.Append("<format3d>HSBS</format3d>");
                                     break;
                                 case Video3DFormat.HalfTopAndBottom:
-                                    builder.Append("<3DFormat>HTAB</3DFormat>");
+                                    builder.Append("<format3d>HTAB</format3d>");
                                     break;
                             }
                         }
@@ -332,6 +333,19 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             else
             {
                 builder.Append("<plot><![CDATA[" + overview + "]]></plot>");
+            }
+
+            var hasShortOverview = item as IHasShortOverview;
+            if (hasShortOverview != null)
+            {
+                var outline = (hasShortOverview.ShortOverview ?? string.Empty)
+                    .StripHtml()
+                    .Replace("&quot;", "'");
+
+                builder.Append("<outline><![CDATA[" + outline + "]]></outline>");
+            }
+            else
+            {
                 builder.Append("<outline><![CDATA[" + overview + "]]></outline>");
             }
 
@@ -446,7 +460,14 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             var imdb = item.GetProviderId(MetadataProviders.Imdb);
             if (!string.IsNullOrEmpty(imdb))
             {
-                builder.Append("<imdbid>" + SecurityElement.Escape(imdb) + "</imdbid>");
+                if (item is Series)
+                {
+                    builder.Append("<imdb_id>" + SecurityElement.Escape(imdb) + "</imdb_id>");
+                }
+                else
+                {
+                    builder.Append("<imdbid>" + SecurityElement.Escape(imdb) + "</imdbid>");
+                }
             }
 
             // Series xml saver already saves this
@@ -822,8 +843,9 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
             foreach (var person in actors)
             {
                 builder.Append("<actor>");
-                builder.Append("<name>" + SecurityElement.Escape(person.Name) + "</name>");
-                builder.Append("<role>" + SecurityElement.Escape(person.Role) + "</role>");
+                builder.Append("<name>" + SecurityElement.Escape(person.Name ?? string.Empty) + "</name>");
+                builder.Append("<role>" + SecurityElement.Escape(person.Role ?? string.Empty) + "</role>");
+                builder.Append("<type>" + SecurityElement.Escape(person.Type ?? string.Empty) + "</type>");
 
                 try
                 {

@@ -1,11 +1,11 @@
-﻿using System.Globalization;
-using MediaBrowser.Common.IO;
+﻿using MediaBrowser.Common.IO;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Entities;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Security;
 using System.Text;
@@ -65,13 +65,6 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
                     string.IsNullOrEmpty(_config.Configuration.PreferredMetadataLanguage) ? "en" : _config.Configuration.PreferredMetadataLanguage);
             }
 
-            var imdb = item.GetProviderId(MetadataProviders.Imdb);
-
-            if (!string.IsNullOrEmpty(imdb))
-            {
-                builder.Append("<imdb_id>" + SecurityElement.Escape(imdb) + "</imdb_id>");
-            }
-
             builder.Append("<season>-1</season>");
             builder.Append("<episode>-1</episode>");
 
@@ -105,13 +98,13 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
             XmlSaverHelpers.Save(builder, xmlFilePath, new List<string>
                 {
-                    "imdb_id",
+                    "id",
+                    "episodeguide",
                     "season",
                     "episode",
                     "status",
                     "airs_time",
                     "airs_dayofweek",
-                    "episodeguide",
                     "animeseriesindex"
                 });
         }

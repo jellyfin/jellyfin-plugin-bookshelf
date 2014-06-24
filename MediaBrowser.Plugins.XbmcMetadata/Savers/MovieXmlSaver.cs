@@ -41,6 +41,11 @@ namespace MediaBrowser.Plugins.XbmcMetadata.Savers
 
         public string GetSavePath(IHasMetadata item)
         {
+            return GetMovieSavePath(item);
+        }
+
+        public static string GetMovieSavePath(IHasMetadata item)
+        {
             var video = (Video)item;
 
             if (video.VideoType == VideoType.Dvd || video.VideoType == VideoType.BluRay || video.VideoType == VideoType.HdDvd)
