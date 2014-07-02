@@ -1,49 +1,39 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-    <title>Pushover Notifications</title>
+    <title>PushBullet Notifications</title>
 </head>
 <body>
-    <div data-role="page" class="page type-interior pluginConfigurationPage pushOverConfigurationPage">
+    <div data-role="page" class="page type-interior pluginConfigurationPage pushBulletConfigurationPage">
 
         <div data-role="content">
             <div class="content-primary">
-                <form class="pushOverConfigurationForm">
-                    <p>To use Pushover register an application at <a href="https://pushover.net/">pushover.net</a></p>
+                <form class="pushBulletConfigurationForm">
                     <ul class="ulForm" data-role="listview">
                         <li>
-                            <label for="selectUser">Configure Pushover notifications for:</label>
+                            <label for="selectUser">Configure PushBullet notifications for:</label>
                             <select id="selectUser" data-mini="true"></select>
                         </li>
                         <li>
-                            <label for="chkEnablePushOver">Enabled</label>
-                            <input type="checkbox" id="chkEnablePushOver" data-mini="true" />
+                            <label for="chkEnablePushBullet">Enabled</label>
+                            <input type="checkbox" id="chkEnablePushBullet" data-mini="true" />
                         </li>
                         <li>
-                            <label for="txtPushOverAuthKey">
-                                Pushover Auth Token:
+                            <label for="txtPushBulletAuthKey">
+                                PushBullet Auth Token:
                             </label>
-                            <input type="text" id="txtPushOverAuthKey" name="txtPushOverAuthKey" required="required" data-mini="true" />
+                            <input type="text" id="txtPushBulletAuthKey" name="txtPushBulletAuthKey" required="required" data-mini="true" />
                             <div class="fieldDescription">
                                 Auth key for your application
                             </div>
                         </li>
                         <li>
-                            <label for="txtPushOverUserKey">
-                                Pushover User Key:
+                            <label for="txtPushBulletDeviceId">
+                                PushBullet Device Id:
                             </label>
-                            <input type="text" id="txtPushOverUserKey" name="txtPushOverUserKey" required="required" data-mini="true" />
+                            <input type="text" id="txtPushBulletDeviceId" name="txtPushBulletDeviceId" data-mini="true" />
                             <div class="fieldDescription">
-                                User key for your application
-                            </div>
-                        </li>
-                        <li>
-                            <label for="txtPushOverDeviceName">
-                                Pushover Device Name:
-                            </label>
-                            <input type="text" id="txtPushOverDeviceName" name="txtPushOverDeviceName" data-mini="true" />
-                            <div class="fieldDescription">
-                                Device Name for application
+                                Device Identification
                             </div>
                         </li>
                         <li><button type="button" id="testNotification" data-mini="true">Test Notification</button></li>
@@ -61,7 +51,7 @@
 
             (function () {
 
-                var pluginId = "6C3B6965-C257-47C2-AA02-64457AE21D91";
+                var pluginId = "DE228F12-E43E-4BD9-9fC0-2830819C3B92";
 
                 $('#testNotification').on('click', function (event) {
 
@@ -73,7 +63,7 @@
 
                             $.ajax({
                                 type: "POST",
-                                url: ApiClient.getUrl("Notification/Pushover/Test/" + c.MediaBrowserUserId)
+                                url: ApiClient.getUrl("Notification/PushBullet/Test/" + c.MediaBrowserUserId)
 
                             }).done(function () {
                                 Dashboard.hideLoadingMsg();
@@ -88,22 +78,21 @@
 
                     ApiClient.getPluginConfiguration(pluginId).done(function (config) {
 
-                        var pushOverConfig = config.Options.filter(function (c) {
+                        var pushBulletConfig = config.Options.filter(function (c) {
 
                             return userId == c.MediaBrowserUserId;
 
                         })[0] || {};
 
-                        $('#chkEnablePushOver', page).checked(pushOverConfig.Enabled || false).checkboxradio("refresh");
-                        $('#txtPushOverAuthKey', page).val(pushOverConfig.Token || '');
-                        $('#txtPushOverUserKey', page).val(pushOverConfig.UserKey || '');
-                        $('#txtPushOverDeviceName', page).val(pushOverConfig.DeviceName || '');
+                        $('#chkEnablePushBullet', page).checked(pushBulletConfig.Enabled || false).checkboxradio("refresh");
+                        $('#txtPushBulletAuthKey', page).val(pushBulletConfig.Token || '');
+                        $('#txtPushBulletDeviceId', page).val(pushBulletConfig.DeviceId || '');
 
                         Dashboard.hideLoadingMsg();
                     });
                 }
 
-                $('.pushOverConfigurationPage').on('pageinit', function (event) {
+                $('.pushBulletConfigurationPage').on('pageinit', function (event) {
 
                     var page = this;
 
@@ -131,7 +120,7 @@
                     Dashboard.hideLoadingMsg();
                 });
 
-                $('.pushOverConfigurationForm').on('submit', function (e) {
+                $('.pushBulletConfigurationForm').on('submit', function (e) {
 
                     Dashboard.showLoadingMsg();
 
@@ -141,23 +130,22 @@
 
                         var userId = $('#selectUser', form).val();
 
-                        var pushOverConfig = config.Options.filter(function (c) {
+                        var pushBulletConfig = config.Options.filter(function (c) {
 
                             return userId == c.MediaBrowserUserId;
 
                         })[0];
 
-                        if (!pushOverConfig) {
-                            pushOverConfig = {};
-                            config.Options.push(pushOverConfig);
+                        if (!pushBulletConfig) {
+                            pushBulletConfig = {};
+                            config.Options.push(pushBulletConfig);
                         }
 
-                        pushOverConfig.MediaBrowserUserId = userId;
+                        pushBulletConfig.MediaBrowserUserId = userId;
 
-                        pushOverConfig.Enabled = $('#chkEnablePushOver', form).checked();
-                        pushOverConfig.Token = $('#txtPushOverAuthKey', form).val();
-                        pushOverConfig.UserKey = $('#txtPushOverUserKey', form).val();
-                        pushOverConfig.DeviceName = $('#txtPushOverDeviceName', form).val();
+                        pushBulletConfig.Enabled = $('#chkEnablePushBullet', form).checked();
+                        pushBulletConfig.Token = $('#txtPushBulletAuthKey', form).val();
+                        pushBulletConfig.DeviceId = $('#txtPushBulletDeviceId', form).val();
 
                         ApiClient.updatePluginConfiguration(pluginId, config).done(Dashboard.processPluginConfigurationUpdateResult);
                     });

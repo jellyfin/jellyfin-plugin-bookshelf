@@ -4,12 +4,12 @@ using System.Linq;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Net;
 using MediaBrowser.Model.Logging;
-using MediaBrowser.Plugins.PushOverNotifications.Configuration;
+using MediaBrowser.Plugins.PushBulletNotifications.Configuration;
 using ServiceStack;
 
-namespace MediaBrowser.Plugins.PushOverNotifications.Api
+namespace MediaBrowser.Plugins.PushBulletNotifications.Api
 {
-    [Route("/Notification/Pushover/Test/{UserID}", "POST", Summary = "Tests Pushover")]
+    [Route("/Notification/PushBullet/Test/{UserID}", "POST", Summary = "Tests PushBullet")]
     public class TestNotification : IReturnVoid
     {
         [ApiMember(Name = "UserID", Description = "User Id", IsRequired = true, DataType = "string", ParameterType = "path", Verb = "GET")]
@@ -26,7 +26,7 @@ namespace MediaBrowser.Plugins.PushOverNotifications.Api
             _logger = logManager.GetLogger(GetType().Name);
             _httpClient = httpClient;
         }
-        private PushOverOptions GetOptions(String userID)
+        private PushBulletOptions GetOptions(String userID)
         {
             return Plugin.Instance.Configuration.Options
                 .FirstOrDefault(i => string.Equals(i.MediaBrowserUserId, userID, StringComparison.OrdinalIgnoreCase));
@@ -38,15 +38,21 @@ namespace MediaBrowser.Plugins.PushOverNotifications.Api
 
             var parameters = new Dictionary<string, string>
             {
-                {"token", options.Token},
-                {"user", options.UserKey},
+                {"type", "note"},
                 {"title", "Test Notification" },
-                {"message", "This is a test notification from MediaBrowser"}
+                {"body", "This is a test notification from MediaBrowser"}
             };
 
-            _logger.Debug("Pushover <TEST> to {0} - {1}", options.Token, options.UserKey);
+            var _httpRequest = new HttpRequestOptions();
+            //Create Basic HTTP Auth Header...
+            string _cred = string.Format("{0} {1}", "Basic", options.Token);
 
-            return _httpClient.Post(new HttpRequestOptions { Url = "https://api.pushover.net/1/messages.json" }, parameters);
+            _httpRequest.RequestHeaders["Authorization"] = _cred;
+            _httpRequest.Url = "https://api.pushbullet.com/api/pushes";
+
+            _logger.Debug("PushBullet <TEST> to {0} - {1}", options.Token, _cred);
+
+            return _httpClient.Post(_httpRequest, parameters);
         }
     }
 }
