@@ -10,7 +10,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using MediaBrowser.Common.Extensions;
 
 namespace MediaBrowser.Plugins.WindowsLiveTiles.Api
 {
@@ -21,6 +20,7 @@ namespace MediaBrowser.Plugins.WindowsLiveTiles.Api
         public string UserId { get; set; }
     }
 
+    [Route("/browserconfig", "GET", Summary = "Gets live tile configuration xml")]
     [Route("/WindowsLiveTiles/{UserId}/browserconfig", "GET", Summary = "Gets live tile configuration xml")]
     [Route("/WindowsLiveTiles/{UserId}/browserconfig.xml", "GET", Summary = "Gets live tile configuration xml")]
     public class GetBrowserConfig
@@ -69,6 +69,10 @@ namespace MediaBrowser.Plugins.WindowsLiveTiles.Api
 
         public object Get(GetBrowserConfig request)
         {
+            if (string.IsNullOrEmpty(request.UserId))
+            {
+                request.UserId = _userManager.Users.Select(i => i.Id.ToString("N")).First();
+            }
             var xml = GetBrowserConfigXml(request.UserId);
 
             return ResultFactory.GetResult(xml, "text/xml");
@@ -138,8 +142,6 @@ namespace MediaBrowser.Plugins.WindowsLiveTiles.Api
             sb.Append("<meta name=\"application-name\" content=\"Media Browser\" />");
 
             var configEndpoint = "browserconfig.xml";
-            var configUrl = Request.AbsoluteUri
-                .Replace("bookmark", "browserconfig.xml", StringComparison.OrdinalIgnoreCase);
 
             sb.AppendFormat("<meta name=\"msapplication-config\" content=\"{0}\" />", configEndpoint);
             sb.Append("<link rel=\"shortcut icon\" href=\"../images/favicon.ico\" />");
