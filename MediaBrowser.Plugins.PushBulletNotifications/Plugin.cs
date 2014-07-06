@@ -1,13 +1,10 @@
 ﻿using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Serialization;
-using MediaBrowser.Plugins.PushOverNotifications.Configuration;
+using MediaBrowser.Plugins.PushBulletNotifications.Configuration;
 
-namespace MediaBrowser.Plugins.PushOverNotifications
+namespace MediaBrowser.Plugins.PushBulletNotifications
 {
-    /// <summary>
-    /// Class Plugin
-    /// </summary>
     public class Plugin : BasePlugin<PluginConfiguration>
     {
         public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer)
@@ -16,31 +13,19 @@ namespace MediaBrowser.Plugins.PushOverNotifications
             Instance = this;
         }
 
-        /// <summary>
-        /// Gets the name of the plugin
-        /// </summary>
-        /// <value>The name.</value>
         public override string Name
         {
-            get { return "Pushover Notifications"; }
+            get { return "PushBullet Notifications"; }
         }
 
-        /// <summary>
-        /// Gets the description.
-        /// </summary>
-        /// <value>The description.</value>
         public override string Description
         {
             get
             {
-                return "Sends notifications via Pushover Service.";
+                return "Sends notifications via PushBullet Service.";
             }
         }
 
-        /// <summary>
-        /// Gets the instance.
-        /// </summary>
-        /// <value>The instance.</value>
         public static Plugin Instance { get; private set; }
     }
 }

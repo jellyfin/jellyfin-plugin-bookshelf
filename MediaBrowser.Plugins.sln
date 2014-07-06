@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.RottenTomatoes", "MediaBrowser.Plugins.RottenTomatoes\MediaBrowser.Plugins.RottenTomatoes.csproj", "{71BF266C-BFB0-4821-8909-FF21F95A4B49}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.XbmcMetadata", "MediaBrowser.Plugins.XbmcMetadata\MediaBrowser.Plugins.XbmcMetadata.csproj", "{67F2EC37-873B-4381-A8AB-FAE57A94760C}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F17571BB-66D4-4DB5-8EC0-33A76DD5B018}"
 	ProjectSection(SolutionItems) = preProject
 		SharedVersion.cs = SharedVersion.cs
@@ -37,6 +35,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.LocalT
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.WindowsLiveTiles", "MediaBrowser.Plugins.WindowsLiveTiles\MediaBrowser.Plugins.WindowsLiveTiles.csproj", "{50CFC4B0-5B2C-4FA5-B515-7ED2AB060407}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.PushBulletNotifications", "MediaBrowser.Plugins.PushBulletNotifications\MediaBrowser.Plugins.PushBulletNotifications.csproj", "{D3018C1D-19DD-407E-9A44-304E172599D3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,12 +51,6 @@ Global
 		{71BF266C-BFB0-4821-8909-FF21F95A4B49}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{71BF266C-BFB0-4821-8909-FF21F95A4B49}.Release|Any CPU.Build.0 = Release|Any CPU
 		{71BF266C-BFB0-4821-8909-FF21F95A4B49}.Release|x86.ActiveCfg = Release|Any CPU
-		{67F2EC37-873B-4381-A8AB-FAE57A94760C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{67F2EC37-873B-4381-A8AB-FAE57A94760C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{67F2EC37-873B-4381-A8AB-FAE57A94760C}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{67F2EC37-873B-4381-A8AB-FAE57A94760C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{67F2EC37-873B-4381-A8AB-FAE57A94760C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{67F2EC37-873B-4381-A8AB-FAE57A94760C}.Release|x86.ActiveCfg = Release|Any CPU
 		{815AB3F4-6B55-4FC4-9441-9297A3A116CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{815AB3F4-6B55-4FC4-9441-9297A3A116CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{815AB3F4-6B55-4FC4-9441-9297A3A116CB}.Debug|x86.ActiveCfg = Debug|Any CPU
@@ -153,6 +147,12 @@ Global
 		{50CFC4B0-5B2C-4FA5-B515-7ED2AB060407}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{50CFC4B0-5B2C-4FA5-B515-7ED2AB060407}.Release|Any CPU.Build.0 = Release|Any CPU
 		{50CFC4B0-5B2C-4FA5-B515-7ED2AB060407}.Release|x86.ActiveCfg = Release|Any CPU
+		{D3018C1D-19DD-407E-9A44-304E172599D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3018C1D-19DD-407E-9A44-304E172599D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3018C1D-19DD-407E-9A44-304E172599D3}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D3018C1D-19DD-407E-9A44-304E172599D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3018C1D-19DD-407E-9A44-304E172599D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3018C1D-19DD-407E-9A44-304E172599D3}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

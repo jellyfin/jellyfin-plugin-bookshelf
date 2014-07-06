@@ -29,7 +29,7 @@ namespace MediaBrowser.Plugins.PushBulletNotifications
             return options != null && IsValid(options) && options.Enabled;
         }
 
-        private PushOverOptions GetOptions(User user)
+        private PushBulletOptions GetOptions(User user)
         {
             return Plugin.Instance.Configuration.Options
                 .FirstOrDefault(i => string.Equals(i.MediaBrowserUserId, user.Id.ToString("N"), StringComparison.OrdinalIgnoreCase));
@@ -42,34 +42,30 @@ namespace MediaBrowser.Plugins.PushBulletNotifications
 
         public Task SendNotification(UserNotification request, CancellationToken cancellationToken)
         {
+            
             var options = GetOptions(request.User);
 
             var parameters = new Dictionary<string, string>
                 {
-                    {"token", options.Token},
-                    {"user", options.UserKey},
+                    {"device_id", options.DeviceId},
+                    {"type", "note"},
+                    {"title", request.Name},
+                    {"body", request.Description}
                 };
 
-            if (!string.IsNullOrEmpty(options.DeviceName))
-                parameters.Add("device", options.DeviceName);
+            _logger.Debug("PushBullet to Token : {0} - {1} - {2}", options.Token, options.DeviceId, request.Description);
+            var _httpRequest = new HttpRequestOptions();
+            string _cred = string.Format("{0} {1}", "Basic", options.Token);
 
-            if (string.IsNullOrEmpty(request.Description))
-                parameters.Add("message", request.Name);
-            else
-            {
-                parameters.Add("title", request.Name);
-                parameters.Add("message", request.Description);
-            }
+            _httpRequest.RequestHeaders["Authorization"] = _cred;
+            _httpRequest.Url = "https://api.pushbullet.com/api/pushes";
 
-            _logger.Debug("PushOver to Token : {0} - {1} - {2}", options.Token, options.UserKey, request.Description);
-
-            return _httpClient.Post("https://api.pushover.net/1/messages.json", parameters, cancellationToken);
+            return _httpClient.Post(_httpRequest, parameters);
         }
 
-        private bool IsValid(PushOverOptions options)
+        private bool IsValid(PushBulletOptions options)
         {
-            return !string.IsNullOrEmpty(options.UserKey) &&
-                !string.IsNullOrEmpty(options.Token);
+            return !string.IsNullOrEmpty(options.Token);
         }
     }
 }
