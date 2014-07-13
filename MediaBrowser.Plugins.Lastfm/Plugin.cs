@@ -39,7 +39,7 @@ namespace MediaBrowser.Plugins.Lastfm
         {
             get
             {
-                return "Adds last.fm integration";
+                return "Adds last.fm metadata downloading.";
             }
         }
 
