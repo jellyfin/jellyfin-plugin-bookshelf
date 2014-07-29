@@ -21,6 +21,7 @@ namespace MediaBrowser.Plugins.WindowsLiveTiles.Api
     }
 
     [Route("/browserconfig", "GET", Summary = "Gets live tile configuration xml")]
+    [Route("/browserconfig.xml", "GET", Summary = "Gets live tile configuration xml")]
     [Route("/WindowsLiveTiles/{UserId}/browserconfig", "GET", Summary = "Gets live tile configuration xml")]
     [Route("/WindowsLiveTiles/{UserId}/browserconfig.xml", "GET", Summary = "Gets live tile configuration xml")]
     public class GetBrowserConfig
