@@ -3,6 +3,7 @@ using MediaBrowser.Controller.Entities;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Serialization;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -25,11 +26,13 @@ namespace MediaBrowser.Plugins.LocalTrailers.Search
             _json = json;
         }
 
-        public async Task<string> Search(BaseItem item, CancellationToken cancellationToken)
+        public async Task<List<string>> Search(BaseItem item, CancellationToken cancellationToken)
         {
             var imdbId = item.GetProviderId(MetadataProviders.Imdb);
 
             var url = string.Format("http://www.movie-list.com/trailers.php?id={0}", GetSearchName(item));
+
+            var results = new List<string>();
 
             using (var stream = await _httpClient.Get(new HttpRequestOptions
             {
@@ -43,21 +46,57 @@ namespace MediaBrowser.Plugins.LocalTrailers.Search
 
                     if (html.IndexOf(string.Format("imdb.com/title/{0}", imdbId), StringComparison.Ordinal) == -1)
                     {
-                        return null;
+                        return results;
                     }
 
-                    const string pattern = "HREF=\"(?<trailer>(.*?))\\.mov\"";
-
-                    var matches = Regex.Matches(html, pattern, RegexOptions.IgnoreCase);
+                    const string hrefPattern = "HREF=\"(?<trailer>(.*?))\\.mov\"";
+                    var matches = Regex.Matches(html, hrefPattern, RegexOptions.IgnoreCase);
 
                     for (var i = 0; i < matches.Count; i++)
                     {
-                        return WebUtility.HtmlDecode(matches[i].Groups["trailer"].Value + ".mov");
+                        var match = WebUtility.HtmlDecode(matches[i].Groups["trailer"].Value + ".mov");
+
+                        if (!string.IsNullOrEmpty(match))
+                        {
+                            results.Add(match);
+                        }
                     }
+
+                    const string mp4Pattern = "file: \"(?<trailer>(.*?))\\.mp4\"";
+                    matches = Regex.Matches(html, mp4Pattern, RegexOptions.IgnoreCase);
+
+                    for (var i = 0; i < matches.Count; i++)
+                    {
+                        var match = WebUtility.HtmlDecode(matches[i].Groups["trailer"].Value + ".mp4");
+
+                        if (!string.IsNullOrEmpty(match))
+                        {
+                            results.Add(match);
+                        }
+                    }
+
                 }
             }
 
-            return null;
+            return results.OrderBy(i =>
+            {
+                if (i.IndexOf("1080", StringComparison.OrdinalIgnoreCase) != -1)
+                {
+                    return 0;
+                }
+                if (i.IndexOf("720", StringComparison.OrdinalIgnoreCase) != -1)
+                {
+                    return 1;
+                }
+                if (i.IndexOf("480", StringComparison.OrdinalIgnoreCase) != -1)
+                {
+                    return 2;
+                }
+
+                return 3;
+
+            })
+            .ToList();
         }
 
         private string GetSearchName(BaseItem item)

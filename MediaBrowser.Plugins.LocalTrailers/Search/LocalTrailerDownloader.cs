@@ -1,11 +1,11 @@
 ﻿using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.IO;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Resolvers;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -36,13 +36,37 @@ namespace MediaBrowser.Plugins.LocalTrailers.Search
         /// <returns>Task.</returns>
         public async Task DownloadTrailerForItem(BaseItem item, CancellationToken cancellationToken)
         {
-            var url = await GetTrailerUrl(item, cancellationToken).ConfigureAwait(false);
+            var urls = await GetTrailerUrls(item, cancellationToken).ConfigureAwait(false);
 
-            if (string.IsNullOrEmpty(url))
+            await DownloadTrailerForItem(item, urls, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task DownloadTrailerForItem(BaseItem item, IEnumerable<string> urls, CancellationToken cancellationToken)
+        {
+            foreach (var url in urls
+                .Where(i => !string.IsNullOrWhiteSpace(i)))
             {
-                return;
-            }
+                try
+                {
+                    await DownloadTrailerForItem(item, url, cancellationToken).ConfigureAwait(false);
+                }
+                catch (ArgumentException)
+                {
 
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    _logger.ErrorException("Error downloading trailer", ex);
+                }
+            }
+        }
+
+        private async Task DownloadTrailerForItem(BaseItem item, string url, CancellationToken cancellationToken)
+        {
             var responseInfo = await _httpClient.GetTempFileResponse(new HttpRequestOptions
             {
                 Url = url,
@@ -66,7 +90,7 @@ namespace MediaBrowser.Plugins.LocalTrailers.Search
             {
                 _logger.Warn("Unrecognized video extension {0}", savePath);
                 DeleteTempFile(responseInfo);
-                return;
+                throw new ArgumentException();
             }
 
             _libraryMonitor.ReportFileSystemChangeBeginning(savePath);
@@ -114,17 +138,14 @@ namespace MediaBrowser.Plugins.LocalTrailers.Search
         /// <param name="item">The item.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>Task{System.String}.</returns>
-        private async Task<string> GetTrailerUrl(BaseItem item, CancellationToken cancellationToken)
+        private async Task<List<string>> GetTrailerUrls(BaseItem item, CancellationToken cancellationToken)
         {
-            var url = await new MovieListSearch(_httpClient, _json).Search(item, cancellationToken).ConfigureAwait(false) ??
-                await new HdNetTrailerSearch(_httpClient).Search(item, cancellationToken).ConfigureAwait(false);
+            var list = new List<string>();
 
-            if (!string.IsNullOrEmpty(url))
-            {
-                _logger.Info("Found trailer {0} for {1}", url, item.Name);
-            }
+            list.AddRange(await new MovieListSearch(_httpClient, _json).Search(item, cancellationToken).ConfigureAwait(false));
+            list.AddRange(await new HdNetTrailerSearch(_httpClient).Search(item, cancellationToken).ConfigureAwait(false));
 
-            return url;
+            return list;
         }
 
         /// <summary>

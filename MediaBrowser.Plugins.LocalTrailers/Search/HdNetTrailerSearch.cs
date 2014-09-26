@@ -1,6 +1,7 @@
 ﻿using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Entities;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Net;
@@ -25,7 +26,7 @@ namespace MediaBrowser.Plugins.LocalTrailers.Search
             _httpClient = httpClient;
         }
 
-        public async Task<string> Search(BaseItem item, CancellationToken cancellationToken)
+        public async Task<List<string>> Search(BaseItem item, CancellationToken cancellationToken)
         {
             const string urlFormat = "http://www.hd-trailers.net/Library/{0}/";
 
@@ -53,16 +54,18 @@ namespace MediaBrowser.Plugins.LocalTrailers.Search
                     {
                         var url = "http://www.hd-trailers.net" + match.Groups["url"].Value;
 
-                        return await GetTrailerFromPage(url, cancellationToken).ConfigureAwait(false);
+                        return await GetTrailersFromPage(url, cancellationToken).ConfigureAwait(false);
                     }
 
-                    return null;
                 }
             }
+            return new List<string>();
         }
 
-        private async Task<string> GetTrailerFromPage(string url, CancellationToken cancellationToken)
+        private async Task<List<string>> GetTrailersFromPage(string url, CancellationToken cancellationToken)
         {
+            var results = new List<string>();
+
             using (var stream = await _httpClient.Get(new HttpRequestOptions
             {
                 Url = url,
@@ -93,13 +96,13 @@ namespace MediaBrowser.Plugins.LocalTrailers.Search
 
                         if (val.IndexOf("yahoo", StringComparison.OrdinalIgnoreCase) == -1)
                         {
-                            return WebUtility.HtmlDecode(matchCollection[0].Groups["trailer"].Value);
+                            results.Add(WebUtility.HtmlDecode(matchCollection[0].Groups["trailer"].Value));
                         }
                     }
-
-                    return null;
                 }
             }
+
+            return results;
         }
 
         internal static string GetSearchTitle(string name)
