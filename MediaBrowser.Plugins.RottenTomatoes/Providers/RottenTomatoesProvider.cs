@@ -1,5 +1,6 @@
 ﻿using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Net;
+using MediaBrowser.Common.Security;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Library;
@@ -21,7 +22,7 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
     public class RottenTomatoesProvider : ICustomMetadataProvider<Movie>, ICustomMetadataProvider<Trailer>, IHasChangeMonitor
     {
         // http://developer.rottentomatoes.com/iodocs
-        private const int DailyRefreshLimit = 200;
+        private const int DailyRefreshLimit = 300;
         private const string MoviesReviews = @"movies/{1}/reviews.json?review_type=top_critic&page_limit=12&page=1&country=us&apikey={0}";
 
         private readonly string[] _apiKeys =
@@ -53,6 +54,7 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
         private readonly IItemRepository _itemRepo;
         private readonly IApplicationPaths _appPaths;
         private readonly ILogger _logger;
+        private readonly ISecurityManager _security;
 
         private string RequestHistoryPath
         {
@@ -75,13 +77,14 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
             }
         }
 
-        public RottenTomatoesProvider(IApplicationPaths appPaths, ILogger logger, IItemRepository itemRepo, IHttpClient httpClient, IJsonSerializer jsonSerializer)
+        public RottenTomatoesProvider(IApplicationPaths appPaths, ILogger logger, IItemRepository itemRepo, IHttpClient httpClient, IJsonSerializer jsonSerializer, ISecurityManager security)
         {
             _appPaths = appPaths;
             _logger = logger;
             _itemRepo = itemRepo;
             _httpClient = httpClient;
             _jsonSerializer = jsonSerializer;
+            _security = security;
         }
 
         /// <summary>
@@ -256,6 +259,12 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
             // If still empty we can't continue
             if (string.IsNullOrEmpty(item.GetProviderId(RottenTomatoesExternalId.KeyName)))
             {
+                return ItemUpdateType.None;
+            }
+
+            if (!_security.IsMBSupporter)
+            {
+                _logger.Warn("Downloading critic reviews from RottenTomatoes requires a supporter membership.");
                 return ItemUpdateType.None;
             }
 
