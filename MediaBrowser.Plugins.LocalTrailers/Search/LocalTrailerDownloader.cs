@@ -78,8 +78,8 @@ namespace MediaBrowser.Plugins.LocalTrailers.Search
             }
 
             var destination = Directory.Exists(item.Path) ?
-                Path.Combine(item.Path, Path.GetFileNameWithoutExtension(item.Path) + "-trailer.") :
-                Path.Combine(Path.GetDirectoryName(item.Path), Path.GetFileNameWithoutExtension(item.Path) + "-trailer.");
+                Path.Combine(item.Path, Path.GetFileNameWithoutExtension(item.Path) + "-trailer") :
+                Path.Combine(Path.GetDirectoryName(item.Path), Path.GetFileNameWithoutExtension(item.Path) + "-trailer");
 
             _libraryMonitor.ReportFileSystemChangeBeginning(Path.GetDirectoryName(destination)); 
             
