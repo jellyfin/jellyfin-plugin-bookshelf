@@ -1,10 +1,10 @@
-﻿using MediaBrowser.Common.Net;
-using MediaBrowser.Common.ScheduledTasks;
+﻿using MediaBrowser.Common.ScheduledTasks;
+using MediaBrowser.Controller.Channels;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Library;
+using MediaBrowser.Model.Channels;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
-using MediaBrowser.Model.Serialization;
 using MediaBrowser.Plugins.LocalTrailers.Search;
 using System;
 using System.Collections.Generic;
@@ -23,17 +23,15 @@ namespace MediaBrowser.Plugins.LocalTrailers.ScheduledTasks
         /// The _library manager
         /// </summary>
         private readonly ILibraryManager _libraryManager;
-        private readonly IHttpClient _httpClient;
-        private readonly ILibraryMonitor _libraryMonitor;
         private readonly ILogger _logger;
-        private readonly IJsonSerializer _json;
+        private readonly IChannelManager _channelManager;
+        private readonly ILibraryMonitor _libraryMonitor;
 
-        public LocalTrailerDownloadTask(ILibraryManager libraryManager, IHttpClient httpClient, ILogger logger, IJsonSerializer json, ILibraryMonitor libraryMonitor)
+        public LocalTrailerDownloadTask(ILibraryManager libraryManager, ILogger logger, ILibraryMonitor libraryMonitor, IChannelManager channelManager)
         {
             _libraryManager = libraryManager;
-            _httpClient = httpClient;
             _logger = logger;
-            _json = json;
+            _channelManager = channelManager;
             _libraryMonitor = libraryMonitor;
         }
 
@@ -71,11 +69,18 @@ namespace MediaBrowser.Plugins.LocalTrailers.ScheduledTasks
 
             var numComplete = 0;
 
+            var movieProviderIds = new List<MetadataProviders>
+            {
+                MetadataProviders.Imdb,
+                MetadataProviders.Tmdb
+            };
+
             foreach (var item in items)
             {
                 try
                 {
-                    await new LocalTrailerDownloader(_httpClient, _libraryMonitor, _logger, _json).DownloadTrailerForItem(item, cancellationToken).ConfigureAwait(false);
+                    await new LocalTrailerDownloader(_logger, _channelManager, _libraryMonitor)
+                        .DownloadTrailerForItem(item, ChannelMediaContentType.MovieExtra, movieProviderIds, cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {

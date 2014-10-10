@@ -1,9 +1,9 @@
-﻿using MediaBrowser.Common.Net;
+﻿using MediaBrowser.Controller.Channels;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Resolvers;
+using MediaBrowser.Model.Channels;
+using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
-using MediaBrowser.Model.Serialization;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,152 +15,94 @@ namespace MediaBrowser.Plugins.LocalTrailers.Search
 {
     public class LocalTrailerDownloader
     {
-        private readonly IHttpClient _httpClient;
-        private readonly ILibraryMonitor _libraryMonitor;
         private readonly ILogger _logger;
-        private readonly IJsonSerializer _json;
 
-        public LocalTrailerDownloader(IHttpClient httpClient, ILibraryMonitor libraryMonitor, ILogger logger, IJsonSerializer json)
+        private readonly IChannelManager _channelManager;
+        private readonly ILibraryMonitor _libraryMonitor;
+
+        public LocalTrailerDownloader(ILogger logger, IChannelManager channelManager, ILibraryMonitor libraryMonitor)
         {
-            _httpClient = httpClient;
-            _libraryMonitor = libraryMonitor;
             _logger = logger;
-            _json = json;
+            _channelManager = channelManager;
+            _libraryMonitor = libraryMonitor;
         }
 
         /// <summary>
         /// Downloads the trailer for item.
         /// </summary>
         /// <param name="item">The item.</param>
+        /// <param name="contentType">Type of the content.</param>
+        /// <param name="providersToMatch">The providers to match.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>Task.</returns>
-        public async Task DownloadTrailerForItem(BaseItem item, CancellationToken cancellationToken)
+        public async Task DownloadTrailerForItem(BaseItem item, ChannelMediaContentType contentType, List<MetadataProviders> providersToMatch, CancellationToken cancellationToken)
         {
-            var urls = await GetTrailerUrls(item, cancellationToken).ConfigureAwait(false);
+            var providerValues = providersToMatch.Select(item.GetProviderId)
+                .ToList();
 
-            await DownloadTrailerForItem(item, urls, cancellationToken).ConfigureAwait(false);
-        }
-
-        private async Task DownloadTrailerForItem(BaseItem item, IEnumerable<string> urls, CancellationToken cancellationToken)
-        {
-            foreach (var url in urls
-                .Where(i => !string.IsNullOrWhiteSpace(i)))
+            if (providerValues.All(string.IsNullOrWhiteSpace))
             {
-                try
-                {
-                    await DownloadTrailerForItem(item, url, cancellationToken).ConfigureAwait(false);
-                }
-                catch (ArgumentException)
-                {
-
-                }
-                catch (OperationCanceledException)
-                {
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    _logger.ErrorException("Error downloading trailer", ex);
-                }
-            }
-        }
-
-        private async Task DownloadTrailerForItem(BaseItem item, string url, CancellationToken cancellationToken)
-        {
-            var responseInfo = await _httpClient.GetTempFileResponse(new HttpRequestOptions
-            {
-                Url = url,
-                CancellationToken = cancellationToken,
-                Progress = new Progress<double>(),
-                UserAgent = GetUserAgent(url)
-            });
-
-            var extension = responseInfo.ContentType.Split('/').Last();
-
-            if (string.Equals("quicktime", extension, StringComparison.OrdinalIgnoreCase))
-            {
-                extension = "mov";
+                return;
             }
 
-            var savePath = Directory.Exists(item.Path) ?
-                Path.Combine(item.Path, Path.GetFileNameWithoutExtension(item.Path) + "-trailer." + extension) :
-                Path.Combine(Path.GetDirectoryName(item.Path), Path.GetFileNameWithoutExtension(item.Path) + "-trailer." + extension);
-
-            if (!EntityResolutionHelper.IsVideoFile(savePath))
+            var channelTrailers = await _channelManager.GetAllMediaInternal(new AllChannelMediaQuery
             {
-                _logger.Warn("Unrecognized video extension {0}", savePath);
-                DeleteTempFile(responseInfo);
-                throw new ArgumentException();
+                ContentTypes = new[] { contentType },
+                ExtraTypes = new[] { ExtraType.Trailer }
+
+            }, CancellationToken.None);
+
+            var channelItem = channelTrailers
+                .Items
+                .OfType<IChannelMediaItem>()
+                .FirstOrDefault(i =>
+                {
+                    var currentProviderValues = providersToMatch.Select(i.GetProviderId).ToList();
+
+                    var index = 0;
+                    foreach (var val in providerValues)
+                    {
+                        if (!string.IsNullOrWhiteSpace(val) && string.Equals(currentProviderValues[index], val, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return true;
+                        }
+                        index++;
+                    }
+
+                    return false;
+                });
+
+            if (channelItem == null)
+            {
+                return;
             }
 
-            _libraryMonitor.ReportFileSystemChangeBeginning(savePath);
+            var destination = Directory.Exists(item.Path) ?
+                Path.Combine(item.Path, Path.GetFileNameWithoutExtension(item.Path) + "-trailer") :
+                Path.Combine(Path.GetDirectoryName(item.Path), Path.GetFileNameWithoutExtension(item.Path) + "-trailer");
 
-            _logger.Info("Moving {0} to {1}", responseInfo.TempFilePath, savePath);
-
+            _libraryMonitor.ReportFileSystemChangeBeginning(Path.GetDirectoryName(destination)); 
+            
             try
             {
-                var parentPath = Path.GetDirectoryName(savePath);
-
-                if (!Directory.Exists(parentPath))
-                {
-                    Directory.CreateDirectory(parentPath);
-                }
-
-                File.Move(responseInfo.TempFilePath, savePath);
+                await _channelManager.DownloadChannelItem(channelItem, destination, new Progress<double>(), cancellationToken)
+                        .ConfigureAwait(false);
             }
-            catch
+            catch (OperationCanceledException)
             {
-                DeleteTempFile(responseInfo);
-
-                throw;
+            }
+            catch (ChannelDownloadException)
+            {
+                // Logged at lower levels
+            }
+            catch (Exception ex)
+            {
+                _logger.ErrorException("Error downloading channel content for {0}", ex, item.Name);
             }
             finally
             {
-                _libraryMonitor.ReportFileSystemChangeComplete(savePath, true);
+                _libraryMonitor.ReportFileSystemChangeComplete(Path.GetDirectoryName(destination), true);
             }
-        }
-
-        private void DeleteTempFile(HttpResponseInfo response)
-        {
-            try
-            {
-                File.Delete(response.TempFilePath);
-            }
-            catch (IOException ex)
-            {
-                _logger.ErrorException("Error deleting temp file {0}", ex, response.TempFilePath);
-            }
-        }
-
-        /// <summary>
-        /// Gets the trailer URL.
-        /// </summary>
-        /// <param name="item">The item.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>Task{System.String}.</returns>
-        private async Task<List<string>> GetTrailerUrls(BaseItem item, CancellationToken cancellationToken)
-        {
-            var list = new List<string>();
-
-            list.AddRange(await new MovieListSearch(_httpClient, _json).Search(item, cancellationToken).ConfigureAwait(false));
-            list.AddRange(await new HdNetTrailerSearch(_httpClient).Search(item, cancellationToken).ConfigureAwait(false));
-
-            return list;
-        }
-
-        /// <summary>
-        /// Gets the user agent.
-        /// </summary>
-        /// <param name="url">The URL.</param>
-        /// <returns>System.String.</returns>
-        private string GetUserAgent(string url)
-        {
-            if (url.IndexOf("apple.com", StringComparison.OrdinalIgnoreCase) != -1)
-            {
-                return "QuickTime/7.6.2";
-            }
-
-            return "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/29.0.1547.22 Safari/537.36";
         }
     }
 }
