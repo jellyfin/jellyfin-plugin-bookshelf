@@ -76,6 +76,7 @@
     <Compile Include="Configuration\PluginConfiguration.cs" />
     <Compile Include="Configuration\ArgusTvConfigurationPage.cs" />
     <Compile Include="Helpers\GeneralHelpers.cs" />
+    <Compile Include="Helpers\SchedulerHelper.cs" />
     <Compile Include="LiveTvService.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Model.Plugins;
+﻿using System;
+using MediaBrowser.Model.Plugins;
 
 namespace MediaBrowser.Plugins.ArgusTV.Configuration
 {
@@ -9,6 +10,7 @@ namespace MediaBrowser.Plugins.ArgusTV.Configuration
     {
         public string ServerIp { get; set; }
         public int ServerPort { get; set; }
+        public Boolean EnableDebugLogging { get; set; }
         
         /// <summary>
         /// Initializes a new instance of the <see cref="PluginConfiguration" /> class.
@@ -17,6 +19,7 @@ namespace MediaBrowser.Plugins.ArgusTV.Configuration
         {
             ServerIp = "localhost";
             ServerPort = 49943;
+            EnableDebugLogging = false;
         }
     }
 }

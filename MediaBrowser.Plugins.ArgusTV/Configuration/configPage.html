@@ -30,6 +30,11 @@
                             </div>
                         </li>
                         <li>
+                            <label for="chkDebugLogging">Enable ArgusTV debug logging</label>
+                            <input type="checkbox" id="chkDebugLogging" data-mini="true" />
+                        </li>
+
+                        <li>
                             <button type="submit" data-theme="b">Save</button>
                             <button type="button" onclick="history.back();">Cancel</button>
                         </li>
@@ -56,6 +61,8 @@
 
                     $('#txtServerIp', page).val(config.ServerIp || "");
                     $('#txtServerPort', page).val(config.ServerPort || "");
+                    $('#chkDebugLogging', page).checked(config.EnableDebugLogging || false).checkboxradio("refresh");
+
 
 
                     Dashboard.hideLoadingMsg();
@@ -70,8 +77,10 @@
 
                 ApiClient.getPluginConfiguration(ArgusTVConfigurationPage.pluginUniqueId).done(function (config) {
 
-                    config.WebServiceUrl = $('#txtServerIp', form).val();
-                    config.WebServiceUrl = $('#txtServerPort', form).val();
+                    config.ServerIp = $('#txtServerIp', form).val();
+                    config.ServerPort = $('#txtServerPort', form).val();
+                    config.EnableDebugLogging = $('#chkEnablePushOver', form).checked();
+
 
                     ApiClient.updatePluginConfiguration(ArgusTVConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
                 });
