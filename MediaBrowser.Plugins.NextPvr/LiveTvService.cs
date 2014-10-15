@@ -1,7 +1,9 @@
 ﻿using MediaBrowser.Common.Extensions;
 using MediaBrowser.Common.Net;
+using MediaBrowser.Controller.Channels;
 using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.Logging;
+using MediaBrowser.Model.MediaInfo;
 using MediaBrowser.Model.Net;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Plugins.NextPvr.Helpers;
@@ -633,7 +635,7 @@ namespace MediaBrowser.Plugins.NextPvr
             }
         }
 
-        public async Task<LiveStreamInfo> GetChannelStream(string channelOid, CancellationToken cancellationToken)
+        public async Task<ChannelMediaInfo> GetChannelStream(string channelOid, CancellationToken cancellationToken)
         {
             _logger.Debug("[NextPvr] Start ChannelStream");
             var config = Plugin.Instance.Configuration;
@@ -659,10 +661,11 @@ namespace MediaBrowser.Plugins.NextPvr
                     await Task.Delay(20000).ConfigureAwait(false);
                     _logger.Debug("[NextPvr] Finishing wait");
                     _heartBeat.Add(_liveStreams, vlcObj.ProcessId);
-                    return new LiveStreamInfo
+                    return new ChannelMediaInfo
                     {
                         Id = _liveStreams.ToString(CultureInfo.InvariantCulture),
-                        Path = vlcObj.StreamLocation
+                        Path = vlcObj.StreamLocation,
+                        Protocol = MediaProtocol.File
                     };
                 }
             }
@@ -670,16 +673,17 @@ namespace MediaBrowser.Plugins.NextPvr
             {
                 string streamUrl = string.Format("{0}/live?channeloid={1}&client=MB3.{2}", baseUrl, channelOid,_liveStreams.ToString());
                 _logger.Debug("[NextPvr] Streaming " + streamUrl);
-                return new LiveStreamInfo
+                return new ChannelMediaInfo
                 {
                     Id = _liveStreams.ToString(CultureInfo.InvariantCulture),
-                    Url = streamUrl
+                    Path = streamUrl,
+                    Protocol = MediaProtocol.Http
                 };               
             }
             throw new ResourceNotFoundException(string.Format("Could not stream channel {0}", channelOid));            
         }
 
-        public async Task<LiveStreamInfo> GetRecordingStream(string recordingId, CancellationToken cancellationToken)
+        public async Task<ChannelMediaInfo> GetRecordingStream(string recordingId, CancellationToken cancellationToken)
         {
             _logger.Debug("[NextPvr] Start GetRecordingStream");
             var recordings = await GetRecordingsAsync(cancellationToken).ConfigureAwait(false);
@@ -688,18 +692,20 @@ namespace MediaBrowser.Plugins.NextPvr
             if (!string.IsNullOrEmpty(recording.Path) && File.Exists(recording.Path))
             {
                 _logger.Debug("[NextPvr] RecordingPath: {0}", recording.Path);
-                return new LiveStreamInfo
+                return new ChannelMediaInfo
                 {
-                    Path = recording.Path
+                    Path = recording.Path,
+                    Protocol = MediaProtocol.File
                 };
             }
 
             if (!string.IsNullOrEmpty(recording.Url))
             {
                 _logger.Debug("[NextPvr] RecordingUrl: {0}", recording.Url);
-                return new LiveStreamInfo
+                return new ChannelMediaInfo
                 {
-                    Path = recording.Url
+                    Path = recording.Url,
+                    Protocol = MediaProtocol.Http
                 };
             }
 
