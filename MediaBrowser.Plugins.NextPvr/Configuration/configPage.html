@@ -13,7 +13,7 @@
                     <ul class="ulForm" data-role="listview">
                         <li>
                             <label for="txtWebServiceUrl">
-                                NextPvr base url:
+                                NextPVR base url:
                             </label>
                             <input type="text" id="txtWebServiceUrl" name="txtWebServiceUrl" />
                             <div class="fieldDescription">
@@ -29,6 +29,11 @@
                                 NextPVR pin to access the nextpvr backend.
                             </div>
                         </li>
+                        <li>
+                            <label for="chkDebugLogging">Enable NextPVR debug logging</label>
+                            <input type="checkbox" id="chkDebugLogging" data-mini="true" />
+                        </li>
+
                         <li>
                             <button type="submit" data-theme="b">Save</button>
                             <button type="button" onclick="history.back();">Cancel</button>
@@ -56,7 +61,7 @@
 
                     $('#txtWebServiceUrl', page).val(config.WebServiceUrl || "");
                     $('#txtPin', page).val(config.Pin || "");
-
+                    $('#chkDebugLogging', page).checked(config.EnableDebugLogging || false).checkboxradio("refresh");
 
                     Dashboard.hideLoadingMsg();
                 });
@@ -72,6 +77,7 @@
 
                     config.WebServiceUrl = $('#txtWebServiceUrl', form).val();
                     config.Pin = $('#txtPin', form).val();
+                    config.EnableDebugLogging = $('#chkDebugLogging', form).checked();
 
                     ApiClient.updatePluginConfiguration(NextPvrConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
                 });

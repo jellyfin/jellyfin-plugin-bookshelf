@@ -2,6 +2,7 @@
 using System.IO;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
+using MediaBrowser.Plugins.NextPvr.Helpers;
 
 namespace MediaBrowser.Plugins.NextPvr.Responses
 {
@@ -13,7 +14,7 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
 
             if (root.clientKeys != null && root.clientKeys.sid != null && root.clientKeys.salt != null)
             {
-                logger.Debug("[NextPvr] ClientKeys: {0}", json.SerializeToString(root));
+                UtilsHelper.DebugInformation(logger,string.Format("[NextPvr] ClientKeys: {0}", json.SerializeToString(root)));
                 return root.clientKeys;
             }
             logger.Error("[NextPvr] Failed to load the ClientKeys from NextPvr.");
