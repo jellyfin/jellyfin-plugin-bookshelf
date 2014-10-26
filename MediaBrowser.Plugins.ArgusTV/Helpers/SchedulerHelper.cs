@@ -179,7 +179,84 @@ namespace MediaBrowser.Plugins.ArgusTV.Helpers
             }
         }
 
+        public static ScheduleDaysOfWeek GetScheduleDaysOfWeek(List<DayOfWeek> daysOfWeekToRecord)
+        {
+            ScheduleDaysOfWeek daysOfWeek = ScheduleDaysOfWeek.None;
 
+            if (daysOfWeekToRecord.Contains(DayOfWeek.Monday))
+            {
+                daysOfWeek |= ScheduleDaysOfWeek.Mondays;
+            }
+            if (daysOfWeekToRecord.Contains(DayOfWeek.Monday))
+            {
+                daysOfWeek |= ScheduleDaysOfWeek.Tuesdays;
+            }
+            if (daysOfWeekToRecord.Contains(DayOfWeek.Monday))
+            {
+                daysOfWeek |= ScheduleDaysOfWeek.Wednesdays;
+            }
+            if (daysOfWeekToRecord.Contains(DayOfWeek.Monday))
+            {
+                daysOfWeek |= ScheduleDaysOfWeek.Thursdays;
+            }
+            if (daysOfWeekToRecord.Contains(DayOfWeek.Monday))
+            {
+                daysOfWeek |= ScheduleDaysOfWeek.Fridays;
+            }
+            if (daysOfWeekToRecord.Contains(DayOfWeek.Monday))
+            {
+                daysOfWeek |= ScheduleDaysOfWeek.Saturdays;
+            }
+            if (daysOfWeekToRecord.Contains(DayOfWeek.Monday))
+            {
+                daysOfWeek |= ScheduleDaysOfWeek.Sundays;
+            }
+            return daysOfWeek;
+        }
+
+        public static List<DayOfWeek> GetDaysOfWeek(ScheduleDaysOfWeek scheduleDaysOfWeek)
+        {
+            var daysOfWeek = new List<DayOfWeek>();
+
+            if ((scheduleDaysOfWeek & ScheduleDaysOfWeek.Mondays) != 0)
+            {
+                daysOfWeek.Add(DayOfWeek.Monday);
+            }
+
+            if ((scheduleDaysOfWeek & ScheduleDaysOfWeek.Tuesdays) != 0)
+            {
+                daysOfWeek.Add(DayOfWeek.Tuesday);
+            }
+
+            if ((scheduleDaysOfWeek & ScheduleDaysOfWeek.Wednesdays) != 0)
+            {
+                daysOfWeek.Add(DayOfWeek.Wednesday);
+            }
+
+            if ((scheduleDaysOfWeek & ScheduleDaysOfWeek.Thursdays) != 0)
+            {
+                daysOfWeek.Add(DayOfWeek.Thursday);
+            }
+
+            if ((scheduleDaysOfWeek & ScheduleDaysOfWeek.Fridays) != 0)
+            {
+                daysOfWeek.Add(DayOfWeek.Friday);
+            }
+
+            if ((scheduleDaysOfWeek & ScheduleDaysOfWeek.Saturdays) != 0)
+            {
+                daysOfWeek.Add(DayOfWeek.Saturday);
+            }
+
+            if ((scheduleDaysOfWeek & ScheduleDaysOfWeek.Sundays) != 0)
+            {
+                daysOfWeek.Add(DayOfWeek.Sunday);
+            }
+
+            return daysOfWeek;
+        }
+
+        
         //Private methods
         private static string GetTitleRuleExpression(List<ScheduleRule> rules, ScheduleRuleType equalsRule, ScheduleRuleType startsWithRule,
     ScheduleRuleType containsRule, ScheduleRuleType doesNotContainRule, out int typeIndex)
@@ -456,5 +533,6 @@ namespace MediaBrowser.Plugins.ArgusTV.Helpers
         public const int StartsWith = 1;
         public const int Contains = 2;
     }
+
 
 }

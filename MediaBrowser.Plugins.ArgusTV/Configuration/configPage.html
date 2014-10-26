@@ -79,7 +79,7 @@
 
                     config.ServerIp = $('#txtServerIp', form).val();
                     config.ServerPort = $('#txtServerPort', form).val();
-                    config.EnableDebugLogging = $('#chkEnablePushOver', form).checked();
+                    config.EnableDebugLogging = $('#chkDebugLogging', form).checked();
 
 
                     ApiClient.updatePluginConfiguration(ArgusTVConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
