@@ -3,6 +3,7 @@ using System.IO;
 using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
+using MediaBrowser.Plugins.NextPvr.Helpers;
 
 namespace MediaBrowser.Plugins.NextPvr.Responses
 {
@@ -13,7 +14,7 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
         public SeriesTimerInfo GetDefaultTimerInfo(Stream stream, IJsonSerializer json, ILogger logger)
         {
             var root = GetScheduleSettings(stream, json);
-            logger.Debug("[NextPvr] GetDefaultTimerInfo Response: {0}", json.SerializeToString(root));
+            UtilsHelper.DebugInformation(logger,string.Format("[NextPvr] GetDefaultTimerInfo Response: {0}", json.SerializeToString(root)));
 
             return new SeriesTimerInfo
             {

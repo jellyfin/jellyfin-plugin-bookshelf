@@ -6,6 +6,7 @@ using System.Linq;
 using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
+using MediaBrowser.Plugins.NextPvr.Helpers;
 
 namespace MediaBrowser.Plugins.NextPvr.Responses
 {
@@ -31,7 +32,7 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
 
             if (root.channelsJSONObject != null && root.channelsJSONObject.Channels != null)
             {
-                logger.Debug("[NextPvr] ChannelResponse: {0}", json.SerializeToString(root));
+                UtilsHelper.DebugInformation(logger,string.Format("[NextPvr] ChannelResponse: {0}", json.SerializeToString(root)));
                 return root.channelsJSONObject.Channels.Select(i => new ChannelInfo
                 {
                     Name = i.channel.channelName,
