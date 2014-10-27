@@ -171,6 +171,7 @@
     <EmbeddedResource Include="Configuration\configPage.html" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Images\argustv.png" />
     <Content Include="SourceArgus\README.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
