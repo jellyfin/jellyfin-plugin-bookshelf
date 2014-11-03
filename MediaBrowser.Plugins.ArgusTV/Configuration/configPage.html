@@ -30,6 +30,11 @@
                             </div>
                         </li>
                         <li>
+                            <label for="chkTimeschift">Enable Timeschift (Using UNC paths for LiveStreaming)</label>
+                            <input type="checkbox" id="chkTimeschift" data-mini="true" />
+                        </li>
+
+                        <li>
                             <label for="chkDebugLogging">Enable ArgusTV debug logging</label>
                             <input type="checkbox" id="chkDebugLogging" data-mini="true" />
                         </li>
@@ -61,9 +66,8 @@
 
                     $('#txtServerIp', page).val(config.ServerIp || "");
                     $('#txtServerPort', page).val(config.ServerPort || "");
+                    $('#chkTimeschift', page).checked(config.EnableTimeschift || false).checkboxradio("refresh");
                     $('#chkDebugLogging', page).checked(config.EnableDebugLogging || false).checkboxradio("refresh");
-
-
 
                     Dashboard.hideLoadingMsg();
                 });
@@ -79,6 +83,7 @@
 
                     config.ServerIp = $('#txtServerIp', form).val();
                     config.ServerPort = $('#txtServerPort', form).val();
+                    config.EnableTimeshift = $('#chkTimeschift', form).checked();
                     config.EnableDebugLogging = $('#chkDebugLogging', form).checked();
 
 

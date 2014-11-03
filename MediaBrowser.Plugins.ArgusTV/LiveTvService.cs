@@ -1,5 +1,6 @@
 ﻿using System.Data.Odbc;
 using System.Linq;
+using System.Security.Cryptography;
 using ArgusTV.DataContracts;
 using ArgusTV.ServiceProxy;
 using MediaBrowser.Common.Extensions;
@@ -14,7 +15,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
-using Timer = System.Timers.Timer;
+
 
 namespace MediaBrowser.Plugins.ArgusTV
 {
@@ -23,8 +24,8 @@ namespace MediaBrowser.Plugins.ArgusTV
         private readonly ILogger _logger;
         private readonly CultureInfo _usCulture = new CultureInfo("en-US");
         private readonly IJsonSerializer _jsonSerializer;
-        private readonly Timer _liveTvTimer = new Timer(30000);
-
+        private readonly Dictionary<Guid, Guid> _heartBeat = new Dictionary<Guid,Guid>();
+        private Timer _timer;
 
         private bool IsAvailable { get; set; }
 
@@ -39,9 +40,7 @@ namespace MediaBrowser.Plugins.ArgusTV
             IsAvailable = false;
             InitializeServiceChannelFactories();
 
-            _liveTvTimer.Elapsed += LiveStreamKeepAliveEvent;
-            _liveTvTimer.Enabled = true;
-
+            _timer = new Timer(TimerTask, null , 0, 30000);
         }
 
         /// <summary>
@@ -241,35 +240,64 @@ namespace MediaBrowser.Plugins.ArgusTV
                 if (guideChannelId == null) return new List<ProgramInfo>();
                 var programs = Proxies.GuideService.GetChannelProgramsBetween(Guid.Parse(guideChannelId.ToString()), startDateUtc, endDateUtc).Result;
 
-                return programs.Select(program => new ProgramInfo
-                {
-                    ChannelId = channelId,
-                    Id = program.GuideProgramId.ToString(),
-                    Overview = Proxies.GuideService.GetProgramById(program.GuideProgramId).Result.Description,
-                    StartDate = program.StartTimeUtc,
-                    EndDate = program.StopTimeUtc,
-                    Genres = new List<string> { program.Category }, //We only have 1 category
-                    //OriginalAirDate = , //TODO
-                    Name = program.Title,
-                    //OfficialRating = , //TODO
-                    //CommunityRating = , //TODO
-                    EpisodeTitle = program.SubTitle,
-                    //Audio = , //TODO
-                    IsHD = (program.Flags == GuideProgramFlags.HighDefinition),
-                    IsRepeat = program.IsRepeat,
-                    IsSeries = GeneralHelpers.ContainsWord(program.Category, "series", StringComparison.OrdinalIgnoreCase),
-                    //ImageUrl = , //TODO
-                    HasImage = false, //TODO
-                    IsNews = GeneralHelpers.ContainsWord(program.Category, "news", StringComparison.OrdinalIgnoreCase),
-                    //IsMovie = ,
-                    IsKids = GeneralHelpers.ContainsWord(program.Category, "animation", StringComparison.OrdinalIgnoreCase),
-                    IsSports = GeneralHelpers.ContainsWord(program.Category, "sport", StringComparison.OrdinalIgnoreCase) ||
-                                GeneralHelpers.ContainsWord(program.Category, "motor sports", StringComparison.OrdinalIgnoreCase) ||
-                                GeneralHelpers.ContainsWord(program.Category, "football", StringComparison.OrdinalIgnoreCase) ||
-                                GeneralHelpers.ContainsWord(program.Category, "cricket", StringComparison.OrdinalIgnoreCase),
-                    IsPremiere = program.IsPremiere
-                }).ToList();
+                var programList = new List<ProgramInfo>();
 
+                foreach (var guideProgramSummary in programs)
+                {
+                    var program = new ProgramInfo
+                    {
+                        ChannelId = channelId,
+                        Id = guideProgramSummary.GuideProgramId.ToString(),
+                        Overview = Proxies.GuideService.GetProgramById(guideProgramSummary.GuideProgramId).Result.Description,
+                        StartDate = guideProgramSummary.StartTimeUtc,
+                        EndDate = guideProgramSummary.StopTimeUtc,
+                        IsHD = (guideProgramSummary.Flags == GuideProgramFlags.HighDefinition),
+                        IsRepeat = guideProgramSummary.IsRepeat,
+                        IsPremiere = guideProgramSummary.IsPremiere,
+                        HasImage = false, //TODO
+                        //ImageUrl = , //TODO
+                        //IsMovie = ,
+                    };
+
+                    if (!string.IsNullOrEmpty(guideProgramSummary.Title))
+                    {
+                        program.Name = guideProgramSummary.Title;
+                    };
+
+                    if (!string.IsNullOrEmpty(guideProgramSummary.SubTitle))
+                    {
+                        program.EpisodeTitle = guideProgramSummary.SubTitle;
+                    };
+
+
+                    if (!string.IsNullOrEmpty(guideProgramSummary.Category))
+                    {
+                        //We only have 1 category
+                        program.Genres = new List<string>
+                        {
+                            guideProgramSummary.Category
+                        };
+
+                        program.IsSeries = GeneralHelpers.ContainsWord(guideProgramSummary.Category, "series",
+                            StringComparison.OrdinalIgnoreCase);
+                        program.IsNews = GeneralHelpers.ContainsWord(guideProgramSummary.Category, "news",
+                            StringComparison.OrdinalIgnoreCase);
+                        program.IsKids = GeneralHelpers.ContainsWord(guideProgramSummary.Category, "animation",
+                            StringComparison.OrdinalIgnoreCase);
+                        program.IsSports =
+                            GeneralHelpers.ContainsWord(guideProgramSummary.Category, "sport",
+                                StringComparison.OrdinalIgnoreCase) ||
+                            GeneralHelpers.ContainsWord(guideProgramSummary.Category, "motor sports",
+                                StringComparison.OrdinalIgnoreCase) ||
+                            GeneralHelpers.ContainsWord(guideProgramSummary.Category, "football",
+                                StringComparison.OrdinalIgnoreCase) ||
+                            GeneralHelpers.ContainsWord(guideProgramSummary.Category, "cricket",
+                                StringComparison.OrdinalIgnoreCase);
+                    }
+                    programList.Add(program);
+                }
+
+                return programList;
             }
             catch (Exception ex)
             {
@@ -662,6 +690,8 @@ namespace MediaBrowser.Plugins.ArgusTV
         {
             _logger.Info(string.Format("[ArgusTV] Start GetChannelStream Async for ChannelId: {0}", channelOid));
             await EnsureConnectionAsync(cancellationToken);
+            var config = Plugin.Instance.Configuration;
+
 
             try
             {
@@ -672,17 +702,54 @@ namespace MediaBrowser.Plugins.ArgusTV
 
                 if (result.LiveStreamResult == LiveStreamResult.Succeeded)
                 {
-                    _liveTvTimer.Enabled = true;
+                    Guid uniqueId = Guid.NewGuid();
+                    _heartBeat.Add(uniqueId,liveStream.RecorderTunerId);
+                    
+                    if (!config.EnableTimeschift)
+                    {
+                        return new ChannelMediaInfo
+                        {
+                            Id = uniqueId.ToString(),
+                            Path = liveStream.RtspUrl,
+                            Protocol = MediaProtocol.Rtsp,
+                            ReadAtNativeFramerate = true,
+                        };
+                    }
 
+                    //Standard UNC Path
                     return new ChannelMediaInfo
                     {
-                        Id = channelOid,
-                        Path = liveStream.RtspUrl,
-                        Protocol = MediaProtocol.Rtsp,
-                        //Path = liveStream.TimeshiftFile
+                        Id = uniqueId.ToString(),
+                        Protocol = MediaProtocol.File,
+                        Path = liveStream.TimeshiftFile,
+                        Container = "tsbuffer"
                     };
                 }
 
+                if (result.LiveStreamResult == LiveStreamResult.NoFreeCardFound)
+                {
+                    _logger.Error("[ArgusTV] No Free Card Found");
+                }
+
+                if (result.LiveStreamResult == LiveStreamResult.ChannelTuneFailed)
+                {
+                    _logger.Error("[ArgusTV] Channel Tune Failed");
+                }
+
+                if (result.LiveStreamResult == LiveStreamResult.UnknownError)
+                {
+                    _logger.Error("[ArgusTV] Unknown Error");
+                }
+
+                if (result.LiveStreamResult == LiveStreamResult.IsScrambled)
+                {
+                    _logger.Error("[ArgusTV] Is Scrambled");
+                }
+
+                if (result.LiveStreamResult == LiveStreamResult.NotSupported)
+                {
+                    _logger.Error("[ArgusTV] Not Supported");
+                }
             }
             catch (Exception ex)
             {
@@ -703,7 +770,7 @@ namespace MediaBrowser.Plugins.ArgusTV
 
                 return new ChannelMediaInfo
                 {
-                    Id = recordingId,
+                    Id = Guid.NewGuid().ToString(),
                     Path = recording.RecordingFileName,
                     Protocol = MediaProtocol.File,
                     Container = "ts"
@@ -725,12 +792,18 @@ namespace MediaBrowser.Plugins.ArgusTV
             
             try
             {
-                LiveStream runningLiveStream = Proxies.ControlService.GetLiveStreams().Result.Single(l => l.Channel.ChannelId == Guid.Parse(id));
-                Proxies.ControlService.StopLiveStream(runningLiveStream).Wait(cancellationToken);
+                Guid tunerId;
+                 _heartBeat.TryGetValue(Guid.Parse(id), out tunerId);
+                var runningLiveStream = Proxies.ControlService.GetLiveStreams().Result.SingleOrDefault(l => l.RecorderTunerId == tunerId);
+                _heartBeat.Remove(Guid.Parse(id));
+                if (runningLiveStream != null)
+                {
+                    Proxies.ControlService.StopLiveStream(runningLiveStream).Wait(cancellationToken);
+                }
             }
             catch (Exception ex)
             {
-                _logger.ErrorException("[ArgusTV] CloseLiveStream async failed for the stream with Channel/Recording Id: {0}", ex, id);
+                _logger.ErrorException("[ArgusTV] CloseLiveStream async failed for the stream with ChannelId: {0}", ex, id);
             }
         }
 
@@ -759,11 +832,10 @@ namespace MediaBrowser.Plugins.ArgusTV
         public event EventHandler DataSourceChanged;
         public event EventHandler<RecordingStatusChangedEventArgs> RecordingStatusChanged;
 
-        private async void LiveStreamKeepAliveEvent(object sender, System.Timers.ElapsedEventArgs e)
+        public async void TimerTask(object state)
         {
-            UtilsHelper.DebugInformation(_logger,string.Format("[ArgusTV] Start KeepStreamAlive Async"));
             await EnsureConnectionAsync(new CancellationToken());
-            
+
             try
             {
                 var liveStreams = Proxies.ControlService.GetLiveStreams().Result;
@@ -772,9 +844,11 @@ namespace MediaBrowser.Plugins.ArgusTV
                 {
                     foreach (var liveStream in liveStreams)
                     {
-                        _logger.Info(string.Format("[ArgusTV] KeepLiveStreamAlive Start for streamURL: {0} or streamFile: {1}",liveStream.RtspUrl,liveStream.TimeshiftFile));
-                        Proxies.ControlService.KeepLiveStreamAlive(liveStream).Start();
-                        _logger.Info(string.Format("[ArgusTV] KeepLiveStreamAlive End for streamURL: {0} or streamFile: {1}", liveStream.RtspUrl, liveStream.TimeshiftFile));
+                        if (_heartBeat.ContainsValue(liveStream.RecorderTunerId))
+                        {
+                            _logger.Info(string.Format("[ArgusTV] KeepLiveStreamAlive Channel: {0} with streamURL: {1} or streamFile: {2} ", liveStream.Channel.DisplayName, liveStream.RtspUrl, liveStream.TimeshiftFile));
+                            await Proxies.ControlService.KeepLiveStreamAlive(liveStream);
+                        }
                     }
                 }
             }
@@ -783,6 +857,8 @@ namespace MediaBrowser.Plugins.ArgusTV
                 _logger.ErrorException("[ArgusTV] KeepStreamAlive Event failed", ex);
             }
         }
+
+
 
         private List<ScheduleRule> UpdateRules(List<ScheduleRule> rules, TimerInfo timerInfo, SeriesTimerInfo seriesTimerInfo)
         {
