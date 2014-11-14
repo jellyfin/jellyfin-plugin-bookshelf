@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30501.0
+VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.RottenTomatoes", "MediaBrowser.Plugins.RottenTomatoes\MediaBrowser.Plugins.RottenTomatoes.csproj", "{71BF266C-BFB0-4821-8909-FF21F95A4B49}"
 EndProject
@@ -31,8 +31,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.ChapterProviders.ChapterDb", "MediaBrowser.Plugins.ChapterProviders.ChapterDb\MediaBrowser.Plugins.ChapterProviders.ChapterDb.csproj", "{CE0E1B8D-B4A1-44BF-8DD1-E1B1202898AB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.ChapterProviders.TagChimp", "MediaBrowser.Plugins.ChapterProviders.TagChimp\MediaBrowser.Plugins.ChapterProviders.TagChimp.csproj", "{DA5512B5-E109-4F44-BCA0-D6617CE7F791}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.LocalTrailers", "MediaBrowser.Plugins.LocalTrailers\MediaBrowser.Plugins.LocalTrailers.csproj", "{2F4C01E2-7C9F-4F08-922E-27AC4A1D53FF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.WindowsLiveTiles", "MediaBrowser.Plugins.WindowsLiveTiles\MediaBrowser.Plugins.WindowsLiveTiles.csproj", "{50CFC4B0-5B2C-4FA5-B515-7ED2AB060407}"
 EndProject
@@ -120,12 +118,6 @@ Global
 		{DA5512B5-E109-4F44-BCA0-D6617CE7F791}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DA5512B5-E109-4F44-BCA0-D6617CE7F791}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DA5512B5-E109-4F44-BCA0-D6617CE7F791}.Release|x86.ActiveCfg = Release|Any CPU
-		{2F4C01E2-7C9F-4F08-922E-27AC4A1D53FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2F4C01E2-7C9F-4F08-922E-27AC4A1D53FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2F4C01E2-7C9F-4F08-922E-27AC4A1D53FF}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{2F4C01E2-7C9F-4F08-922E-27AC4A1D53FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2F4C01E2-7C9F-4F08-922E-27AC4A1D53FF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2F4C01E2-7C9F-4F08-922E-27AC4A1D53FF}.Release|x86.ActiveCfg = Release|Any CPU
 		{50CFC4B0-5B2C-4FA5-B515-7ED2AB060407}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{50CFC4B0-5B2C-4FA5-B515-7ED2AB060407}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{50CFC4B0-5B2C-4FA5-B515-7ED2AB060407}.Debug|x86.ActiveCfg = Debug|Any CPU
