@@ -7,6 +7,7 @@ using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.LiveTv;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
+using MediaBrowser.Plugins.NextPvr.Helpers;
 
 namespace MediaBrowser.Plugins.NextPvr.Responses
 {
@@ -23,7 +24,7 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
         public IEnumerable<ProgramInfo> GetPrograms(Stream stream, IJsonSerializer json, string channelId, ILogger logger)
         {
             var root = json.DeserializeFromStream<RootObject>(stream);
-            logger.Debug("[NextPvr] GetPrograms Response: {0}",json.SerializeToString(root));
+            UtilsHelper.DebugInformation(logger,string.Format("[NextPvr] GetPrograms Response: {0}",json.SerializeToString(root)));
 
             var listings = root.Guide.Listings;
 

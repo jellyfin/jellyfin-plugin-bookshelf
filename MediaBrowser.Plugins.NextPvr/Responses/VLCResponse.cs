@@ -2,6 +2,7 @@
 using System.IO;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
+using MediaBrowser.Plugins.NextPvr.Helpers;
 
 namespace MediaBrowser.Plugins.NextPvr.Responses
 {
@@ -13,7 +14,7 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
 
             if (root.JSONVlcObject.VLC_Obj != null && root.JSONVlcObject.VLC_Obj.isVlcAvailable == true)
             {
-                logger.Debug("[NextPvr] VLC Response: {0}", json.SerializeToString(root));
+                UtilsHelper.DebugInformation(logger,string.Format("[NextPvr] VLC Response: {0}", json.SerializeToString(root)));
                 return root.JSONVlcObject.VLC_Obj;
             }
             logger.Error("[NextPvr] Failed to load the VLC from NEWA");
@@ -22,7 +23,7 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
         public Rtn GetVLCReturn(Stream stream, IJsonSerializer json, ILogger logger)
         {
             var root = json.DeserializeFromStream<RootObject>(stream);
-            logger.Debug("[NextPvr] VLC Return: {0}", json.SerializeToString(root));
+            UtilsHelper.DebugInformation(logger,string.Format("[NextPvr] VLC Return: {0}", json.SerializeToString(root)));
             return root.JSONVlcObject.rtn;
         }
         public class VLCObj

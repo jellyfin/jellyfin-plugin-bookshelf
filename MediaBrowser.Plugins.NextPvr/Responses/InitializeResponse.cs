@@ -2,6 +2,7 @@
 using System.IO;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
+using MediaBrowser.Plugins.NextPvr.Helpers;
 
 namespace MediaBrowser.Plugins.NextPvr.Responses
 {
@@ -13,7 +14,7 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
 
             if (root.SIDValidation != null)
             {
-                logger.Debug("[NextPvr] Connection validation: {0}", json.SerializeToString(root));
+                UtilsHelper.DebugInformation(logger,string.Format("[NextPvr] Connection validation: {0}", json.SerializeToString(root)));
                 return root.SIDValidation.validated;
             }
             logger.Error("[NextPvr] Failed to validate your connection with NextPvr.");

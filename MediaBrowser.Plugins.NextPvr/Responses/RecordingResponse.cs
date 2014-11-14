@@ -7,6 +7,7 @@ using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.LiveTv;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
+using MediaBrowser.Plugins.NextPvr.Helpers;
 
 namespace MediaBrowser.Plugins.NextPvr.Responses
 {
@@ -29,7 +30,7 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
             }
 
             var root = json.DeserializeFromStream<RootObject>(stream);
-            logger.Debug("[NextPvr] GetRecordings Response: {0}", json.SerializeToString(root));
+            UtilsHelper.DebugInformation(logger,string.Format("[NextPvr] GetRecordings Response: {0}", json.SerializeToString(root)));
 
             return root.ManageResults
                 .EPGEvents
@@ -52,7 +53,7 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
             }
 
             var root = json.DeserializeFromStream<RootObject>(stream);
-            logger.Debug("[NextPvr] GetTimers Response: {0}", json.SerializeToString(root));
+            UtilsHelper.DebugInformation(logger,string.Format("[NextPvr] GetTimers Response: {0}", json.SerializeToString(root)));
 
             return root.ManageResults
                 .EPGEvents
@@ -75,7 +76,7 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
             }
 
             var root = json.DeserializeFromStream<RootObject>(stream);
-            logger.Debug("[NextPvr] GetSeriesTimers Response: {0}", json.SerializeToString(root));
+            UtilsHelper.DebugInformation(logger,string.Format("[NextPvr] GetSeriesTimers Response: {0}", json.SerializeToString(root)));
 
             return root.ManageResults
                 .EPGEvents
@@ -118,8 +119,8 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
                 }
                
                 info.Status = ParseStatus(schd.Status);
-                info.StartDate = DateTime.Parse(schd.StartTime);
-                info.EndDate = DateTime.Parse(schd.EndTime);
+                info.StartDate = DateTime.Parse(schd.StartTime).ToUniversalTime();
+                info.EndDate = DateTime.Parse(schd.EndTime).ToUniversalTime();
 
                 info.IsHD = string.Equals(schd.Quality, "hdtv", StringComparison.OrdinalIgnoreCase);
                 info.ImageUrl = string.IsNullOrEmpty(schd.FanArt) ? null : (_baseUrl + "/" + schd.FanArt);
@@ -177,8 +178,8 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
                 info.ChannelId = schd.ChannelOid.ToString(_usCulture);
                 info.Id = schd.OID.ToString(_usCulture);
                 info.Status = ParseStatus(schd.Status);
-                info.StartDate = DateTime.Parse(schd.StartTime);
-                info.EndDate = DateTime.Parse(schd.EndTime);
+                info.StartDate = DateTime.Parse(schd.StartTime).ToUniversalTime();
+                info.EndDate = DateTime.Parse(schd.EndTime).ToUniversalTime();
 
                 info.PrePaddingSeconds = int.Parse(schd.PrePadding, _usCulture) * 60;
                 info.PostPaddingSeconds = int.Parse(schd.PostPadding, _usCulture) * 60;
@@ -216,8 +217,8 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
 
                 info.Id = recurr.OID.ToString(_usCulture);
 
-                info.StartDate = DateTime.Parse(recurr.StartTime);
-                info.EndDate = DateTime.Parse(recurr.EndTime);
+                info.StartDate = DateTime.Parse(recurr.StartTime).ToUniversalTime();
+                info.EndDate = DateTime.Parse(recurr.EndTime).ToUniversalTime();
 
                 info.PrePaddingSeconds = int.Parse(recurr.PrePadding, _usCulture) * 60;
                 info.PostPaddingSeconds = int.Parse(recurr.PostPadding, _usCulture) * 60;

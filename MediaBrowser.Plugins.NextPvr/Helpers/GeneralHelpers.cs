@@ -1,5 +1,6 @@
 ﻿using MediaBrowser.Model.LiveTv;
 using System;
+using MediaBrowser.Model.Logging;
 
 namespace MediaBrowser.Plugins.NextPvr.Helpers
 {
@@ -24,7 +25,17 @@ namespace MediaBrowser.Plugins.NextPvr.Helpers
 
     public static class UtilsHelper
     {
-        
+        public static void DebugInformation(ILogger logger, string message)
+        {
+            var config = Plugin.Instance.Configuration;
+            bool enableDebugLogging = config.EnableDebugLogging;
+
+            if (enableDebugLogging)
+            {
+                logger.Debug(message);
+            }
+        }
+   
     }
 
     public static class RecordingHelper
