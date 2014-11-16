@@ -1,6 +1,4 @@
-﻿using System.Data.Odbc;
-using System.Linq;
-using System.Security.Cryptography;
+﻿using System.Linq;
 using ArgusTV.DataContracts;
 using ArgusTV.ServiceProxy;
 using MediaBrowser.Common.Extensions;
@@ -24,7 +22,7 @@ namespace MediaBrowser.Plugins.ArgusTV
         private readonly ILogger _logger;
         private readonly CultureInfo _usCulture = new CultureInfo("en-US");
         private readonly IJsonSerializer _jsonSerializer;
-        private readonly Dictionary<Guid, Guid> _heartBeat = new Dictionary<Guid,Guid>();
+        private readonly Dictionary<Guid, Dictionary<Guid,Guid>> _heartBeat = new Dictionary<Guid, Dictionary<Guid, Guid>>();
         private Timer _timer;
 
         private bool IsAvailable { get; set; }
@@ -703,7 +701,12 @@ namespace MediaBrowser.Plugins.ArgusTV
                 if (result.LiveStreamResult == LiveStreamResult.Succeeded)
                 {
                     Guid uniqueId = Guid.NewGuid();
-                    _heartBeat.Add(uniqueId,liveStream.RecorderTunerId);
+                    Dictionary<Guid, Guid> detail = new Dictionary<Guid, Guid>()
+                    {
+                        { Guid.Parse(channelOid), liveStream.RecorderTunerId}
+                    };
+
+                    _heartBeat.Add(uniqueId, detail);
                     
                     if (!config.EnableTimeschift)
                     {
@@ -712,7 +715,7 @@ namespace MediaBrowser.Plugins.ArgusTV
                             Id = uniqueId.ToString(),
                             Path = liveStream.RtspUrl,
                             Protocol = MediaProtocol.Rtsp,
-                            ReadAtNativeFramerate = true,
+                            ReadAtNativeFramerate = false,
                         };
                     }
 
@@ -792,9 +795,10 @@ namespace MediaBrowser.Plugins.ArgusTV
             
             try
             {
-                Guid tunerId;
-                 _heartBeat.TryGetValue(Guid.Parse(id), out tunerId);
-                var runningLiveStream = Proxies.ControlService.GetLiveStreams().Result.SingleOrDefault(l => l.RecorderTunerId == tunerId);
+                Dictionary<Guid, Guid> detail;
+                 _heartBeat.TryGetValue(Guid.Parse(id), out detail);
+
+                var runningLiveStream = Proxies.ControlService.GetLiveStreams().Result.SingleOrDefault(l => l.RecorderTunerId == detail.First().Value && l.Channel.ChannelId == detail.First().Key);
                 _heartBeat.Remove(Guid.Parse(id));
                 if (runningLiveStream != null)
                 {
@@ -844,10 +848,14 @@ namespace MediaBrowser.Plugins.ArgusTV
                 {
                     foreach (var liveStream in liveStreams)
                     {
-                        if (_heartBeat.ContainsValue(liveStream.RecorderTunerId))
+                        foreach (var row in _heartBeat)
                         {
-                            _logger.Info(string.Format("[ArgusTV] KeepLiveStreamAlive Channel: {0} with streamURL: {1} or streamFile: {2} ", liveStream.Channel.DisplayName, liveStream.RtspUrl, liveStream.TimeshiftFile));
-                            await Proxies.ControlService.KeepLiveStreamAlive(liveStream);
+                            if (row.Value.ContainsKey(liveStream.Channel.ChannelId) &&
+                                row.Value.ContainsValue(liveStream.RecorderTunerId))
+                            {
+                                _logger.Info(string.Format("[ArgusTV] KeepLiveStreamAlive Channel: {0} with streamURL: {1} or streamFile: {2} ", liveStream.Channel.DisplayName, liveStream.RtspUrl, liveStream.TimeshiftFile));
+                                await Proxies.ControlService.KeepLiveStreamAlive(liveStream);
+                            }
                         }
                     }
                 }
