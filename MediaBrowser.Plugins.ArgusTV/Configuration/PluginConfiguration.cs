@@ -10,6 +10,7 @@ namespace MediaBrowser.Plugins.ArgusTV.Configuration
     {
         public string ServerIp { get; set; }
         public int ServerPort { get; set; }
+        public Boolean EnableTimeschift { get; set; }
         public Boolean EnableDebugLogging { get; set; }
         
         /// <summary>
@@ -19,6 +20,7 @@ namespace MediaBrowser.Plugins.ArgusTV.Configuration
         {
             ServerIp = "localhost";
             ServerPort = 49943;
+            EnableTimeschift = false;
             EnableDebugLogging = false;
         }
     }

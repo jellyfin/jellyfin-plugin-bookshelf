@@ -14,7 +14,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
-using Timer = System.Timers.Timer;
+
 
 namespace MediaBrowser.Plugins.ArgusTV
 {
@@ -23,8 +23,8 @@ namespace MediaBrowser.Plugins.ArgusTV
         private readonly ILogger _logger;
         private readonly CultureInfo _usCulture = new CultureInfo("en-US");
         private readonly IJsonSerializer _jsonSerializer;
-        private readonly Timer _liveTvTimer = new Timer(30000);
-
+        private readonly Dictionary<Guid, Dictionary<Guid,Guid>> _heartBeat = new Dictionary<Guid, Dictionary<Guid, Guid>>();
+        private Timer _timer;
 
         private bool IsAvailable { get; set; }
 
@@ -39,9 +39,7 @@ namespace MediaBrowser.Plugins.ArgusTV
             IsAvailable = false;
             InitializeServiceChannelFactories();
 
-            _liveTvTimer.Elapsed += LiveStreamKeepAliveEvent;
-            _liveTvTimer.Enabled = true;
-
+            _timer = new Timer(TimerTask, null , 0, 30000);
         }
 
         /// <summary>
@@ -63,19 +61,12 @@ namespace MediaBrowser.Plugins.ArgusTV
                 };
 
                 UtilsHelper.DebugInformation(_logger,string.Format("[ArgusTV] ServerSettings: {0}", _jsonSerializer.SerializeToString(serverSettings)));
-                var isInitialized = Proxies.Initialize(serverSettings);
-                if (isInitialized)
-                {
-                    _logger.Info(string.Format("[ArgusTV] Successful initialized on server {0} with port {1}", serverIp, serverPort));
-                }
-                else
-                {
-                    _logger.Info(string.Format("[ArgusTV] Can't initialize server {0} with port {1}", serverIp, serverPort));
-                }
+                Proxies.Initialize(serverSettings);
+                _logger.Info(string.Format("[ArgusTV] Successful initialized on server {0} with port {1}", serverIp, serverPort));
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("[ArgusTV] It's not possible to initialize a connection to the ArgusTV Server on server {0} with port {1} with exception {2}", serverIp, serverIp, ex.Message));
+                _logger.ErrorException("[ArgusTV] It's not possible to initialize a connection to the ArgusTV Server on server {0} with port {1}", ex, serverIp, serverPort);
             }
 
         }
@@ -101,10 +92,25 @@ namespace MediaBrowser.Plugins.ArgusTV
                 throw new InvalidOperationException("The ArgusTV ServerPort must be configured.");
             }
 
-            if (!IsAvailable)
+            try
             {
-                await CheckStatus(cancellationToken).ConfigureAwait(false);
+                if (!IsAvailable)
+                {
+                    if (!Proxies.IsInitialized)
+                    {
+                        InitializeServiceChannelFactories();
+                    } 
+                    else 
+                    {
+                        await CheckStatus(cancellationToken).ConfigureAwait(false);
+                    }
+                }
             }
+            catch (Exception ex)
+            {
+                _logger.ErrorException("[ArgusTV] It's not possible to Ensure a connection to the ArgusTV Server", ex);
+            }
+
         }
 
         /// <summary>
@@ -136,7 +142,7 @@ namespace MediaBrowser.Plugins.ArgusTV
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("[ArgusTV] Check Status failed with exception: {0}", ex.Message));
+                _logger.ErrorException("[ArgusTV] Check Status failed", ex);
             }
         }
 
@@ -160,7 +166,7 @@ namespace MediaBrowser.Plugins.ArgusTV
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("[ArgusTV] Get Status Information failed with exception: {0}", ex.Message));
+                _logger.ErrorException("[ArgusTV] Get Status Information failed", ex);
             }
 
             //TODO: Get more information
@@ -206,7 +212,7 @@ namespace MediaBrowser.Plugins.ArgusTV
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("[ArgusTV] Get Channels Async failed with exception: {0}", ex.Message));               
+                _logger.ErrorException("[ArgusTV] Get Channels Async failed", ex);   
             }
 
             return channels;
@@ -233,39 +239,68 @@ namespace MediaBrowser.Plugins.ArgusTV
                 if (guideChannelId == null) return new List<ProgramInfo>();
                 var programs = Proxies.GuideService.GetChannelProgramsBetween(Guid.Parse(guideChannelId.ToString()), startDateUtc, endDateUtc).Result;
 
-                return programs.Select(program => new ProgramInfo
-                {
-                    ChannelId = channelId,
-                    Id = program.GuideProgramId.ToString(),
-                    Overview = Proxies.GuideService.GetProgramById(program.GuideProgramId).Result.Description,
-                    StartDate = program.StartTimeUtc,
-                    EndDate = program.StopTimeUtc,
-                    Genres = new List<string> { program.Category }, //We only have 1 category
-                    //OriginalAirDate = , //TODO
-                    Name = program.Title,
-                    //OfficialRating = , //TODO
-                    //CommunityRating = , //TODO
-                    EpisodeTitle = program.SubTitle,
-                    //Audio = , //TODO
-                    IsHD = (program.Flags == GuideProgramFlags.HighDefinition),
-                    IsRepeat = program.IsRepeat,
-                    IsSeries = GeneralHelpers.ContainsWord(program.Category, "series", StringComparison.OrdinalIgnoreCase),
-                    //ImageUrl = , //TODO
-                    HasImage = false, //TODO
-                    IsNews = GeneralHelpers.ContainsWord(program.Category, "news", StringComparison.OrdinalIgnoreCase),
-                    //IsMovie = ,
-                    IsKids = GeneralHelpers.ContainsWord(program.Category, "animation", StringComparison.OrdinalIgnoreCase),
-                    IsSports = GeneralHelpers.ContainsWord(program.Category, "sport", StringComparison.OrdinalIgnoreCase) ||
-                                GeneralHelpers.ContainsWord(program.Category, "motor sports", StringComparison.OrdinalIgnoreCase) ||
-                                GeneralHelpers.ContainsWord(program.Category, "football", StringComparison.OrdinalIgnoreCase) ||
-                                GeneralHelpers.ContainsWord(program.Category, "cricket", StringComparison.OrdinalIgnoreCase),
-                    IsPremiere = program.IsPremiere
-                }).ToList();
+                var programList = new List<ProgramInfo>();
 
+                foreach (var guideProgramSummary in programs)
+                {
+                    var program = new ProgramInfo
+                    {
+                        ChannelId = channelId,
+                        Id = guideProgramSummary.GuideProgramId.ToString(),
+                        Overview = Proxies.GuideService.GetProgramById(guideProgramSummary.GuideProgramId).Result.Description,
+                        StartDate = guideProgramSummary.StartTimeUtc,
+                        EndDate = guideProgramSummary.StopTimeUtc,
+                        IsHD = (guideProgramSummary.Flags == GuideProgramFlags.HighDefinition),
+                        IsRepeat = guideProgramSummary.IsRepeat,
+                        IsPremiere = guideProgramSummary.IsPremiere,
+                        HasImage = false, //TODO
+                        //ImageUrl = , //TODO
+                        //IsMovie = ,
+                    };
+
+                    if (!string.IsNullOrEmpty(guideProgramSummary.Title))
+                    {
+                        program.Name = guideProgramSummary.Title;
+                    };
+
+                    if (!string.IsNullOrEmpty(guideProgramSummary.SubTitle))
+                    {
+                        program.EpisodeTitle = guideProgramSummary.SubTitle;
+                    };
+
+
+                    if (!string.IsNullOrEmpty(guideProgramSummary.Category))
+                    {
+                        //We only have 1 category
+                        program.Genres = new List<string>
+                        {
+                            guideProgramSummary.Category
+                        };
+
+                        program.IsSeries = GeneralHelpers.ContainsWord(guideProgramSummary.Category, "series",
+                            StringComparison.OrdinalIgnoreCase);
+                        program.IsNews = GeneralHelpers.ContainsWord(guideProgramSummary.Category, "news",
+                            StringComparison.OrdinalIgnoreCase);
+                        program.IsKids = GeneralHelpers.ContainsWord(guideProgramSummary.Category, "animation",
+                            StringComparison.OrdinalIgnoreCase);
+                        program.IsSports =
+                            GeneralHelpers.ContainsWord(guideProgramSummary.Category, "sport",
+                                StringComparison.OrdinalIgnoreCase) ||
+                            GeneralHelpers.ContainsWord(guideProgramSummary.Category, "motor sports",
+                                StringComparison.OrdinalIgnoreCase) ||
+                            GeneralHelpers.ContainsWord(guideProgramSummary.Category, "football",
+                                StringComparison.OrdinalIgnoreCase) ||
+                            GeneralHelpers.ContainsWord(guideProgramSummary.Category, "cricket",
+                                StringComparison.OrdinalIgnoreCase);
+                    }
+                    programList.Add(program);
+                }
+
+                return programList;
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("[ArgusTV] Get Programs Async failed with exception: {0}", ex.Message));               
+                _logger.ErrorException("[ArgusTV] Get Programs Async failed", ex);               
             }
 
             return new List<ProgramInfo>();
@@ -289,7 +324,7 @@ namespace MediaBrowser.Plugins.ArgusTV
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("[ArgusTV] It's not possible to cancel the pending recording with recordingId: {0} on the ArgusTV Server with exception {1}", timerId, ex.Message));
+                _logger.ErrorException("[ArgusTV] It's not possible to cancel the pending recording with recordingId: {0} on the ArgusTV Server", ex, timerId);
             }
         }
 
@@ -311,7 +346,7 @@ namespace MediaBrowser.Plugins.ArgusTV
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("[ArgusTV] It's not possible to cancel the pending recording with recordingId: {0} on the ArgusTV Server with exception {1}", timerId, ex.Message));
+                _logger.ErrorException("[ArgusTV] It's not possible to cancel the pending recording with recordingId: {0} on the ArgusTV Server", ex, timerId);
             }
         }
 
@@ -333,7 +368,7 @@ namespace MediaBrowser.Plugins.ArgusTV
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("[ArgusTV] It's not possible to delete the recording with recordingId: {0} on the ArgusTV Server with exception {1}", recordingId, ex.Message));
+                _logger.ErrorException("[ArgusTV] It's not possible to delete the recording with recordingId: {0} on the ArgusTV Server", ex, recordingId);
             }
 
         }
@@ -365,7 +400,7 @@ namespace MediaBrowser.Plugins.ArgusTV
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("[ArgusTV] CreateTimer async for ChannelId: {0} & Name: {1} with exception: {2}", info.ChannelId, info.Name, ex.Message));
+                _logger.ErrorException("[ArgusTV] CreateTimer async for ChannelId: {0} & Name: {1}", ex, info.ChannelId, info.Name);
                 throw new LiveTvConflictException();
             }
         }
@@ -405,7 +440,7 @@ namespace MediaBrowser.Plugins.ArgusTV
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("[ArgusTV] CreateSeriesTimer async for ChannelId: {0} & Name: {1} with exception: {2}", info.ChannelId, info.Name, ex.Message));
+                _logger.ErrorException("[ArgusTV] CreateSeriesTimer async for ChannelId: {0} & Name: {1}", ex, info.ChannelId, info.Name);
                 throw new LiveTvConflictException();
             }
         }
@@ -437,7 +472,7 @@ namespace MediaBrowser.Plugins.ArgusTV
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("[ArgusTV] UpdateTimer async for ChannelId: {0} & Name: {1} with exception: {2}", info.ChannelId, info.Name, ex.Message));
+                _logger.ErrorException("[ArgusTV] UpdateTimer async for ChannelId: {0} & Name: {1}", ex, info.ChannelId, info.Name);
                 throw new LiveTvConflictException();
             }
         }
@@ -471,7 +506,7 @@ namespace MediaBrowser.Plugins.ArgusTV
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("[ArgusTV] UpdateSeriesTimer async for ChannelId: {0} & Name: {1} with exception: {2}", info.ChannelId, info.Name, ex.Message));
+                _logger.ErrorException("[ArgusTV] UpdateSeriesTimer async for ChannelId: {0} & Name: {1}", ex, info.ChannelId, info.Name);
                 throw new LiveTvConflictException();
             }
 
@@ -506,28 +541,36 @@ namespace MediaBrowser.Plugins.ArgusTV
             await EnsureConnectionAsync(cancellationToken);
             List<RecordingInfo> timerInfos = new List<RecordingInfo>();
 
-            var allRecordingGroups = Proxies.ControlService.GetAllRecordingGroups(ChannelType.Television, RecordingGroupMode.GroupByChannel).Result;
-
-            var channels = (from allRecordingGroup in allRecordingGroups
-                select allRecordingGroup.ChannelId).Distinct();
-
-
-            foreach (var channel in channels)
+            try
             {
-                timerInfos.AddRange(
-                    Proxies.ControlService.GetFullRecordings(ChannelType.Television, null, null, null, channel)
-                        .Result.Select(recording => new RecordingInfo
-                        {
-                            Id = recording.RecordingId.ToString(),
-                            ChannelId = recording.ChannelId.ToString(),
-                            Name = recording.Title,
-                            Overview = recording.Description,
-                            StartDate = recording.ProgramStartTimeUtc,
-                            EndDate = recording.ProgramStopTimeUtc
-                        }));
+                var allRecordingGroups = Proxies.ControlService.GetAllRecordingGroups(ChannelType.Television, RecordingGroupMode.GroupByChannel).Result;
+
+                var channels = (from allRecordingGroup in allRecordingGroups
+                                select allRecordingGroup.ChannelId).Distinct();
+
+
+                foreach (var channel in channels)
+                {
+                    timerInfos.AddRange(
+                        Proxies.ControlService.GetFullRecordings(ChannelType.Television, null, null, null, channel)
+                            .Result.Select(recording => new RecordingInfo
+                            {
+                                Id = recording.RecordingId.ToString(),
+                                ChannelId = recording.ChannelId.ToString(),
+                                Name = recording.Title,
+                                Overview = recording.Description,
+                                StartDate = recording.ProgramStartTimeUtc,
+                                EndDate = recording.ProgramStopTimeUtc
+                            }));
+                }
+
+                UtilsHelper.DebugInformation(_logger, string.Format("[ArgusTV] GetRecordings with the following RecordingInfo: {0}", _jsonSerializer.SerializeToString(timerInfos)));
+            }
+            catch (Exception ex)
+            {
+                _logger.ErrorException("[ArgusTV] GetRecordings async failed", ex);
             }
 
-            UtilsHelper.DebugInformation(_logger, string.Format("[ArgusTV] GetRecordings with the following RecordingInfo: {0}", _jsonSerializer.SerializeToString(timerInfos)));
             return timerInfos;
         }
 
@@ -542,23 +585,32 @@ namespace MediaBrowser.Plugins.ArgusTV
             await EnsureConnectionAsync(cancellationToken);
             List<TimerInfo> timerInfos = new List<TimerInfo>();
 
-            foreach (UpcomingRecording upcomingRecording in Proxies.ControlService.GetAllUpcomingRecordings(UpcomingRecordingsFilter.Recordings).Result)
+            try
             {
-                timerInfos.Add(new TimerInfo
+                foreach (UpcomingRecording upcomingRecording in Proxies.ControlService.GetAllUpcomingRecordings(UpcomingRecordingsFilter.Recordings).Result)
                 {
-                    Id = upcomingRecording.Program.ScheduleId.ToString(),
-                    ChannelId = upcomingRecording.Program.Channel.ChannelId.ToString(),
-                    Name = upcomingRecording.Title,
-                    Overview = Proxies.GuideService.GetProgramById(Guid.Parse(upcomingRecording.Program.GuideProgramId.ToString())).Result.Description,
-                    StartDate = upcomingRecording.ActualStartTimeUtc,
-                    ProgramId = upcomingRecording.Program.GuideProgramId.ToString(),
-                    EndDate = upcomingRecording.ActualStopTimeUtc,
-                    PostPaddingSeconds = upcomingRecording.Program.PostRecordSeconds,
-                    PrePaddingSeconds = upcomingRecording.Program.PreRecordSeconds,
-                });
+                    timerInfos.Add(new TimerInfo
+                    {
+                        Id = upcomingRecording.Program.ScheduleId.ToString(),
+                        ChannelId = upcomingRecording.Program.Channel.ChannelId.ToString(),
+                        Name = upcomingRecording.Title,
+                        Overview = Proxies.GuideService.GetProgramById(Guid.Parse(upcomingRecording.Program.GuideProgramId.ToString())).Result.Description,
+                        StartDate = upcomingRecording.ActualStartTimeUtc,
+                        ProgramId = upcomingRecording.Program.GuideProgramId.ToString(),
+                        EndDate = upcomingRecording.ActualStopTimeUtc,
+                        PostPaddingSeconds = upcomingRecording.Program.PostRecordSeconds,
+                        PrePaddingSeconds = upcomingRecording.Program.PreRecordSeconds,
+                    });
+                }
+
+                UtilsHelper.DebugInformation(_logger, string.Format("[ArgusTV] GetTimers with the following TimerInfo: {0}", _jsonSerializer.SerializeToString(timerInfos)));
+
+            }
+            catch (Exception ex)
+            {
+                _logger.ErrorException("[ArgusTV] GetTimers async failed", ex);
             }
 
-            UtilsHelper.DebugInformation(_logger, string.Format("[ArgusTV] GetTimers with the following TimerInfo: {0}", _jsonSerializer.SerializeToString(timerInfos)));
             return timerInfos;
         }
 
@@ -625,7 +677,7 @@ namespace MediaBrowser.Plugins.ArgusTV
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("[ArgusTV] GetSeriesTimers async with exception: {0}", ex.Message));
+                _logger.ErrorException("[ArgusTV] GetSeriesTimers async failed", ex);
                 throw new LiveTvConflictException();
             }
 
@@ -637,6 +689,8 @@ namespace MediaBrowser.Plugins.ArgusTV
         {
             _logger.Info(string.Format("[ArgusTV] Start GetChannelStream Async for ChannelId: {0}", channelOid));
             await EnsureConnectionAsync(cancellationToken);
+            var config = Plugin.Instance.Configuration;
+
 
             try
             {
@@ -647,21 +701,63 @@ namespace MediaBrowser.Plugins.ArgusTV
 
                 if (result.LiveStreamResult == LiveStreamResult.Succeeded)
                 {
-                    _liveTvTimer.Enabled = true;
+                    Guid uniqueId = Guid.NewGuid();
+                    Dictionary<Guid, Guid> detail = new Dictionary<Guid, Guid>()
+                    {
+                        { Guid.Parse(channelOid), liveStream.RecorderTunerId}
+                    };
 
+                    _heartBeat.Add(uniqueId, detail);
+                    
+                    if (!config.EnableTimeschift)
+                    {
+                        return new ChannelMediaInfo
+                        {
+                            Id = uniqueId.ToString(),
+                            Path = liveStream.RtspUrl,
+                            Protocol = MediaProtocol.Rtsp,
+                            ReadAtNativeFramerate = false,
+                        };
+                    }
+
+                    //Standard UNC Path
                     return new ChannelMediaInfo
                     {
-                        Id = channelOid,
-                        Path = liveStream.RtspUrl,
-                        Protocol = MediaProtocol.Rtsp,
-                        //Path = liveStream.TimeshiftFile
+                        Id = uniqueId.ToString(),
+                        Protocol = MediaProtocol.File,
+                        Path = liveStream.TimeshiftFile,
+                        Container = "tsbuffer"
                     };
                 }
 
+                if (result.LiveStreamResult == LiveStreamResult.NoFreeCardFound)
+                {
+                    _logger.Error("[ArgusTV] No Free Card Found");
+                }
+
+                if (result.LiveStreamResult == LiveStreamResult.ChannelTuneFailed)
+                {
+                    _logger.Error("[ArgusTV] Channel Tune Failed");
+                }
+
+                if (result.LiveStreamResult == LiveStreamResult.UnknownError)
+                {
+                    _logger.Error("[ArgusTV] Unknown Error");
+                }
+
+                if (result.LiveStreamResult == LiveStreamResult.IsScrambled)
+                {
+                    _logger.Error("[ArgusTV] Is Scrambled");
+                }
+
+                if (result.LiveStreamResult == LiveStreamResult.NotSupported)
+                {
+                    _logger.Error("[ArgusTV] Not Supported");
+                }
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("[ArgusTV] GetChannelStream async for ChannelId: {0} with exception: {1}", channelOid ,ex.Message));
+                _logger.ErrorException("[ArgusTV] GetChannelStream async failed for ChannelId: {0}", ex, channelOid);
             }
 
             throw new ResourceNotFoundException(string.Format("Could not stream channel {0}", channelOid));
@@ -678,7 +774,7 @@ namespace MediaBrowser.Plugins.ArgusTV
 
                 return new ChannelMediaInfo
                 {
-                    Id = recordingId,
+                    Id = Guid.NewGuid().ToString(),
                     Path = recording.RecordingFileName,
                     Protocol = MediaProtocol.File,
                     Container = "ts"
@@ -687,7 +783,7 @@ namespace MediaBrowser.Plugins.ArgusTV
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("[ArgusTV] GetRecordingStream async for RecordingId: {0} with exception: {1}", recordingId, ex.Message));
+                _logger.ErrorException("[ArgusTV] GetRecordingStream async failed for RecordingId: {0}", ex, recordingId);
             }
 
             throw new ResourceNotFoundException(string.Format("Could not stream recording {0}", recordingId));
@@ -700,12 +796,19 @@ namespace MediaBrowser.Plugins.ArgusTV
             
             try
             {
-                LiveStream runningLiveStream = Proxies.ControlService.GetLiveStreams().Result.Single(l => l.Channel.ChannelId == Guid.Parse(id));
-                Proxies.ControlService.StopLiveStream(runningLiveStream).Wait(cancellationToken);
+                Dictionary<Guid, Guid> detail;
+                 _heartBeat.TryGetValue(Guid.Parse(id), out detail);
+
+                var runningLiveStream = Proxies.ControlService.GetLiveStreams().Result.SingleOrDefault(l => l.RecorderTunerId == detail.First().Value && l.Channel.ChannelId == detail.First().Key);
+                _heartBeat.Remove(Guid.Parse(id));
+                if (runningLiveStream != null)
+                {
+                    Proxies.ControlService.StopLiveStream(runningLiveStream).Wait(cancellationToken);
+                }
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("[ArgusTV] CloseLiveStream async for the stream with Channel/Recording Id: {0} with exception: {1}", id, ex.Message));
+                _logger.ErrorException("[ArgusTV] CloseLiveStream async failed for the stream with ChannelId: {0}", ex, id);
             }
         }
 
@@ -734,11 +837,10 @@ namespace MediaBrowser.Plugins.ArgusTV
         public event EventHandler DataSourceChanged;
         public event EventHandler<RecordingStatusChangedEventArgs> RecordingStatusChanged;
 
-        private async void LiveStreamKeepAliveEvent(object sender, System.Timers.ElapsedEventArgs e)
+        public async void TimerTask(object state)
         {
-            UtilsHelper.DebugInformation(_logger,string.Format("[ArgusTV] Start KeepStreamAlive Async"));
             await EnsureConnectionAsync(new CancellationToken());
-            
+
             try
             {
                 var liveStreams = Proxies.ControlService.GetLiveStreams().Result;
@@ -747,17 +849,25 @@ namespace MediaBrowser.Plugins.ArgusTV
                 {
                     foreach (var liveStream in liveStreams)
                     {
-                        _logger.Info(string.Format("[ArgusTV] KeepLiveStreamAlive Start for streamURL: {0} or streamFile: {1}",liveStream.RtspUrl,liveStream.TimeshiftFile));
-                        Proxies.ControlService.KeepLiveStreamAlive(liveStream).Start();
-                        _logger.Info(string.Format("[ArgusTV] KeepLiveStreamAlive End for streamURL: {0} or streamFile: {1}", liveStream.RtspUrl, liveStream.TimeshiftFile));
+                        foreach (var row in _heartBeat)
+                        {
+                            if (row.Value.ContainsKey(liveStream.Channel.ChannelId) &&
+                                row.Value.ContainsValue(liveStream.RecorderTunerId))
+                            {
+                                _logger.Info(string.Format("[ArgusTV] KeepLiveStreamAlive Channel: {0} with streamURL: {1} or streamFile: {2} ", liveStream.Channel.DisplayName, liveStream.RtspUrl, liveStream.TimeshiftFile));
+                                await Proxies.ControlService.KeepLiveStreamAlive(liveStream);
+                            }
+                        }
                     }
                 }
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("[ArgusTV] KeepStreamAlive Event with exception: {0}", ex.Message));
+                _logger.ErrorException("[ArgusTV] KeepStreamAlive Event failed", ex);
             }
         }
+
+
 
         private List<ScheduleRule> UpdateRules(List<ScheduleRule> rules, TimerInfo timerInfo, SeriesTimerInfo seriesTimerInfo)
         {
