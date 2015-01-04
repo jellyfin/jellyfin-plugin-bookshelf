@@ -6,7 +6,7 @@ namespace Trakt.Model
     {
         public String UserName { get; set; }
 
-        public String PasswordHash { get; set; }
+        public String Password { get; set; }
 
         public String LinkedMbUserId { get; set; }
 

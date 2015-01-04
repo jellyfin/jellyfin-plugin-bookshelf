@@ -57,17 +57,21 @@
     <Compile Include="..\SharedVersion.cs">
       <Link>Properties\SharedVersion.cs</Link>
     </Compile>
-    <Compile Include="Api\DataContracts\AccountSettingsDataContract.cs" />
-    <Compile Include="Api\DataContracts\TraktActivityDataContract.cs" />
-    <Compile Include="Api\DataContracts\TraktEpisodeDataContract.cs" />
-    <Compile Include="Api\DataContracts\TraktFriendDataContract.cs" />
-    <Compile Include="Api\DataContracts\TraktImagesDataContract.cs" />
-    <Compile Include="Api\DataContracts\TraktMovieDataContract.cs" />
-    <Compile Include="Api\DataContracts\TraktPeopleDataContract.cs" />
-    <Compile Include="Api\DataContracts\TraktRatingsDataContract.cs" />
-    <Compile Include="Api\DataContracts\TraktResponseDataContract.cs" />
-    <Compile Include="Api\DataContracts\TraktShowDataContract.cs" />
-    <Compile Include="Api\DataContracts\TraktUserLibraryShowDataContract.cs" />
+    <Compile Include="Api\DataContracts\TraktEpisode.cs" />
+    <Compile Include="Api\DataContracts\TraktEpisodeCollected.cs" />
+    <Compile Include="Api\DataContracts\TraktEpisodeId.cs" />
+    <Compile Include="Api\DataContracts\TraktPerson.cs" />
+    <Compile Include="Api\DataContracts\TraktPersonId.cs" />
+    <Compile Include="Api\DataContracts\TraktSeason.cs" />
+    <Compile Include="Api\DataContracts\TraktSeasonId.cs" />
+    <Compile Include="Api\DataContracts\TraktShowWatched.cs" />
+    <Compile Include="Api\DataContracts\TraktId.cs" />
+    <Compile Include="Api\DataContracts\TraktMovie.cs" />
+    <Compile Include="Api\DataContracts\TraktMovieId.cs" />
+    <Compile Include="Api\DataContracts\TraktMovieWatched.cs" />
+    <Compile Include="Api\DataContracts\TraktShow.cs" />
+    <Compile Include="Api\DataContracts\TraktShowId.cs" />
+    <Compile Include="Api\DataContracts\TraktSyncResponse.cs" />
     <Compile Include="Api\ServerApiEndpoints.cs" />
     <Compile Include="Api\TraktApi.cs" />
     <Compile Include="Api\TraktURIs.cs" />
