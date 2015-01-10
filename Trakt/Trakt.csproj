@@ -33,13 +33,16 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="MediaBrowser.Common">
-      <HintPath>..\packages\MediaBrowser.Common.3.0.511\lib\net45\MediaBrowser.Common.dll</HintPath>
+      <HintPath>..\packages\MediaBrowser.Common.3.0.540\lib\net45\MediaBrowser.Common.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="MediaBrowser.Controller">
-      <HintPath>..\packages\MediaBrowser.Server.Core.3.0.511\lib\net45\MediaBrowser.Controller.dll</HintPath>
+      <HintPath>..\packages\MediaBrowser.Server.Core.3.0.540\lib\net45\MediaBrowser.Controller.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="MediaBrowser.Model">
-      <HintPath>..\packages\MediaBrowser.Common.3.0.511\lib\net45\MediaBrowser.Model.dll</HintPath>
+      <HintPath>..\packages\MediaBrowser.Common.3.0.540\lib\net45\MediaBrowser.Model.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="ServiceStack.Interfaces">
       <HintPath>..\packages\ServiceStack.Interfaces.4.0.33\lib\portable-wp80+sl5+net40+win8+monotouch+monoandroid\ServiceStack.Interfaces.dll</HintPath>

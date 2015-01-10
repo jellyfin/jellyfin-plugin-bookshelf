@@ -1,0 +1,265 @@
+﻿<!DOCTYPE html>
+<html>
+    <head>
+        <title>GameBrowser</title>
+    </head>
+    <body>
+        <div id="gameFolderConfigurationPage" data-role="page" class="page type-interior pluginConfigurationPage">
+        <div data-role="content">
+            <div class="content-primary">
+                <h1 id="subTitle">Platform Configuration</h1>
+                <form id="addPlatformForm">
+                    <ul id="ulAddPlatform" class="ulForm" data-role="listview" data-inset="true">
+                        <li data-role="list-divider"><h3>Add Game Platform</h3></li>
+                        <li>
+                            <label for="txtPlatformPath"> Path: </label>
+                            <input id="txtPlatformPath" name="txtPlatformPath" type="text" data-inline="true" style="display: inline; max-width: 85%;" />
+                            <button type="button" data-icon="search" data-iconpos="notext" data-inline="true" onclick="GameBrowserConfigurationPage.selectDirectory();">Select Directory</button>
+                        </li>
+                        <li>
+                            <label for="platformType"> Platform: </label>
+                            <select id="platformType">
+                                <option value="3DO">3DO</option>
+                                <option value="Amiga">Amiga</option>
+                                <option value="Arcade">Arcade</option>
+                                <option value="Atari 2600">Atari 2600</option>
+                                <option value="Atari 5200">Atari 5200</option>
+                                <option value="Atari 7800">Atari 7800</option>
+                                <option value="Atari Jaguar">Atari Jaguar</option>
+                                <option value="Atari Jaguar CD">Atari Jaguar CD</option>
+                                <option value="Atari XE">Atari XE</option>
+                                <option value="Colecovision">Colecovision</option>
+                                <option value="Commodore 64">Commodore 64</option>
+                                <option value="Commodore Vic-20">Commodore Vic 20</option>
+                                <option value="DOS">DOS</option>
+                                <option value="Intellivision">Intellivision</option>
+                                <option value="Xbox">Microsoft XBox</option>
+                                <option value="Neo Geo">Neo-Geo</option>
+                                <option value="Nintendo 64">Nintendo 64</option>
+                                <option value="Nintendo DS">Nintendo DS</option>
+                                <option value="Game Boy">Nintendo Game Boy</option>
+                                <option value="Game Boy Advance">Nintendo Game Boy Advance</option>
+                                <option value="Game Boy Color">Nintendo Game Boy Color</option>
+                                <option value="Gamecube">Nintendo GameCube</option>
+                                <option value="Nintendo">Nintendo NES</option>
+                                <option value="Super Nintendo">Nintendo SNES</option>
+                                <option value="Virtual Boy">Nintendo Virtual Boy</option>
+                                <option value="Nintendo Wii">Nintendo Wii</option>
+                                <option value="Sega 32X">Sega 32X</option>
+                                <option value="Sega CD">Sega CD</option>
+                                <option value="Dreamcast">Sega Dreamcast</option>
+                                <option value="Game Gear">Sega Game Gear</option>
+                                <option value="Sega Genesis">Sega Genesis</option>
+                                <option value="Sega Master System">Sega Master System</option>
+                                <option value="Sega Mega Drive">Sega Mega Drive</option>
+                                <option value="Sega Saturn">Sega Saturn</option>
+                                <option value="Sony Playstation">Sony Playstation</option>
+                                <option value="PS2">Sony Playstation 2</option>
+                                <option value="PSP">Sony Playstation Portable</option>
+                                <option value="TurboGrafx 16">TurboGrafx-16</option>
+                                <option value="TurboGrafx CD">TurboGrafx CD</option>
+                                <option value="Windows">Windows</option>
+                                <option value="ZX Spectrum">ZX Spectrum</option>
+                            </select>
+                        </li>
+                        <li>
+                            <button type="submit" data-theme="b" data-icon="check">Save</button>
+                        </li>
+                    </ul>
+                </form>
+                
+                <div class="readOnlyContent">
+                    <p style="margin-top: 30px">This is a list of all folders that GameBrowser is monitoring. If the platform is incorrect, just click the entry and correct it using the form above. It's that easy!</p>
+                    <ul id="ulPlatformFolders" data-role="listview" data-inset="true" data-auto-enhanced="false" data-split-icon="minus"></ul>
+                </div>
+            </div>
+        </div>
+            
+            <script type="text/javascript">
+
+                var GameBrowserConfigurationPage =
+                    {
+                        pluginUniqueId: "4C2FDA1C-FD5E-433A-AD2B-718E0B73E9A9",
+
+
+                        loadConfiguration: function () {
+
+                            ApiClient.getPluginConfiguration(GameBrowserConfigurationPage.pluginUniqueId).done(function (pluginConfig) {
+
+                                // Just in case it's empty
+                                pluginConfig.RootLocations = pluginConfig.RootLocations || [];
+
+                                GameBrowserConfigurationPage.loadConsoleFolders(pluginConfig);
+                            });
+
+                            Dashboard.hideLoadingMsg();
+                        },
+
+
+                        loadConsoleFolders: function (pluginConfig) {
+
+                            var page = $.mobile.activePage;
+
+                            var html = "";
+
+                            html += '<li data-role="list-divider"><h3>Game Platform Folders</h3></li>';
+
+                            if (pluginConfig.GameSystems.length > 0) {
+
+                                for (var i = 0, length = pluginConfig.GameSystems.length; i < length; i++) {
+
+                                    var gameSystem = pluginConfig.GameSystems[i];
+
+                                    html += "<li>";
+                                
+                                    html += "<a data-systemtype='" + gameSystem.ConsoleType + "' data-systempath='" + gameSystem.Path + "' onclick='GameBrowserConfigurationPage.editConsoleFolder(this);' href='#'>";
+                                    
+                                    html += "<h3>" + gameSystem.ConsoleType + "</h3>";
+
+                                    html += "<p><strong>" + gameSystem.Path + "</strong></p>";
+                                
+                                    html += "</a>";
+                                
+                                    html += "<a data-id='" + gameSystem.Path + "' onclick='GameBrowserConfigurationPage.deleteConsoleFolder(this);' href='#'>Delete</a>";
+                                
+                                    html += '</li>';
+                                }
+
+                            } else {
+                                html += "<li>";
+
+                                html += "<h3> None Configured </h3>";
+
+                                html += "</li>";
+                                
+                            }
+                            
+
+                            $('#ulPlatformFolders', page).html(html).listview('refresh');
+                        },
+                        
+
+                        editConsoleFolder: function (link) {
+
+                            var name = link.getAttribute('data-systemtype');
+                            var path = link.getAttribute('data-systempath');
+                            
+                            $('#txtPlatformPath', $.mobile.activePage).val(path);
+                            $('#platformType', $.mobile.activePage).val(name).selectmenu("refresh");
+                            
+                        },
+                        
+
+                        deleteConsoleFolder: function (link) {
+
+                            var name = link.getAttribute('data-id');
+
+                            ApiClient.getPluginConfiguration(GameBrowserConfigurationPage.pluginUniqueId).done(function (config) {
+
+                                var msg = "Are you sure you want to remove " + name + "?";
+
+                                Dashboard.confirm(msg, "Remove Folder", function(result) {
+                                    if (result) {
+                                        
+                                        var index = 0;
+
+                                        for (var i = 0, length = config.GameSystems.length; i < length; i++) {
+
+                                            if (config.GameSystems[i].Path == name) {
+                                                index = i;
+                                            }
+
+                                        }
+
+                                        config.GameSystems.splice(index, 1);
+
+                                        ApiClient.updatePluginConfiguration(GameBrowserConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
+
+                                        // For some reason this isn't refreshing the page.
+                                        GameBrowserConfigurationPage.loadConsoleFolders(config);
+                                        
+                                    }
+                                });
+
+                                return true;
+                            });
+                            
+                        },
+                        
+
+                        selectDirectory: function () {
+
+                            var page = $.mobile.activePage;
+                            new DirectoryBrowser(page).show({
+                                callback: function (path) {
+
+                                    if (path) {
+                                        $('#txtPlatformPath', $.mobile.activePage).val(path);
+                                    }
+                                    $('#popupDirectoryPicker', $.mobile.activePage).popup("close");
+                                },
+
+                                header: "Select Game Platform Path"
+                            });
+
+                        }
+                    };
+
+                $('#gameFolderConfigurationPage').on('pageshow', function (event) {
+
+                    Dashboard.showLoadingMsg();
+
+                    var page = this;
+
+                    GameBrowserConfigurationPage.loadConfiguration();
+                });
+                
+                $('#gameFolderConfigurationPage').on('submit', function (e) {
+                    
+                    Dashboard.showLoadingMsg();
+
+                    var page = $.mobile.activePage;
+
+                    ApiClient.getPluginConfiguration(GameBrowserConfigurationPage.pluginUniqueId).done(function (config) {
+
+                        var newEntry = true;
+                        var path = $('#txtPlatformPath', page).val();
+                        var type = $('#platformType', page).val();
+
+                        // need to handle updating a game system in addition to creating a new one
+                        if (config.GameSystems.length > 0) {
+
+                            for (var i = 0, length = config.GameSystems.length; i < length; i++) {
+                                if (config.GameSystems[i].Path == path) {
+                                    newEntry = false;
+                                    config.GameSystems[i].ConsoleType = type;
+                                }
+                            }
+                        }
+                        
+                        if (newEntry) {
+                            
+                            var platform = {};
+
+                            platform.Path = path;
+                            platform.ConsoleType = type;
+
+                            config.GameSystems.push(platform);
+                            
+                        }
+
+                        ApiClient.updatePluginConfiguration(GameBrowserConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
+
+                        GameBrowserConfigurationPage.loadConsoleFolders(config);
+                        
+                        return true;
+                    });
+
+                    return false;
+                });
+
+            </script>
+            
+        </div>
+    </body>
+</html>

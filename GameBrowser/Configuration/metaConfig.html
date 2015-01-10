@@ -1,0 +1,86 @@
+﻿<!DOCTYPE html>
+<html>
+    <head>
+        <title>GameBrowser</title>
+    </head>
+    <body>
+        <div id="gameBrowserMetaConfigurationPage" data-role="page" class="page type-interior pluginConfigurationPage">
+            <div data-role="content">
+                <div class="content-primary">
+                    <h1 id="subTitle">Metadata & Art Configuration</h1>
+                    <form id="gameBrowserMetaConfigurationForm">
+                        <ul class="ulForm" data-role="listview" data-inset="true">
+                            <li data-role="list-divider"><h3>EmuMovies Credentials</h3></li>
+                            <li>
+                                <label for="txtUsername"> Username: </label>
+                                <input id="txtUsername" name="txtUsername" type="text" data-inline="true" style="display: inline;" />
+                            </li>
+                            <li>
+                                <label for="txtPassword"> Password: </label>
+                                <input id="txtPassword" name="txtPassword" type="password" data-inline="true" style="display: inline;" />
+                            </li>
+                            <li>
+                                <button type="submit" data-theme="b" data-icon="check">Save</button>
+                            </li>
+                        </ul>
+                    </form>
+                </div>
+            </div>
+            
+            <script type="text/javascript">
+                
+                var GameBrowserMetaConfigurationPage =
+                    {
+                        pluginUniqueId: "4C2FDA1C-FD5E-433A-AD2B-718E0B73E9A9",
+
+                        loadConfiguration: function () {
+
+                            Dashboard.showLoadingMsg();
+                            
+                            ApiClient.getPluginConfiguration(GameBrowserMetaConfigurationPage.pluginUniqueId).done(function (pluginConfig) {
+
+                                var page = $.mobile.activePage;
+
+                                pluginConfig.EmuMoviesUsername = pluginConfig.EmuMoviesUsername || "";
+                                pluginConfig.EmuMoviesPassword = pluginConfig.EmuMoviesPassword || "";
+
+                                $('#txtUsername', page).val(pluginConfig.EmuMoviesUsername);
+                                $('#txtPassword', page).val(pluginConfig.EmuMoviesPassword);
+                            });
+
+                            Dashboard.hideLoadingMsg();
+                        }
+                    };
+                
+                $('#gameBrowserMetaConfigurationPage').on('pageshow', function (event) {
+
+                    var page = this;
+
+                    GameBrowserMetaConfigurationPage.loadConfiguration();
+                });
+
+                $('#gameBrowserMetaConfigurationPage').on('submit', function (e) {
+
+                    Dashboard.showLoadingMsg();
+
+                    var page = $.mobile.activePage;
+
+                    ApiClient.getPluginConfiguration(GameBrowserMetaConfigurationPage.pluginUniqueId).done(function (config) {
+
+                        config.EmuMoviesUsername = $('#txtUsername', page).val();
+                        config.EmuMoviesPassword = $('#txtPassword', page).val();
+
+                        ApiClient.updatePluginConfiguration(GameBrowserMetaConfigurationPage.pluginUniqueId, config).done(function(result) {
+                            Dashboard.processPluginConfigurationUpdateResult(result);
+
+                            return true;
+                        });
+                    });
+
+                    return false;
+                });
+                
+            </script>
+        </div>
+    </body>
+</html>
