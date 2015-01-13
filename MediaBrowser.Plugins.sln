@@ -46,6 +46,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trakt", "Trakt\Trakt.csproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameBrowser", "GameBrowser\GameBrowser.csproj", "{0B32450D-AB7B-4FB1-8819-7AFC17EB1295}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.StudioCleaner", "MediaBrowser.Plugins.StudioCleaner\MediaBrowser.Plugins.StudioCleaner.csproj", "{776C7D9D-72C5-4C73-AC73-88071B5C963C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -162,6 +164,12 @@ Global
 		{0B32450D-AB7B-4FB1-8819-7AFC17EB1295}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0B32450D-AB7B-4FB1-8819-7AFC17EB1295}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0B32450D-AB7B-4FB1-8819-7AFC17EB1295}.Release|x86.ActiveCfg = Release|Any CPU
+		{776C7D9D-72C5-4C73-AC73-88071B5C963C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{776C7D9D-72C5-4C73-AC73-88071B5C963C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{776C7D9D-72C5-4C73-AC73-88071B5C963C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{776C7D9D-72C5-4C73-AC73-88071B5C963C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{776C7D9D-72C5-4C73-AC73-88071B5C963C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{776C7D9D-72C5-4C73-AC73-88071B5C963C}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
