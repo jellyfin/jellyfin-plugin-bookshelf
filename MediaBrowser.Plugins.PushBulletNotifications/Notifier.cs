@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Notifications;
@@ -42,12 +43,11 @@ namespace MediaBrowser.Plugins.PushBulletNotifications
 
         public Task SendNotification(UserNotification request, CancellationToken cancellationToken)
         {
-            
             var options = GetOptions(request.User);
 
             var parameters = new Dictionary<string, string>
                 {
-                    {"device_id", options.DeviceId},
+                   // {"device_iden", options.DeviceId},
                     {"type", "note"},
                     {"title", request.Name},
                     {"body", request.Description}
@@ -55,10 +55,12 @@ namespace MediaBrowser.Plugins.PushBulletNotifications
 
             _logger.Debug("PushBullet to Token : {0} - {1} - {2}", options.Token, options.DeviceId, request.Description);
             var _httpRequest = new HttpRequestOptions();
-            string _cred = string.Format("{0} {1}", "Basic", options.Token);
+            string authInfo = options.Token;
+            authInfo = Convert.ToBase64String(Encoding.Default.GetBytes(authInfo));
 
-            _httpRequest.RequestHeaders["Authorization"] = _cred;
-            _httpRequest.Url = "https://api.pushbullet.com/api/pushes";
+            _httpRequest.RequestHeaders["Authorization"] = "Basic " + authInfo;
+
+            _httpRequest.Url = "https://api.pushbullet.com/v2/pushes";
 
             return _httpClient.Post(_httpRequest, parameters);
         }

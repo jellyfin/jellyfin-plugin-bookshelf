@@ -46,39 +46,16 @@ namespace MediaBrowser.Plugins.PushBulletNotifications.Api
                 {"body", "This is a test notification from MediaBrowser"}
             };
 
-            //var _httpRequest = (HttpWebRequest)WebRequest.Create("https://api.pushbullet.com/api/pushes");
-            //_httpRequest.Credentials = new NetworkCredential();
-            //_httpRequest.Method = "POST";
-
-            //var requestWriter = new StreamWriter(_httpRequest.GetRequestStream());
-
-
-            //try
-            //{
-            //    requestWriter.Write(SM_TEMPLATE);
-            //}
-            //finally
-            //{
-            //    requestWriter.Close();
-            //    requestWriter = null;
-            //}
-
-
             var _httpRequest = new HttpRequestOptions();
             
             //Create Basic HTTP Auth Header...
-           // string _cred = string.Format("{0} {1}", "Basic", options.Token);
 
             string authInfo = options.Token;
             authInfo = Convert.ToBase64String(Encoding.Default.GetBytes(authInfo));
             
-           // authInfo = Convert.ToBase64String(Encoding.Default.GetBytes(authInfo));
-            _httpRequest.RequestHeaders["Authorization"] = "Basic " + authInfo;
+           _httpRequest.RequestHeaders["Authorization"] = "Basic " + authInfo;
 
-            //_httpRequest.
-            _httpRequest.Url = "https://api.pushbullet.com/api/pushes";
-
-            _logger.Debug("PushBullet <TEST> to {0} - {1}", options.Token, authInfo);
+           _httpRequest.Url = "https://api.pushbullet.com/v2/pushes";
 
             return _httpClient.Post(_httpRequest, parameters);
         }
