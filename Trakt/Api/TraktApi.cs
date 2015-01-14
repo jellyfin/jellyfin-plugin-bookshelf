@@ -656,7 +656,7 @@ namespace Trakt.Api
         /// <returns></returns>
         public async Task<List<DataContracts.Users.Watched.TraktMovieWatched>> SendGetAllWatchedMoviesRequest(TraktUser traktUser)
         {
-            var response = await GetFromTrakt(string.Format(TraktUris.WatchedMovies, traktUser.UserName));
+            var response = await GetFromTrakt(string.Format(TraktUris.WatchedMovies, traktUser.UserName), traktUser);
             return _jsonSerializer.DeserializeFromStream<List<DataContracts.Users.Watched.TraktMovieWatched>>(response);
         }
 
@@ -667,7 +667,7 @@ namespace Trakt.Api
         /// <returns></returns>
         public async Task<List<DataContracts.Users.Watched.TraktShowWatched>> SendGetWatchedShowsRequest(TraktUser traktUser)
         {
-            var response = await GetFromTrakt(string.Format(TraktUris.WatchedShows, traktUser.UserName));
+            var response = await GetFromTrakt(string.Format(TraktUris.WatchedShows, traktUser.UserName), traktUser);
             return _jsonSerializer.DeserializeFromStream<List<DataContracts.Users.Watched.TraktShowWatched>>(response);
         }
 
@@ -678,7 +678,7 @@ namespace Trakt.Api
         /// <returns></returns>
         public async Task<List<DataContracts.Users.Collection.TraktMovieCollected>> SendGetAllCollectedMoviesRequest(TraktUser traktUser)
         {
-            var response = await GetFromTrakt(string.Format(TraktUris.CollectedMovies, traktUser.UserName));
+            var response = await GetFromTrakt(string.Format(TraktUris.CollectedMovies, traktUser.UserName), traktUser);
             return _jsonSerializer.DeserializeFromStream<List<DataContracts.Users.Collection.TraktMovieCollected>>(response);
         }
 
@@ -689,7 +689,7 @@ namespace Trakt.Api
         /// <returns></returns>
         public async Task<List<DataContracts.Users.Collection.TraktShowCollected>> SendGetCollectedShowsRequest(TraktUser traktUser)
         {
-            var response = await GetFromTrakt(string.Format(TraktUris.CollectedShows, traktUser.UserName));
+            var response = await GetFromTrakt(string.Format(TraktUris.CollectedShows, traktUser.UserName), traktUser);
             return _jsonSerializer.DeserializeFromStream<List<DataContracts.Users.Collection.TraktShowCollected>>(response);
         }
 
@@ -841,16 +841,16 @@ namespace Trakt.Api
                 Login = traktUser.UserName,
                 Password = traktUser.Password
             };
-            var response = await PostToTrakt(TraktUris.Login, data);
+            var response = await PostToTrakt(TraktUris.Login, data, null);
             return _jsonSerializer.DeserializeFromStream<TraktUserToken>(response);
         }
 
-        private async Task<Stream> GetFromTrakt(string url, TraktUser traktUser = null)
+        private async Task<Stream> GetFromTrakt(string url, TraktUser traktUser)
         {
             return await GetFromTrakt(url, CancellationToken.None, traktUser);
         }
 
-        private async Task<Stream> GetFromTrakt(string url, CancellationToken cancellationToken, TraktUser traktUser = null)
+        private async Task<Stream> GetFromTrakt(string url, CancellationToken cancellationToken, TraktUser traktUser)
         {
             var options = new HttpRequestOptions
             {
@@ -866,12 +866,12 @@ namespace Trakt.Api
         }
 
 
-        private async Task<Stream> PostToTrakt(string url, object data, TraktUser traktUser = null)
+        private async Task<Stream> PostToTrakt(string url, object data, TraktUser traktUser)
         {
             return await PostToTrakt(url, data, CancellationToken.None, traktUser);
         }
 
-        private async Task<Stream> PostToTrakt(string url, object data, CancellationToken cancellationToken, TraktUser traktUser = null)
+        private async Task<Stream> PostToTrakt(string url, object data, CancellationToken cancellationToken, TraktUser traktUser)
         {
             var options = new HttpRequestOptions
             {
@@ -887,7 +887,7 @@ namespace Trakt.Api
             return response.Content;
         }
 
-        private async Task SetRequestHeaders(HttpRequestOptions options, TraktUser traktUser = null)
+        private async Task SetRequestHeaders(HttpRequestOptions options, TraktUser traktUser)
         {
             options.RequestHeaders.Add("trakt-api-version", "2");
             options.RequestHeaders.Add("trakt-api-key", TraktUris.Devkey);
