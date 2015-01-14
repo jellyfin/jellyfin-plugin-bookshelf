@@ -883,7 +883,6 @@ namespace Trakt.Api
             };
             await SetRequestHeaders(options, traktUser);
             // if we're logging in, we don't need to add these headers
-            _logger.Debug("\r\n***\r\n"+options.RequestContent+"\r\n***");
             var response = await _httpClient.Post(options).ConfigureAwait(false);
             return response.Content;
         }
