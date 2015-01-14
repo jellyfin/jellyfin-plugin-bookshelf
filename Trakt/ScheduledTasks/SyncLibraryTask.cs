@@ -189,10 +189,11 @@ namespace Trakt.ScheduledTasks
                         unPlayedEpisodes.Add(episode);
                     }
                     var traktCollectedShow = SyncFromTraktTask.FindMatch(episode.Series, traktCollectedShows);
-                    if (traktCollectedShow == null || 
-                        traktCollectedShow.Seasons == null || 
-                        traktCollectedShow.Seasons.All(x=>x.Number!= episode.ParentIndexNumber)
-                        || traktCollectedShow.Seasons.First(x=>x.Number == episode.Season.IndexNumber).Episodes.All(e=>e.Number!= episode.IndexNumber))
+                    if (traktCollectedShow == null ||
+                        traktCollectedShow.Seasons == null ||
+                        traktCollectedShow.Seasons.All(x => x.Number != episode.ParentIndexNumber) ||
+                        traktCollectedShow.Seasons.First(x => x.Number == episode.ParentIndexNumber)
+                            .Episodes.All(e => e.Number != episode.IndexNumber))
                     {
                         episodes.Add(episode);
                     }
