@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Text;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Net;
 using MediaBrowser.Model.Logging;
@@ -44,13 +47,15 @@ namespace MediaBrowser.Plugins.PushBulletNotifications.Api
             };
 
             var _httpRequest = new HttpRequestOptions();
+            
             //Create Basic HTTP Auth Header...
-            string _cred = string.Format("{0} {1}", "Basic", options.Token);
 
-            _httpRequest.RequestHeaders["Authorization"] = _cred;
-            _httpRequest.Url = "https://api.pushbullet.com/api/pushes";
+            string authInfo = options.Token;
+            authInfo = Convert.ToBase64String(Encoding.Default.GetBytes(authInfo));
+            
+           _httpRequest.RequestHeaders["Authorization"] = "Basic " + authInfo;
 
-            _logger.Debug("PushBullet <TEST> to {0} - {1}", options.Token, _cred);
+           _httpRequest.Url = "https://api.pushbullet.com/v2/pushes";
 
             return _httpClient.Post(_httpRequest, parameters);
         }

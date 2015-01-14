@@ -1,0 +1,345 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Studio Cleaner</title>
+</head>
+<body>
+    <div id="StudioOptionsPage" data-role="page" class="page type-interior pluginConfigurationPage">
+        <div data-role="content">
+            <div class="content-primary">
+                <div style="float: right">
+                    <img src="http://mb3admin.com/images/genresweepersm.png" style="max-height: 90px" />
+                </div>
+                <h1 id="header" style="margin-top: 27px"></h1>
+                <p><strong>Only the studios defined below will be allowed.  All other studios from any source will be discarded unless mapped to one of these.</strong></p>
+                <ul id="allowedStudios" data-role="listview" data-inset="true" data-auto-enhanced="false" data-split-icon="minus"></ul>
+                <div id="initButton" style="display: none">
+                    <button onclick="StudioOptionsPage.initWithAvailableStudios();">Initialize with all current studios</button>
+                </div>
+                <form id="StudioOptionsForm">
+
+                    <ul class="ulForm" data-role="listview">
+                        <li>
+                            <button type="submit" data-theme="b">Save</button>
+                            <button type="button" onclick="history.back();">Cancel</button>
+                        </li>
+                    </ul>
+
+                </form>
+
+                <div data-role="popup" id="studioPopup" class="ui-content" style="max-width:90%; min-width: 400px" data-overlay-theme="a" data-dismissible="false">
+                    <h3 style="text-align: center">New Studio</h3>
+                    <form id="studioForm">
+                        <label for="txtStudio">Studio:</label>
+                        <input id="txtStudio" type="text" style="min-width: 90%" required />
+
+                        <button type="submit" data-theme="b">Add</button>
+                        <button type="button" data-theme="c" onclick="$('#studioPopup').popup('close')">Cancel</button>
+
+                    </form>
+
+                </div>
+
+                <div data-role="popup" id="mapStudioPopup" class="ui-content" style="max-width:90%; min-width: 400px" data-overlay-theme="a" data-dismissible="false">
+                    <h3 style="text-align: center">Map Studio '<span id="studioName"></span>'</h3>
+                    <form id="mapStudioForm">
+                        <label for="selStudio">Studio to map to:</label>
+                        <select id="selStudio" style="min-width: 90%" required></select>
+
+                        <button type="submit" data-theme="b">Map</button>
+                        <button type="button" data-theme="c" onclick="$('#mapStudioPopup').popup('close')">Cancel</button>
+
+                    </form>
+
+                </div>
+
+                <div data-role="popup" id="studioMappingsPopup" class="ui-content" style="max-width:90%; min-width: 400px" data-overlay-theme="a" data-dismissible="false">
+                    <h3 style="text-align: center">Studio '<span id="studioName2"></span>'</h3>
+                    <ul id="mappedStudios" data-role="listview" data-inset="true" data-auto-enhanced="false" data-split-icon="minus"></ul>
+                    <button type="button" data-theme="c" onclick="$('#studioMappingsPopup').popup('close')">Done</button>
+                </div>
+
+            </div>
+
+            <script type="text/javascript">
+
+                String.prototype.trunc =
+                    function (n, useWordBoundary) {
+                        var toLong = this.length > n,
+                            s_ = toLong ? this.substr(0, n - 1) : this;
+                        s_ = useWordBoundary && toLong ? s_.substr(0, s_.lastIndexOf(' ')) : s_;
+                        return toLong ? s_ + '&hellip;' : s_;
+                    };
+
+                var StudioOptionsPage = {
+                    pluginUniqueId: "AB95885A-1D0E-445E-BDBF-80C1912C98C5",
+                    config: null,
+                    optionType: null,
+                    options: null,
+                    itemType: "Movie",
+                    availableStudios: null,
+                    currentStudio: null,
+
+                    loadOptions: function (options) {
+                        var page = $($.mobile.activePage);
+                        console.log(options);
+                        var html = "";
+
+                        html += '<li data-role="list-divider" class="mediaLocationsHeader ui-li ui-li-divider ui-bar-b ui-corner-top" role="heading">';
+                        html += '<h3>Allowed Studios</h3><span data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-icon="plus" data-iconpos="notext" data-theme="a" data-inline="true" data-mini="true" ';
+                        html += 'class="ui-btn ui-btn-up-c ui-shadow ui-btn-corner-all ui-mini ui-btn-inline ui-btn-icon-notext ui-icon-plus" data-icon="plus" onclick="StudioOptionsPage.addStudioPopup();">&nbsp;</span>';
+
+                        for (var i = 0; i < options.AllowedStudios.length; i++) {
+                            var studio = options.AllowedStudios[i];
+                            html += "<li><a href='#' onclick='StudioOptionsPage.mappedStudiosPopup(this);' data-studioname='" + studio + "'>";
+                            html += "<h3>" + studio + StudioOptionsPage.getMappedString(StudioOptionsPage.options.StudioMappings, studio) + "</h3>";
+                            html += "<span data-studioname='" + studio + "' title='Map this studio to one of the other available ones' onclick='StudioOptionsPage.mapStudioPopup(this);' class='ui-li-count'>Map to...</span>";
+                            html += "</a>";
+                            html += "<a data-studioindex='" + i + "' data-studioname='" + studio + "' onclick='StudioOptionsPage.deleteAllowed(this);' href='#'>Remove from available studios</a>";
+                            html += "</li>";
+
+                        }
+
+                        if (options.AllowedStudios.length == 0) {
+                            html += "<li><h2>No Studios Defined - all will be allowed</h2></li>";
+                            $('#initButton', page).show();
+                        } else {
+                            $('#initButton', page).hide();
+                        }
+
+                        $('#allowedStudios', page).html(html).listview('refresh');
+
+                    },
+
+                    getMappedString: function (studioMap, studio) {
+                        var studios = StudioOptionsPage.getMappedStudios(studioMap, studio);
+                        return studios.length > 0 ? " (" + studios.join('; ').trunc(40, true) + ")" : "";
+                    },
+
+                    getMappedStudios: function (studioMap, studio) {
+                        var mapped = [];
+                        for (var key in studioMap) {
+                            if (studioMap[key] == studio) mapped.push(key);
+                        }
+
+                        return mapped;
+                    },
+
+                    loadAllStudios: function () {
+                        var query = {
+                            SortBy: "SortName",
+                            SortOrder: "Ascending",
+                            IncludeItemTypes: StudioOptionsPage.itemType,
+                            Recursive: true,
+                            StartIndex: 0
+                        };
+
+                        ApiClient.getStudios(Dashboard.getCurrentUserId(), query).done(function (result) {
+
+                            StudioOptionsPage.availableStudios = result.Items.map(function (studio) {
+                                return studio.Name;
+                            });
+                            console.log(StudioOptionsPage.availableStudios);
+                        });
+
+                    },
+
+                    initWithAvailableStudios: function () {
+                        if (StudioOptionsPage.availableStudios.length > 0) {
+                            StudioOptionsPage.options.AllowedStudios = StudioOptionsPage.availableStudios;
+                            StudioOptionsPage.loadOptions(StudioOptionsPage.options);
+                        } else {
+                            Dashboard.alert("No studios found.");
+                        }
+                    },
+
+                    deleteAllowed: function (link) {
+                        var name = link.getAttribute('data-studioname');
+                        Dashboard.confirm("Remove '" + name + "' from available studios?<br/><br/>It will be discarded if encountered from any source.  You could map it to one of the other available studios instead...", "Remove Allowed Studio", function (result) {
+                            if (result) {
+                                var index = link.getAttribute('data-studioindex');
+                                StudioOptionsPage.options.AllowedStudios.splice(index, 1);
+                                StudioOptionsPage.loadOptions(StudioOptionsPage.options);
+                            }
+                        });
+                    },
+
+                    addStudioPopup: function () {
+                        var page = $($.mobile.activePage);
+                        $('#txtStudio', page).val("");
+                        $('#studioPopup', page).popup('open');
+                        $('#txtStudio', page).focus();
+                    },
+
+                    mappedStudiosPopup: function (link) {
+                        var page = $($.mobile.activePage);
+                        currentStudio = link.getAttribute('data-studioname');
+                        $('#studioName2', page).html(currentStudio);
+                        StudioOptionsPage.loadMappedStudios(page);
+                        $('#studioMappingsPopup', page).popup('open');
+
+                    },
+
+                    loadMappedStudios: function (page) {
+                        //Fill in our mapped studios
+                        var mapped = StudioOptionsPage.getMappedStudios(StudioOptionsPage.options.StudioMappings, currentStudio);
+                        var html = "";
+                        html += '<li data-role="list-divider" class="mediaLocationsHeader ui-li ui-li-divider ui-bar-b ui-corner-top" role="heading">';
+                        html += '<h3>Mapped Studios</h3></li>';
+                        for (var i = 0; i < mapped.length; i++) {
+                            var studio = mapped[i];
+                            html += "<li><a>";
+                            html += "<h3>" + studio + "</h3>";
+                            html += "</a>";
+                            html += "<a data-studioname='" + studio + "' onclick='StudioOptionsPage.deleteMapped(this);' href='#'>Remove this mapping</a>";
+                            html += "</li>";
+                        }
+
+                        if (mapped.length == 0) {
+                            html += "<li><h3>No mapped studios</h3></li>"
+                        }
+                        $('#mappedStudios', page).html(html).listview('refresh');
+
+                    },
+
+                    mapStudioPopup: function (link) {
+                        var page = $($.mobile.activePage);
+                        currentStudio = link.getAttribute('data-studioname');
+                        var select = $('#selStudio', page);
+                        $('#studioName').html(currentStudio);
+                        // Build available select options
+                        var html = "";
+                        for (var i = 0; i < StudioOptionsPage.options.AllowedStudios.length; i++) {
+                            if (StudioOptionsPage.options.AllowedStudios[i] != currentStudio) {
+                                html += "<option>" + StudioOptionsPage.options.AllowedStudios[i] + "</option>";
+                            }
+                        }
+                        select.html(html).trigger('create');
+                        select.selectedIndex = 0;
+                        select.selectmenu('refresh');
+                        $('#mapStudioPopup', page).popup('open');
+                        $('#selStudio', page).focus();
+                    },
+
+                    deleteMapped: function (link) {
+                        var name = link.getAttribute('data-studioname');
+                        //Add it back to allowed
+                        StudioOptionsPage.options.AllowedStudios.push(name);
+                        StudioOptionsPage.options.AllowedStudios.sort();
+
+                        //And remove from mappings and rebuild our list (no confirm)
+                        delete StudioOptionsPage.options.StudioMappings[name];
+                        StudioOptionsPage.loadMappedStudios($($.mobile.activePage));
+                        StudioOptionsPage.loadOptions(StudioOptionsPage.options);
+                    }
+                };
+
+                $('#StudioOptionsPage').on('pageshow', function (event) {
+
+                    Dashboard.showLoadingMsg();
+
+                    var page = this;
+                    StudioOptionsPage.optionType = getParameterByName("type");
+                    switch (StudioOptionsPage.optionType) {
+                        case "movies":
+                            StudioOptionsPage.friendlyType = "Movie";
+                            StudioOptionsPage.itemType = "Movie";
+                            break;
+                        case "series":
+                            StudioOptionsPage.friendlyType = "TV Series";
+                            StudioOptionsPage.itemType = "Series";
+                            break;
+                        default:
+                    }
+                    $('#header', page).html(StudioOptionsPage.friendlyType + " Studios").trigger('create');
+
+                    StudioOptionsPage.loadAllStudios();
+
+                    ApiClient.getPluginConfiguration(StudioOptionsPage.pluginUniqueId).done(function (config) {
+
+                        StudioOptionsPage.config = config;
+                        switch (StudioOptionsPage.optionType) {
+                            case "movies":
+                                StudioOptionsPage.options = config.MovieOptions;
+                                break;
+                            case "series":
+                                StudioOptionsPage.options = config.SeriesOptions;
+                                break;
+                            default:
+                        }
+                        console.log(config);
+                        StudioOptionsPage.loadOptions(StudioOptionsPage.options);
+                        Dashboard.hideLoadingMsg();
+                    });
+                });
+
+                $('#studioForm').on('submit', function (e) {
+                    var page = $($.mobile.activePage);
+                    $('#studioPopup', page).popup('close');
+                    var studio = $('#txtStudio', this).val();
+                    if (StudioOptionsPage.options.AllowedStudios.indexOf(studio) == -1) {
+                        StudioOptionsPage.options.AllowedStudios.push(studio);
+                        StudioOptionsPage.options.AllowedStudios.sort();
+                        StudioOptionsPage.loadOptions(StudioOptionsPage.options);
+                    } else {
+                        Dashboard.alert("'" + studio + "' already exists.");
+                    }
+                    return false;
+                });
+
+                $('#mapStudioForm').on('submit', function (e) {
+                    var page = $($.mobile.activePage);
+                    $('#mapStudioPopup', page).popup('close');
+                    var newStudio = $('#selStudio', this).val();
+                    var index = StudioOptionsPage.options.AllowedStudios.indexOf(currentStudio);
+                    console.log(index);
+                    if (index > -1) {
+                        //Remove from allowed
+                        StudioOptionsPage.options.AllowedStudios.splice(index, 1);
+                        //And add to map
+                        StudioOptionsPage.options.StudioMappings[currentStudio] = newStudio;
+
+                        //Also add any studios that were mapped to us to the new item
+                        var mapped = StudioOptionsPage.getMappedStudios(StudioOptionsPage.options.StudioMappings, currentStudio);
+                        for (var i = 0; i < mapped.length; i++) {
+                            StudioOptionsPage.options.StudioMappings[mapped[i]] = newStudio;
+                        }
+                        StudioOptionsPage.loadOptions(StudioOptionsPage.options);
+                        Dashboard.alert(currentStudio + " mapped to " + newStudio);
+                    }
+
+                    return false;
+                });
+
+                $('#StudioOptionsForm').on('submit', function (e) {
+
+                    Dashboard.showLoadingMsg();
+
+                    var form = this;
+
+                    ApiClient.getPluginConfiguration(StudioOptionsPage.pluginUniqueId).done(function (config) {
+
+                        config.LastChangedOption = StudioOptionsPage.optionType;
+                        switch (StudioOptionsPage.optionType) {
+                            case "movies":
+                                config.MovieOptions = StudioOptionsPage.options;
+                                break;
+                            case "series":
+                                config.SeriesOptions = StudioOptionsPage.options;
+                                break;
+                            default:
+                        }
+
+                        ApiClient.updatePluginConfiguration(StudioOptionsPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
+                        history.back();
+                    });
+
+                    // Disable default form submission
+                    return false;
+                });
+            </script>
+
+        </div>
+    </div>
+</body>
+</html>
