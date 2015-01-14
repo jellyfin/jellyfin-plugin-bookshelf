@@ -1,5 +1,6 @@
 ﻿using MediaBrowser.Common.IO;
 using MediaBrowser.Common.Net;
+using MediaBrowser.Controller;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Entities.TV;
@@ -43,15 +44,16 @@ namespace Trakt
         /// <param name="logger"></param>
         /// <param name="httpClient"></param>
         /// <param name="fileSystem"></param>
+        /// <param name="appHost"></param>
         public ServerMediator(IJsonSerializer jsonSerializer, ISessionManager sessionManager, IUserDataManager userDataManager,
-            ILibraryManager libraryManager, ILogManager logger, IHttpClient httpClient, IFileSystem fileSystem)
+            ILibraryManager libraryManager, ILogManager logger, IHttpClient httpClient, IFileSystem fileSystem, IServerApplicationHost appHost)
         {
             Instance = this;
             _sessionManager = sessionManager;
             _libraryManager = libraryManager;
             _logger = logger.GetLogger("Trakt");
 
-            _traktApi = new TraktApi(jsonSerializer, _logger, httpClient);
+            _traktApi = new TraktApi(jsonSerializer, _logger, httpClient, appHost);
             _service = new TraktUriService(_traktApi, _logger, _libraryManager);
             _libraryManagerEventsHelper = new LibraryManagerEventsHelper(_logger, fileSystem, _traktApi);
             _progressEvents = new List<ProgressEvent>();
@@ -111,8 +113,6 @@ namespace Trakt
         {
             if (!(e.Item is Movie) && !(e.Item is Episode) && !(e.Item is Series)) return;
             if (e.Item.LocationType == LocationType.Virtual) return;
-
-            _logger.Info(e.Item.Name + "' reports removed from local library");
             _libraryManagerEventsHelper.QueueItem(e.Item, EventType.Remove);
         }
 
@@ -128,8 +128,6 @@ namespace Trakt
             // Don't do anything if it's not a supported media type
             if (!(e.Item is Movie) && !(e.Item is Episode) && !(e.Item is Series)) return;
             if (e.Item.LocationType == LocationType.Virtual) return;
-
-            _logger.Info(e.Item.Name + "' reports added to local library");
             _libraryManagerEventsHelper.QueueItem(e.Item, EventType.Add);
         }
 
@@ -164,6 +162,8 @@ namespace Trakt
                 _logger.Debug(traktUser.LinkedMbUserId + " appears to be monitoring " + e.Item.Path);
 
                 var video = e.Item as Video;
+                var progressPercent = video.RunTimeTicks.HasValue && video.RunTimeTicks != 0 ? 
+                    (float)(e.PlaybackPositionTicks??0) / video.RunTimeTicks.Value * 100.0f : 0.0f;
 
                 try
                 {
@@ -171,14 +171,14 @@ namespace Trakt
                     {
                         _logger.Debug("Send movie status update");
                         await
-                            _traktApi.SendMovieStatusUpdateAsync(video as Movie, MediaStatus.Watching, traktUser).
+                            _traktApi.SendMovieStatusUpdateAsync(video as Movie, MediaStatus.Watching, traktUser, progressPercent).
                                       ConfigureAwait(false);
                     }
                     else if (video is Episode)
                     {
                         _logger.Debug("Send episode status update");
                         await
-                            _traktApi.SendEpisodeStatusUpdateAsync(video as Episode, MediaStatus.Watching, traktUser).
+                            _traktApi.SendEpisodeStatusUpdateAsync(video as Episode, MediaStatus.Watching, traktUser, progressPercent).
                                       ConfigureAwait(false);
                     }
                 }
@@ -214,8 +214,6 @@ namespace Trakt
         /// <param name="e"></param>
         private async void KernelPlaybackProgress(object sender, PlaybackProgressEventArgs e)
         {
-            _logger.Debug("Playback Progress");
-
             if (e.Users == null || !e.Users.Any() || e.Item == null)
             {
                 _logger.Error("Event details incomplete. Cannot process current media");
@@ -235,19 +233,20 @@ namespace Trakt
                 var traktUser = UserHelper.GetTraktUser(e.Users.First());
 
                 if (traktUser == null) return;
-
+                var progressPercent = video.RunTimeTicks.HasValue && video.RunTimeTicks != 0 ?
+                    (float)(e.PlaybackPositionTicks ?? 0) / video.RunTimeTicks.Value * 100.0f : 0.0f;
                 try
                 {
                     if (video is Movie)
                     {
                         await
-                            _traktApi.SendMovieStatusUpdateAsync(video as Movie, MediaStatus.Watching, traktUser).
+                            _traktApi.SendMovieStatusUpdateAsync(video as Movie, MediaStatus.Watching, traktUser, progressPercent).
                                       ConfigureAwait(false);
                     }
                     else if (video is Episode)
                     {
                         await
-                            _traktApi.SendEpisodeStatusUpdateAsync(video as Episode, MediaStatus.Watching, traktUser).
+                            _traktApi.SendEpisodeStatusUpdateAsync(video as Episode, MediaStatus.Watching, traktUser, progressPercent).
                                       ConfigureAwait(false);
                     }
                 }
@@ -298,13 +297,13 @@ namespace Trakt
                         if (video is Movie)
                         {
                             await
-                                _traktApi.SendMovieStatusUpdateAsync(video as Movie, MediaStatus.Scrobble, traktUser).
+                                _traktApi.SendMovieStatusUpdateAsync(video as Movie, MediaStatus.Stop, traktUser, 100).
                                     ConfigureAwait(false);
                         }
                         else if (video is Episode)
                         {
                             await
-                                _traktApi.SendEpisodeStatusUpdateAsync(video as Episode, MediaStatus.Scrobble, traktUser)
+                                _traktApi.SendEpisodeStatusUpdateAsync(video as Episode, MediaStatus.Stop, traktUser, 100)
                                     .ConfigureAwait(false);
                         }
                     }
@@ -316,15 +315,17 @@ namespace Trakt
                 }
                 else
                 {
+                    var progressPercent = video.RunTimeTicks.HasValue && video.RunTimeTicks != 0 ?
+                    (float)(e.PlaybackPositionTicks ?? 0) / video.RunTimeTicks.Value * 100.0f : 0.0f;
                     _logger.Info("Item Not fully played. Tell trakt.tv we are no longer watching but don't scrobble");
 
                     if (video is Movie)
                     {
-                        await _traktApi.SendCancelWatchingMovie(traktUser);
+                        await _traktApi.SendMovieStatusUpdateAsync(video as Movie, MediaStatus.Stop, traktUser, progressPercent);
                     }
                     else
                     {
-                        await _traktApi.SendCancelWatchingShow(traktUser);
+                        await _traktApi.SendEpisodeStatusUpdateAsync(video as Episode, MediaStatus.Stop, traktUser, progressPercent);
                     }
                 }
 

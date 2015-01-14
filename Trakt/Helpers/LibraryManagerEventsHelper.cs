@@ -50,21 +50,18 @@ namespace Trakt.Helpers
 
             if (_queueTimer == null)
             {
-                _logger.Info("Creating queue timer");
                 _queueTimer = new Timer(20000); // fire every 20 seconds
                 _queueTimer.Elapsed += QueueTimerElapsed;
             }
             else if (_queueTimer.Enabled)
             {
                 // If enabled then multiple LibraryManager events are firing. Restart the timer
-                _logger.Info("Resetting queue timer");
                 _queueTimer.Stop();
                 _queueTimer.Start();
             }
 
             if (!_queueTimer.Enabled)
             {
-                _logger.Info("Starting queue timer");
                 _queueTimer.Enabled = true;
             }
 
@@ -76,7 +73,6 @@ namespace Trakt.Helpers
             // we need to process the video for each user
             foreach (var user in users)
             {
-                _logger.Info("Creating library event for " + item.Name);
                 // we have a match, this user is watching the folder the video is in. Add to queue and they
                 // will be processed when the next timer elapsed event fires.
                 var libraryEvent = new LibraryEvent { Item = item, TraktUser = user, EventType = eventType };

@@ -3,6 +3,7 @@
     public enum MediaStatus
     {
         Watching,
-        Scrobble
+        Paused,
+        Stop
     }
 }

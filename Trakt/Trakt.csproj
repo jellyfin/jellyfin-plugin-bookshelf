@@ -61,17 +61,46 @@
     <Compile Include="..\SharedVersion.cs">
       <Link>Properties\SharedVersion.cs</Link>
     </Compile>
-    <Compile Include="Api\DataContracts\AccountSettingsDataContract.cs" />
-    <Compile Include="Api\DataContracts\TraktActivityDataContract.cs" />
-    <Compile Include="Api\DataContracts\TraktEpisodeDataContract.cs" />
-    <Compile Include="Api\DataContracts\TraktFriendDataContract.cs" />
-    <Compile Include="Api\DataContracts\TraktImagesDataContract.cs" />
-    <Compile Include="Api\DataContracts\TraktMovieDataContract.cs" />
-    <Compile Include="Api\DataContracts\TraktPeopleDataContract.cs" />
-    <Compile Include="Api\DataContracts\TraktRatingsDataContract.cs" />
-    <Compile Include="Api\DataContracts\TraktResponseDataContract.cs" />
-    <Compile Include="Api\DataContracts\TraktShowDataContract.cs" />
-    <Compile Include="Api\DataContracts\TraktUserLibraryShowDataContract.cs" />
+    <Compile Include="Api\DataContracts\BaseModel\TraktUserSummary.cs" />
+    <Compile Include="Api\DataContracts\BaseModel\TraktEpisode.cs" />
+    <Compile Include="Api\DataContracts\BaseModel\TraktEpisodeId.cs" />
+    <Compile Include="Api\DataContracts\BaseModel\TraktMovieId.cs" />
+    <Compile Include="Api\DataContracts\BaseModel\TraktShow.cs" />
+    <Compile Include="Api\DataContracts\Comments\TraktComment.cs" />
+    <Compile Include="Api\DataContracts\Scrobble\TraktScrobbleResponse.cs" />
+    <Compile Include="Api\DataContracts\Scrobble\TraktScrobbleEpisode.cs" />
+    <Compile Include="Api\DataContracts\Scrobble\TraktScrobbleMovie.cs" />
+    <Compile Include="Api\DataContracts\Sync\Collection\TraktEpisodeCollected.cs" />
+    <Compile Include="Api\DataContracts\Sync\Collection\TraktMovieCollected.cs" />
+    <Compile Include="Api\DataContracts\Sync\Collection\TraktShowCollected.cs" />
+    <Compile Include="Api\DataContracts\Sync\Ratings\TraktEpisodeRated.cs" />
+    <Compile Include="Api\DataContracts\Sync\Ratings\TraktMovieRated.cs" />
+    <Compile Include="Api\DataContracts\Sync\Ratings\TraktShowRated.cs" />
+    <Compile Include="Api\DataContracts\Sync\TraktSync.cs" />
+    <Compile Include="Api\DataContracts\Sync\Watched\TraktSeasonWatched.cs" />
+    <Compile Include="Api\DataContracts\Sync\Watched\TraktEpisodeWatched.cs" />
+    <Compile Include="Api\DataContracts\Sync\Watched\TraktMovieWatched.cs" />
+    <Compile Include="Api\DataContracts\Sync\Watched\TraktShowWatched.cs" />
+    <Compile Include="Api\DataContracts\TraktUserTokenRequest.cs" />
+    <Compile Include="Api\DataContracts\Users\Collection\TraktShowCollected.cs" />
+    <Compile Include="Api\DataContracts\Users\Ratings\TraktEpisodeRated.cs" />
+    <Compile Include="Api\DataContracts\Users\Collection\TraktMetadata.cs" />
+    <Compile Include="Api\DataContracts\Users\Ratings\TraktMovieRated.cs" />
+    <Compile Include="Api\DataContracts\BaseModel\TraktRated.cs" />
+    <Compile Include="Api\DataContracts\Users\Ratings\TraktSeasonRated.cs" />
+    <Compile Include="Api\DataContracts\Users\Ratings\TraktShowRated.cs" />
+    <Compile Include="Api\DataContracts\Users\Collection\TraktMovieCollected.cs" />
+    <Compile Include="Api\DataContracts\BaseModel\TraktPerson.cs" />
+    <Compile Include="Api\DataContracts\BaseModel\TraktPersonId.cs" />
+    <Compile Include="Api\DataContracts\BaseModel\TraktSeason.cs" />
+    <Compile Include="Api\DataContracts\BaseModel\TraktSeasonId.cs" />
+    <Compile Include="Api\DataContracts\BaseModel\TraktId.cs" />
+    <Compile Include="Api\DataContracts\BaseModel\TraktMovie.cs" />
+    <Compile Include="Api\DataContracts\BaseModel\TraktShowId.cs" />
+    <Compile Include="Api\DataContracts\Sync\TraktSyncResponse.cs" />
+    <Compile Include="Api\DataContracts\TraktUserToken.cs" />
+    <Compile Include="Api\DataContracts\Users\Watched\TraktMovieWatched.cs" />
+    <Compile Include="Api\DataContracts\Users\Watched\TraktShowWatched.cs" />
     <Compile Include="Api\ServerApiEndpoints.cs" />
     <Compile Include="Api\TraktApi.cs" />
     <Compile Include="Api\TraktURIs.cs" />
@@ -95,6 +124,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy "$(TargetPath)" "$(SolutionDir)\..\MediaBrowser.Dev\ProgramData-Server\Plugins\" /y</PostBuildEvent>

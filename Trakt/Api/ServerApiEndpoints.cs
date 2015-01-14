@@ -149,8 +149,7 @@ namespace Trakt.Api
                 return null;
             }
 
-            return
-                    _traktApi.SendItemRating(currentItem, request.Rating, UserHelper.GetTraktUser(request.UserId)).Result;
+            return _traktApi.SendItemRating(currentItem, request.Rating, UserHelper.GetTraktUser(request.UserId)).Result;
             
         }
 
