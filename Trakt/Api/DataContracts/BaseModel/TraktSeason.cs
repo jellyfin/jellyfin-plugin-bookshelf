@@ -1,6 +1,6 @@
 using System.Runtime.Serialization;
 
-namespace Trakt.Api.DataContracts
+namespace Trakt.Api.DataContracts.BaseModel
 {
     [DataContract]
     public class TraktSeason

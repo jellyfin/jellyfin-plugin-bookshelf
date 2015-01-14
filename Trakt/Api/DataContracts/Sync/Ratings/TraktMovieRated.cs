@@ -1,9 +1,10 @@
-﻿using System.Runtime.Serialization;
+using System.Runtime.Serialization;
+using Trakt.Api.DataContracts.BaseModel;
 
-namespace Trakt.Api.DataContracts
+namespace Trakt.Api.DataContracts.Sync.Ratings
 {
     [DataContract]
-    public class TraktShow
+    public class TraktMovieRated : TraktRated
     {
         [DataMember(Name = "title")]
         public string Title { get; set; }
@@ -12,6 +13,6 @@ namespace Trakt.Api.DataContracts
         public int? Year { get; set; }
 
         [DataMember(Name = "ids")]
-        public TraktShowId Ids { get; set; }
+        public TraktMovieId Ids { get; set; }
     }
 }

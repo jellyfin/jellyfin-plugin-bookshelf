@@ -1,6 +1,7 @@
 ﻿using System.Runtime.Serialization;
+using Trakt.Api.DataContracts.BaseModel;
 
-namespace Trakt.Api.DataContracts
+namespace Trakt.Api.DataContracts.Users.Watched
 {
     [DataContract]
     public class TraktMovieWatched

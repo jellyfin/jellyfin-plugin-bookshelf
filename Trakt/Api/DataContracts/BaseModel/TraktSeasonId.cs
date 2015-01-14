@@ -1,13 +1,10 @@
-﻿using System.Runtime.Serialization;
+using System.Runtime.Serialization;
 
-namespace Trakt.Api.DataContracts
+namespace Trakt.Api.DataContracts.BaseModel
 {
     [DataContract]
-    public class TraktShowId : TraktId
+    public class TraktSeasonId : TraktId
     {
-        [DataMember(Name = "imdb")]
-        public string Imdb { get; set; }
-
         [DataMember(Name = "tmdb")]
         public int? Tmdb { get; set; }
 

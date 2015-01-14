@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using System.Runtime.Serialization;
+using Trakt.Api.DataContracts.BaseModel;
 
-namespace Trakt.Api.DataContracts
+namespace Trakt.Api.DataContracts.Sync
 {
     [DataContract]
     public class TraktSyncResponse
