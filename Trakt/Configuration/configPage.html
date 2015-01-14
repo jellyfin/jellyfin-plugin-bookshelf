@@ -19,13 +19,13 @@
                             <label for="txtTraktUserName">
                                 Trakt Username:
                             </label>
-                            <input id="txtTraktUserName" name="txtTraktUserName" type="text" required="required" />
+                            <input id="txtTraktUserName" name="txtTraktUserName" type="text"/>
                         </li>
                         <li>
                             <label for="txtTraktPassword">
                                 Password:
                             </label>
-                            <input id="txtTraktPassword" name="txtTraktPassword" type="password" required="required" />
+                            <input id="txtTraktPassword" name="txtTraktPassword" type="password"/>
                         </li>
                         <li>
                             <button type="submit" data-theme="b">Save</button>
@@ -133,6 +133,10 @@
                     }
 
                     currentUserConfig.LinkedMbUserId = currentUserId;
+
+                    if (currentUserConfig.UserName == '') {
+                        config.TraktUsers.remove(config.TraktUsers.indexOf(currentUserConfig));
+                    }
 
                     ApiClient.updatePluginConfiguration(TraktConfigurationPage.pluginUniqueId, config).done(function (result) {
 
