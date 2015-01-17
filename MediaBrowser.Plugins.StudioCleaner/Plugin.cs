@@ -1,11 +1,11 @@
-﻿using System;
-using MediaBrowser.Plugins.StudioCleaner.Configuration;
-using MediaBrowser.Common.Configuration;
+﻿using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Plugins;
 using MediaBrowser.Model.Serialization;
+using MediaBrowser.Plugins.StudioCleaner.Configuration;
+using System;
 
 namespace MediaBrowser.Plugins.StudioCleaner
 {
@@ -75,8 +75,6 @@ namespace MediaBrowser.Plugins.StudioCleaner
             }
 
             base.UpdateConfiguration(configuration);
-
-            ServerEntryPoint.Instance.OnConfigurationUpdated(oldConfig, (PluginConfiguration)configuration);
         }
 
     }

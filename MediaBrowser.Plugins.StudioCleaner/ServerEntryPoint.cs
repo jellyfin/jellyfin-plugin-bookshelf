@@ -1,18 +1,16 @@
-﻿using System.Threading.Tasks;
-using MediaBrowser.Common.Configuration;
+﻿using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.ScheduledTasks;
 using MediaBrowser.Common.Security;
 using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Plugins;
-using MediaBrowser.Plugins.StudioCleaner.Configuration;
 using MediaBrowser.Model.Logging;
+using System.Threading.Tasks;
 
 namespace MediaBrowser.Plugins.StudioCleaner
 {
     /// <summary>
     /// Class ServerEntryPoint
     /// </summary>
-    public class ServerEntryPoint : IServerEntryPoint, IRequiresRegistration
+    public class ServerEntryPoint : IRequiresRegistration
     {
         /// <summary>
         /// Gets the instance.
@@ -49,29 +47,6 @@ namespace MediaBrowser.Plugins.StudioCleaner
             Plugin.Logger = logManager.GetLogger(Plugin.Instance.Name);
 
             Instance = this;
-        }
-
-        /// <summary>
-        /// Runs this instance.
-        /// </summary>
-        public void Run()
-        {
-        }
-
-        /// <summary>
-        /// Called when [configuration updated].
-        /// </summary>
-        /// <param name="oldConfig">The old config.</param>
-        /// <param name="newConfig">The new config.</param>
-        public void OnConfigurationUpdated(PluginConfiguration oldConfig, PluginConfiguration newConfig)
-        {
-        }
-
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public void Dispose()
-        {
         }
 
         /// <summary>
