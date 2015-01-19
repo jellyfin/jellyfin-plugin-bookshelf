@@ -28,6 +28,14 @@
                             <input id="txtTraktPassword" name="txtTraktPassword" type="password"/>
                         </li>
                         <li>
+                            <input type="checkbox" id="chkSkipUnwatchedImportFromTrakt" name="chkSkipUnwatchedImportFromTrakt" />
+                            <label for="chkSkipUnwatchedImportFromTrakt">Skip unwatched import from trakt</label>
+                            <div class="fieldDescription">
+                                By default, Import from Trakt task will overwrite any watched status if item is marked
+                                as unwached on Trakt. When enabled only watched status will be imported.
+                            </div>
+                        </li>
+                        <li>
                             <button type="submit" data-theme="b">Save</button>
                             <button type="button" onclick=" history.back(); ">Cancel</button>
                         </li>
@@ -69,6 +77,7 @@
 
                             $('#txtTraktUserName', page).val(currentUserConfig.UserName);
                             $('#txtTraktPassword', page).val(currentUserConfig.Password);
+                            $('#chkSkipUnwatchedImportFromTrakt', page).checked(currentUserConfig.SkipUnwatchedImportFromTrakt).checkboxradio("refresh");
 
                             Dashboard.hideLoadingMsg();
                         });
@@ -126,6 +135,7 @@
                         config.TraktUsers.push(currentUserConfig);
                     }
 
+                    currentUserConfig.SkipUnwatchedImportFromTrakt = $('#chkSkipUnwatchedImportFromTrakt', page).checked();
                     currentUserConfig.UserName = $('#txtTraktUserName', page).val();
 
                     if (currentUserConfig.Password != $('#txtTraktPassword', page).val()) {
