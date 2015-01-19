@@ -863,7 +863,9 @@ namespace Trakt.Api
                         ResourcePool = Plugin.Instance.TraktResourcePool,
                         CancellationToken = cancellationToken,
                         RequestContentType = "application/json",
-                        TimeoutMs = 60000,
+                        TimeoutMs = 120000,
+                        LogErrorResponseBody = false,
+                        LogRequest = false
                     };
                     await SetRequestHeaders(options, traktUser);
                     var response = await _httpClient.Get(options).ConfigureAwait(false);
@@ -901,10 +903,12 @@ namespace Trakt.Api
                         ResourcePool = Plugin.Instance.TraktResourcePool,
                         CancellationToken = cancellationToken,
                         RequestContentType = "application/json",
-                        RequestContent = data.ToJSON()
+                        RequestContent = data.ToJSON(),
+                        TimeoutMs = 120000,
+                        LogErrorResponseBody = false,
+                        LogRequest = false
                     };
                     await SetRequestHeaders(options, traktUser);
-                    // if we're logging in, we don't need to add these headers
                     var response = await _httpClient.Post(options).ConfigureAwait(false);
                     return response.Content;
                 }
