@@ -13,5 +13,7 @@ namespace Trakt.Model
         public bool UsesAdvancedRating { get; set; }
 
         public String UserToken { get; set; }
+
+        public bool  SkipUnwatchedImportFromTrakt { get; set; }
     }
 }

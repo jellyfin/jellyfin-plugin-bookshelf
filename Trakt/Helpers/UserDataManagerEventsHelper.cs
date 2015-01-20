@@ -148,17 +148,18 @@ namespace Trakt.Helpers
 
             foreach (var package in _userDataPackages)
             {
-                if (package.SeenMovies.Any())
-                    _traktApi.SendMoviePlaystateUpdates(package.SeenMovies, package.TraktUser, true,
-                                                        CancellationToken.None).ConfigureAwait(false);
+                
                 if (package.UnSeenMovies.Any())
                     _traktApi.SendMoviePlaystateUpdates(package.UnSeenMovies, package.TraktUser, false,
                                                         CancellationToken.None).ConfigureAwait(false);
-                if (package.SeenEpisodes.Any())
-                    _traktApi.SendEpisodePlaystateUpdates(package.SeenEpisodes, package.TraktUser, true,
-                                                          CancellationToken.None).ConfigureAwait(false);
+                if (package.SeenMovies.Any())
+                    _traktApi.SendMoviePlaystateUpdates(package.SeenMovies, package.TraktUser, true,
+                                                        CancellationToken.None).ConfigureAwait(false);
                 if (package.UnSeenEpisodes.Any())
                     _traktApi.SendEpisodePlaystateUpdates(package.UnSeenEpisodes, package.TraktUser, false,
+                                                          CancellationToken.None).ConfigureAwait(false);
+                if (package.SeenEpisodes.Any())
+                    _traktApi.SendEpisodePlaystateUpdates(package.SeenEpisodes, package.TraktUser, true,
                                                           CancellationToken.None).ConfigureAwait(false);
 
                 package.SeenMovies = new List<Movie>();

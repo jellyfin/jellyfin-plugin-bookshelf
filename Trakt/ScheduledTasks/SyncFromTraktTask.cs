@@ -156,6 +156,7 @@ namespace Trakt.ScheduledTasks
 
             foreach (var movie in mediaItems.OfType<Movie>())
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var matchedMovie = FindMatch(movie, traktWatchedMovies);
 
                 if (matchedMovie != null)
@@ -193,6 +194,7 @@ namespace Trakt.ScheduledTasks
 
             foreach (var episode in mediaItems.OfType<Episode>())
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var matchedShow = FindMatch(episode.Series, traktWatchedShows);
 
                 if (matchedShow != null)
@@ -215,7 +217,7 @@ namespace Trakt.ScheduledTasks
                             userData.Played = true;
                             userData.PlayCount = Math.Max(matchedEpisode.Plays, userData.PlayCount);
                         }
-                        else
+                        else if (!traktUser.SkipUnwatchedImportFromTrakt)
                         {
                             userData.Played = false;
                             userData.PlayCount = 0;

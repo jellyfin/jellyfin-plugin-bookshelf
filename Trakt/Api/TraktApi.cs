@@ -852,17 +852,36 @@ namespace Trakt.Api
 
         private async Task<Stream> GetFromTrakt(string url, CancellationToken cancellationToken, TraktUser traktUser)
         {
-            var options = new HttpRequestOptions
+            var tries = 0;
+            while (tries < 5)
             {
-                Url = url,
-                ResourcePool = Plugin.Instance.TraktResourcePool,
-                CancellationToken = cancellationToken,
-                RequestContentType = "application/json",
-                TimeoutMs = 60000,
-            };
-            await SetRequestHeaders(options, traktUser);
-            var response = await _httpClient.Get(options).ConfigureAwait(false);
-            return response;
+                try
+                {
+                    var options = new HttpRequestOptions
+                    {
+                        Url = url,
+                        ResourcePool = Plugin.Instance.TraktResourcePool,
+                        CancellationToken = cancellationToken,
+                        RequestContentType = "application/json",
+                        TimeoutMs = 120000,
+                        LogErrorResponseBody = false,
+                        LogRequest = false
+                    };
+                    await SetRequestHeaders(options, traktUser);
+                    var response = await _httpClient.Get(options).ConfigureAwait(false);
+                    return response;
+                }
+                catch (Exception)
+                {
+                    tries++;
+                    Thread.Sleep(5000);
+                    if (tries >= 5)
+                    {
+                        throw;
+                    }
+                }
+            }
+            return null;
         }
 
 
@@ -873,18 +892,37 @@ namespace Trakt.Api
 
         private async Task<Stream> PostToTrakt(string url, object data, CancellationToken cancellationToken, TraktUser traktUser)
         {
-            var options = new HttpRequestOptions
+            var tries = 0;
+            while (tries < 5)
             {
-                Url = url,
-                ResourcePool = Plugin.Instance.TraktResourcePool,
-                CancellationToken = cancellationToken,
-                RequestContentType = "application/json",
-                RequestContent = data.ToJSON()
-            };
-            await SetRequestHeaders(options, traktUser);
-            // if we're logging in, we don't need to add these headers
-            var response = await _httpClient.Post(options).ConfigureAwait(false);
-            return response.Content;
+                try
+                {
+                    var options = new HttpRequestOptions
+                    {
+                        Url = url,
+                        ResourcePool = Plugin.Instance.TraktResourcePool,
+                        CancellationToken = cancellationToken,
+                        RequestContentType = "application/json",
+                        RequestContent = data.ToJSON(),
+                        TimeoutMs = 120000,
+                        LogErrorResponseBody = false,
+                        LogRequest = false
+                    };
+                    await SetRequestHeaders(options, traktUser);
+                    var response = await _httpClient.Post(options).ConfigureAwait(false);
+                    return response.Content;
+                }
+                catch (Exception)
+                {
+                    tries ++;
+                    Thread.Sleep(5000);
+                    if (tries >= 5)
+                    {
+                        throw;
+                    }
+                }
+            }
+            return null;
         }
 
         private async Task SetRequestHeaders(HttpRequestOptions options, TraktUser traktUser)

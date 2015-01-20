@@ -173,8 +173,8 @@ namespace Trakt.ScheduledTasks
                         isPlayedTraktTv =
                             traktWatchedShow.Seasons.Any(
                                 season =>
-                                    season.Number == episode.Season.IndexNumber &&
-                                    season.Episodes!=null &&
+                                    season.Number == (episode.Season != null ? episode.Season.IndexNumber : null) &&
+                                    season.Episodes != null &&
                                     season.Episodes.Any(te => te.Number == episode.IndexNumber && te.Plays > 0));
                     }
 
