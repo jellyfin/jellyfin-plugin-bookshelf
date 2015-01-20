@@ -55,6 +55,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\SharedVersion.cs">
+      <Link>Properties\SharedVersion.cs</Link>
+    </Compile>
     <Compile Include="Configuration\StudioOptionsConfigurationPage.cs" />
     <Compile Include="Configuration\StudioOptions.cs" />
     <Compile Include="Configuration\PluginConfiguration.cs" />
