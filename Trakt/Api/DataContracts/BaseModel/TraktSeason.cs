@@ -6,7 +6,7 @@ namespace Trakt.Api.DataContracts.BaseModel
     public class TraktSeason
     {
         [DataMember(Name = "number")]
-        public int Number { get; set; }
+        public int? Number { get; set; }
 
         [DataMember(Name = "ids")]
         public TraktSeasonId Ids { get; set; }

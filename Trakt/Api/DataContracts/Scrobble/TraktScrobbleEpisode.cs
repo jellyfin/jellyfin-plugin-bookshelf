@@ -6,7 +6,7 @@ namespace Trakt.Api.DataContracts.Scrobble
     [DataContract]
     public class TraktScrobbleEpisode
     {
-        [DataMember(Name = "show")]
+        [DataMember(Name = "show", EmitDefaultValue = false)]
         public TraktShow Show { get; set; }
 
         [DataMember(Name = "episode")]

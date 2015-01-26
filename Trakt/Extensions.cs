@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
 using Trakt.Api.DataContracts;
@@ -102,6 +103,12 @@ namespace Trakt
         public static string ToISO8601(this DateTime dt, double hourShift = 0)
         {
             return dt.AddHours(hourShift).ToString("yyyy-MM-ddTHH:mm:ssZ");
+        }
+
+
+        public static int GetSeasonNumber(this Episode episode)
+        {
+            return (episode.ParentIndexNumber != 0 ? episode.ParentIndexNumber ?? 1 + (episode.Series.AnimeSeriesIndex ?? 1) - 1 : episode.ParentIndexNumber).Value;
         }
 
         public static string GetAudioChannels(this MediaStream audioStream)
