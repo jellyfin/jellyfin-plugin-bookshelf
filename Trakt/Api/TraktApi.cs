@@ -170,7 +170,7 @@ namespace Trakt.Api
                         Progress = progressPercent,
                         Episode = new TraktEpisode
                         {
-                            Season = episode.ParentIndexNumber ?? -1,
+                            Season = episode.GetSeasonNumber(),
                             Number = number
                         },
                         Show = new TraktShow
@@ -340,12 +340,12 @@ namespace Trakt.Api
                         showPayload.Add(syncShow);
                     }
                     var syncSeason =
-                        syncShow.Seasons.FirstOrDefault(ss => ss.Number == (episode.ParentIndexNumber ?? -1));
+                        syncShow.Seasons.FirstOrDefault(ss => ss.Number == episode.GetSeasonNumber());
                     if (syncSeason == null)
                     {
                         syncSeason = new TraktShowCollected.TraktSeasonCollected
                         {
-                            Number = episode.ParentIndexNumber ?? -1,
+                            Number = episode.GetSeasonNumber(),
                             Episodes = new List<TraktEpisodeCollected>()
                         };
                         syncShow.Seasons.Add(syncSeason);
@@ -480,7 +480,7 @@ namespace Trakt.Api
                             {
                                 new TraktShowRated.TraktSeasonRated
                                 {
-                                    Number = episode.ParentIndexNumber ?? -1,
+                                    Number = episode.GetSeasonNumber(),
                                     Episodes = new List<TraktEpisodeRated>
                                     {
                                         new TraktEpisodeRated
@@ -810,12 +810,12 @@ namespace Trakt.Api
                         };
                         data.Shows.Add(syncShow);
                     }
-                    var syncSeason = syncShow.Seasons.FirstOrDefault(ss => ss.Number == (episode.ParentIndexNumber??-1));
+                    var syncSeason = syncShow.Seasons.FirstOrDefault(ss => ss.Number == episode.GetSeasonNumber());
                     if(syncSeason == null)
                     {
                         syncSeason = new TraktSeasonWatched
                         {
-                            Number = episode.ParentIndexNumber ?? -1,
+                            Number = episode.GetSeasonNumber(),
                             Episodes = new List<TraktEpisodeWatched>()
                         };
                         syncShow.Seasons.Add(syncSeason);
@@ -892,6 +892,7 @@ namespace Trakt.Api
 
         private async Task<Stream> PostToTrakt(string url, object data, CancellationToken cancellationToken, TraktUser traktUser)
         {
+            var requestContent = data.ToJSON();
             var tries = 0;
             while (tries < 5)
             {
@@ -903,7 +904,7 @@ namespace Trakt.Api
                         ResourcePool = Plugin.Instance.TraktResourcePool,
                         CancellationToken = cancellationToken,
                         RequestContentType = "application/json",
-                        RequestContent = data.ToJSON(),
+                        RequestContent = requestContent,
                         TimeoutMs = 120000,
                         LogErrorResponseBody = false,
                         LogRequest = false
