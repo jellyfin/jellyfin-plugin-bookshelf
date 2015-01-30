@@ -1,5 +1,4 @@
-﻿using MediaBrowser.Common.IO;
-using MediaBrowser.Common.Net;
+﻿using MediaBrowser.Common.Net;
 using MediaBrowser.Common.ScheduledTasks;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Entities;
@@ -31,18 +30,16 @@ namespace Trakt.ScheduledTasks
         private readonly IJsonSerializer _jsonSerializer;
         private readonly IUserManager _userManager;
         private readonly ILogger _logger;
-        private readonly IFileSystem _fileSystem;
         private readonly TraktApi _traktApi;
         private readonly IUserDataManager _userDataManager;
 
-        public SyncLibraryTask(ILogManager logger, IJsonSerializer jsonSerializer, IUserManager userManager, IUserDataManager userDataManager, IHttpClient httpClient, IFileSystem fileSystem, IServerApplicationHost appHost)
+        public SyncLibraryTask(ILogManager logger, IJsonSerializer jsonSerializer, IUserManager userManager, IUserDataManager userDataManager, IHttpClient httpClient, IServerApplicationHost appHost)
         {
             _jsonSerializer = jsonSerializer;
             _userManager = userManager;
             _userDataManager = userDataManager;
             _logger = logger.GetLogger("Trakt");
-            _fileSystem = fileSystem;
-            _traktApi = new TraktApi(jsonSerializer, _logger, httpClient, appHost);
+            _traktApi = new TraktApi(jsonSerializer, _logger, httpClient, appHost, userDataManager);
         }
 
         public IEnumerable<ITaskTrigger> GetDefaultTriggers()
@@ -144,7 +141,7 @@ namespace Trakt.ScheduledTasks
                     }
 
                     var userData = _userDataManager.GetUserData(user.Id, child.GetUserDataKey());
-
+                    
                     var movieWatched = SyncFromTraktTask.FindMatch(movie, traktWatchedMovies);
                     if (userData.Played)
                     {

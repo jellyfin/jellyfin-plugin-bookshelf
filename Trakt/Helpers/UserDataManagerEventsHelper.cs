@@ -148,24 +148,35 @@ namespace Trakt.Helpers
 
             foreach (var package in _userDataPackages)
             {
-                
-                if (package.UnSeenMovies.Any())
-                    _traktApi.SendMoviePlaystateUpdates(package.UnSeenMovies, package.TraktUser, false,
-                                                        CancellationToken.None).ConfigureAwait(false);
-                if (package.SeenMovies.Any())
-                    _traktApi.SendMoviePlaystateUpdates(package.SeenMovies, package.TraktUser, true,
-                                                        CancellationToken.None).ConfigureAwait(false);
-                if (package.UnSeenEpisodes.Any())
-                    _traktApi.SendEpisodePlaystateUpdates(package.UnSeenEpisodes, package.TraktUser, false,
-                                                          CancellationToken.None).ConfigureAwait(false);
-                if (package.SeenEpisodes.Any())
-                    _traktApi.SendEpisodePlaystateUpdates(package.SeenEpisodes, package.TraktUser, true,
-                                                          CancellationToken.None).ConfigureAwait(false);
 
-                package.SeenMovies = new List<Movie>();
-                package.UnSeenMovies = new List<Movie>();
-                package.SeenEpisodes = new List<Episode>();
-                package.UnSeenEpisodes = new List<Episode>();
+                if (package.UnSeenMovies.Any())
+                {
+                    var movies = package.UnSeenMovies.ToList();
+                    package.UnSeenMovies.Clear();
+                    _traktApi.SendMoviePlaystateUpdates(movies, package.TraktUser, false,
+                        CancellationToken.None).ConfigureAwait(false);
+                }
+                if (package.SeenMovies.Any())
+                {
+                    var movies = package.SeenMovies.ToList();
+                    package.SeenMovies.Clear();
+                    _traktApi.SendMoviePlaystateUpdates(movies, package.TraktUser, true,
+                        CancellationToken.None).ConfigureAwait(false);
+                }
+                if (package.UnSeenEpisodes.Any())
+                {
+                    var episodes = package.UnSeenEpisodes.ToList();
+                    package.UnSeenEpisodes.Clear();
+                    _traktApi.SendEpisodePlaystateUpdates(episodes, package.TraktUser, false,
+                        CancellationToken.None).ConfigureAwait(false);
+                }
+                if (package.SeenEpisodes.Any())
+                {
+                    var episodes = package.SeenEpisodes.ToList();
+                    package.SeenEpisodes.Clear();
+                    _traktApi.SendEpisodePlaystateUpdates(episodes, package.TraktUser, true,
+                        CancellationToken.None).ConfigureAwait(false);
+                }
             }
         }
     }

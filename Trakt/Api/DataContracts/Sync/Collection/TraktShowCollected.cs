@@ -20,6 +20,4 @@ namespace Trakt.Api.DataContracts.Sync.Collection
             public List<TraktEpisodeCollected> Episodes { get; set; }
         }
     }
-
-    
 }

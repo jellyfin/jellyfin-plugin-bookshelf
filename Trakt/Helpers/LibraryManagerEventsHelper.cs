@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
-using MediaBrowser.Common.IO;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Entities.TV;
@@ -18,23 +17,20 @@ namespace Trakt.Helpers
 {
     internal class LibraryManagerEventsHelper
     {
-        private List<LibraryEvent> _queuedEvents;
+        private readonly List<LibraryEvent> _queuedEvents;
         private Timer _queueTimer;
         private readonly ILogger _logger ;
-        private readonly IFileSystem _fileSystem;
         private readonly TraktApi _traktApi;
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="logger"></param>
-        /// <param name="fileSystem"></param>
         /// <param name="traktApi"></param>
-        public LibraryManagerEventsHelper(ILogger logger, IFileSystem fileSystem, TraktApi traktApi)
+        public LibraryManagerEventsHelper(ILogger logger, TraktApi traktApi)
         {
             _queuedEvents = new List<LibraryEvent>();
             _logger = logger;
-            _fileSystem = fileSystem;
             _traktApi = traktApi;
         }
 
@@ -97,10 +93,11 @@ namespace Trakt.Helpers
                 _queueTimer.Enabled = false;
                 return;
             }
-
+            var queue = _queuedEvents.ToList();
+            _queuedEvents.Clear();
             foreach (var traktUser in Plugin.Instance.PluginConfiguration.TraktUsers)
             {
-                var queuedMovieDeletes = _queuedEvents.Where(ev =>
+                var queuedMovieDeletes = queue.Where(ev =>
                     new Guid(ev.TraktUser.LinkedMbUserId).Equals(new Guid(traktUser.LinkedMbUserId)) && 
                     ev.Item is Movie &&
                     ev.EventType == EventType.Remove).ToList();
@@ -115,7 +112,7 @@ namespace Trakt.Helpers
                     _logger.Info("No Movie Deletes to Process");
                 }
 
-                var queuedMovieAdds = _queuedEvents.Where(ev =>
+                var queuedMovieAdds = queue.Where(ev =>
                     new Guid(ev.TraktUser.LinkedMbUserId).Equals(new Guid(traktUser.LinkedMbUserId)) &&
                     ev.Item is Movie &&
                     ev.EventType == EventType.Add).ToList();
@@ -130,7 +127,7 @@ namespace Trakt.Helpers
                     _logger.Info("No Movie Adds to Process");
                 }
 
-                var queuedEpisodeDeletes = _queuedEvents.Where(ev =>
+                var queuedEpisodeDeletes = queue.Where(ev =>
                     new Guid(ev.TraktUser.LinkedMbUserId).Equals(new Guid(traktUser.LinkedMbUserId)) &&
                     ev.Item is Episode &&
                     ev.EventType == EventType.Remove).ToList();
@@ -145,7 +142,7 @@ namespace Trakt.Helpers
                     _logger.Info("No Episode Deletes to Process");
                 }
 
-                var queuedEpisodeAdds = _queuedEvents.Where(ev =>
+                var queuedEpisodeAdds = queue.Where(ev =>
                     new Guid(ev.TraktUser.LinkedMbUserId).Equals(new Guid(traktUser.LinkedMbUserId)) &&
                     ev.Item is Episode &&
                     ev.EventType == EventType.Add).ToList();
@@ -160,7 +157,7 @@ namespace Trakt.Helpers
                     _logger.Info("No Episode Adds to Process");
                 }
 
-                var queuedShowDeletes = _queuedEvents.Where(ev =>
+                var queuedShowDeletes = queue.Where(ev =>
                     new Guid(ev.TraktUser.LinkedMbUserId).Equals(new Guid(traktUser.LinkedMbUserId)) &&
                     ev.Item is Series &&
                     ev.EventType == EventType.Remove).ToList();
@@ -178,7 +175,7 @@ namespace Trakt.Helpers
 
             // Everything is processed. Reset the event list.
             _queueTimer.Enabled = false;
-            _queuedEvents = new List<LibraryEvent>();
+            _queuedEvents.Clear();
 
         }
 

@@ -102,7 +102,7 @@ namespace Trakt
 
         public static string ToISO8601(this DateTime dt, double hourShift = 0)
         {
-            return dt.AddHours(hourShift).ToString("yyyy-MM-ddTHH:mm:ssZ");
+            return dt.AddHours(hourShift).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ");
         }
 
 
