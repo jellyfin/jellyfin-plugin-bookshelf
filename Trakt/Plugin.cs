@@ -8,7 +8,7 @@ namespace Trakt
 {
     public class Plugin : BasePlugin<PluginConfiguration>
     {
-        public SemaphoreSlim TraktResourcePool = new SemaphoreSlim(5,5);
+        public SemaphoreSlim TraktResourcePool = new SemaphoreSlim(2,2);
 
         public Plugin(IApplicationPaths appPaths, IXmlSerializer xmlSerializer)
             : base(appPaths, xmlSerializer)

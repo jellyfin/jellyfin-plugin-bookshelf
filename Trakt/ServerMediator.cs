@@ -1,5 +1,4 @@
-﻿using MediaBrowser.Common.IO;
-using MediaBrowser.Common.Net;
+﻿using MediaBrowser.Common.Net;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
@@ -43,19 +42,18 @@ namespace Trakt
         /// <param name="libraryManager"> </param>
         /// <param name="logger"></param>
         /// <param name="httpClient"></param>
-        /// <param name="fileSystem"></param>
         /// <param name="appHost"></param>
         public ServerMediator(IJsonSerializer jsonSerializer, ISessionManager sessionManager, IUserDataManager userDataManager,
-            ILibraryManager libraryManager, ILogManager logger, IHttpClient httpClient, IFileSystem fileSystem, IServerApplicationHost appHost)
+            ILibraryManager libraryManager, ILogManager logger, IHttpClient httpClient, IServerApplicationHost appHost)
         {
             Instance = this;
             _sessionManager = sessionManager;
             _libraryManager = libraryManager;
             _logger = logger.GetLogger("Trakt");
 
-            _traktApi = new TraktApi(jsonSerializer, _logger, httpClient, appHost);
+            _traktApi = new TraktApi(jsonSerializer, _logger, httpClient, appHost, userDataManager);
             _service = new TraktUriService(_traktApi, _logger, _libraryManager);
-            _libraryManagerEventsHelper = new LibraryManagerEventsHelper(_logger, fileSystem, _traktApi);
+            _libraryManagerEventsHelper = new LibraryManagerEventsHelper(_logger, _traktApi);
             _progressEvents = new List<ProgressEvent>();
             _userDataManagerEventsHelper = new UserDataManagerEventsHelper(_logger, _traktApi);
 

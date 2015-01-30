@@ -47,7 +47,7 @@ namespace Trakt.ScheduledTasks
             _userManager = userManager;
             _userDataManager = userDataManager;
             _logger = logger.GetLogger("Trakt");
-            _traktApi = new TraktApi(jsonSerializer, _logger, httpClient, appHost);
+            _traktApi = new TraktApi(jsonSerializer, _logger, httpClient, appHost, userDataManager);
         }
 
         /// <summary>
@@ -293,8 +293,12 @@ namespace Trakt.ScheduledTasks
 
             var tmdb = item.GetProviderId(MetadataProviders.Tmdb);
 
-            if (!string.IsNullOrWhiteSpace(tmdb) &&
-                string.Equals(tmdb, movie.Ids.Tmdb.ToString(), StringComparison.OrdinalIgnoreCase))
+            if (!string.IsNullOrEmpty(tmdb) && int.Parse(tmdb) == movie.Ids.Tmdb)
+            {
+                return true;
+            }
+
+            if (item.Name == movie.Title && item.ProductionYear == movie.Year)
             {
                 return true;
             }

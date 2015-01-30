@@ -6,7 +6,7 @@ namespace Trakt.Api.DataContracts.Sync.Ratings
     [DataContract]
     public class TraktEpisodeRated : TraktRated
     {
-        [DataMember(Name = "number")]
+        [DataMember(Name = "number", EmitDefaultValue = false)]
         public int? Number { get; set; }
 
         [DataMember(Name = "ids")]

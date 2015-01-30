@@ -6,10 +6,10 @@ namespace Trakt.Api.DataContracts.Sync.Ratings
     [DataContract]
     public class TraktMovieRated : TraktRated
     {
-        [DataMember(Name = "title")]
+        [DataMember(Name = "title", EmitDefaultValue = false)]
         public string Title { get; set; }
 
-        [DataMember(Name = "year")]
+        [DataMember(Name = "year", EmitDefaultValue = false)]
         public int? Year { get; set; }
 
         [DataMember(Name = "ids")]

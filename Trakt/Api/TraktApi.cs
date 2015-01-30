@@ -10,6 +10,7 @@ using MediaBrowser.Controller.Entities.TV;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
 using Trakt.Api.DataContracts;
@@ -36,11 +37,14 @@ namespace Trakt.Api
         private readonly ILogger _logger;
         private readonly IHttpClient _httpClient;
         private readonly IServerApplicationHost _appHost;
+        private readonly IUserDataManager _userDataManager;
 
-        public TraktApi(IJsonSerializer jsonSerializer, ILogger logger, IHttpClient httpClient, IServerApplicationHost appHost)
+        public TraktApi(IJsonSerializer jsonSerializer, ILogger logger, IHttpClient httpClient,
+            IServerApplicationHost appHost, IUserDataManager userDataManager)
         {
             _httpClient = httpClient;
             _appHost = appHost;
+            _userDataManager = userDataManager;
             _jsonSerializer = jsonSerializer;
             _logger = logger;
         }
@@ -232,7 +236,7 @@ namespace Trakt.Api
                 var audioStream = m.GetMediaStreams().FirstOrDefault(x => x.Type == MediaStreamType.Audio);
                 return new TraktMovieCollected
                 {
-                    CollectedAt = m.DateCreated.ToUniversalTime().ToISO8601(),
+                    CollectedAt = m.DateCreated.ToISO8601(),
                     Is3D = m.Is3D,
                     AudioChannels = audioStream.GetAudioChannels(),
                     Audio = audioStream != null ? audioStream.Codec.ToLower().Replace(" ", "_") : null,
@@ -304,7 +308,7 @@ namespace Trakt.Api
                 {
                     episodesPayload.Add(new TraktEpisodeCollected
                     {
-                        CollectedAt = episode.DateCreated.ToUniversalTime().ToISO8601(),
+                        CollectedAt = episode.DateCreated.ToISO8601(),
                         Ids = new TraktEpisodeId
                         {
                             Tvdb = episode.GetProviderId(MetadataProviders.Tvdb).ConvertToInt()
@@ -356,7 +360,7 @@ namespace Trakt.Api
                         .Select(number => new TraktEpisodeCollected
                         {
                             Number = number,
-                            CollectedAt = episode.DateCreated.ToUniversalTime().ToISO8601(),
+                            CollectedAt = episode.DateCreated.ToISO8601(),
                             Ids = new TraktEpisodeId
                             {
                                 Tvdb = episode.GetProviderId(MetadataProviders.Tvdb).ConvertToInt()
@@ -709,18 +713,25 @@ namespace Trakt.Api
             if (traktUser == null)
                 throw new ArgumentNullException("traktUser");
 
-            var moviesPayload = movies.Select(m => new TraktMovieWatched
+            var moviesPayload = movies.Select(m =>
             {
-                Title = m.Name,
-                Ids = new TraktMovieId
+                var lastPlayedDate = seen
+                    ? _userDataManager.GetUserData(new Guid(traktUser.LinkedMbUserId), m.GetUserDataKey()).LastPlayedDate
+                    : null;
+                return new TraktMovieWatched
                 {
-                    Imdb = m.GetProviderId(MetadataProviders.Imdb),
-                    Tmdb =
-                        string.IsNullOrEmpty(m.GetProviderId(MetadataProviders.Tmdb))
-                            ? (int?) null
-                            : int.Parse(m.GetProviderId(MetadataProviders.Tmdb))
-                },
-                Year = m.ProductionYear
+                    Title = m.Name,
+                    Ids = new TraktMovieId
+                    {
+                        Imdb = m.GetProviderId(MetadataProviders.Imdb),
+                        Tmdb =
+                            string.IsNullOrEmpty(m.GetProviderId(MetadataProviders.Tmdb))
+                                ? (int?) null
+                                : int.Parse(m.GetProviderId(MetadataProviders.Tmdb))
+                    },
+                    Year = m.ProductionYear,
+                    WatchedAt = lastPlayedDate.HasValue ? lastPlayedDate.Value.ToISO8601() : null
+                };
             }).ToList();
             var chunks = moviesPayload.ToChunks(100).ToList();
             var traktResponses = new List<TraktSyncResponse>();
@@ -780,15 +791,20 @@ namespace Trakt.Api
             foreach (var episode in episodeChunk)
             {
                 var tvDbId = episode.GetProviderId(MetadataProviders.Tvdb);
-
+                var lastPlayedDate = seen
+                    ? _userDataManager.GetUserData(new Guid(traktUser.LinkedMbUserId), episode.GetUserDataKey())
+                        .LastPlayedDate
+                    : null;
                 if (!string.IsNullOrEmpty(tvDbId) && (!episode.IndexNumberEnd.HasValue || episode.IndexNumberEnd == episode.IndexNumber))
                 {
+
                     data.Episodes.Add(new TraktEpisodeWatched
                     {
                         Ids = new TraktEpisodeId
                         {
                             Tvdb = int.Parse(tvDbId)
-                        }
+                        },
+                        WatchedAt = lastPlayedDate.HasValue ? lastPlayedDate.Value.ToISO8601() : null
                     });
                 }
                 else if (episode.IndexNumber.HasValue)
@@ -823,7 +839,11 @@ namespace Trakt.Api
                     syncSeason.Episodes.AddRange(Enumerable.Range(episode.IndexNumber.Value,
                         ((episode.IndexNumberEnd ?? episode.IndexNumber).Value -
                          episode.IndexNumber.Value) + 1)
-                        .Select(number => new TraktEpisodeWatched{Number = number})
+                        .Select(number => new TraktEpisodeWatched
+                        {
+                            Number = number,
+                            WatchedAt = lastPlayedDate.HasValue ? lastPlayedDate.Value.ToISO8601() : null
+                        })
                         .ToList());
                 }
             }
@@ -853,7 +873,7 @@ namespace Trakt.Api
         private async Task<Stream> GetFromTrakt(string url, CancellationToken cancellationToken, TraktUser traktUser)
         {
             var tries = 0;
-            while (tries < 5)
+            while (tries < 3)
             {
                 try
                 {
@@ -865,7 +885,7 @@ namespace Trakt.Api
                         RequestContentType = "application/json",
                         TimeoutMs = 120000,
                         LogErrorResponseBody = false,
-                        LogRequest = false
+                        LogRequest = true
                     };
                     await SetRequestHeaders(options, traktUser);
                     var response = await _httpClient.Get(options).ConfigureAwait(false);
@@ -874,8 +894,8 @@ namespace Trakt.Api
                 catch (Exception)
                 {
                     tries++;
-                    Thread.Sleep(5000);
-                    if (tries >= 5)
+                    Thread.Sleep(10000);
+                    if (tries >= 3)
                     {
                         throw;
                     }
@@ -894,7 +914,7 @@ namespace Trakt.Api
         {
             var requestContent = data.ToJSON();
             var tries = 0;
-            while (tries < 5)
+            while (tries < 3)
             {
                 try
                 {
@@ -907,7 +927,7 @@ namespace Trakt.Api
                         RequestContent = requestContent,
                         TimeoutMs = 120000,
                         LogErrorResponseBody = false,
-                        LogRequest = false
+                        LogRequest = true
                     };
                     await SetRequestHeaders(options, traktUser);
                     var response = await _httpClient.Post(options).ConfigureAwait(false);
@@ -916,8 +936,8 @@ namespace Trakt.Api
                 catch (Exception)
                 {
                     tries ++;
-                    Thread.Sleep(5000);
-                    if (tries >= 5)
+                    Thread.Sleep(10000);
+                    if (tries >= 3)
                     {
                         throw;
                     }
