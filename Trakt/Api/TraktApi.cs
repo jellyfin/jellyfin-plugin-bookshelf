@@ -239,7 +239,7 @@ namespace Trakt.Api
                     CollectedAt = m.DateCreated.ToISO8601(),
                     Is3D = m.Is3D,
                     AudioChannels = audioStream.GetAudioChannels(),
-                    Audio = audioStream != null ? audioStream.Codec.ToLower().Replace(" ", "_") : null,
+                    Audio = audioStream != null && !string.IsNullOrEmpty(audioStream.Codec)? audioStream.Codec.ToLower().Replace(" ", "_") : null,
                     Resolution = m.GetDefaultVideoStream().GetResolution(),
                     Title = m.Name,
                     Year = m.ProductionYear,
@@ -315,7 +315,7 @@ namespace Trakt.Api
                         },
                         Is3D = episode.Is3D,
                         AudioChannels = audioStream.GetAudioChannels(),
-                        Audio = audioStream != null ? audioStream.Codec.ToLower().Replace(" ", "_") : null,
+                        Audio = audioStream != null && !string.IsNullOrEmpty(audioStream.Codec) ? audioStream.Codec.ToLower().Replace(" ", "_") : null,
                         Resolution = episode.GetDefaultVideoStream().GetResolution()
                     });
                 }
@@ -367,7 +367,7 @@ namespace Trakt.Api
                             },
                             Is3D = episode.Is3D,
                             AudioChannels = audioStream.GetAudioChannels(),
-                            Audio = audioStream != null ? audioStream.Codec.ToLower().Replace(" ", "_") : null,
+                            Audio = audioStream != null && !string.IsNullOrEmpty(audioStream.Codec) ? audioStream.Codec.ToLower().Replace(" ", "_") : null,
                             Resolution = episode.GetDefaultVideoStream().GetResolution()
                         })
                         .ToList());

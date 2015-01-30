@@ -113,7 +113,7 @@ namespace Trakt
 
         public static string GetAudioChannels(this MediaStream audioStream)
         {
-            if (audioStream == null)
+            if (audioStream == null || string.IsNullOrEmpty(audioStream.ChannelLayout))
             {
                 return null;
             }
