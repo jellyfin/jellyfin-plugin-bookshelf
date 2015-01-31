@@ -91,6 +91,11 @@ namespace Trakt.ScheduledTasks
 
         public static bool CanSync(BaseItem item)
         {
+            if (item.Path == null || item.LocationType == LocationType.Virtual)
+            {
+                return false;
+            }
+
             var movie = item as Movie;
 
             if (movie != null)
