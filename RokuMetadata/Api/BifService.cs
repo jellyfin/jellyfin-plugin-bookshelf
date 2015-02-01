@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Common.IO;
+﻿using MediaBrowser.Common.Configuration;
+using MediaBrowser.Common.IO;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.MediaEncoding;
@@ -31,17 +32,19 @@ namespace RokuMetadata.Api
         private readonly IMediaEncoder _mediaEncoder;
         private readonly IFileSystem _fileSystem;
         private readonly ILogger _logger;
+        private readonly IApplicationPaths _appPaths;
 
         public IHttpResultFactory ResultFactory { get; set; }
 
         public ServiceStack.Web.IRequest Request { get; set; }
 
-        public BifService(ILibraryManager libraryManager, IMediaEncoder mediaEncoder, IFileSystem fileSystem, ILogger logger)
+        public BifService(ILibraryManager libraryManager, IMediaEncoder mediaEncoder, IFileSystem fileSystem, ILogger logger, IApplicationPaths appPaths)
         {
             _libraryManager = libraryManager;
             _mediaEncoder = mediaEncoder;
             _fileSystem = fileSystem;
             _logger = logger;
+            _appPaths = appPaths;
         }
 
         public async Task<object> Get(GetBifFile request)
@@ -57,7 +60,8 @@ namespace RokuMetadata.Api
 
             if (!File.Exists(path))
             {
-                path = await new VideoProcessor(_logger, _mediaEncoder, _fileSystem).GetEmptyBif().ConfigureAwait(false);
+                path = await new VideoProcessor(_logger, _mediaEncoder, _fileSystem, _appPaths)
+                    .GetEmptyBif().ConfigureAwait(false);
             }
 
             _logger.Info("Returning bif file: {0}", path);

@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Common.IO;
+﻿using MediaBrowser.Common.Configuration;
+using MediaBrowser.Common.IO;
 using MediaBrowser.Common.ScheduledTasks;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
@@ -19,13 +20,15 @@ namespace RokuMetadata.ScheduledTasks
         private readonly ILibraryManager _libraryManager;
         private readonly IMediaEncoder _mediaEncoder;
         private readonly IFileSystem _fileSystem;
+        private readonly IApplicationPaths _appPaths;
 
-        public RokuScheduledTask(ILibraryManager libraryManager, ILogger logger, IMediaEncoder mediaEncoder, IFileSystem fileSystem)
+        public RokuScheduledTask(ILibraryManager libraryManager, ILogger logger, IMediaEncoder mediaEncoder, IFileSystem fileSystem, IApplicationPaths appPaths)
         {
             _libraryManager = libraryManager;
             _logger = logger;
             _mediaEncoder = mediaEncoder;
             _fileSystem = fileSystem;
+            _appPaths = appPaths;
         }
 
         public string Category
@@ -51,7 +54,7 @@ namespace RokuMetadata.ScheduledTasks
             {
                 try
                 {
-                    await new VideoProcessor(_logger, _mediaEncoder, _fileSystem)
+                    await new VideoProcessor(_logger, _mediaEncoder, _fileSystem, _appPaths)
                         .Run(item, cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)

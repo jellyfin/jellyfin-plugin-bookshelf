@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Common.IO;
+﻿using MediaBrowser.Common.Configuration;
+using MediaBrowser.Common.IO;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.MediaEncoding;
 using MediaBrowser.Model.Dlna;
@@ -21,12 +22,14 @@ namespace RokuMetadata.Drawing
         private readonly ILogger _logger;
         private readonly IMediaEncoder _mediaEncoder;
         private readonly IFileSystem _fileSystem;
+        private readonly IApplicationPaths _appPaths;
 
-        public VideoProcessor(ILogger logger, IMediaEncoder mediaEncoder, IFileSystem fileSystem)
+        public VideoProcessor(ILogger logger, IMediaEncoder mediaEncoder, IFileSystem fileSystem, IApplicationPaths appPaths)
         {
             _logger = logger;
             _mediaEncoder = mediaEncoder;
             _fileSystem = fileSystem;
+            _appPaths = appPaths;
         }
 
         public async Task Run(Video item, CancellationToken cancellationToken)
@@ -143,7 +146,7 @@ namespace RokuMetadata.Drawing
         private static readonly SemaphoreSlim BifWriterSemaphore = new SemaphoreSlim(1, 1);
         public async Task<string> GetEmptyBif()
         {
-            var path = Path.Combine(Path.GetDirectoryName(Plugin.Instance.ConfigurationFilePath), "empty.bif");
+            var path = Path.Combine(_appPaths.CachePath, "roku-thumbs", "empty.bif");
 
             if (!File.Exists(path))
             {
