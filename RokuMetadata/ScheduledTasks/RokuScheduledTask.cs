@@ -54,6 +54,10 @@ namespace RokuMetadata.ScheduledTasks
                     await new VideoProcessor(_logger, _mediaEncoder, _fileSystem)
                         .Run(item, cancellationToken).ConfigureAwait(false);
                 }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
                 catch (Exception ex)
                 {
                     _logger.ErrorException("Error creating roku thumbnails for {0}", ex, item.Name);
