@@ -4,11 +4,25 @@ namespace RokuMetadata
 {
     public class RokuDeviceProfile : DeviceProfile
     {
-        public RokuDeviceProfile()
+        public RokuDeviceProfile(bool supportsAc3, bool supportsDca)
         {
             Name = "Roku";
 
             MaxStreamingBitrate = 20000000;
+
+            var mkvAudio = "aac,mp3";
+            var mp4Audio = "aac";
+
+            if (supportsAc3)
+            {
+                mkvAudio += ",ac3";
+                mp4Audio += ",ac3";
+            }
+
+            if (supportsDca)
+            {
+                mkvAudio += ",dca";
+            }
 
             DirectPlayProfiles = new[]
             {
@@ -16,14 +30,14 @@ namespace RokuMetadata
                 {
                     Container = "mkv",
                     VideoCodec = "h264,mpeg4",
-                    AudioCodec = "ac3,dca,aac,mp3",
+                    AudioCodec = mkvAudio,
                     Type = DlnaProfileType.Video
                 },
                 new DirectPlayProfile
                 {
                     Container = "mp4,mov,m4v",
                     VideoCodec = "h264,mpeg4",
-                    AudioCodec = "ac3,aac",
+                    AudioCodec = mp4Audio,
                     Type = DlnaProfileType.Video
                 }
             };
@@ -61,6 +75,40 @@ namespace RokuMetadata
                     }
                 }
             };
+
+            SubtitleProfiles = new[]
+            {
+                new SubtitleProfile
+                {
+                    Format = "srt",
+                    Method = SubtitleDeliveryMethod.External
+                }
+            };
+
+            TranscodingProfiles = new[]
+            {
+                new TranscodingProfile
+                {
+                    Container = "mp3",
+                    AudioCodec = "mp3",
+                    Type = DlnaProfileType.Audio
+                },
+
+                new TranscodingProfile
+                {
+                    Container = "ts",
+                    Type = DlnaProfileType.Video,
+                    AudioCodec = "aac",
+                    VideoCodec = "h264"
+                },
+
+                new TranscodingProfile
+                {
+                    Container = "jpeg",
+                    Type = DlnaProfileType.Photo
+                }
+            };
+
         }
     }
 }

@@ -1,47 +1,78 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-    <title>Trailers</title>
+    <title>Roku Thumbnails</title>
 </head>
 <body>
-    <div data-role="page" class="page type-interior pluginConfigurationPage trailersConfigurationPage">
+    <div data-role="page" class="page type-interior pluginConfigurationPage rokuConfigurationPage">
 
         <div data-role="content">
             <div class="content-primary">
 
-                <form class="trailersConfigurationForm">
+                <form class="rokuConfigurationForm">
 
                     <div>
                         <fieldset data-role="controlgroup">
-                            <legend>Display sections:</legend>
-                            <label for="chkEnableMovieArchive">Movie trailer archive</label>
-                            <input type="checkbox" id="chkEnableMovieArchive" />
-                            <label for="chkTheaters">New and Upcoming in Theaters</label>
-                            <input type="checkbox" id="chkTheaters" />
-                            <label for="chkDvd">New and Upcoming on Dvd</label>
-                            <input type="checkbox" id="chkDvd" />
-                            <label for="chkStreaming">New and Upcoming on Netflix</label>
-                            <input type="checkbox" id="chkStreaming" />
+                            <legend>Create thumbnails in:</legend>
+                            <label for="chkEnableHD">HD</label>
+                            <input type="checkbox" id="chkEnableHD" />
+                            <label for="chkEnableSD">SD</label>
+                            <input type="checkbox" id="chkEnableSD" />
                         </fieldset>
-                        <div class="fieldDescription">The movie archive adds a catalog of over 1500 trailers to your library, allowing them to be utilized within Cinema Mode, recommendations, and channel browsing. After enabling this your next library scan will take longer than usual. Please be patient.</div>
+                        <div class="fieldDescription">Configure this based on the screens your Roku devices are connected to, and not based on your content. If you do not own any SDTV's, leaving it unchecked will reduce the amount of time required to create thumbnails.</div>
                     </div>
-                    <br />
-                    <br />
+                    <br /><br />
                     <ul class="ulForm" data-role="listview">
                         <li>
-                            <label for="chkExcludeUnidentifiedContent">Exclude trailers that are not found on iMDB.com or theMovieDb.org</label>
-                            <input type="checkbox" id="chkExcludeUnidentifiedContent" />
+                            <label for="chkEnableDuringScan">Create thumbnails when videos are discovered</label>
+                            <input type="checkbox" id="chkEnableDuringScan" />
+                            <div class="fieldDescription">This will make thumbnails available sooner but will result in significantly longer library scans. Thumbnails are also created during a scheduled task.</div>
+                            <div class="fieldDescription">To configure the scheduled task, see <a href="scheduledtasks.html">scheduled tasks</a>.</div>
+                            <br />
                         </li>
                         <li>
-                            <label for="chkEnableLocalTrailers">Download trailers into my movie folders</label>
-                            <input type="checkbox" id="chkEnableLocalTrailers" />
+                            <label for="selectBitrate">Max streaming bitrate:</label>
+                            <select id="selectBitrate">
+                                <option value="1000000">1 mbps</option>
+                                <option value="2000000">2 mbps</option>
+                                <option value="3000000">3 mbps</option>
+                                <option value="4000000">4 mbps</option>
+                                <option value="5000000">5 mbps</option>
+                                <option value="6000000">6 mbps</option>
+                                <option value="7000000">7 mbps</option>
+                                <option value="8000000">8 mbps</option>
+                                <option value="9000000">9 mbps</option>
+                                <option value="10000000">10 mbps</option>
+                                <option value="11000000">11 mbps</option>
+                                <option value="12000000">12 mbps</option>
+                                <option value="13000000">13 mbps</option>
+                                <option value="14000000">14 mbps</option>
+                                <option value="15000000">15 mbps</option>
+                                <option value="16000000">16 mbps</option>
+                                <option value="17000000">17 mbps</option>
+                                <option value="18000000">18 mbps</option>
+                                <option value="19000000">19 mbps</option>
+                                <option value="20000000">20 mbps</option>
+                            </select>
+                            <div class="fieldDescription">Configure this to match the value you've set in the Roku app. If you don't know, leave it at the highest value. If you have multiple Roku devices, set this to the highest value being used. Thumbnails are only utilized by the Roku when direct streaming, so this setting will help avoid creating them for videos that will require transcoding.</div>
+                            <br />
                         </li>
                         <li>
-                            <button type="submit" data-theme="b">Save</button>
-                            <button type="button" onclick="history.back();">Cancel</button>
+                            <label for="selectAudioOutputMode">Audio output mode:</label>
+                            <select id="selectAudioOutputMode">
+                                <option value="Stereo">Stereo</option>
+                                <option value="DD">DD</option>
+                                <option value="DDPlus">DD+</option>
+                                <option value="DTS">DD+, DTS</option>
+                            </select>
+                            <div class="fieldDescription">Configure this to match your Roku device audio output mode. If you don't know, leave it at the highest value. If you have multiple Roku devices, set this to the highest value being used. Thumbnails are only utilized by the Roku when direct streaming, so this setting will help avoid creating them for videos that will require transcoding.</div>
+                            <br />
+                        </li>
+                        <li>
+                            <button type="submit" data-theme="b" data-icon="check">Save</button>
+                            <button type="button" onclick="history.back();" data-icon="delete">Cancel</button>
                         </li>
                     </ul>
-
                 </form>
             </div>
         </div>
@@ -50,9 +81,9 @@
 
             (function () {
 
-                var pluginId = "986a7283-205a-4436-862d-23135c067f8a";
+                var pluginId = "0417264b-5a93-4ad0-a1f0-b87569b7cf80";
 
-                $('.trailersConfigurationPage').on('pageshow', function (event) {
+                $('.rokuConfigurationPage').on('pageshow', function (event) {
 
                     var page = this;
 
@@ -60,19 +91,17 @@
 
                     ApiClient.getPluginConfiguration(pluginId).done(function (config) {
 
-                        $('#chkEnableMovieArchive', page).checked(config.EnableMovieArchive).checkboxradio('refresh');
-                        $('#chkTheaters', page).checked(config.EnableTheaters).checkboxradio('refresh');
-                        $('#chkDvd', page).checked(config.EnableDvd).checkboxradio('refresh');
-                        $('#chkStreaming', page).checked(config.EnableNetflix).checkboxradio('refresh');
-
-                        $('#chkExcludeUnidentifiedContent', page).checked(config.ExcludeUnIdentifiedContent).checkboxradio('refresh');
-                        $('#chkEnableLocalTrailers', page).checked(config.EnableLocalTrailerDownloads).checkboxradio('refresh');
+                        $('#chkEnableHD', page).checked(config.EnableHdThumbnails).checkboxradio('refresh');
+                        $('#chkEnableSD', page).checked(config.EnableSdThumbnails).checkboxradio('refresh');
+                        $('#chkEnableDuringScan', page).checked(config.EnableExtractionDuringLibraryScan).checkboxradio('refresh');
+                        $('#selectBitrate', page).val(config.MaxBitrate).selectmenu('refresh');
+                        $('#selectAudioOutputMode', page).val(config.AudioOutputMode).selectmenu('refresh');
 
                         Dashboard.hideLoadingMsg();
                     });
                 });
 
-                $('.trailersConfigurationForm').off('submit.plugin').on('submit.plugin', function (e) {
+                $('.rokuConfigurationForm').off('submit.plugin').on('submit.plugin', function (e) {
 
                     Dashboard.showLoadingMsg();
 
@@ -80,13 +109,11 @@
 
                     ApiClient.getPluginConfiguration(pluginId).done(function (config) {
 
-                        config.EnableMovieArchive = $('#chkEnableMovieArchive', form).checked();
-                        config.EnableTheaters = $('#chkTheaters', form).checked();
-                        config.EnableDvd = $('#chkDvd', form).checked();
-                        config.EnableNetflix = $('#chkStreaming', form).checked();
-
-                        config.ExcludeUnIdentifiedContent = $('#chkExcludeUnidentifiedContent', form).checked();
-                        config.EnableLocalTrailerDownloads = $('#chkEnableLocalTrailers', form).checked();
+                        config.EnableHdThumbnails = $('#chkEnableHD', form).checked();
+                        config.EnableSdThumbnails = $('#chkEnableSD', form).checked();
+                        config.EnableExtractionDuringLibraryScan = $('#chkEnableDuringScan', form).checked();
+                        config.MaxBitrate = $('#selectBitrate', form).val();
+                        config.AudioOutputMode = $('#selectAudioOutputMode', form).val();
 
                         ApiClient.updatePluginConfiguration(pluginId, config).done(Dashboard.processPluginConfigurationUpdateResult);
                     });

@@ -1,8 +1,10 @@
-﻿using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Common.IO;
+using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.LiveTv;
+using MediaBrowser.Controller.MediaEncoding;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Logging;
 using RokuMetadata.Drawing;
@@ -20,10 +22,14 @@ namespace RokuMetadata.Providers
         IForcedProvider
     {
         private readonly ILogger _logger;
+        private readonly IMediaEncoder _mediaEncoder;
+        private readonly IFileSystem _fileSystem;
 
-        public RokuMetadataProvider(ILogger logger)
+        public RokuMetadataProvider(ILogger logger, IMediaEncoder mediaEncoder, IFileSystem fileSystem)
         {
             _logger = logger;
+            _mediaEncoder = mediaEncoder;
+            _fileSystem = fileSystem;
         }
 
         public string Name
@@ -82,7 +88,7 @@ namespace RokuMetadata.Providers
         {
             if (Plugin.Instance.Configuration.EnableExtractionDuringLibraryScan)
             {
-                await new VideoProcessor(_logger)
+                await new VideoProcessor(_logger, _mediaEncoder, _fileSystem)
                     .Run(item, cancellationToken).ConfigureAwait(false);
             }
 

@@ -1,6 +1,8 @@
-﻿using MediaBrowser.Common.ScheduledTasks;
+﻿using MediaBrowser.Common.IO;
+using MediaBrowser.Common.ScheduledTasks;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.MediaEncoding;
 using MediaBrowser.Model.Logging;
 using RokuMetadata.Drawing;
 using System;
@@ -15,11 +17,15 @@ namespace RokuMetadata.ScheduledTasks
     {
         private readonly ILogger _logger;
         private readonly ILibraryManager _libraryManager;
+        private readonly IMediaEncoder _mediaEncoder;
+        private readonly IFileSystem _fileSystem;
 
-        public RokuScheduledTask(ILibraryManager libraryManager, ILogger logger)
+        public RokuScheduledTask(ILibraryManager libraryManager, ILogger logger, IMediaEncoder mediaEncoder, IFileSystem fileSystem)
         {
             _libraryManager = libraryManager;
             _logger = logger;
+            _mediaEncoder = mediaEncoder;
+            _fileSystem = fileSystem;
         }
 
         public string Category
@@ -43,8 +49,15 @@ namespace RokuMetadata.ScheduledTasks
 
             foreach (var item in items)
             {
-                await new VideoProcessor(_logger)
-                    .Run(item, cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    await new VideoProcessor(_logger, _mediaEncoder, _fileSystem)
+                        .Run(item, cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    _logger.ErrorException("Error creating roku thumbnails for {0}", ex, item.Name);
+                }
 
                 numComplete++;
                 double percent = numComplete;
@@ -68,7 +81,7 @@ namespace RokuMetadata.ScheduledTasks
 
         public string Name
         {
-            get { return ""; }
+            get { return "Create thumbnails"; }
         }
     }
 }
