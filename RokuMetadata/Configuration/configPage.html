@@ -1,0 +1,102 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Trailers</title>
+</head>
+<body>
+    <div data-role="page" class="page type-interior pluginConfigurationPage trailersConfigurationPage">
+
+        <div data-role="content">
+            <div class="content-primary">
+
+                <form class="trailersConfigurationForm">
+
+                    <div>
+                        <fieldset data-role="controlgroup">
+                            <legend>Display sections:</legend>
+                            <label for="chkEnableMovieArchive">Movie trailer archive</label>
+                            <input type="checkbox" id="chkEnableMovieArchive" />
+                            <label for="chkTheaters">New and Upcoming in Theaters</label>
+                            <input type="checkbox" id="chkTheaters" />
+                            <label for="chkDvd">New and Upcoming on Dvd</label>
+                            <input type="checkbox" id="chkDvd" />
+                            <label for="chkStreaming">New and Upcoming on Netflix</label>
+                            <input type="checkbox" id="chkStreaming" />
+                        </fieldset>
+                        <div class="fieldDescription">The movie archive adds a catalog of over 1500 trailers to your library, allowing them to be utilized within Cinema Mode, recommendations, and channel browsing. After enabling this your next library scan will take longer than usual. Please be patient.</div>
+                    </div>
+                    <br />
+                    <br />
+                    <ul class="ulForm" data-role="listview">
+                        <li>
+                            <label for="chkExcludeUnidentifiedContent">Exclude trailers that are not found on iMDB.com or theMovieDb.org</label>
+                            <input type="checkbox" id="chkExcludeUnidentifiedContent" />
+                        </li>
+                        <li>
+                            <label for="chkEnableLocalTrailers">Download trailers into my movie folders</label>
+                            <input type="checkbox" id="chkEnableLocalTrailers" />
+                        </li>
+                        <li>
+                            <button type="submit" data-theme="b">Save</button>
+                            <button type="button" onclick="history.back();">Cancel</button>
+                        </li>
+                    </ul>
+
+                </form>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+
+            (function () {
+
+                var pluginId = "986a7283-205a-4436-862d-23135c067f8a";
+
+                $('.trailersConfigurationPage').on('pageshow', function (event) {
+
+                    var page = this;
+
+                    Dashboard.showLoadingMsg();
+
+                    ApiClient.getPluginConfiguration(pluginId).done(function (config) {
+
+                        $('#chkEnableMovieArchive', page).checked(config.EnableMovieArchive).checkboxradio('refresh');
+                        $('#chkTheaters', page).checked(config.EnableTheaters).checkboxradio('refresh');
+                        $('#chkDvd', page).checked(config.EnableDvd).checkboxradio('refresh');
+                        $('#chkStreaming', page).checked(config.EnableNetflix).checkboxradio('refresh');
+
+                        $('#chkExcludeUnidentifiedContent', page).checked(config.ExcludeUnIdentifiedContent).checkboxradio('refresh');
+                        $('#chkEnableLocalTrailers', page).checked(config.EnableLocalTrailerDownloads).checkboxradio('refresh');
+
+                        Dashboard.hideLoadingMsg();
+                    });
+                });
+
+                $('.trailersConfigurationForm').off('submit.plugin').on('submit.plugin', function (e) {
+
+                    Dashboard.showLoadingMsg();
+
+                    var form = this;
+
+                    ApiClient.getPluginConfiguration(pluginId).done(function (config) {
+
+                        config.EnableMovieArchive = $('#chkEnableMovieArchive', form).checked();
+                        config.EnableTheaters = $('#chkTheaters', form).checked();
+                        config.EnableDvd = $('#chkDvd', form).checked();
+                        config.EnableNetflix = $('#chkStreaming', form).checked();
+
+                        config.ExcludeUnIdentifiedContent = $('#chkExcludeUnidentifiedContent', form).checked();
+                        config.EnableLocalTrailerDownloads = $('#chkEnableLocalTrailers', form).checked();
+
+                        ApiClient.updatePluginConfiguration(pluginId, config).done(Dashboard.processPluginConfigurationUpdateResult);
+                    });
+
+                    return false;
+                });
+
+            })();
+
+        </script>
+    </div>
+</body>
+</html>

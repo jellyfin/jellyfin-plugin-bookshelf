@@ -34,8 +34,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.Chapte
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.ArgusTV", "MediaBrowser.Plugins.ArgusTV\MediaBrowser.Plugins.ArgusTV.csproj", "{30B2A395-5E43-454F-8093-DAF307D6D4FB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.LocalTrailers", "MediaBrowser.Plugins.LocalTrailers\MediaBrowser.Plugins.LocalTrailers.csproj", "{2F4C01E2-7C9F-4F08-922E-27AC4A1D53FF}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.WindowsLiveTiles", "MediaBrowser.Plugins.WindowsLiveTiles\MediaBrowser.Plugins.WindowsLiveTiles.csproj", "{50CFC4B0-5B2C-4FA5-B515-7ED2AB060407}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.PushBulletNotifications", "MediaBrowser.Plugins.PushBulletNotifications\MediaBrowser.Plugins.PushBulletNotifications.csproj", "{D3018C1D-19DD-407E-9A44-304E172599D3}"
@@ -47,6 +45,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameBrowser", "GameBrowser\GameBrowser.csproj", "{0B32450D-AB7B-4FB1-8819-7AFC17EB1295}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.StudioCleaner", "MediaBrowser.Plugins.StudioCleaner\MediaBrowser.Plugins.StudioCleaner.csproj", "{776C7D9D-72C5-4C73-AC73-88071B5C963C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RokuMetadata", "RokuMetadata\RokuMetadata.csproj", "{E0FECDE5-B375-45AF-9B07-BD64977F966C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -170,6 +170,12 @@ Global
 		{776C7D9D-72C5-4C73-AC73-88071B5C963C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{776C7D9D-72C5-4C73-AC73-88071B5C963C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{776C7D9D-72C5-4C73-AC73-88071B5C963C}.Release|x86.ActiveCfg = Release|Any CPU
+		{E0FECDE5-B375-45AF-9B07-BD64977F966C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E0FECDE5-B375-45AF-9B07-BD64977F966C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E0FECDE5-B375-45AF-9B07-BD64977F966C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E0FECDE5-B375-45AF-9B07-BD64977F966C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E0FECDE5-B375-45AF-9B07-BD64977F966C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E0FECDE5-B375-45AF-9B07-BD64977F966C}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
