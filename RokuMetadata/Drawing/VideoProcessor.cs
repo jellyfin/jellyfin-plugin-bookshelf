@@ -76,8 +76,6 @@ namespace RokuMetadata.Drawing
 
         private async Task Run(Video item, string itemModifier, MediaSourceInfo mediaSource, int width, CancellationToken cancellationToken)
         {
-            _logger.Info("Creating roku thumbnails at {0} width, for {1}. media source: {2}", width, item.Name, mediaSource.Path);
-
             var path = GetBifPath(item, itemModifier, mediaSource.Id, width);
 
             if (!File.Exists(path))
@@ -115,6 +113,8 @@ namespace RokuMetadata.Drawing
 
         private async Task CreateBif(string path, int width, MediaSourceInfo mediaSource, CancellationToken cancellationToken)
         {
+            _logger.Info("Creating roku thumbnails at {0} width, for {1}", width, mediaSource.Path);
+
             var protocol = mediaSource.Protocol;
 
             var inputPath = MediaEncoderHelpers.GetInputArgument(mediaSource.Path, protocol, null, mediaSource.PlayableStreamFileNames);

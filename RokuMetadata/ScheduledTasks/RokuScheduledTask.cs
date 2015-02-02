@@ -69,9 +69,9 @@ namespace RokuMetadata.ScheduledTasks
                 numComplete++;
                 double percent = numComplete;
                 percent /= items.Count;
-                percent *= 95;
+                percent *= 100;
 
-                progress.Report(percent + 5);
+                progress.Report(percent);
             }
         }
 
