@@ -33,18 +33,20 @@ namespace RokuMetadata.Api
         private readonly IFileSystem _fileSystem;
         private readonly ILogger _logger;
         private readonly IApplicationPaths _appPaths;
+        private readonly ILibraryMonitor _libraryMonitor;
 
         public IHttpResultFactory ResultFactory { get; set; }
 
         public ServiceStack.Web.IRequest Request { get; set; }
 
-        public BifService(ILibraryManager libraryManager, IMediaEncoder mediaEncoder, IFileSystem fileSystem, ILogger logger, IApplicationPaths appPaths)
+        public BifService(ILibraryManager libraryManager, IMediaEncoder mediaEncoder, IFileSystem fileSystem, ILogger logger, IApplicationPaths appPaths, ILibraryMonitor libraryMonitor)
         {
             _libraryManager = libraryManager;
             _mediaEncoder = mediaEncoder;
             _fileSystem = fileSystem;
             _logger = logger;
             _appPaths = appPaths;
+            _libraryMonitor = libraryMonitor;
         }
 
         public async Task<object> Get(GetBifFile request)
@@ -58,7 +60,7 @@ namespace RokuMetadata.Api
 
             if (path == null)
             {
-                path = await new VideoProcessor(_logger, _mediaEncoder, _fileSystem, _appPaths)
+                path = await new VideoProcessor(_logger, _mediaEncoder, _fileSystem, _appPaths, _libraryMonitor)
                     .GetEmptyBif().ConfigureAwait(false);
             }
 

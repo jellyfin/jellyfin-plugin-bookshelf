@@ -21,14 +21,16 @@ namespace RokuMetadata.ScheduledTasks
         private readonly IMediaEncoder _mediaEncoder;
         private readonly IFileSystem _fileSystem;
         private readonly IApplicationPaths _appPaths;
+        private readonly ILibraryMonitor _libraryMonitor;
 
-        public RokuScheduledTask(ILibraryManager libraryManager, ILogger logger, IMediaEncoder mediaEncoder, IFileSystem fileSystem, IApplicationPaths appPaths)
+        public RokuScheduledTask(ILibraryManager libraryManager, ILogger logger, IMediaEncoder mediaEncoder, IFileSystem fileSystem, IApplicationPaths appPaths, ILibraryMonitor libraryMonitor)
         {
             _libraryManager = libraryManager;
             _logger = logger;
             _mediaEncoder = mediaEncoder;
             _fileSystem = fileSystem;
             _appPaths = appPaths;
+            _libraryMonitor = libraryMonitor;
         }
 
         public string Category
@@ -54,7 +56,7 @@ namespace RokuMetadata.ScheduledTasks
             {
                 try
                 {
-                    await new VideoProcessor(_logger, _mediaEncoder, _fileSystem, _appPaths)
+                    await new VideoProcessor(_logger, _mediaEncoder, _fileSystem, _appPaths, _libraryMonitor)
                         .Run(item, cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)

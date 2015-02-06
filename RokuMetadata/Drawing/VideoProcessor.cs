@@ -1,6 +1,7 @@
 ﻿using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.IO;
 using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.MediaEncoding;
 using MediaBrowser.Model.Dlna;
 using MediaBrowser.Model.Dto;
@@ -23,13 +24,15 @@ namespace RokuMetadata.Drawing
         private readonly IMediaEncoder _mediaEncoder;
         private readonly IFileSystem _fileSystem;
         private readonly IApplicationPaths _appPaths;
+        private readonly ILibraryMonitor _libraryMonitor;
 
-        public VideoProcessor(ILogger logger, IMediaEncoder mediaEncoder, IFileSystem fileSystem, IApplicationPaths appPaths)
+        public VideoProcessor(ILogger logger, IMediaEncoder mediaEncoder, IFileSystem fileSystem, IApplicationPaths appPaths, ILibraryMonitor libraryMonitor)
         {
             _logger = logger;
             _mediaEncoder = mediaEncoder;
             _fileSystem = fileSystem;
             _appPaths = appPaths;
+            _libraryMonitor = libraryMonitor;
         }
 
         public async Task Run(Video item, CancellationToken cancellationToken)
@@ -170,9 +173,22 @@ namespace RokuMetadata.Drawing
                     .OrderBy(i => i.FullName)
                     .ToList();
 
-                using (var fs = _fileSystem.GetFileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read, true))
+                var bifTempPath = Path.Combine(tempDirectory, Guid.NewGuid().ToString("N"));
+
+                using (var fs = _fileSystem.GetFileStream(bifTempPath, FileMode.Create, FileAccess.Write, FileShare.Read, true))
                 {
                     await CreateBif(fs, images).ConfigureAwait(false);
+                }
+                
+                _libraryMonitor.ReportFileSystemChangeBeginning(path);
+
+                try
+                {
+                    File.Copy(bifTempPath, path, true);
+                }
+                finally
+                {
+                    _libraryMonitor.ReportFileSystemChangeComplete(path, false);
                 }
             }
             finally

@@ -26,13 +26,15 @@ namespace RokuMetadata.Providers
         private readonly IMediaEncoder _mediaEncoder;
         private readonly IFileSystem _fileSystem;
         private readonly IApplicationPaths _appPaths;
+        private readonly ILibraryMonitor _libraryMonitor;
 
-        public RokuMetadataProvider(ILogger logger, IMediaEncoder mediaEncoder, IFileSystem fileSystem, IApplicationPaths appPaths)
+        public RokuMetadataProvider(ILogger logger, IMediaEncoder mediaEncoder, IFileSystem fileSystem, IApplicationPaths appPaths, ILibraryMonitor libraryMonitor)
         {
             _logger = logger;
             _mediaEncoder = mediaEncoder;
             _fileSystem = fileSystem;
             _appPaths = appPaths;
+            _libraryMonitor = libraryMonitor;
         }
 
         public string Name
@@ -91,7 +93,7 @@ namespace RokuMetadata.Providers
         {
             if (Plugin.Instance.Configuration.EnableExtractionDuringLibraryScan)
             {
-                await new VideoProcessor(_logger, _mediaEncoder, _fileSystem, _appPaths)
+                await new VideoProcessor(_logger, _mediaEncoder, _fileSystem, _appPaths, _libraryMonitor)
                     .Run(item, cancellationToken).ConfigureAwait(false);
             }
 
