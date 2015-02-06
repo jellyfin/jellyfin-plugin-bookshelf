@@ -54,11 +54,9 @@ namespace RokuMetadata.Api
                 ((IHasMediaSources)item).GetMediaSources(false)
                     .FirstOrDefault(i => string.Equals(i.Id, request.MediaSourceId));
 
-            var path = VideoProcessor.GetBifPath(item, mediaSource.Id, request.Width);
+            var path = VideoProcessor.GetExistingBifPath(item, mediaSource.Id, request.Width);
 
-            _logger.Info("Looking for bif file: {0}", path);
-
-            if (!File.Exists(path))
+            if (path == null)
             {
                 path = await new VideoProcessor(_logger, _mediaEncoder, _fileSystem, _appPaths)
                     .GetEmptyBif().ConfigureAwait(false);

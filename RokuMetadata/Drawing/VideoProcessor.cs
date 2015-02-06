@@ -76,17 +76,15 @@ namespace RokuMetadata.Drawing
 
         private async Task Run(Video item, string itemModifier, MediaSourceInfo mediaSource, int width, CancellationToken cancellationToken)
         {
-            var path = GetBifPath(item, itemModifier, mediaSource.Id, width);
-
-            if (!File.Exists(path))
+            if (!HasBif(item, itemModifier, width, mediaSource))
             {
                 await BifWriterSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
                 try
                 {
-                    if (!File.Exists(path))
+                    if (!HasBif(item, itemModifier, width, mediaSource))
                     {
-                        await CreateBif(path, width, mediaSource, cancellationToken).ConfigureAwait(false);
+                        await CreateBif(item, itemModifier, width, mediaSource, cancellationToken).ConfigureAwait(false);
                     }
                 }
                 finally
@@ -96,19 +94,57 @@ namespace RokuMetadata.Drawing
             }
         }
 
+        private bool HasBif(Video item, string itemModifier, int width, MediaSourceInfo mediaSource)
+        {
+            return !string.IsNullOrWhiteSpace(GetExistingBifPath(item, itemModifier, mediaSource.Id, width));
+        }
+
         public static string GetItemModifier(BaseItem item)
         {
             return item.DateModified.Ticks.ToString(CultureInfo.InvariantCulture);
         }
 
-        public static string GetBifPath(BaseItem item, string mediaSourceId, int width)
+        public static string GetExistingBifPath(BaseItem item, string mediaSourceId, int width)
         {
-            return GetBifPath(item, GetItemModifier(item), mediaSourceId, width);
+            return GetExistingBifPath(item, GetItemModifier(item), mediaSourceId, width);
         }
 
-        public static string GetBifPath(BaseItem item, string modifier, string mediaSourceId, int width)
+        private static string GetExistingBifPath(BaseItem item, string itemModifier, string mediaSourceId, int width)
+        {
+            var path = GetInternalBifPath(item, itemModifier, mediaSourceId, width);
+
+            if (File.Exists(path))
+            {
+                return path;
+            }
+
+            return null;
+        }
+
+        private static string GetNewBifPath(BaseItem item, string itemModifier, string mediaSourceId, int width)
+        {
+            if (Plugin.Instance.Configuration.EnableLocalMediaFolderSaving)
+            {
+                var folder = item.ContainingFolderPath;
+                var filename = Path.GetFileNameWithoutExtension(item.Path);
+                filename += "-" + width.ToString(CultureInfo.InvariantCulture) + ".bif";
+
+                return Path.Combine(folder, filename);
+            }
+
+            return GetInternalBifPath(item, itemModifier, mediaSourceId, width);
+        }
+
+        private static string GetInternalBifPath(BaseItem item, string modifier, string mediaSourceId, int width)
         {
             return Path.Combine(item.GetInternalMetadataPath(), "bif", modifier, mediaSourceId, width.ToString(CultureInfo.InvariantCulture), "index.bif");
+        }
+
+        private Task CreateBif(Video item, string itemModifier, int width, MediaSourceInfo mediaSource, CancellationToken cancellationToken)
+        {
+            var path = GetNewBifPath(item, itemModifier, mediaSource.Id, width);
+
+            return CreateBif(path, width, mediaSource, cancellationToken);
         }
 
         private async Task CreateBif(string path, int width, MediaSourceInfo mediaSource, CancellationToken cancellationToken)
@@ -119,28 +155,30 @@ namespace RokuMetadata.Drawing
 
             var inputPath = MediaEncoderHelpers.GetInputArgument(mediaSource.Path, protocol, null, mediaSource.PlayableStreamFileNames);
 
-            var directory = Path.GetDirectoryName(path);
+            var tempDirectory = Path.Combine(_appPaths.TempDirectory, Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(tempDirectory);
 
-            Directory.CreateDirectory(directory);
-
-            DeleteImages(directory);
-
-            await _mediaEncoder.ExtractVideoImagesOnInterval(inputPath, protocol, mediaSource.Video3DFormat,
-                    TimeSpan.FromSeconds(10), directory, "img_", width, cancellationToken)
-                    .ConfigureAwait(false);
-
-            var images = new DirectoryInfo(directory)
-                .EnumerateFiles()
-                .Where(img => string.Equals(img.Extension, ".jpg", StringComparison.Ordinal))
-                .OrderBy(i => i.FullName)
-                .ToList();
-
-            using (var fs = _fileSystem.GetFileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read, true))
+            try
             {
-                await CreateBif(fs, images).ConfigureAwait(false);
-            }
+                await _mediaEncoder.ExtractVideoImagesOnInterval(inputPath, protocol, mediaSource.Video3DFormat,
+                        TimeSpan.FromSeconds(10), tempDirectory, "img_", width, cancellationToken)
+                        .ConfigureAwait(false);
 
-            DeleteImages(directory);
+                var images = new DirectoryInfo(tempDirectory)
+                    .EnumerateFiles()
+                    .Where(img => string.Equals(img.Extension, ".jpg", StringComparison.Ordinal))
+                    .OrderBy(i => i.FullName)
+                    .ToList();
+
+                using (var fs = _fileSystem.GetFileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read, true))
+                {
+                    await CreateBif(fs, images).ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                DeleteDirectory(tempDirectory);
+            }
         }
 
         private static readonly SemaphoreSlim BifWriterSemaphore = new SemaphoreSlim(1, 1);
@@ -228,23 +266,15 @@ namespace RokuMetadata.Drawing
             }
         }
 
-        private void DeleteImages(string directory)
+        private void DeleteDirectory(string directory)
         {
-            var images = new DirectoryInfo(directory)
-                .EnumerateFiles()
-                .Where(img => string.Equals(img.Extension, ".jpg", StringComparison.Ordinal))
-                .ToList();
-
-            foreach (var file in images)
+            try
             {
-                try
-                {
-                    file.Delete();
-                }
-                catch (Exception ex)
-                {
-                    _logger.ErrorException("Error deleting {0}", ex, file.FullName);
-                }
+                _fileSystem.DeleteDirectory(directory, true);
+            }
+            catch (Exception ex)
+            {
+                _logger.ErrorException("Error deleting {0}", ex, directory);
             }
         }
 

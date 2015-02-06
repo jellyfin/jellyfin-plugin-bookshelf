@@ -24,6 +24,12 @@
                     <br /><br />
                     <ul class="ulForm" data-role="listview">
                         <li>
+                            <label for="chkSaveBifLocal">Save thumbnail files within media folders</label>
+                            <input type="checkbox" id="chkSaveBifLocal" />
+                            <div class="fieldDescription">This will enable easier storage management of the thumbnail files. Thumbnail files will be saved with a .bif extension.</div>
+                            <br />
+                        </li>
+                        <li>
                             <label for="chkEnableDuringScan">Create thumbnails when videos are discovered</label>
                             <input type="checkbox" id="chkEnableDuringScan" />
                             <div class="fieldDescription">This will make thumbnails available sooner but will result in longer library scans. Thumbnails are also created during a scheduled task.</div>
@@ -34,8 +40,11 @@
                             <label for="selectBitrate">Max streaming bitrate:</label>
                             <select id="selectBitrate">
                                 <option value="1000000">1 mbps</option>
+                                <option value="1500000">1.5 mbps</option>
                                 <option value="2000000">2 mbps</option>
+                                <option value="2500000">2.5 mbps</option>
                                 <option value="3000000">3 mbps</option>
+                                <option value="3500000">3.5 mbps</option>
                                 <option value="4000000">4 mbps</option>
                                 <option value="5000000">5 mbps</option>
                                 <option value="6000000">6 mbps</option>
@@ -97,6 +106,8 @@
                         $('#selectBitrate', page).val(config.MaxBitrate).selectmenu('refresh');
                         $('#selectAudioOutputMode', page).val(config.AudioOutputMode).selectmenu('refresh');
 
+                        $('#chkSaveBifLocal', page).checked(config.EnableLocalMediaFolderSaving).checkboxradio('refresh');
+
                         Dashboard.hideLoadingMsg();
                     });
                 });
@@ -114,6 +125,8 @@
                         config.EnableExtractionDuringLibraryScan = $('#chkEnableDuringScan', form).checked();
                         config.MaxBitrate = $('#selectBitrate', form).val();
                         config.AudioOutputMode = $('#selectAudioOutputMode', form).val();
+
+                        config.EnableLocalMediaFolderSaving = $('#chkSaveBifLocal', form).checked();
 
                         ApiClient.updatePluginConfiguration(pluginId, config).done(Dashboard.processPluginConfigurationUpdateResult);
                     });

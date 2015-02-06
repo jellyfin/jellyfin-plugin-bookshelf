@@ -10,6 +10,7 @@ namespace RokuMetadata.Configuration
         public bool EnableExtractionDuringLibraryScan { get; set; }
         public bool EnableHdThumbnails { get; set; }
         public bool EnableSdThumbnails { get; set; }
+        public bool EnableLocalMediaFolderSaving { get; set; }
         public int MaxBitrate { get; set; }
 
         public AudioOutputMode AudioOutputMode { get; set; }
