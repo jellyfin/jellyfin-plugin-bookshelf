@@ -24,7 +24,7 @@ namespace MediaBrowser.Plugins.StudioCleaner.Configuration
         /// <returns>Stream.</returns>
         public Stream GetHtmlStream()
         {
-            return GetType().Assembly.GetManifestResourceStream("StudioCleaner.Configuration.configPage.html");
+            return GetType().Assembly.GetManifestResourceStream(GetType().Namespace + ".configPage.html");
         }
 
         /// <summary>

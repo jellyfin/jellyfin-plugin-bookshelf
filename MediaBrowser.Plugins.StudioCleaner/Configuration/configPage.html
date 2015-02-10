@@ -17,9 +17,7 @@
                     
                 </div>
                 <p>Once you have configured all your Studios, the next library scan will run the StudioCleaner against all your items.</p>
-                <button onclick="StudioCleanerConfigurationPage.refreshLibrary();">Start Library Scan</button>
-                <p>Plugin Created By snazy2000, Created From <a href="addplugin.html?name=Genre%20Cleaner&amp;guid=cd5a19be-7676-48ef-b64f-a17c98f2b889">GenreCleaner</a>
- by Ebr</p>
+                <p>Plugin Created By snazy2000, based on Ebr's Genre Cleaner plugin.</p>
             </div>
 
             <script type="text/javascript">
@@ -40,27 +38,12 @@
                         }
 
                         $('#StudioTypes', page).html(html).listview('refresh');
-                    },
-                    
-                    refreshLibrary: function () {
-                        var url = ApiClient.getUrl("Library/Refresh");
-                        $.post(url, { refreshLibrary: true });
-                        Dashboard.alert("Library Scan Started");
                     }
                 };
 
                 $('#StudioCleanerConfigurationPage').on('pageshow', function (event) {
 
-                    Dashboard.showLoadingMsg();
-
-                    ApiClient.getItemCounts(Dashboard.getCurrentUserId()).done(function (counts) {
-                        //generate this based on existence of types
-                        var types = { movies: "Movies", series: "TV Series" };
-                        
-                        StudioCleanerConfigurationPage.loadTypes(types, $($.mobile.activePage));
-
-                        Dashboard.hideLoadingMsg();
-                    });
+                    StudioCleanerConfigurationPage.loadTypes({ movies: "Movies", series: "TV Series" }, $($.mobile.activePage));
                 });
 
             </script>
