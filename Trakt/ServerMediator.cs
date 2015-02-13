@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Common.Net;
+﻿using MediaBrowser.Common.IO;
+using MediaBrowser.Common.Net;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
@@ -43,15 +44,15 @@ namespace Trakt
         /// <param name="logger"></param>
         /// <param name="httpClient"></param>
         /// <param name="appHost"></param>
-        public ServerMediator(IJsonSerializer jsonSerializer, ISessionManager sessionManager, IUserDataManager userDataManager,
-            ILibraryManager libraryManager, ILogManager logger, IHttpClient httpClient, IServerApplicationHost appHost)
+        /// <param name="fileSystem"></param>
+        public ServerMediator(IJsonSerializer jsonSerializer, ISessionManager sessionManager, IUserDataManager userDataManager, ILibraryManager libraryManager, ILogManager logger, IHttpClient httpClient, IServerApplicationHost appHost, IFileSystem fileSystem)
         {
             Instance = this;
             _sessionManager = sessionManager;
             _libraryManager = libraryManager;
             _logger = logger.GetLogger("Trakt");
 
-            _traktApi = new TraktApi(jsonSerializer, _logger, httpClient, appHost, userDataManager);
+            _traktApi = new TraktApi(jsonSerializer, _logger, httpClient, appHost, userDataManager, fileSystem);
             _service = new TraktUriService(_traktApi, _logger, _libraryManager);
             _libraryManagerEventsHelper = new LibraryManagerEventsHelper(_logger, _traktApi);
             _progressEvents = new List<ProgressEvent>();
@@ -78,7 +79,7 @@ namespace Trakt
                 var traktUser = UserHelper.GetTraktUser(e.UserId.ToString());
 
                 // Can't progress
-                if (traktUser == null || (!(baseItem is Movie) && !(baseItem is Episode)))
+                if (traktUser == null || !_traktApi.CanSync(baseItem, traktUser))
                     return;
 
                 // We have a user and the item is in a trakt monitored location. 
@@ -156,6 +157,11 @@ namespace Trakt
                     return;
                 }
 
+                if (!_traktApi.CanSync(e.Item, traktUser))
+                {
+                    return;
+                }
+
                 _logger.Debug(traktUser.LinkedMbUserId + " appears to be monitoring " + e.Item.Path);
 
                 var video = e.Item as Video;
@@ -220,6 +226,11 @@ namespace Trakt
                 if (traktUser == null)
                 {
                     _logger.Error("Could not match trakt user");
+                    return;
+                }
+
+                if (!_traktApi.CanSync(e.Item, traktUser))
+                {
                     return;
                 }
 

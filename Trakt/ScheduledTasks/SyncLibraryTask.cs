@@ -1,11 +1,11 @@
-﻿using MediaBrowser.Common.Net;
+﻿using MediaBrowser.Common.IO;
+using MediaBrowser.Common.Net;
 using MediaBrowser.Common.ScheduledTasks;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
-using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
 using System;
@@ -15,7 +15,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Trakt.Api;
 using Trakt.Api.DataContracts.Sync;
-using Trakt.Api.DataContracts.Users.Collection;
 using Trakt.Helpers;
 using Trakt.Model;
 
@@ -34,13 +33,13 @@ namespace Trakt.ScheduledTasks
         private readonly TraktApi _traktApi;
         private readonly IUserDataManager _userDataManager;
 
-        public SyncLibraryTask(ILogManager logger, IJsonSerializer jsonSerializer, IUserManager userManager, IUserDataManager userDataManager, IHttpClient httpClient, IServerApplicationHost appHost)
+        public SyncLibraryTask(ILogManager logger, IJsonSerializer jsonSerializer, IUserManager userManager, IUserDataManager userDataManager, IHttpClient httpClient, IServerApplicationHost appHost, IFileSystem fileSystem)
         {
             _jsonSerializer = jsonSerializer;
             _userManager = userManager;
             _userDataManager = userDataManager;
             _logger = logger.GetLogger("Trakt");
-            _traktApi = new TraktApi(jsonSerializer, _logger, httpClient, appHost, userDataManager);
+            _traktApi = new TraktApi(jsonSerializer, _logger, httpClient, appHost, userDataManager, fileSystem);
         }
 
         public IEnumerable<ITaskTrigger> GetDefaultTriggers()
@@ -96,7 +95,7 @@ namespace Trakt.ScheduledTasks
         {
             var libraryRoot = user.RootFolder;
             // purely for progress reporting
-            var mediaItemsCount = libraryRoot.GetRecursiveChildren(user).Where(SyncFromTraktTask.CanSync).Count();
+            var mediaItemsCount = libraryRoot.GetRecursiveChildren(user).Count(i => _traktApi.CanSync(i, traktUser));
 
             if (mediaItemsCount == 0)
             {
@@ -114,7 +113,7 @@ namespace Trakt.ScheduledTasks
             var traktCollectedMovies = await _traktApi.SendGetAllCollectedMoviesRequest(traktUser).ConfigureAwait(false);
             var movieItems = libraryRoot.GetRecursiveChildren(user)
                 .Where(x => x is Movie)
-                .Where(SyncFromTraktTask.CanSync)
+                .Where(x => _traktApi.CanSync(x, traktUser))
                 .OrderBy(x => x.Name)
                 .ToList();
             var movies = new List<Movie>();
@@ -236,7 +235,7 @@ namespace Trakt.ScheduledTasks
             var traktCollectedShows = await _traktApi.SendGetCollectedShowsRequest(traktUser).ConfigureAwait(false);
             var episodeItems = libraryRoot.GetRecursiveChildren(user)
                 .Where(x => x is Episode)
-                .Where(SyncFromTraktTask.CanSync)
+                .Where(x => _traktApi.CanSync(x, traktUser))
                 .OrderBy(x => x is Episode ? (x as Episode).SeriesName : null)
                 .ToList();
 

@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Linq;
 using System.Threading;
+using MediaBrowser.Common.IO;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Entities;
@@ -38,15 +39,50 @@ namespace Trakt.Api
         private readonly IHttpClient _httpClient;
         private readonly IServerApplicationHost _appHost;
         private readonly IUserDataManager _userDataManager;
+        private readonly IFileSystem _fileSystem;
 
         public TraktApi(IJsonSerializer jsonSerializer, ILogger logger, IHttpClient httpClient,
-            IServerApplicationHost appHost, IUserDataManager userDataManager)
+            IServerApplicationHost appHost, IUserDataManager userDataManager, IFileSystem fileSystem)
         {
             _httpClient = httpClient;
             _appHost = appHost;
             _userDataManager = userDataManager;
+            _fileSystem = fileSystem;
             _jsonSerializer = jsonSerializer;
             _logger = logger;
+        }
+
+        public bool CanSync(BaseItem item, TraktUser traktUser)
+        {
+            if (item.Path == null || item.LocationType == LocationType.Virtual)
+            {
+                return false;
+            }
+
+            if (traktUser.LocationsExcluded != null && traktUser.LocationsExcluded.Any(s => _fileSystem.ContainsSubPath(s, item.Path)))
+            {
+                return false;
+            }
+
+            var movie = item as Movie;
+
+            if (movie != null)
+            {
+                return !string.IsNullOrEmpty(movie.GetProviderId(MetadataProviders.Imdb)) ||
+                    !string.IsNullOrEmpty(movie.GetProviderId(MetadataProviders.Tmdb));
+            }
+
+            var episode = item as Episode;
+
+            if (episode != null && episode.Series != null && !episode.IsVirtualUnaired && !episode.IsMissingEpisode)
+            {
+                var series = episode.Series;
+
+                return !string.IsNullOrEmpty(series.GetProviderId(MetadataProviders.Imdb)) ||
+                    !string.IsNullOrEmpty(series.GetProviderId(MetadataProviders.Tvdb));
+            }
+
+            return false;
         }
 
 //        /// <summary>
