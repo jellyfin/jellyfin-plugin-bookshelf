@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
@@ -58,6 +59,55 @@ namespace Trakt
                    string.IsNullOrEmpty(metadata.Resolution) &&
                    string.IsNullOrEmpty(metadata.Audio) &&
                    string.IsNullOrEmpty(metadata.AudioChannels);
+        }
+
+        public static string GetCodecRepresetation(this MediaStream audioStream)
+        {
+            var audio = audioStream != null && !string.IsNullOrEmpty(audioStream.Codec)
+                ? audioStream.Codec.ToLower().Replace(" ", "_")
+                : null;
+            switch (audio)
+            {
+                case "truehd":
+                    return TraktAudio.dolby_truehd.ToString();
+                case "dts":
+                    return TraktAudio.dts.ToString();
+                case "dtshd":
+                    return TraktAudio.dts_ma.ToString();
+                case "ac3":
+                    return TraktAudio.dolby_digital.ToString();
+                case "aac":
+                    return TraktAudio.aac.ToString();
+                case "mp2":
+                    return TraktAudio.mp3.ToString();
+                case "pcm":
+                    return TraktAudio.lpcm.ToString();
+                case "ogg":
+                    return TraktAudio.ogg.ToString();
+                case "wma":
+                    return TraktAudio.wma.ToString();
+                case "flac":
+                    return TraktAudio.flac.ToString();
+                default:
+                    return audio;
+            }
+        }
+
+        public static bool MetadataIsDifferent(this TraktMovieCollected collectedMovie, Movie movie)
+        {
+            var audioStream = movie.GetMediaStreams().FirstOrDefault(x => x.Type == MediaStreamType.Audio);
+
+            var resolution = movie.GetDefaultVideoStream().GetResolution();
+            var audio = GetCodecRepresetation(audioStream);
+            var audioChannels = audioStream.GetAudioChannels();
+
+            if (collectedMovie.Metadata == null || collectedMovie.Metadata.IsEmpty())
+            {
+                return !string.IsNullOrEmpty(resolution) || !string.IsNullOrEmpty(audio) || !string.IsNullOrEmpty(audioChannels);
+            }
+            return collectedMovie.Metadata.Audio != audio ||
+                   collectedMovie.Metadata.AudioChannels != audioChannels ||
+                   collectedMovie.Metadata.Resolution != resolution;
         }
 
         public static string GetResolution(this MediaStream videoStream)
@@ -118,20 +168,56 @@ namespace Trakt
                 return null;
             }
             var channels = audioStream.ChannelLayout.Split('(')[0];
-            return channels.Replace("stereo", "2.0");
+            switch (channels)
+            {
+                case "7":
+                    return "6.1";
+                case "6":
+                    return "5.1";
+                case "5":
+                    return "5.0";
+                case "4":
+                    return "4.0";
+                case "3":
+                    return "2.1";
+                case "stereo":
+                    return "2.0";
+                case "mono":
+                    return "1.0";
+                default:
+                    return channels;
+            }
         }
 
-        public static IEnumerable<IEnumerable<T>> ToChunks<T>(this IEnumerable<T> enumerable, int chunkSize)
+        public static IList<IEnumerable<T>> ToChunks<T>(this IEnumerable<T> enumerable, int chunkSize)
         {
             var itemsReturned = 0;
             var list = enumerable.ToList(); // Prevent multiple execution of IEnumerable.
             var count = list.Count;
+            var chunks = new List<IEnumerable<T>>();
             while (itemsReturned < count)
             {
                 var currentChunkSize = Math.Min(chunkSize, count - itemsReturned);
-                yield return list.GetRange(itemsReturned, currentChunkSize);
+                chunks.Add(list.GetRange(itemsReturned, currentChunkSize));
                 itemsReturned += currentChunkSize;
             }
+            return chunks;
+        }
+
+        public enum TraktAudio
+        {
+            lpcm,
+            mp3,
+            aac,
+            dts,
+            dts_ma,
+            flac,
+            ogg,
+            wma,
+            dolby_prologic,
+            dolby_digital,
+            dolby_digital_plus,
+            dolby_truehd
         }
     }
 }

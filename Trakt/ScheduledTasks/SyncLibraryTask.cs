@@ -5,6 +5,7 @@ using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
+using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
 using System;
@@ -14,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Trakt.Api;
 using Trakt.Api.DataContracts.Sync;
+using Trakt.Api.DataContracts.Users.Collection;
 using Trakt.Helpers;
 using Trakt.Model;
 
@@ -123,13 +125,13 @@ namespace Trakt.ScheduledTasks
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var movie = child as Movie;
-                var collectedMovie = SyncFromTraktTask.FindMatch(movie, traktCollectedMovies);
-                if (collectedMovie == null || collectedMovie.Metadata.IsEmpty())
+                var userData = _userDataManager.GetUserData(user.Id, child.GetUserDataKey());
+
+                var collectedMovies = SyncFromTraktTask.FindMatches(movie, traktCollectedMovies).ToList();
+                if (!collectedMovies.Any() || collectedMovies.All(collectedMovie => collectedMovie.MetadataIsDifferent(movie)))
                 {
                     movies.Add(movie);
                 }
-
-                var userData = _userDataManager.GetUserData(user.Id, child.GetUserDataKey());
 
                 var movieWatched = SyncFromTraktTask.FindMatch(movie, traktWatchedMovies);
                 if (userData.Played)

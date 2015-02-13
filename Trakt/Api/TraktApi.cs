@@ -239,7 +239,7 @@ namespace Trakt.Api
                     CollectedAt = m.DateCreated.ToISO8601(),
                     Is3D = m.Is3D,
                     AudioChannels = audioStream.GetAudioChannels(),
-                    Audio = audioStream != null && !string.IsNullOrEmpty(audioStream.Codec)? audioStream.Codec.ToLower().Replace(" ", "_") : null,
+                    Audio = audioStream.GetCodecRepresetation(),
                     Resolution = m.GetDefaultVideoStream().GetResolution(),
                     Title = m.Name,
                     Year = m.ProductionYear,
@@ -315,7 +315,7 @@ namespace Trakt.Api
                         },
                         Is3D = episode.Is3D,
                         AudioChannels = audioStream.GetAudioChannels(),
-                        Audio = audioStream != null && !string.IsNullOrEmpty(audioStream.Codec) ? audioStream.Codec.ToLower().Replace(" ", "_") : null,
+                        Audio = audioStream.GetCodecRepresetation(),
                         Resolution = episode.GetDefaultVideoStream().GetResolution()
                     });
                 }
@@ -331,8 +331,6 @@ namespace Trakt.Api
                     {
                         syncShow = new TraktShowCollected
                         {
-                            Title = episode.Series.Name,
-                            Year = episode.Series.ProductionYear,
                             Ids = new TraktShowId
                             {
                                 Tvdb = episode.Series.GetProviderId(MetadataProviders.Tvdb).ConvertToInt(),
@@ -367,7 +365,7 @@ namespace Trakt.Api
                             },
                             Is3D = episode.Is3D,
                             AudioChannels = audioStream.GetAudioChannels(),
-                            Audio = audioStream != null && !string.IsNullOrEmpty(audioStream.Codec) ? audioStream.Codec.ToLower().Replace(" ", "_") : null,
+                            Audio = audioStream.GetCodecRepresetation(),
                             Resolution = episode.GetDefaultVideoStream().GetResolution()
                         })
                         .ToList());
@@ -472,8 +470,6 @@ namespace Trakt.Api
                     {
                         var show = new TraktShowRated
                         {
-                            Title = episode.Series.Name,
-                            Year = episode.Series.ProductionYear,
                             Ids = new TraktShowId
                             {
                                 Tvdb = episode.Series.GetProviderId(MetadataProviders.Tvdb).ConvertToInt(),
@@ -660,7 +656,7 @@ namespace Trakt.Api
         /// <returns></returns>
         public async Task<List<DataContracts.Users.Watched.TraktMovieWatched>> SendGetAllWatchedMoviesRequest(TraktUser traktUser)
         {
-            var response = await GetFromTrakt(string.Format(TraktUris.WatchedMovies, traktUser.UserName), traktUser);
+            var response = await GetFromTrakt(TraktUris.WatchedMovies, traktUser);
             return _jsonSerializer.DeserializeFromStream<List<DataContracts.Users.Watched.TraktMovieWatched>>(response);
         }
 
@@ -671,7 +667,7 @@ namespace Trakt.Api
         /// <returns></returns>
         public async Task<List<DataContracts.Users.Watched.TraktShowWatched>> SendGetWatchedShowsRequest(TraktUser traktUser)
         {
-            var response = await GetFromTrakt(string.Format(TraktUris.WatchedShows, traktUser.UserName), traktUser);
+            var response = await GetFromTrakt(TraktUris.WatchedShows, traktUser);
             return _jsonSerializer.DeserializeFromStream<List<DataContracts.Users.Watched.TraktShowWatched>>(response);
         }
 
@@ -682,7 +678,7 @@ namespace Trakt.Api
         /// <returns></returns>
         public async Task<List<DataContracts.Users.Collection.TraktMovieCollected>> SendGetAllCollectedMoviesRequest(TraktUser traktUser)
         {
-            var response = await GetFromTrakt(string.Format(TraktUris.CollectedMovies, traktUser.UserName), traktUser);
+            var response = await GetFromTrakt(TraktUris.CollectedMovies, traktUser);
             return _jsonSerializer.DeserializeFromStream<List<DataContracts.Users.Collection.TraktMovieCollected>>(response);
         }
 
@@ -693,7 +689,7 @@ namespace Trakt.Api
         /// <returns></returns>
         public async Task<List<DataContracts.Users.Collection.TraktShowCollected>> SendGetCollectedShowsRequest(TraktUser traktUser)
         {
-            var response = await GetFromTrakt(string.Format(TraktUris.CollectedShows, traktUser.UserName), traktUser);
+            var response = await GetFromTrakt(TraktUris.CollectedShows, traktUser);
             return _jsonSerializer.DeserializeFromStream<List<DataContracts.Users.Collection.TraktShowCollected>>(response);
         }
 
@@ -814,8 +810,6 @@ namespace Trakt.Api
                     {
                         syncShow = new TraktShowWatched
                         {
-                            Title = episode.Series.Name,
-                            Year = episode.Series.ProductionYear,
                             Ids = new TraktShowId
                             {
                                 Tvdb = episode.Series.GetProviderId(MetadataProviders.Tvdb).ConvertToInt(),

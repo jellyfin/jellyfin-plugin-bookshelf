@@ -281,9 +281,9 @@ namespace Trakt.ScheduledTasks
             return results.FirstOrDefault(i => IsMatch(item, i.Movie));
         }
 
-        public static TraktMovieCollected FindMatch(BaseItem item, IEnumerable<TraktMovieCollected> results)
+        public static IEnumerable<TraktMovieCollected> FindMatches(BaseItem item, IEnumerable<TraktMovieCollected> results)
         {
-            return results.FirstOrDefault(i => IsMatch(item, i.Movie));
+            return results.Where(i => IsMatch(item, i.Movie)).ToList();
         }
 
         public static bool IsMatch(BaseItem item, TraktMovie movie)
