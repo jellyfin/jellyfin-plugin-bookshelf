@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Common.Net;
+﻿using MediaBrowser.Common.IO;
+using MediaBrowser.Common.Net;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
@@ -43,15 +44,15 @@ namespace Trakt
         /// <param name="logger"></param>
         /// <param name="httpClient"></param>
         /// <param name="appHost"></param>
-        public ServerMediator(IJsonSerializer jsonSerializer, ISessionManager sessionManager, IUserDataManager userDataManager,
-            ILibraryManager libraryManager, ILogManager logger, IHttpClient httpClient, IServerApplicationHost appHost)
+        /// <param name="fileSystem"></param>
+        public ServerMediator(IJsonSerializer jsonSerializer, ISessionManager sessionManager, IUserDataManager userDataManager, ILibraryManager libraryManager, ILogManager logger, IHttpClient httpClient, IServerApplicationHost appHost, IFileSystem fileSystem)
         {
             Instance = this;
             _sessionManager = sessionManager;
             _libraryManager = libraryManager;
             _logger = logger.GetLogger("Trakt");
 
-            _traktApi = new TraktApi(jsonSerializer, _logger, httpClient, appHost, userDataManager);
+            _traktApi = new TraktApi(jsonSerializer, _logger, httpClient, appHost, userDataManager, fileSystem);
             _service = new TraktUriService(_traktApi, _logger, _libraryManager);
             _libraryManagerEventsHelper = new LibraryManagerEventsHelper(_logger, _traktApi);
             _progressEvents = new List<ProgressEvent>();
@@ -78,7 +79,7 @@ namespace Trakt
                 var traktUser = UserHelper.GetTraktUser(e.UserId.ToString());
 
                 // Can't progress
-                if (traktUser == null || (!(baseItem is Movie) && !(baseItem is Episode)))
+                if (traktUser == null || !_traktApi.CanSync(baseItem, traktUser))
                     return;
 
                 // We have a user and the item is in a trakt monitored location. 
@@ -94,7 +95,6 @@ namespace Trakt
         public void Run()
         {
             _sessionManager.PlaybackStart += KernelPlaybackStart;
-            _sessionManager.PlaybackProgress += KernelPlaybackProgress;
             _sessionManager.PlaybackStopped += KernelPlaybackStopped;
             _libraryManager.ItemAdded += LibraryManagerItemAdded;
             _libraryManager.ItemRemoved += LibraryManagerItemRemoved;
@@ -157,6 +157,11 @@ namespace Trakt
                     return;
                 }
 
+                if (!_traktApi.CanSync(e.Item, traktUser))
+                {
+                    return;
+                }
+
                 _logger.Debug(traktUser.LinkedMbUserId + " appears to be monitoring " + e.Item.Path);
 
                 var video = e.Item as Video;
@@ -200,66 +205,6 @@ namespace Trakt
             }
         }
 
-
-
-        /// <summary>
-        /// Let trakt.tv know that the user is still actively watching the media.
-        /// 
-        /// Event fires based on the interval that the connected client reports playback progress 
-        /// to the server.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private async void KernelPlaybackProgress(object sender, PlaybackProgressEventArgs e)
-        {
-            if (e.Users == null || !e.Users.Any() || e.Item == null)
-            {
-                _logger.Error("Event details incomplete. Cannot process current media");
-                return;
-            }
-
-            var playEvent =
-                _progressEvents.FirstOrDefault(ev => ev.UserId.Equals(e.Users.First().Id) && ev.ItemId.Equals(e.Item.Id));
-
-            if (playEvent == null) return;
-
-            // Only report progress to trakt every 5 minutes
-            if ((DateTime.UtcNow - playEvent.LastApiAccess).TotalMinutes >= 5)
-            {
-                var video = e.Item as Video;
-
-                var traktUser = UserHelper.GetTraktUser(e.Users.First());
-
-                if (traktUser == null) return;
-                var progressPercent = video.RunTimeTicks.HasValue && video.RunTimeTicks != 0 ?
-                    (float)(e.PlaybackPositionTicks ?? 0) / video.RunTimeTicks.Value * 100.0f : 0.0f;
-                try
-                {
-                    if (video is Movie)
-                    {
-                        await
-                            _traktApi.SendMovieStatusUpdateAsync(video as Movie, MediaStatus.Watching, traktUser, progressPercent).
-                                      ConfigureAwait(false);
-                    }
-                    else if (video is Episode)
-                    {
-                        await
-                            _traktApi.SendEpisodeStatusUpdateAsync(video as Episode, MediaStatus.Watching, traktUser, progressPercent).
-                                      ConfigureAwait(false);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.ErrorException("Exception handled sending status update", ex);
-                }
-                // Reset the value
-                playEvent.LastApiAccess = DateTime.UtcNow;
-            }
-
-        }
-
-
-
         /// <summary>
         /// Media playback has stopped. Depending on playback progress, let Trakt.tv know the user has
         /// completed watching the item.
@@ -281,6 +226,11 @@ namespace Trakt
                 if (traktUser == null)
                 {
                     _logger.Error("Could not match trakt user");
+                    return;
+                }
+
+                if (!_traktApi.CanSync(e.Item, traktUser))
+                {
                     return;
                 }
 
@@ -347,7 +297,6 @@ namespace Trakt
         public void Dispose()
         {
             _sessionManager.PlaybackStart -= KernelPlaybackStart;
-            _sessionManager.PlaybackProgress -= KernelPlaybackProgress;
             _sessionManager.PlaybackStopped -= KernelPlaybackStopped;
             _libraryManager.ItemAdded -= LibraryManagerItemAdded;
             _libraryManager.ItemRemoved -= LibraryManagerItemRemoved;

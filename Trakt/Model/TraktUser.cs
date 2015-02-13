@@ -15,5 +15,7 @@ namespace Trakt.Model
         public String UserToken { get; set; }
 
         public bool  SkipUnwatchedImportFromTrakt { get; set; }
+
+        public String[] LocationsExcluded { get; set; }
     }
 }

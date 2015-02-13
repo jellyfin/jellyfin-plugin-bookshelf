@@ -67,11 +67,11 @@ namespace Trakt.Helpers
             if (users == null || users.Length == 0) return;
 
             // we need to process the video for each user
-            foreach (var user in users)
+            foreach (var user in users.Where(x => _traktApi.CanSync(item, x)))
             {
                 // we have a match, this user is watching the folder the video is in. Add to queue and they
                 // will be processed when the next timer elapsed event fires.
-                var libraryEvent = new LibraryEvent { Item = item, TraktUser = user, EventType = eventType };
+                var libraryEvent = new LibraryEvent {Item = item, TraktUser = user, EventType = eventType};
                 _queuedEvents.Add(libraryEvent);
             }
 

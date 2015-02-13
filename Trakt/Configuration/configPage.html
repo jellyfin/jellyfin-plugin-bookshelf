@@ -19,13 +19,20 @@
                             <label for="txtTraktUserName">
                                 Trakt Username:
                             </label>
-                            <input id="txtTraktUserName" name="txtTraktUserName" type="text"/>
+                            <input id="txtTraktUserName" name="txtTraktUserName" type="text" />
                         </li>
                         <li>
                             <label for="txtTraktPassword">
                                 Password:
                             </label>
-                            <input id="txtTraktPassword" name="txtTraktPassword" type="password"/>
+                            <input id="txtTraktPassword" name="txtTraktPassword" type="password" />
+                        </li>
+                        <li>
+                            <div data-mini="true" data-role="collapsible">
+                                <h3>Locations Excluded:</h3>
+                                <div id="divTraktLocations">
+                                </div>
+                            </div>
                         </li>
                         <li>
                             <input type="checkbox" id="chkSkipUnwatchedImportFromTrakt" name="chkSkipUnwatchedImportFromTrakt" />
@@ -74,10 +81,17 @@
                                     Password: ""
                                 };
                             }
+                            // Default this to an empty array so the rendering code doesn't have to worry about it
+                            currentUserConfig.LocationsExcluded = currentUserConfig.LocationsExcluded || [];
 
                             $('#txtTraktUserName', page).val(currentUserConfig.UserName);
                             $('#txtTraktPassword', page).val(currentUserConfig.Password);
                             $('#chkSkipUnwatchedImportFromTrakt', page).checked(currentUserConfig.SkipUnwatchedImportFromTrakt).checkboxradio("refresh");
+
+                            // List the folders the user can access
+                            ApiClient.getVirtualFolders(userId).done(function (result) {
+                                TraktConfigurationPage.loadFolders(currentUserConfig, result);
+                            });
 
                             Dashboard.hideLoadingMsg();
                         });
@@ -96,6 +110,31 @@
                         }
 
                         $('#selectUser', $.mobile.activePage).html(html).selectmenu("refresh");
+                    },
+                    loadFolders: function (currentUserConfig, virtualFolders) {
+                        var page = $.mobile.activePage;
+                        var html = "";
+                        html += '<div data-role="controlgroup">';
+                        for (var i = 0, length = virtualFolders.length; i < length; i++) {
+                            var virtualFolder = virtualFolders[i];
+                            html += TraktConfigurationPage.getFolderHtml(currentUserConfig, virtualFolder, i);
+                        }
+                        html += '</div>';
+                        $('#divTraktLocations', page).html(html).trigger('create');
+                    },
+                    getFolderHtml: function (currentUserConfig, virtualFolder, index) {
+                        var html = "";
+                        for (var i = 0, length = virtualFolder.Locations.length; i < length; i++) {
+                            var id = "chkFolder" + index + "_" + i;
+                            var location = virtualFolder.Locations[i];
+                            var isChecked = currentUserConfig.LocationsExcluded.filter(function (current) {
+                                return current.toLowerCase() == location.toLowerCase();
+                            }).length;
+                            var checkedAttribute = isChecked ? 'checked="checked"' : "";
+                            html += '<label for="' + id + '">' + location + '</label>';
+                            html += '<input class="chkTraktLocation" type="checkbox" data-mini="true" id="' + id + '" name="' + id + '" data-location="' + location + '" ' + checkedAttribute + ' />';
+                        }
+                        return html;
                     }
                 };
 
@@ -143,7 +182,9 @@
                     }
 
                     currentUserConfig.LinkedMbUserId = currentUserId;
-
+                    currentUserConfig.LocationsExcluded = $('.chkTraktLocation:checked', page).map(function () {
+                        return this.getAttribute('data-location');
+                    }).get();
                     if (currentUserConfig.UserName == '') {
                         config.TraktUsers.remove(config.TraktUsers.indexOf(currentUserConfig));
                     }
