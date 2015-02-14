@@ -184,6 +184,7 @@ namespace RokuMetadata.Drawing
 
                 try
                 {
+                    Directory.CreateDirectory(Path.GetDirectoryName(path));
                     File.Copy(bifTempPath, path, true);
                 }
                 finally
