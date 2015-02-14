@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Linq;
 using System.Threading;
+using MediaBrowser.Common.IO;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Entities;
@@ -38,15 +39,50 @@ namespace Trakt.Api
         private readonly IHttpClient _httpClient;
         private readonly IServerApplicationHost _appHost;
         private readonly IUserDataManager _userDataManager;
+        private readonly IFileSystem _fileSystem;
 
         public TraktApi(IJsonSerializer jsonSerializer, ILogger logger, IHttpClient httpClient,
-            IServerApplicationHost appHost, IUserDataManager userDataManager)
+            IServerApplicationHost appHost, IUserDataManager userDataManager, IFileSystem fileSystem)
         {
             _httpClient = httpClient;
             _appHost = appHost;
             _userDataManager = userDataManager;
+            _fileSystem = fileSystem;
             _jsonSerializer = jsonSerializer;
             _logger = logger;
+        }
+
+        public bool CanSync(BaseItem item, TraktUser traktUser)
+        {
+            if (item.Path == null || item.LocationType == LocationType.Virtual)
+            {
+                return false;
+            }
+
+            if (traktUser.LocationsExcluded != null && traktUser.LocationsExcluded.Any(s => _fileSystem.ContainsSubPath(s, item.Path)))
+            {
+                return false;
+            }
+
+            var movie = item as Movie;
+
+            if (movie != null)
+            {
+                return !string.IsNullOrEmpty(movie.GetProviderId(MetadataProviders.Imdb)) ||
+                    !string.IsNullOrEmpty(movie.GetProviderId(MetadataProviders.Tmdb));
+            }
+
+            var episode = item as Episode;
+
+            if (episode != null && episode.Series != null && !episode.IsVirtualUnaired && !episode.IsMissingEpisode)
+            {
+                var series = episode.Series;
+
+                return !string.IsNullOrEmpty(series.GetProviderId(MetadataProviders.Imdb)) ||
+                    !string.IsNullOrEmpty(series.GetProviderId(MetadataProviders.Tvdb));
+            }
+
+            return false;
         }
 
 //        /// <summary>
@@ -239,7 +275,7 @@ namespace Trakt.Api
                     CollectedAt = m.DateCreated.ToISO8601(),
                     Is3D = m.Is3D,
                     AudioChannels = audioStream.GetAudioChannels(),
-                    Audio = audioStream != null && !string.IsNullOrEmpty(audioStream.Codec)? audioStream.Codec.ToLower().Replace(" ", "_") : null,
+                    Audio = audioStream.GetCodecRepresetation(),
                     Resolution = m.GetDefaultVideoStream().GetResolution(),
                     Title = m.Name,
                     Year = m.ProductionYear,
@@ -315,7 +351,7 @@ namespace Trakt.Api
                         },
                         Is3D = episode.Is3D,
                         AudioChannels = audioStream.GetAudioChannels(),
-                        Audio = audioStream != null && !string.IsNullOrEmpty(audioStream.Codec) ? audioStream.Codec.ToLower().Replace(" ", "_") : null,
+                        Audio = audioStream.GetCodecRepresetation(),
                         Resolution = episode.GetDefaultVideoStream().GetResolution()
                     });
                 }
@@ -331,8 +367,6 @@ namespace Trakt.Api
                     {
                         syncShow = new TraktShowCollected
                         {
-                            Title = episode.Series.Name,
-                            Year = episode.Series.ProductionYear,
                             Ids = new TraktShowId
                             {
                                 Tvdb = episode.Series.GetProviderId(MetadataProviders.Tvdb).ConvertToInt(),
@@ -367,7 +401,7 @@ namespace Trakt.Api
                             },
                             Is3D = episode.Is3D,
                             AudioChannels = audioStream.GetAudioChannels(),
-                            Audio = audioStream != null && !string.IsNullOrEmpty(audioStream.Codec) ? audioStream.Codec.ToLower().Replace(" ", "_") : null,
+                            Audio = audioStream.GetCodecRepresetation(),
                             Resolution = episode.GetDefaultVideoStream().GetResolution()
                         })
                         .ToList());
@@ -472,8 +506,6 @@ namespace Trakt.Api
                     {
                         var show = new TraktShowRated
                         {
-                            Title = episode.Series.Name,
-                            Year = episode.Series.ProductionYear,
                             Ids = new TraktShowId
                             {
                                 Tvdb = episode.Series.GetProviderId(MetadataProviders.Tvdb).ConvertToInt(),
@@ -660,7 +692,7 @@ namespace Trakt.Api
         /// <returns></returns>
         public async Task<List<DataContracts.Users.Watched.TraktMovieWatched>> SendGetAllWatchedMoviesRequest(TraktUser traktUser)
         {
-            var response = await GetFromTrakt(string.Format(TraktUris.WatchedMovies, traktUser.UserName), traktUser);
+            var response = await GetFromTrakt(TraktUris.WatchedMovies, traktUser);
             return _jsonSerializer.DeserializeFromStream<List<DataContracts.Users.Watched.TraktMovieWatched>>(response);
         }
 
@@ -671,7 +703,7 @@ namespace Trakt.Api
         /// <returns></returns>
         public async Task<List<DataContracts.Users.Watched.TraktShowWatched>> SendGetWatchedShowsRequest(TraktUser traktUser)
         {
-            var response = await GetFromTrakt(string.Format(TraktUris.WatchedShows, traktUser.UserName), traktUser);
+            var response = await GetFromTrakt(TraktUris.WatchedShows, traktUser);
             return _jsonSerializer.DeserializeFromStream<List<DataContracts.Users.Watched.TraktShowWatched>>(response);
         }
 
@@ -682,7 +714,7 @@ namespace Trakt.Api
         /// <returns></returns>
         public async Task<List<DataContracts.Users.Collection.TraktMovieCollected>> SendGetAllCollectedMoviesRequest(TraktUser traktUser)
         {
-            var response = await GetFromTrakt(string.Format(TraktUris.CollectedMovies, traktUser.UserName), traktUser);
+            var response = await GetFromTrakt(TraktUris.CollectedMovies, traktUser);
             return _jsonSerializer.DeserializeFromStream<List<DataContracts.Users.Collection.TraktMovieCollected>>(response);
         }
 
@@ -693,7 +725,7 @@ namespace Trakt.Api
         /// <returns></returns>
         public async Task<List<DataContracts.Users.Collection.TraktShowCollected>> SendGetCollectedShowsRequest(TraktUser traktUser)
         {
-            var response = await GetFromTrakt(string.Format(TraktUris.CollectedShows, traktUser.UserName), traktUser);
+            var response = await GetFromTrakt(TraktUris.CollectedShows, traktUser);
             return _jsonSerializer.DeserializeFromStream<List<DataContracts.Users.Collection.TraktShowCollected>>(response);
         }
 
@@ -814,8 +846,6 @@ namespace Trakt.Api
                     {
                         syncShow = new TraktShowWatched
                         {
-                            Title = episode.Series.Name,
-                            Year = episode.Series.ProductionYear,
                             Ids = new TraktShowId
                             {
                                 Tvdb = episode.Series.GetProviderId(MetadataProviders.Tvdb).ConvertToInt(),

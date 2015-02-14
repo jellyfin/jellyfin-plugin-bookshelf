@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Common.Net;
+﻿using MediaBrowser.Common.IO;
+using MediaBrowser.Common.Net;
 using MediaBrowser.Common.ScheduledTasks;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Entities;
@@ -18,6 +19,7 @@ using Trakt.Api.DataContracts.BaseModel;
 using Trakt.Api.DataContracts.Users.Collection;
 using Trakt.Api.DataContracts.Users.Watched;
 using Trakt.Helpers;
+using Trakt.Model;
 
 namespace Trakt.ScheduledTasks
 {
@@ -42,12 +44,13 @@ namespace Trakt.ScheduledTasks
         /// <param name="userDataManager"> </param>
         /// <param name="httpClient"></param>
         /// <param name="appHost"></param>
-        public SyncFromTraktTask(ILogManager logger, IJsonSerializer jsonSerializer, IUserManager userManager, IUserDataManager userDataManager, IHttpClient httpClient, IServerApplicationHost appHost)
+        /// <param name="fileSystem"></param>
+        public SyncFromTraktTask(ILogManager logger, IJsonSerializer jsonSerializer, IUserManager userManager, IUserDataManager userDataManager, IHttpClient httpClient, IServerApplicationHost appHost, IFileSystem fileSystem)
         {
             _userManager = userManager;
             _userDataManager = userDataManager;
             _logger = logger.GetLogger("Trakt");
-            _traktApi = new TraktApi(jsonSerializer, _logger, httpClient, appHost, userDataManager);
+            _traktApi = new TraktApi(jsonSerializer, _logger, httpClient, appHost, userDataManager, fileSystem);
         }
 
         /// <summary>
@@ -89,34 +92,6 @@ namespace Trakt.ScheduledTasks
             }
         }
 
-        public static bool CanSync(BaseItem item)
-        {
-            if (item.Path == null || item.LocationType == LocationType.Virtual)
-            {
-                return false;
-            }
-
-            var movie = item as Movie;
-
-            if (movie != null)
-            {
-                return !string.IsNullOrEmpty(movie.GetProviderId(MetadataProviders.Imdb)) ||
-                    !string.IsNullOrEmpty(movie.GetProviderId(MetadataProviders.Tmdb));
-            }
-
-            var episode = item as Episode;
-
-            if (episode != null && episode.Series != null && !episode.IsVirtualUnaired && !episode.IsMissingEpisode)
-            {
-                var series = episode.Series;
-
-                return !string.IsNullOrEmpty(series.GetProviderId(MetadataProviders.Imdb)) ||
-                    !string.IsNullOrEmpty(series.GetProviderId(MetadataProviders.Tvdb));
-            }
-
-            return false;
-        }
-
         private async Task SyncTraktDataForUser(User user, double currentProgress, CancellationToken cancellationToken, IProgress<double> progress, double percentPerUser)
         {
             var libraryRoot = user.RootFolder;
@@ -147,7 +122,7 @@ namespace Trakt.ScheduledTasks
 
 
             var mediaItems = libraryRoot.GetRecursiveChildren(user)
-                .Where(CanSync)
+                .Where(i => _traktApi.CanSync(i, traktUser))
                 .OrderBy(i =>
                 {
                     var episode = i as Episode;
@@ -281,9 +256,9 @@ namespace Trakt.ScheduledTasks
             return results.FirstOrDefault(i => IsMatch(item, i.Movie));
         }
 
-        public static TraktMovieCollected FindMatch(BaseItem item, IEnumerable<TraktMovieCollected> results)
+        public static IEnumerable<TraktMovieCollected> FindMatches(BaseItem item, IEnumerable<TraktMovieCollected> results)
         {
-            return results.FirstOrDefault(i => IsMatch(item, i.Movie));
+            return results.Where(i => IsMatch(item, i.Movie)).ToList();
         }
 
         public static bool IsMatch(BaseItem item, TraktMovie movie)
