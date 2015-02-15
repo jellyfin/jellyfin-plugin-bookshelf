@@ -114,7 +114,14 @@ namespace RokuMetadata.Drawing
 
         private static string GetExistingBifPath(BaseItem item, string itemModifier, string mediaSourceId, int width)
         {
-            var path = GetInternalBifPath(item, itemModifier, mediaSourceId, width);
+            var path = GetLocalBifPath(item, width);
+
+            if (File.Exists(path))
+            {
+                return path;
+            }
+
+            path = GetInternalBifPath(item, itemModifier, mediaSourceId, width);
 
             if (File.Exists(path))
             {
@@ -128,14 +135,19 @@ namespace RokuMetadata.Drawing
         {
             if (Plugin.Instance.Configuration.EnableLocalMediaFolderSaving)
             {
-                var folder = item.ContainingFolderPath;
-                var filename = Path.GetFileNameWithoutExtension(item.Path);
-                filename += "-" + width.ToString(CultureInfo.InvariantCulture) + ".bif";
-
-                return Path.Combine(folder, filename);
+                return GetLocalBifPath(item, width);
             }
 
             return GetInternalBifPath(item, itemModifier, mediaSourceId, width);
+        }
+
+        private static string GetLocalBifPath(BaseItem item, int width)
+        {
+            var folder = item.ContainingFolderPath;
+            var filename = Path.GetFileNameWithoutExtension(item.Path);
+            filename += "-" + width.ToString(CultureInfo.InvariantCulture) + ".bif";
+
+            return Path.Combine(folder, filename);
         }
 
         private static string GetInternalBifPath(BaseItem item, string modifier, string mediaSourceId, int width)
@@ -179,7 +191,7 @@ namespace RokuMetadata.Drawing
                 {
                     await CreateBif(fs, images).ConfigureAwait(false);
                 }
-                
+
                 _libraryMonitor.ReportFileSystemChangeBeginning(path);
 
                 try
