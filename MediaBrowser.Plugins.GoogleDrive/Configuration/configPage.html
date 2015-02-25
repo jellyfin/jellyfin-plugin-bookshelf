@@ -1,0 +1,166 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Drive</title>
+</head>
+<body>
+    <div id="googleDriveConfigurationPage" data-role="page" class="page type-interior pluginConfigurationPage">
+        <div data-role="content">
+            <div class="content-primary">
+                <form id="googleDriveConfigurationForm">
+                    <ul class="ulForm" data-role="listview">
+                        <li>
+                            <label for="selectUser">Configure Google Drive for:</label>
+                            <select id="selectUser" name="selectUser" onchange="GoogleDriveApi.loadConfiguration(this.value);"></select>
+                        </li>
+                        <li>
+                            <label for="googleDriveClientId">
+                                Google Drive Client ID:
+                            </label>
+                            <input id="googleDriveClientId" name="googleDriveClientId" type="text" />
+                        </li>
+                        <li>
+                            <label for="googleDriveClientSecret">
+                                Gogle Drive Client Secret:
+                            </label>
+                            <input id="googleDriveClientSecret" name="googleDriveClientSecret" type="text" />
+                        </li>
+                        <li>
+                            <button type="button" data-icon="gear" data-mini="true" data-inline="true" onclick="GoogleDriveApi.requestCredentials();">Request credentials</button>
+                            <button type="button" data-icon="check" data-mini="true" data-inline="true" onclick="">Grant access</button>
+                        </li>
+                        <li>
+                            <button type="submit" data-theme="b">Save</button>
+                            <button type="button" onclick=" history.back();">Cancel</button>
+                        </li>
+                    </ul>
+                </form>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+            var MediaBrowserApi = new function () {
+                var pluginUniqueId = 'b2ff6a63-303a-4a84-b937-6e12f87e3eb9';
+
+                this.loadConfiguration = function (callback) {
+                    ApiClient.getPluginConfiguration(pluginUniqueId).done(callback);
+                };
+
+                this.saveConfiguration = function (config, callback) {
+                    ApiClient.updatePluginConfiguration(pluginUniqueId, config).done(callback);
+                };
+
+                this.getUsers = function (callback) {
+                    ApiClient.getUsers().done(callback);
+                };
+            };
+
+            var GoogleDriveApi = new function () {
+                this.loadConfiguration = function (userId) {
+
+                    Dashboard.showLoadingMsg();
+
+                    MediaBrowserApi.loadConfiguration(function (config) {
+
+                        var currentUserConfig = GoogleDriveApi.getUserFromConfig(config, userId) || {};
+
+                        GoogleDriveUi.googleDriveClientId(currentUserConfig.GoogleDriveClientId, true);
+                        GoogleDriveUi.googleDriveClientSecret(currentUserConfig.GoogleDriveClientSecret, true);
+
+                        Dashboard.hideLoadingMsg();
+                    });
+                };
+
+                this.getUserFromConfig = function (config, userId) {
+                    return config.Users.filter(function (user) {
+                        return user.MediaBrowserUserId == userId;
+                    })[0];
+                };
+
+                this.populateUsers = function (users) {
+                    var html = "";
+
+                    for (var i = 0, length = users.length; i < length; i++) {
+                        var user = users[i];
+
+                        html += '<option value="' + user.Id + '">' + user.Name + '</option>';
+                    }
+
+                    $('#selectUser', $.mobile.activePage).html(html).selectmenu("refresh");
+                };
+
+                this.requestCredentials = function() {
+                    window.open('https://console.developers.google.com/start/api?id=drive&credential=client_key', '_blank');
+                };
+            };
+
+            var GoogleDriveUi = new function () {
+                function property(accessor, value, force) {
+                    var element = $(accessor);
+
+                    if (force || value) {
+                        element.val(value);
+                    } else {
+                        return element.val();
+                    }
+                }
+
+                this.googleDriveClientId = function (value, force) {
+                    return property('#googleDriveClientId', value, force);
+                };
+
+                this.googleDriveClientSecret = function (value, force) {
+                    return property('#googleDriveClientSecret', value, force);
+                };
+
+                this.selectedUserId = function (value) {
+                    return property('#selectUser', value);
+                };
+            };
+
+            $('#googleDriveConfigurationPage').on('pageshow', function () {
+                Dashboard.showLoadingMsg();
+
+                MediaBrowserApi.getUsers(function (users) {
+                    GoogleDriveApi.populateUsers(users);
+
+                    var currentUserId = GoogleDriveUi.selectedUserId();
+
+                    GoogleDriveApi.loadConfiguration(currentUserId);
+                });
+            });
+
+            $('#googleDriveConfigurationForm').on('submit', function () {
+                Dashboard.showLoadingMsg();
+
+                MediaBrowserApi.loadConfiguration(function (config) {
+                    var currentUserId = GoogleDriveUi.selectedUserId();
+
+                    var currentUserConfig = GoogleDriveApi.getUserFromConfig(config, currentUserId);
+
+                    // User doesn't have a config, so create a default one.
+                    if (!currentUserConfig) {
+                        currentUserConfig = {};
+                        config.Users.push(currentUserConfig);
+                    }
+
+                    currentUserConfig.MediaBrowserUserId = currentUserId;
+                    currentUserConfig.GoogleDriveClientId = GoogleDriveUi.googleDriveClientId();
+                    currentUserConfig.GoogleDriveClientSecret = GoogleDriveUi.googleDriveClientSecret();
+
+                    if (currentUserConfig.GoogleDriveClientId == '' && currentUserConfig.GoogleDriveClientSecret == '') {
+                        config.Users.remove(config.Users.indexOf(currentUserConfig));
+                    }
+
+                    MediaBrowserApi.saveConfiguration(config, function () {
+                        Dashboard.hideLoadingMsg();
+                        Dashboard.processPluginConfigurationUpdateResult();
+                    });
+                });
+
+                return false;
+            });
+        </script>
+    </div>
+</body>
+</html>
