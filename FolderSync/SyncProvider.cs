@@ -23,10 +23,15 @@ namespace FolderSync
             _logger = logger;
             _dataProvider = new DataProvider(logger, json);
         }
-        
+
         public Task SendFile(string inputFile, string path, SyncTarget target, IProgress<double> progress, CancellationToken cancellationToken)
         {
-            return Task.Run(() => File.Copy(inputFile, path, true), cancellationToken);
+            return Task.Run(() =>
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(path));
+                File.Copy(inputFile, path, true);
+
+            }, cancellationToken);
         }
 
         public Task DeleteFile(string path, SyncTarget target, CancellationToken cancellationToken)
