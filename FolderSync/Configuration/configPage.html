@@ -1,214 +1,264 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-    <title>Trakt</title>
+    <title>Folder Sync</title>
 </head>
 <body>
-    <!-- ReSharper disable UnknownCssClass -->
-    <div id="traktConfigurationPage" data-role="page" class="page type-interior pluginConfigurationPage">
+    <div data-role="page" class="page type-interior pluginConfigurationPage folderSyncConfigurationPage">
         <div data-role="content">
             <div class="content-primary">
 
-                <form id="traktConfigurationForm">
-                    <ul class="ulForm" data-role="listview">
-                        <li>
-                            <label for="selectUser">Configure Trakt for:</label>
-                            <select id="selectUser" name="selectUser" onchange=" TraktConfigurationPage.loadConfiguration(this.value); "></select>
-                        </li>
-                        <li>
-                            <label for="txtTraktUserName">
-                                Trakt Username:
-                            </label>
-                            <input id="txtTraktUserName" name="txtTraktUserName" type="text" />
-                        </li>
-                        <li>
-                            <label for="txtTraktPassword">
-                                Password:
-                            </label>
-                            <input id="txtTraktPassword" name="txtTraktPassword" type="password" />
-                        </li>
-                        <li>
-                            <div data-mini="true" data-role="collapsible">
-                                <h3>Locations Excluded:</h3>
-                                <div id="divTraktLocations">
+                <div class="readOnlyContent">
+                    <div class="folderSyncTargets">
+
+                    </div>
+                </div>
+
+                <div data-role="popup" id="popupAddFolder" class="popup" style="min-width: 300px;">
+                    <form class="folderSyncConfigurationForm">
+                        <div class="ui-bar-a" style="text-align: center; padding: 0 20px;">
+                            <h3>Add Folder</h3>
+                        </div>
+                        <div data-role="content">
+
+                            <ul class="ulForm" data-role="listview" style="margin-top:.5em;">
+                                <li>
+                                    <label for="txtName">
+                                        Display name:
+                                    </label>
+                                    <input id="txtName" type="text" required="required" />
+                                </li>
+                                <li>
+                                    <label for="txtPath">
+                                        Path:
+                                    </label>
+                                    <input id="txtPath" type="text" required="required" />
+                                </li>
+                            </ul>
+                            <div>
+                                <div class="ui-controlgroup-label">User Access</div>
+                                <div>
+                                    <label for="chkEnableAllUsers">Allow all users to sync to this folder</label>
+                                    <input type="checkbox" id="chkEnableAllUsers" data-mini="true" />
+                                </div>
+                                <div class="userAccessListContainer">
+                                    <br />
+                                    <div class="userAccess">
+                                    </div>
                                 </div>
                             </div>
-                        </li>
-                        <li>
-                            <input type="checkbox" id="chkSkipUnwatchedImportFromTrakt" name="chkSkipUnwatchedImportFromTrakt" />
-                            <label for="chkSkipUnwatchedImportFromTrakt">Skip unwatched import from trakt</label>
-                            <div class="fieldDescription">
-                                By default, Import from Trakt task will overwrite any watched status if item is marked
-                                as unwached on Trakt. When enabled only watched status will be imported.
-                            </div>
-                        </li>
-                        <li>
-                            <button type="submit" data-theme="b">Save</button>
-                            <button type="button" onclick=" history.back(); ">Cancel</button>
-                        </li>
-                    </ul>
-                </form>
+                            <ul class="ulForm" data-role="listview" style="margin-top:.5em;">
+                                <li>
+                                    <input type="hidden" id="fldFolderId" />
+                                    <button type="submit" data-theme="b">Save</button>
+                                    <button type="button" data-icon="delete" onclick="$(this).parents('.popup').popup('close');">
+                                        Cancel
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
 
-        <!-- ReSharper disable UseOfImplicitGlobalInFunctionScope -->
         <script type="text/javascript">
 
-            var TraktConfigurationPage =
-                {
-                    pluginUniqueId: "8abc6789-fde2-4705-8592-4028806fa343",
+            (function () {
 
-                    loadConfiguration: function (userId) {
+                var pluginId = "7cfbb821-e8fd-40ab-b64e-a7749386a6b2";
 
-                        Dashboard.showLoadingMsg();
+                function getTargetListHtml(targets) {
 
-                        ApiClient.getPluginConfiguration(TraktConfigurationPage.pluginUniqueId).done(function (config) {
+                    var html = '';
 
-                            var currentUserConfig = config.TraktUsers.filter(function (curr) {
+                    html += '<ul data-inset="true" data-role="listview" data-split-icon="minus">';
 
-                                return curr.LinkedMbUserId == userId;
-                                //return true;
-                            })[0];
+                    html += '<li data-role="list-divider">Folders';
+                    html += '<button type="button" data-icon="plus" data-mini="true" data-iconpos="notext" data-inline="true" class="btnAddFolder" style="margin: 0 0 0 1em;">Add</button>';
+                    html += '</li>';
 
-                            var page = $.mobile.activePage;
+                    for (var i = 0, length = targets.length; i < length; i++) {
 
-                            // User doesn't have a config, so create a default one.
-                            if (!currentUserConfig) {
+                        var target = targets[i];
+                        html += '<li>';
+                        html += '<a href="#" data-id="' + target.Id + '" class="btnEditFolder">';
+                        html += '<h3>';
+                        html += target.Name;
+                        html += '</h3>';
+                        html += '<p>';
+                        html += target.Path;
+                        html += '</p>';
+                        html += '</a>';
+                        html += '<a href="#" data-id="' + target.Id + '" class="btnDeleteFolder"></a>';
+                        html += '</li>';
+                    }
+                    html += '</ul>';
 
-                                // You don't have to put every property in here, just the ones the UI is expecting (below)
-                                currentUserConfig = {
-                                    UserName: "",
-                                    Password: ""
-                                };
-                            }
-                            // Default this to an empty array so the rendering code doesn't have to worry about it
-                            currentUserConfig.LocationsExcluded = currentUserConfig.LocationsExcluded || [];
+                    return html;
+                }
 
-                            $('#txtTraktUserName', page).val(currentUserConfig.UserName);
-                            $('#txtTraktPassword', page).val(currentUserConfig.Password);
-                            $('#chkSkipUnwatchedImportFromTrakt', page).checked(currentUserConfig.SkipUnwatchedImportFromTrakt).checkboxradio("refresh");
+                function loadUsers(page, account, users) {
 
-                            // List the folders the user can access
-                            ApiClient.getVirtualFolders(userId).done(function (result) {
-                                TraktConfigurationPage.loadFolders(currentUserConfig, result);
+                    var html = '';
+
+                    html += '<div class="ui-controlgroup-label" style="margin-bottom:0;padding-left:2px;">Users</div>';
+
+                    html += '<div data-role="controlgroup" style="max-height:100px;overflow-y:auto;">';
+
+                    for (var i = 0, length = users.length; i < length; i++) {
+
+                        var user = users[i];
+
+                        var id = 'user' + i;
+
+                        var isChecked = account.EnableAllUsers || account.UserIds.indexOf(user.Id) != -1;
+                        var checkedAttribute = isChecked ? ' checked="checked"' : '';
+
+                        html += '<input class="chkUser" data-id="' + user.Id + '" type="checkbox" id="' + id + '"' + checkedAttribute + ' />';
+                        html += '<label for="' + id + '">' + user.Name + '</label>';
+                    }
+
+                    html += '</div>';
+
+                    $('.userAccess', page).show().html(html).trigger('create');
+
+                    if (users.length) {
+                        $('.userAccessListContainer', page).show();
+                    } else {
+                        $('.userAccessListContainer', page).hide();
+                    }
+
+                    $('#chkEnableAllUsers', page).checked(account.EnableAllUsers).checkboxradio('refresh').trigger('change');
+                }
+
+                function deleteFolder(page, id) {
+
+                    Dashboard.confirm("Are you sure you wish to remove this sync folder? All sync jobs will be deleted.", "Confirm Deletion", function (result) {
+
+                        if (result) {
+                            ApiClient.ajax({
+
+                                type: "DELETE",
+                                url: ApiClient.getUrl("FolderSync/Folders/" + id)
+
+                            }).done(function () {
+                                loadConfig(page);
                             });
-
-                            Dashboard.hideLoadingMsg();
-                        });
-
-                    },
-
-                    populateUsers: function (users) {
-
-                        var html = "";
-
-                        for (var i = 0, length = users.length; i < length; i++) {
-
-                            var user = users[i];
-
-                            html += '<option value="' + user.Id + '">' + user.Name + '</option>';
                         }
 
-                        $('#selectUser', $.mobile.activePage).html(html).selectmenu("refresh");
-                    },
-                    loadFolders: function (currentUserConfig, virtualFolders) {
-                        var page = $.mobile.activePage;
-                        var html = "";
-                        html += '<div data-role="controlgroup">';
-                        for (var i = 0, length = virtualFolders.length; i < length; i++) {
-                            var virtualFolder = virtualFolders[i];
-                            html += TraktConfigurationPage.getFolderHtml(currentUserConfig, virtualFolder, i);
-                        }
-                        html += '</div>';
-                        $('#divTraktLocations', page).html(html).trigger('create');
-                    },
-                    getFolderHtml: function (currentUserConfig, virtualFolder, index) {
-                        var html = "";
-                        for (var i = 0, length = virtualFolder.Locations.length; i < length; i++) {
-                            var id = "chkFolder" + index + "_" + i;
-                            var location = virtualFolder.Locations[i];
-                            var isChecked = currentUserConfig.LocationsExcluded.filter(function (current) {
-                                return current.toLowerCase() == location.toLowerCase();
-                            }).length;
-                            var checkedAttribute = isChecked ? 'checked="checked"' : "";
-                            html += '<label for="' + id + '">' + location + '</label>';
-                            html += '<input class="chkTraktLocation" type="checkbox" data-mini="true" id="' + id + '" name="' + id + '" data-location="' + location + '" ' + checkedAttribute + ' />';
-                        }
-                        return html;
-                    }
-                };
+                    });
+                }
 
-            $('#traktConfigurationPage').on('pageshow', function () {
+                function editFolder(page, id) {
 
-                Dashboard.showLoadingMsg();
+                    ApiClient.getJSON(ApiClient.getUrl("FolderSync/Folders/" + id)).done(function (folder) {
+                        editFolderObject(page, folder);
+                    });
+                }
 
-                var page = $.mobile.activePage;
+                function editFolderObject(page, folder) {
 
-                ApiClient.getUsers().done(function (users) {
+                    ApiClient.getUsers().done(function (users) {
+                        loadUsers(page, folder, users);
+                    });
+                    $('#txtName', page).val(folder.Name || '');
+                    $('#txtPath', page).val(folder.Path || '');
+                    $('#fldFolderId', page).val(folder.Id || '');
+                    $('#popupAddFolder', page).popup('open');
+                }
 
-                    TraktConfigurationPage.populateUsers(users);
+                function loadPageData(page, config) {
 
-                    var currentUserId = $('#selectUser', page).val();
+                    var elem = $('.folderSyncTargets', page).html(getTargetListHtml(config.SyncAccounts)).trigger('create');
 
-                    TraktConfigurationPage.loadConfiguration(currentUserId);
-                });
-            });
+                    $('.btnDeleteFolder', elem).on('click', function () {
 
-            $('#traktConfigurationForm').on('submit', function () {
+                        deleteFolder(page, this.getAttribute('data-id'));
+                    });
+                    $('.btnEditFolder', elem).on('click', function () {
 
-                Dashboard.showLoadingMsg();
+                        editFolder(page, this.getAttribute('data-id'));
+                    });
+                    $('.btnAddFolder', elem).on('click', function () {
 
-                var page = $.mobile.activePage;
-                var currentUserId = $('#selectUser', page).val();
-
-                ApiClient.getPluginConfiguration(TraktConfigurationPage.pluginUniqueId).done(function (config) {
-
-                    var currentUserConfig = config.TraktUsers.filter(function (curr) {
-
-                        return curr.LinkedMbUserId == currentUserId;
-                    })[0];
-
-                    // User doesn't have a config, so create a default one.
-                    if (!currentUserConfig) {
-                        currentUserConfig = {};
-                        config.TraktUsers.push(currentUserConfig);
-                    }
-
-                    currentUserConfig.SkipUnwatchedImportFromTrakt = $('#chkSkipUnwatchedImportFromTrakt', page).checked();
-                    currentUserConfig.UserName = $('#txtTraktUserName', page).val();
-
-                    if (currentUserConfig.Password != $('#txtTraktPassword', page).val()) {
-                        currentUserConfig.Password = $('#txtTraktPassword', page).val();
-                    }
-
-                    currentUserConfig.LinkedMbUserId = currentUserId;
-                    currentUserConfig.LocationsExcluded = $('.chkTraktLocation:checked', page).map(function () {
-                        return this.getAttribute('data-location');
-                    }).get();
-                    if (currentUserConfig.UserName == '') {
-                        config.TraktUsers.remove(config.TraktUsers.indexOf(currentUserConfig));
-                    }
-
-                    ApiClient.updatePluginConfiguration(TraktConfigurationPage.pluginUniqueId, config).done(function (result) {
-
-                        Dashboard.processPluginConfigurationUpdateResult(result);
-
-                        ApiClient.getUsers().done(function (users) {
-
-                            TraktConfigurationPage.populateUsers(users);
-
-                            Dashboard.alert('Settings saved.');
+                        editFolderObject(page, {
+                            EnableAllUsers: true,
+                            UserIds: []
                         });
                     });
+                }
+
+                function loadConfig(page) {
+
+                    ApiClient.getPluginConfiguration(pluginId).done(function (config) {
+
+                        loadPageData(page, config);
+                        Dashboard.hideLoadingMsg();
+                    });
+                }
+
+                $('.folderSyncConfigurationPage').on('pageshow', function (event) {
+
+                    var page = this;
+
+                    $('#chkEnableAllUsers', page).on('change', function () {
+
+                        if (this.checked) {
+                            $('.userAccessListContainer', page).hide();
+                        } else {
+                            $('.userAccessListContainer', page).show();
+                        }
+                    });
+
+                }).on('pageshow', function (event) {
+
+                    var page = this;
+
+                    loadConfig(page);
                 });
 
-                return false;
-            });
+                $('.folderSyncConfigurationForm').off('submit.plugin').on('submit.plugin', function (e) {
+
+                    Dashboard.showLoadingMsg();
+
+                    var form = this;
+                    var page = $(form).parents('.page');
+
+                    var folder = {
+                        Name: $('#txtName', page).val(),
+                        Path: $('#txtPath', page).val(),
+                        EnableAllUsers: $('#chkEnableAllUsers', page).checked(),
+                        Id: $('#fldFolderId', page).val()
+                    };
+
+                    folder.UserIds = folder.EnableAllUsers ?
+                        [] :
+                        $('.chkUser:checked', page).map(function () {
+
+                            return this.getAttribute('data-id');
+
+                        }).get();
+
+                    ApiClient.ajax({
+
+                        type: "POST",
+                        url: ApiClient.getUrl("FolderSync/Folders"),
+                        data: JSON.stringify(folder),
+                        contentType: "application/json"
+
+                    }).done(function () {
+                        $('#popupAddFolder', page).popup('close');
+                        loadConfig(page);
+                    });
+
+                    return false;
+                });
+
+            })();
 
         </script>
-        <!-- ReSharper restore UseOfImplicitGlobalInFunctionScope -->
 
     </div>
-    <!-- ReSharper restore UnknownCssClass -->
 </body>
 </html>
