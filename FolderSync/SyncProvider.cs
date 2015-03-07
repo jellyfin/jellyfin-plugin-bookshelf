@@ -93,7 +93,7 @@ namespace FolderSync
 
         public string Name
         {
-            get { return "Folder Sync"; }
+            get { return Plugin.StaticName; }
         }
 
         public IEnumerable<SyncTarget> GetSyncTargets(string userId)

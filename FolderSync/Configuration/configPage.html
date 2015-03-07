@@ -17,7 +17,7 @@
                 <div data-role="popup" id="popupAddFolder" class="popup" style="min-width: 300px;">
                     <form class="folderSyncConfigurationForm">
                         <div class="ui-bar-a" style="text-align: center; padding: 0 20px;">
-                            <h3>Add Folder</h3>
+                            <h3 class="popupHeader"></h3>
                         </div>
                         <div data-role="content">
 
@@ -165,6 +165,13 @@
                     $('#txtName', page).val(folder.Name || '');
                     $('#txtPath', page).val(folder.Path || '');
                     $('#fldFolderId', page).val(folder.Id || '');
+
+                    if (folder.Id) {
+                        $('.popupHeader', page).html('Edit Folder');
+                    } else {
+                        $('.popupHeader', page).html('Add Folder');
+                    }
+
                     $('#popupAddFolder', page).popup('open');
                 }
 
