@@ -1,0 +1,214 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Trakt</title>
+</head>
+<body>
+    <!-- ReSharper disable UnknownCssClass -->
+    <div id="traktConfigurationPage" data-role="page" class="page type-interior pluginConfigurationPage">
+        <div data-role="content">
+            <div class="content-primary">
+
+                <form id="traktConfigurationForm">
+                    <ul class="ulForm" data-role="listview">
+                        <li>
+                            <label for="selectUser">Configure Trakt for:</label>
+                            <select id="selectUser" name="selectUser" onchange=" TraktConfigurationPage.loadConfiguration(this.value); "></select>
+                        </li>
+                        <li>
+                            <label for="txtTraktUserName">
+                                Trakt Username:
+                            </label>
+                            <input id="txtTraktUserName" name="txtTraktUserName" type="text" />
+                        </li>
+                        <li>
+                            <label for="txtTraktPassword">
+                                Password:
+                            </label>
+                            <input id="txtTraktPassword" name="txtTraktPassword" type="password" />
+                        </li>
+                        <li>
+                            <div data-mini="true" data-role="collapsible">
+                                <h3>Locations Excluded:</h3>
+                                <div id="divTraktLocations">
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <input type="checkbox" id="chkSkipUnwatchedImportFromTrakt" name="chkSkipUnwatchedImportFromTrakt" />
+                            <label for="chkSkipUnwatchedImportFromTrakt">Skip unwatched import from trakt</label>
+                            <div class="fieldDescription">
+                                By default, Import from Trakt task will overwrite any watched status if item is marked
+                                as unwached on Trakt. When enabled only watched status will be imported.
+                            </div>
+                        </li>
+                        <li>
+                            <button type="submit" data-theme="b">Save</button>
+                            <button type="button" onclick=" history.back(); ">Cancel</button>
+                        </li>
+                    </ul>
+                </form>
+            </div>
+        </div>
+
+        <!-- ReSharper disable UseOfImplicitGlobalInFunctionScope -->
+        <script type="text/javascript">
+
+            var TraktConfigurationPage =
+                {
+                    pluginUniqueId: "8abc6789-fde2-4705-8592-4028806fa343",
+
+                    loadConfiguration: function (userId) {
+
+                        Dashboard.showLoadingMsg();
+
+                        ApiClient.getPluginConfiguration(TraktConfigurationPage.pluginUniqueId).done(function (config) {
+
+                            var currentUserConfig = config.TraktUsers.filter(function (curr) {
+
+                                return curr.LinkedMbUserId == userId;
+                                //return true;
+                            })[0];
+
+                            var page = $.mobile.activePage;
+
+                            // User doesn't have a config, so create a default one.
+                            if (!currentUserConfig) {
+
+                                // You don't have to put every property in here, just the ones the UI is expecting (below)
+                                currentUserConfig = {
+                                    UserName: "",
+                                    Password: ""
+                                };
+                            }
+                            // Default this to an empty array so the rendering code doesn't have to worry about it
+                            currentUserConfig.LocationsExcluded = currentUserConfig.LocationsExcluded || [];
+
+                            $('#txtTraktUserName', page).val(currentUserConfig.UserName);
+                            $('#txtTraktPassword', page).val(currentUserConfig.Password);
+                            $('#chkSkipUnwatchedImportFromTrakt', page).checked(currentUserConfig.SkipUnwatchedImportFromTrakt).checkboxradio("refresh");
+
+                            // List the folders the user can access
+                            ApiClient.getVirtualFolders(userId).done(function (result) {
+                                TraktConfigurationPage.loadFolders(currentUserConfig, result);
+                            });
+
+                            Dashboard.hideLoadingMsg();
+                        });
+
+                    },
+
+                    populateUsers: function (users) {
+
+                        var html = "";
+
+                        for (var i = 0, length = users.length; i < length; i++) {
+
+                            var user = users[i];
+
+                            html += '<option value="' + user.Id + '">' + user.Name + '</option>';
+                        }
+
+                        $('#selectUser', $.mobile.activePage).html(html).selectmenu("refresh");
+                    },
+                    loadFolders: function (currentUserConfig, virtualFolders) {
+                        var page = $.mobile.activePage;
+                        var html = "";
+                        html += '<div data-role="controlgroup">';
+                        for (var i = 0, length = virtualFolders.length; i < length; i++) {
+                            var virtualFolder = virtualFolders[i];
+                            html += TraktConfigurationPage.getFolderHtml(currentUserConfig, virtualFolder, i);
+                        }
+                        html += '</div>';
+                        $('#divTraktLocations', page).html(html).trigger('create');
+                    },
+                    getFolderHtml: function (currentUserConfig, virtualFolder, index) {
+                        var html = "";
+                        for (var i = 0, length = virtualFolder.Locations.length; i < length; i++) {
+                            var id = "chkFolder" + index + "_" + i;
+                            var location = virtualFolder.Locations[i];
+                            var isChecked = currentUserConfig.LocationsExcluded.filter(function (current) {
+                                return current.toLowerCase() == location.toLowerCase();
+                            }).length;
+                            var checkedAttribute = isChecked ? 'checked="checked"' : "";
+                            html += '<label for="' + id + '">' + location + '</label>';
+                            html += '<input class="chkTraktLocation" type="checkbox" data-mini="true" id="' + id + '" name="' + id + '" data-location="' + location + '" ' + checkedAttribute + ' />';
+                        }
+                        return html;
+                    }
+                };
+
+            $('#traktConfigurationPage').on('pageshow', function () {
+
+                Dashboard.showLoadingMsg();
+
+                var page = $.mobile.activePage;
+
+                ApiClient.getUsers().done(function (users) {
+
+                    TraktConfigurationPage.populateUsers(users);
+
+                    var currentUserId = $('#selectUser', page).val();
+
+                    TraktConfigurationPage.loadConfiguration(currentUserId);
+                });
+            });
+
+            $('#traktConfigurationForm').on('submit', function () {
+
+                Dashboard.showLoadingMsg();
+
+                var page = $.mobile.activePage;
+                var currentUserId = $('#selectUser', page).val();
+
+                ApiClient.getPluginConfiguration(TraktConfigurationPage.pluginUniqueId).done(function (config) {
+
+                    var currentUserConfig = config.TraktUsers.filter(function (curr) {
+
+                        return curr.LinkedMbUserId == currentUserId;
+                    })[0];
+
+                    // User doesn't have a config, so create a default one.
+                    if (!currentUserConfig) {
+                        currentUserConfig = {};
+                        config.TraktUsers.push(currentUserConfig);
+                    }
+
+                    currentUserConfig.SkipUnwatchedImportFromTrakt = $('#chkSkipUnwatchedImportFromTrakt', page).checked();
+                    currentUserConfig.UserName = $('#txtTraktUserName', page).val();
+
+                    if (currentUserConfig.Password != $('#txtTraktPassword', page).val()) {
+                        currentUserConfig.Password = $('#txtTraktPassword', page).val();
+                    }
+
+                    currentUserConfig.LinkedMbUserId = currentUserId;
+                    currentUserConfig.LocationsExcluded = $('.chkTraktLocation:checked', page).map(function () {
+                        return this.getAttribute('data-location');
+                    }).get();
+                    if (currentUserConfig.UserName == '') {
+                        config.TraktUsers.remove(config.TraktUsers.indexOf(currentUserConfig));
+                    }
+
+                    ApiClient.updatePluginConfiguration(TraktConfigurationPage.pluginUniqueId, config).done(function (result) {
+
+                        Dashboard.processPluginConfigurationUpdateResult(result);
+
+                        ApiClient.getUsers().done(function (users) {
+
+                            TraktConfigurationPage.populateUsers(users);
+
+                            Dashboard.alert('Settings saved.');
+                        });
+                    });
+                });
+
+                return false;
+            });
+
+        </script>
+        <!-- ReSharper restore UseOfImplicitGlobalInFunctionScope -->
+
+    </div>
+    <!-- ReSharper restore UnknownCssClass -->
+</body>
+</html>
