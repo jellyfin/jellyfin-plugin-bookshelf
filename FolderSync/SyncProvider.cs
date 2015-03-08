@@ -41,7 +41,25 @@ namespace FolderSync
 
         public Task DeleteFile(string path, SyncTarget target, CancellationToken cancellationToken)
         {
-            return Task.Run(() => File.Delete(path), cancellationToken);
+            return Task.Run(() =>
+            {
+                File.Delete(path);
+
+                var account = GetSyncAccounts()
+                    .FirstOrDefault(i => string.Equals(i.Id, target.Id, StringComparison.OrdinalIgnoreCase));
+
+                if (account != null)
+                {
+                    try
+                    {
+                        DeleteEmptyFolders(account.Path);
+                    }
+                    catch
+                    {
+                    }
+                }
+
+            }, cancellationToken);
         }
 
         public Task<Stream> GetFile(string path, SyncTarget target, IProgress<double> progress, CancellationToken cancellationToken)
@@ -120,6 +138,18 @@ namespace FolderSync
         private IEnumerable<SyncAccount> GetSyncAccounts()
         {
             return Plugin.Instance.Configuration.SyncAccounts.ToList();
+        }
+
+        private static void DeleteEmptyFolders(string parent)
+        {
+            foreach (var directory in Directory.GetDirectories(parent))
+            {
+                DeleteEmptyFolders(directory);
+                if (!Directory.EnumerateFileSystemEntries(directory).Any())
+                {
+                    Directory.Delete(directory, false);
+                }
+            }
         }
     }
 }
