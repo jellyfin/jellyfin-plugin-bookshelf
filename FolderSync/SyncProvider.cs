@@ -1,8 +1,6 @@
 ﻿using FolderSync.Configuration;
-using FolderSync.Data;
+using MediaBrowser.Common.IO;
 using MediaBrowser.Controller.Sync;
-using MediaBrowser.Model.Logging;
-using MediaBrowser.Model.Serialization;
 using MediaBrowser.Model.Sync;
 using System;
 using System.Collections.Generic;
@@ -15,13 +13,11 @@ namespace FolderSync
 {
     public class SyncProvider : IServerSyncProvider
     {
-        private readonly DataProvider _dataProvider;
-        private readonly ILogger _logger;
+        private readonly IFileSystem _fileSystem;
 
-        public SyncProvider(ILogger logger, IJsonSerializer json)
+        public SyncProvider(IFileSystem fileSystem)
         {
-            _logger = logger;
-            _dataProvider = new DataProvider(logger, json);
+            _fileSystem = fileSystem;
         }
 
         public Task SendFile(string inputFile, string path, SyncTarget target, IProgress<double> progress, CancellationToken cancellationToken)
@@ -32,6 +28,15 @@ namespace FolderSync
                 File.Copy(inputFile, path, true);
 
             }, cancellationToken);
+        }
+
+        public async Task SendFile(Stream stream, string remotePath, SyncTarget target, IProgress<double> progress, CancellationToken cancellationToken)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(remotePath));
+            using (var fileStream = _fileSystem.GetFileStream(remotePath, FileMode.Create, FileAccess.Write, FileShare.Read, true))
+            {
+                await stream.CopyToAsync(fileStream).ConfigureAwait(false);
+            }
         }
 
         public Task DeleteFile(string path, SyncTarget target, CancellationToken cancellationToken)
@@ -84,11 +89,6 @@ namespace FolderSync
                 Path = i.FullName
 
             }).ToList());
-        }
-
-        public ISyncDataProvider GetDataProvider()
-        {
-            return _dataProvider;
         }
 
         public string Name

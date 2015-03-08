@@ -32,18 +32,17 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="MediaBrowser.Common, Version=3.0.5543.40959, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="MediaBrowser.Common, Version=3.0.5544.41779, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\MediaBrowser.Common.3.0.581\lib\net45\MediaBrowser.Common.dll</HintPath>
+      <HintPath>..\packages\MediaBrowser.Common.3.0.582\lib\net45\MediaBrowser.Common.dll</HintPath>
     </Reference>
-    <Reference Include="MediaBrowser.Controller">
-      <HintPath>..\packages\MediaBrowser.Server.Core.3.0.581\lib\net45\MediaBrowser.Controller.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="MediaBrowser.Model, Version=3.0.5543.40960, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="MediaBrowser.Controller, Version=3.0.5544.41778, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\MediaBrowser.Common.3.0.581\lib\net45\MediaBrowser.Model.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\packages\MediaBrowser.Server.Core.3.0.582\lib\net45\MediaBrowser.Controller.dll</HintPath>
+    </Reference>
+    <Reference Include="MediaBrowser.Model, Version=3.0.5518.28642, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\MediaBrowser.Common.3.0.582\lib\net45\MediaBrowser.Model.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
