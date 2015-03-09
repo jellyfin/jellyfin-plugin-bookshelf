@@ -8,5 +8,10 @@ namespace MediaBrowser.Plugins.GoogleDrive.Configuration
         {
             return Plugin.Instance.Configuration.Users.FirstOrDefault(user => user.MediaBrowserUserId == userId);
         }
+
+        public void SaveConfiguration()
+        {
+            Plugin.Instance.SaveConfiguration();
+        }
     }
 }

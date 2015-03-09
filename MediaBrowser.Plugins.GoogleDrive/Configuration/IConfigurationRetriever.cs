@@ -3,5 +3,6 @@
     public interface IConfigurationRetriever
     {
         GoogleDriveUser GetUserConfiguration(string userId);
+        void SaveConfiguration();
     }
 }

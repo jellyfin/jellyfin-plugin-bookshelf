@@ -9,9 +9,12 @@ namespace MediaBrowser.Plugins.GoogleDrive.Dependencies
         public void BindDependencies(IDependencyContainer container)
         {
             Bind<IConfigurationRetriever, ConfigurationRetriever>(container);
+            Bind<IGoogleAuthService, GoogleAuthService>(container);
+            Bind<IGoogleDriveService, GoogleDriveService>(container);
         }
 
         private void Bind<TInterface, TImplementation>(IDependencyContainer container)
+            where TImplementation : TInterface
         {
             container.Register(typeof(TInterface), typeof(TImplementation));
         }

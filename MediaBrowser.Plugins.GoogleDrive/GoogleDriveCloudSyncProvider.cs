@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Google.Apis.Drive.v2;
 using MediaBrowser.Controller.Sync;
 using MediaBrowser.Model.Sync;
 using MediaBrowser.Plugins.GoogleDrive.Configuration;
@@ -12,26 +12,19 @@ namespace MediaBrowser.Plugins.GoogleDrive
     public class GoogleDriveCloudSyncProvider : ICloudSyncProvider
     {
         private readonly IConfigurationRetriever _configurationRetriever;
+        private readonly IGoogleDriveService _googleDriveService;
 
-        public GoogleDriveCloudSyncProvider(IConfigurationRetriever configurationRetriever)
+        public GoogleDriveCloudSyncProvider(IConfigurationRetriever configurationRetriever, IGoogleDriveService googleDriveService)
         {
             _configurationRetriever = configurationRetriever;
+            _googleDriveService = googleDriveService;
         }
 
-        /// <summary>
-        /// Gets the name.
-        /// </summary>
-        /// <value>The name.</value>
         public string Name
         {
             get { return Constants.Name; }
         }
 
-        /// <summary>
-        /// Gets the synchronize targets.
-        /// </summary>
-        /// <param name="userId">The user identifier.</param>
-        /// <returns>IEnumerable&lt;SyncTarget&gt;.</returns>
         public IEnumerable<SyncTarget> GetSyncTargets(string userId)
         {
             var googleDriveUser = _configurationRetriever.GetUserConfiguration(userId);
@@ -40,23 +33,19 @@ namespace MediaBrowser.Plugins.GoogleDrive
             {
                 yield return new SyncTarget
                 {
-                    Id = googleDriveUser.Token,
+                    Id = userId,
                     Name = Name
                 };
             }
         }
 
-        /// <summary>
-        /// Transfers the item file.
-        /// </summary>
-        /// <param name="serverId">The server identifier.</param>
-        /// <param name="itemId">The item identifier.</param>
-        /// <param name="inputFile">The input file.</param>
-        /// <param name="pathParts">The path parts.</param>
-        /// <param name="target">The target.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>Task.</returns>
-        Task TransferItemFile(string serverId, string itemId, string inputFile, string[] pathParts, SyncTarget target, CancellationToken cancellationToken)
+        public async Task SendFile(string inputFile, string[] pathParts, SyncTarget target, IProgress<double> progress, CancellationToken cancellationToken)
+        {
+            var googleDriveUser = _configurationRetriever.GetUserConfiguration(target.Id);
+            await _googleDriveService.Upload("filename", inputFile, googleDriveUser, cancellationToken);
+        }
+
+        public Task<Stream> GetFile(string[] pathParts, SyncTarget target, IProgress<double> progress, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
