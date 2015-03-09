@@ -79,13 +79,17 @@ namespace RokuMetadata.ScheduledTasks
 
         public IEnumerable<ITaskTrigger> GetDefaultTriggers()
         {
-            return new List<ITaskTrigger>
-            {
-                new DailyTrigger
+            return new ITaskTrigger[]
                 {
-                    TimeOfDay = TimeSpan.FromHours(5)
-                }
-            };
+                    new DailyTrigger
+                    {
+                        TimeOfDay = TimeSpan.FromHours(5),
+                        TaskOptions = new TaskExecutionOptions
+                        {
+                            MaxRuntimeMs = Convert.ToInt32(TimeSpan.FromHours(3).TotalMilliseconds)
+                        }
+                    }
+                };
         }
 
         public string Name

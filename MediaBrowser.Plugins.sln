@@ -49,6 +49,7 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RokuMetadata", "RokuMetadata\RokuMetadata.csproj", "{E0FECDE5-B375-45AF-9B07-BD64977F966C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.GoogleDrive", "MediaBrowser.Plugins.GoogleDrive\MediaBrowser.Plugins.GoogleDrive.csproj", "{1B6D0A02-F1C2-4817-8958-4A996DEF5AC7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FolderSync", "FolderSync\FolderSync.csproj", "{D18C2B09-4793-4D16-AC5D-C04C0E5AC976}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -184,6 +185,12 @@ Global
 		{1B6D0A02-F1C2-4817-8958-4A996DEF5AC7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1B6D0A02-F1C2-4817-8958-4A996DEF5AC7}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1B6D0A02-F1C2-4817-8958-4A996DEF5AC7}.Release|x86.ActiveCfg = Release|Any CPU
+		{D18C2B09-4793-4D16-AC5D-C04C0E5AC976}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D18C2B09-4793-4D16-AC5D-C04C0E5AC976}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D18C2B09-4793-4D16-AC5D-C04C0E5AC976}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D18C2B09-4793-4D16-AC5D-C04C0E5AC976}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D18C2B09-4793-4D16-AC5D-C04C0E5AC976}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D18C2B09-4793-4D16-AC5D-C04C0E5AC976}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

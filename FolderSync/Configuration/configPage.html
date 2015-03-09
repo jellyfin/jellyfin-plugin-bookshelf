@@ -1,0 +1,274 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Folder Sync</title>
+</head>
+<body>
+    <div data-role="page" class="page type-interior pluginConfigurationPage folderSyncConfigurationPage" data-helpurl="https://github.com/MediaBrowser/Wiki/wiki/Folder-Sync">
+        <div data-role="content">
+            <div class="content-primary">
+
+                <div class="readOnlyContent">
+
+                    <p>Add one or more folder syncs. Folder Sync can be used for backup purposes, and also for easy archiving in multiple quality levels for optimal streaming performance.</p>
+
+                    <div class="folderSyncTargets">
+
+                    </div>
+                </div>
+
+                <div data-role="popup" id="popupAddFolder" class="popup" style="min-width: 300px;">
+                    <form class="folderSyncConfigurationForm">
+                        <div class="ui-bar-a" style="text-align: center; padding: 0 20px;">
+                            <h3 class="popupHeader"></h3>
+                        </div>
+                        <div data-role="content">
+
+                            <ul class="ulForm" data-role="listview" style="margin-top:0;">
+                                <li>
+                                    <label for="txtName">
+                                        Display name:
+                                    </label>
+                                    <input id="txtName" type="text" required="required" />
+                                </li>
+                                <li>
+                                    <label for="txtPath">
+                                        Path:
+                                    </label>
+                                    <input id="txtPath" type="text" required="required" />
+                                </li>
+                            </ul>
+                            <div>
+                                <div class="ui-controlgroup-label">User Access</div>
+                                <div>
+                                    <label for="chkEnableAllUsers">Allow all users to sync to this folder</label>
+                                    <input type="checkbox" id="chkEnableAllUsers" data-mini="true" />
+                                </div>
+                                <div class="userAccessListContainer">
+                                    <br />
+                                    <div class="userAccess">
+                                    </div>
+                                </div>
+                            </div>
+                            <ul class="ulForm" data-role="listview" style="margin-top:.5em;">
+                                <li>
+                                    <input type="hidden" id="fldFolderId" />
+                                    <button type="submit" data-theme="b">Save</button>
+                                    <button type="button" data-icon="delete" onclick="$(this).parents('.popup').popup('close');">
+                                        Cancel
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+
+            (function () {
+
+                var pluginId = "7cfbb821-e8fd-40ab-b64e-a7749386a6b2";
+
+                function getTargetListHtml(targets) {
+
+                    var html = '';
+
+                    html += '<ul data-inset="true" data-role="listview" data-split-icon="minus">';
+
+                    html += '<li data-role="list-divider">Folders';
+                    html += '<button type="button" data-icon="plus" data-mini="true" data-iconpos="notext" data-inline="true" class="btnAddFolder" style="margin: 0 0 0 1em;">Add</button>';
+                    html += '</li>';
+
+                    for (var i = 0, length = targets.length; i < length; i++) {
+
+                        var target = targets[i];
+                        html += '<li>';
+                        html += '<a href="#" data-id="' + target.Id + '" class="btnEditFolder">';
+                        html += '<h3>';
+                        html += target.Name;
+                        html += '</h3>';
+                        html += '<p>';
+                        html += target.Path;
+                        html += '</p>';
+                        html += '</a>';
+                        html += '<a href="#" data-id="' + target.Id + '" class="btnDeleteFolder"></a>';
+                        html += '</li>';
+                    }
+                    html += '</ul>';
+
+                    return html;
+                }
+
+                function loadUsers(page, account, users) {
+
+                    var html = '';
+
+                    html += '<div class="ui-controlgroup-label" style="margin-bottom:0;padding-left:2px;">Users</div>';
+
+                    html += '<div data-role="controlgroup" style="max-height:100px;overflow-y:auto;">';
+
+                    for (var i = 0, length = users.length; i < length; i++) {
+
+                        var user = users[i];
+
+                        var id = 'user' + i;
+
+                        var isChecked = account.EnableAllUsers || account.UserIds.indexOf(user.Id) != -1;
+                        var checkedAttribute = isChecked ? ' checked="checked"' : '';
+
+                        html += '<input class="chkUser" data-id="' + user.Id + '" type="checkbox" id="' + id + '"' + checkedAttribute + ' />';
+                        html += '<label for="' + id + '">' + user.Name + '</label>';
+                    }
+
+                    html += '</div>';
+
+                    $('.userAccess', page).show().html(html).trigger('create');
+
+                    if (users.length) {
+                        $('.userAccessListContainer', page).show();
+                    } else {
+                        $('.userAccessListContainer', page).hide();
+                    }
+
+                    $('#chkEnableAllUsers', page).checked(account.EnableAllUsers).checkboxradio('refresh').trigger('change');
+                }
+
+                function deleteFolder(page, id) {
+
+                    Dashboard.confirm("Are you sure you wish to remove this sync folder? All sync jobs will be deleted.", "Confirm Deletion", function (result) {
+
+                        if (result) {
+                            ApiClient.ajax({
+
+                                type: "DELETE",
+                                url: ApiClient.getUrl("FolderSync/Folders/" + id)
+
+                            }).done(function () {
+                                loadConfig(page);
+                            });
+                        }
+
+                    });
+                }
+
+                function editFolder(page, id) {
+
+                    ApiClient.getJSON(ApiClient.getUrl("FolderSync/Folders/" + id)).done(function (folder) {
+                        editFolderObject(page, folder);
+                    });
+                }
+
+                function editFolderObject(page, folder) {
+
+                    ApiClient.getUsers().done(function (users) {
+                        loadUsers(page, folder, users);
+                    });
+                    $('#txtName', page).val(folder.Name || '');
+                    $('#txtPath', page).val(folder.Path || '');
+                    $('#fldFolderId', page).val(folder.Id || '');
+
+                    if (folder.Id) {
+                        $('.popupHeader', page).html('Edit Folder');
+                    } else {
+                        $('.popupHeader', page).html('Add Folder');
+                    }
+
+                    $('#popupAddFolder', page).popup('open');
+                }
+
+                function loadPageData(page, config) {
+
+                    var elem = $('.folderSyncTargets', page).html(getTargetListHtml(config.SyncAccounts)).trigger('create');
+
+                    $('.btnDeleteFolder', elem).on('click', function () {
+
+                        deleteFolder(page, this.getAttribute('data-id'));
+                    });
+                    $('.btnEditFolder', elem).on('click', function () {
+
+                        editFolder(page, this.getAttribute('data-id'));
+                    });
+                    $('.btnAddFolder', elem).on('click', function () {
+
+                        editFolderObject(page, {
+                            EnableAllUsers: true,
+                            UserIds: []
+                        });
+                    });
+                }
+
+                function loadConfig(page) {
+
+                    ApiClient.getPluginConfiguration(pluginId).done(function (config) {
+
+                        loadPageData(page, config);
+                        Dashboard.hideLoadingMsg();
+                    });
+                }
+
+                $('.folderSyncConfigurationPage').on('pageshow', function (event) {
+
+                    var page = this;
+
+                    $('#chkEnableAllUsers', page).on('change', function () {
+
+                        if (this.checked) {
+                            $('.userAccessListContainer', page).hide();
+                        } else {
+                            $('.userAccessListContainer', page).show();
+                        }
+                    });
+
+                }).on('pageshow', function (event) {
+
+                    var page = this;
+
+                    loadConfig(page);
+                });
+
+                $('.folderSyncConfigurationForm').off('submit.plugin').on('submit.plugin', function (e) {
+
+                    Dashboard.showLoadingMsg();
+
+                    var form = this;
+                    var page = $(form).parents('.page');
+
+                    var folder = {
+                        Name: $('#txtName', page).val(),
+                        Path: $('#txtPath', page).val(),
+                        EnableAllUsers: $('#chkEnableAllUsers', page).checked(),
+                        Id: $('#fldFolderId', page).val()
+                    };
+
+                    folder.UserIds = folder.EnableAllUsers ?
+                        [] :
+                        $('.chkUser:checked', page).map(function () {
+
+                            return this.getAttribute('data-id');
+
+                        }).get();
+
+                    ApiClient.ajax({
+
+                        type: "POST",
+                        url: ApiClient.getUrl("FolderSync/Folders"),
+                        data: JSON.stringify(folder),
+                        contentType: "application/json"
+
+                    }).done(function () {
+                        $('#popupAddFolder', page).popup('close');
+                        loadConfig(page);
+                    });
+
+                    return false;
+                });
+
+            })();
+
+        </script>
+
+    </div>
+</body>
+</html>
