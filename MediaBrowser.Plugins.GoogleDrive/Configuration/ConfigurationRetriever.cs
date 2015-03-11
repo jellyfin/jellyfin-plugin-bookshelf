@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 
 namespace MediaBrowser.Plugins.GoogleDrive.Configuration
@@ -6,7 +7,17 @@ namespace MediaBrowser.Plugins.GoogleDrive.Configuration
     {
         public GoogleDriveUser GetUserConfiguration(string userId)
         {
-            return Plugin.Instance.Configuration.Users.FirstOrDefault(user => user.MediaBrowserUserId == userId);
+            return GetConfigurations().FirstOrDefault(user => user.MediaBrowserUserId == userId);
+        }
+
+        public GoogleDriveUser GetUserConfigurationById(string id)
+        {
+            return GetConfigurations().FirstOrDefault(user => user.Id == id);
+        }
+
+        public IEnumerable<GoogleDriveUser> GetConfigurations()
+        {
+            return Plugin.Instance.Configuration.Users;
         }
 
         public void SaveConfiguration()
