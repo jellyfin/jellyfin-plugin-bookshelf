@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -47,7 +46,7 @@ namespace MediaBrowser.Plugins.GoogleDrive
             var file = CreateGoogleDriveFile(remotePath);
             var googleCredentials = GetGoogleCredentials(target);
 
-            await _googleDriveService.UploadFile(stream, file, googleCredentials, cancellationToken);
+            await _googleDriveService.UploadFile(stream, file, googleCredentials, progress, cancellationToken);
         }
 
         public async Task DeleteFile(string path, SyncTarget target, CancellationToken cancellationToken)
@@ -66,7 +65,6 @@ namespace MediaBrowser.Plugins.GoogleDrive
             return await _googleDriveService.GetFile(file, googleCredentials, cancellationToken);
         }
 
-        // string is not very flexible...
         public string GetFullPath(IEnumerable<string> path, SyncTarget target)
         {
             return Path.Combine(path.ToArray());
@@ -87,18 +85,20 @@ namespace MediaBrowser.Plugins.GoogleDrive
             return files.Select(CreateDeviceFileInfo).ToList();
         }
 
-        private SyncTarget CreateSyncTarget(GoogleDriveUser user)
+        private static SyncTarget CreateSyncTarget(GoogleDriveUser user)
         {
+            var userId = string.IsNullOrEmpty(user.MediaBrowserUserId) ? "everyone" : user.MediaBrowserUserId;
+
             return new SyncTarget
             {
-                Id = user.Id,
-                Name = user.Name
+                Id = user.MediaBrowserUserId,
+                Name = "Google Drive for " + userId
             };
         }
 
         private GoogleCredentials GetGoogleCredentials(SyncTarget target)
         {
-            var googleDriveUser = _configurationRetriever.GetUserConfigurationById(target.Id);
+            var googleDriveUser = _configurationRetriever.GetUserConfiguration(target.Id);
 
             return new GoogleCredentials
             {
@@ -108,7 +108,7 @@ namespace MediaBrowser.Plugins.GoogleDrive
             };
         }
 
-        private GoogleDriveFile CreateGoogleDriveFile(string path)
+        private static GoogleDriveFile CreateGoogleDriveFile(string path)
         {
             var folder = Path.GetDirectoryName(path);
 
@@ -128,7 +128,7 @@ namespace MediaBrowser.Plugins.GoogleDrive
             };
         }
 
-        private string GetGoogleDriveFilePath(GoogleDriveFile file)
+        private static string GetGoogleDriveFilePath(GoogleDriveFile file)
         {
             if (!string.IsNullOrEmpty(file.FolderPath))
             {

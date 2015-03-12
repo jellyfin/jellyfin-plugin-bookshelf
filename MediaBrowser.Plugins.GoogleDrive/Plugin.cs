@@ -27,17 +27,5 @@ namespace MediaBrowser.Plugins.GoogleDrive
         {
             get { return Constants.Description; }
         }
-
-        public override void UpdateConfiguration(BasePluginConfiguration configuration)
-        {
-            var pluginConfiguration = (PluginConfiguration)configuration;
-
-            foreach (var user in pluginConfiguration.Users)
-            {
-                user.Id = Guid.NewGuid().ToString();
-            }
-
-            base.UpdateConfiguration(configuration);
-        }
     }
 }

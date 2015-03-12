@@ -5,19 +5,29 @@ namespace MediaBrowser.Plugins.GoogleDrive.Configuration
 {
     public class ConfigurationRetriever : IConfigurationRetriever
     {
-        public GoogleDriveUser GetUserConfiguration(string userId)
+        private static PluginConfiguration Configuration
         {
-            return GetConfigurations().FirstOrDefault(user => user.MediaBrowserUserId == userId);
+            get { return Plugin.Instance.Configuration; }
         }
 
-        public GoogleDriveUser GetUserConfigurationById(string id)
+        public GoogleDriveUser GetUserConfiguration(string userId)
         {
-            return GetConfigurations().FirstOrDefault(user => user.Id == id);
+            if (Configuration.ApplyConfigurationToEveryone)
+            {
+                return Configuration.SingleUserForEveryone;
+            }
+
+            return GetConfigurations().FirstOrDefault(user => user.MediaBrowserUserId == userId);
         }
 
         public IEnumerable<GoogleDriveUser> GetConfigurations()
         {
-            return Plugin.Instance.Configuration.Users;
+            if (Configuration.ApplyConfigurationToEveryone)
+            {
+                return new List<GoogleDriveUser> { Configuration.SingleUserForEveryone };
+            }
+
+            return Configuration.Users;
         }
 
         public void SaveConfiguration()

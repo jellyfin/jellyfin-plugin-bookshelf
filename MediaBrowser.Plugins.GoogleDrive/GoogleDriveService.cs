@@ -18,7 +18,7 @@ namespace MediaBrowser.Plugins.GoogleDrive
     {
         private const string PathPropertyKey = "Path";
 
-        public async Task UploadFile(Stream stream, GoogleDriveFile googleDriveFile, GoogleCredentials googleCredentials, CancellationToken cancellationToken)
+        public async Task UploadFile(Stream stream, GoogleDriveFile googleDriveFile, GoogleCredentials googleCredentials, IProgress<double> progress, CancellationToken cancellationToken)
         {
             var driveService = CreateDriveService(googleCredentials);
 
@@ -30,14 +30,18 @@ namespace MediaBrowser.Plugins.GoogleDrive
             };
 
             var request = driveService.Files.Insert(file, stream, "application/octet-stream");
+
+            var streamLength = stream.Length;
+            request.ProgressChanged += (uploadProgress) => progress.Report(uploadProgress.BytesSent / streamLength * 100);
+
             await request.UploadAsync(cancellationToken);
         }
 
         public async Task DeleteFile(GoogleDriveFile googleDriveFile, GoogleCredentials googleCredentials, CancellationToken cancellationToken)
         {
             var driveService = CreateDriveService(googleCredentials);
-            // TODO: find id of file based on googleDriveFile
-            var fileId = "1234";
+
+            var fileId = await FindFileId(googleDriveFile, driveService, cancellationToken);
 
             var request = driveService.Files.Delete(fileId);
             await request.ExecuteAsync(cancellationToken);
@@ -46,8 +50,8 @@ namespace MediaBrowser.Plugins.GoogleDrive
         public async Task<Stream> GetFile(GoogleDriveFile googleDriveFile, GoogleCredentials googleCredentials, CancellationToken cancellationToken)
         {
             var driveService = CreateDriveService(googleCredentials);
-            // TODO: find id of file based on googleDriveFile
-            var fileId = "1234";
+
+            var fileId = await FindFileId(googleDriveFile, driveService, cancellationToken);
 
             var request = driveService.Files.Get(fileId);
             var stream = new MemoryStream();
@@ -58,12 +62,29 @@ namespace MediaBrowser.Plugins.GoogleDrive
         public async Task<IEnumerable<GoogleDriveFile>> GetFilesListing(string path, GoogleCredentials googleCredentials, CancellationToken cancellationToken)
         {
             var driveService = CreateDriveService(googleCredentials);
-            var request = driveService.Files.List();
-            request.Q = "'appfolder' in parents";
 
-            var files = await GetAllFiles(request, cancellationToken);
+            var files = await GetFiles("'appfolder' in parents", driveService, cancellationToken);
+
             return files.Where(f => FileIsInPath(f, path))
                 .Select(CreateGoogleDriveFile);
+        }
+
+        private async Task<string> FindFileId(GoogleDriveFile googleDriveFile, DriveService driveService, CancellationToken cancellationToken)
+        {
+            var query = string.Format("'appfolder' in parents and title = '{0}'", googleDriveFile.Name);
+            var matchingFiles = await GetFiles(query, driveService, cancellationToken);
+
+            var file = matchingFiles.First(f => FileIsInPath(f, googleDriveFile.FolderPath));
+            return file.Id;
+        }
+
+        private async Task<List<File>> GetFiles(string query, DriveService driveService, CancellationToken cancellationToken)
+        {
+            var request = driveService.Files.List();
+            request.Q = query;
+
+            var files = await GetAllFiles(request, cancellationToken);
+            return files;
         }
 
         private static async Task<List<File>> GetAllFiles(FilesResource.ListRequest request, CancellationToken cancellationToken)
