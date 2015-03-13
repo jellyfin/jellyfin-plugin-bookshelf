@@ -18,7 +18,7 @@ namespace MediaBrowser.Plugins.GoogleDrive
     {
         private const string PathPropertyKey = "Path";
 
-        public async Task UploadFile(Stream stream, GoogleDriveFile googleDriveFile, GoogleCredentials googleCredentials, IProgress<double> progress, CancellationToken cancellationToken)
+        public async Task<string> UploadFile(Stream stream, GoogleDriveFile googleDriveFile, GoogleCredentials googleCredentials, IProgress<double> progress, CancellationToken cancellationToken)
         {
             var driveService = CreateDriveService(googleCredentials);
 
@@ -26,15 +26,19 @@ namespace MediaBrowser.Plugins.GoogleDrive
 
             var file = CreateFileToUpload(googleDriveFile);
             await ExecuteUpload(driveService, stream, file, progress, cancellationToken);
+
+            var uploadedFile = await FindFileId(googleDriveFile, driveService, cancellationToken);
+            // TODO: make sure WebContentLink has something in it and it's accessible without authentication
+            return uploadedFile.WebContentLink;
         }
 
         public async Task DeleteFile(GoogleDriveFile googleDriveFile, GoogleCredentials googleCredentials, CancellationToken cancellationToken)
         {
             var driveService = CreateDriveService(googleCredentials);
 
-            var fileId = await FindFileId(googleDriveFile, driveService, cancellationToken);
+            var file = await FindFileId(googleDriveFile, driveService, cancellationToken);
 
-            var request = driveService.Files.Delete(fileId);
+            var request = driveService.Files.Delete(file.Id);
             await request.ExecuteAsync(cancellationToken);
         }
 
@@ -42,9 +46,9 @@ namespace MediaBrowser.Plugins.GoogleDrive
         {
             var driveService = CreateDriveService(googleCredentials);
 
-            var fileId = await FindFileId(googleDriveFile, driveService, cancellationToken);
+            var file = await FindFileId(googleDriveFile, driveService, cancellationToken);
 
-            var request = driveService.Files.Get(fileId);
+            var request = driveService.Files.Get(file.Id);
             return await request.ExecuteAsStreamAsync(cancellationToken);
         }
 
@@ -58,7 +62,7 @@ namespace MediaBrowser.Plugins.GoogleDrive
                 .Select(CreateGoogleDriveFile);
         }
 
-        private async Task<string> FindFileId(GoogleDriveFile googleDriveFile, DriveService driveService, CancellationToken cancellationToken)
+        private async Task<File> FindFileId(GoogleDriveFile googleDriveFile, DriveService driveService, CancellationToken cancellationToken)
         {
             var query = string.Format("'appfolder' in parents and title = '{0}'", googleDriveFile.Name);
             var matchingFiles = await GetFiles(query, driveService, cancellationToken);
@@ -70,7 +74,7 @@ namespace MediaBrowser.Plugins.GoogleDrive
                 throw new FileNotFoundException();
             }
 
-            return file.Id;
+            return file;
         }
 
         private async Task<List<File>> GetFiles(string query, DriveService driveService, CancellationToken cancellationToken)
@@ -155,7 +159,8 @@ namespace MediaBrowser.Plugins.GoogleDrive
             {
                 Title = googleDriveFile.Name,
                 Parents = new List<ParentReference> { new ParentReference { Id = "appfolder" } },
-                Properties = new List<Property> { new Property { Key = PathPropertyKey, Value = googleDriveFile.FolderPath } }
+                Properties = new List<Property> { new Property { Key = PathPropertyKey, Value = googleDriveFile.FolderPath } },
+                Permissions = new List<Permission> { new Permission { Role = "reader", Type = "anyone" } }
             };
         }
 

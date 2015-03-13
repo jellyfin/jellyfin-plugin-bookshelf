@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Sync;
+using MediaBrowser.Model.MediaInfo;
 using MediaBrowser.Model.Sync;
 using MediaBrowser.Plugins.GoogleDrive.Configuration;
 
@@ -44,12 +45,18 @@ namespace MediaBrowser.Plugins.GoogleDrive
             }
         }
 
-        public async Task SendFile(Stream stream, string remotePath, SyncTarget target, IProgress<double> progress, CancellationToken cancellationToken)
+        public async Task<SendFileResult> SendFile(Stream stream, string remotePath, SyncTarget target, IProgress<double> progress, CancellationToken cancellationToken)
         {
             var file = CreateGoogleDriveFile(remotePath);
             var googleCredentials = GetGoogleCredentials(target);
 
-            await _googleDriveService.UploadFile(stream, file, googleCredentials, progress, cancellationToken);
+            var url = await _googleDriveService.UploadFile(stream, file, googleCredentials, progress, cancellationToken);
+
+            return new SendFileResult
+            {
+                Path = url,
+                Protocol = MediaProtocol.Http
+            };
         }
 
         public async Task DeleteFile(string path, SyncTarget target, CancellationToken cancellationToken)
