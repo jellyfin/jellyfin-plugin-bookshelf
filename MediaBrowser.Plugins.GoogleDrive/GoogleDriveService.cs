@@ -22,19 +22,10 @@ namespace MediaBrowser.Plugins.GoogleDrive
         {
             var driveService = CreateDriveService(googleCredentials);
 
-            var file = new File
-            {
-                Title = googleDriveFile.Name,
-                Parents = new List<ParentReference> { new ParentReference { Id = "appfolder" } },
-                Properties = new List<Property> { new Property { Key = PathPropertyKey, Value = googleDriveFile.FolderPath } }
-            };
+            await TryDeleteFile(googleDriveFile, googleCredentials, cancellationToken);
 
-            var request = driveService.Files.Insert(file, stream, "application/octet-stream");
-
-            var streamLength = stream.Length;
-            request.ProgressChanged += (uploadProgress) => progress.Report(uploadProgress.BytesSent / streamLength * 100);
-
-            await request.UploadAsync(cancellationToken);
+            var file = CreateFileToUpload(googleDriveFile);
+            await ExecuteUpload(driveService, stream, file, progress, cancellationToken);
         }
 
         public async Task DeleteFile(GoogleDriveFile googleDriveFile, GoogleCredentials googleCredentials, CancellationToken cancellationToken)
@@ -54,9 +45,7 @@ namespace MediaBrowser.Plugins.GoogleDrive
             var fileId = await FindFileId(googleDriveFile, driveService, cancellationToken);
 
             var request = driveService.Files.Get(fileId);
-            var stream = new MemoryStream();
-            await request.DownloadAsync(stream, cancellationToken);
-            return stream;
+            return await request.ExecuteAsStreamAsync(cancellationToken);
         }
 
         public async Task<IEnumerable<GoogleDriveFile>> GetFilesListing(string path, GoogleCredentials googleCredentials, CancellationToken cancellationToken)
@@ -74,7 +63,13 @@ namespace MediaBrowser.Plugins.GoogleDrive
             var query = string.Format("'appfolder' in parents and title = '{0}'", googleDriveFile.Name);
             var matchingFiles = await GetFiles(query, driveService, cancellationToken);
 
-            var file = matchingFiles.First(f => FileIsInPath(f, googleDriveFile.FolderPath));
+            var file = matchingFiles.FirstOrDefault(f => FileIsInPath(f, googleDriveFile.FolderPath));
+
+            if (file == null)
+            {
+                throw new FileNotFoundException();
+            }
+
             return file.Id;
         }
 
@@ -114,11 +109,9 @@ namespace MediaBrowser.Plugins.GoogleDrive
             return IsSubPath(filePathParts, pathParts);
         }
 
-        private bool IsSubPath(IEnumerable<string> pathParts, IEnumerable<string> subPathParts)
+        private bool IsSubPath(string[] pathParts, IEnumerable<string> subPathParts)
         {
-            var parts = pathParts.Zip(subPathParts, (p1, p2) => new Tuple<string, string>(p1, p2));
-
-            return parts.All(part => string.IsNullOrEmpty(part.Item1) || part.Item1 == part.Item2);
+            return !subPathParts.Where((t, i) => pathParts.Length <= i || t != pathParts[i]).Any();
         }
 
         private DriveService CreateDriveService(GoogleCredentials googleCredentials)
@@ -141,7 +134,39 @@ namespace MediaBrowser.Plugins.GoogleDrive
                 HttpClientInitializer = credentials
             };
 
-            return new DriveService(initializer);
+            return new DriveService(initializer)
+            {
+                HttpClient = { Timeout = TimeSpan.FromHours(1) }
+            };
+        }
+
+        private async Task TryDeleteFile(GoogleDriveFile googleDriveFile, GoogleCredentials googleCredentials, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await DeleteFile(googleDriveFile, googleCredentials, cancellationToken);
+            }
+            catch (FileNotFoundException) { }
+        }
+
+        private static File CreateFileToUpload(GoogleDriveFile googleDriveFile)
+        {
+            return new File
+            {
+                Title = googleDriveFile.Name,
+                Parents = new List<ParentReference> { new ParentReference { Id = "appfolder" } },
+                Properties = new List<Property> { new Property { Key = PathPropertyKey, Value = googleDriveFile.FolderPath } }
+            };
+        }
+
+        private static async Task ExecuteUpload(DriveService driveService, Stream stream, File file, IProgress<double> progress, CancellationToken cancellationToken)
+        {
+            var request = driveService.Files.Insert(file, stream, "application/octet-stream");
+
+            var streamLength = stream.Length;
+            request.ProgressChanged += (uploadProgress) => progress.Report(uploadProgress.BytesSent / streamLength * 100);
+
+            await request.UploadAsync(cancellationToken);
         }
 
         private GoogleDriveFile CreateGoogleDriveFile(File file)

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Sync;
 using MediaBrowser.Model.Sync;
 using MediaBrowser.Plugins.GoogleDrive.Configuration;
@@ -14,11 +15,13 @@ namespace MediaBrowser.Plugins.GoogleDrive
     {
         private readonly IConfigurationRetriever _configurationRetriever;
         private readonly IGoogleDriveService _googleDriveService;
+        private readonly IUserManager _userManager;
 
-        public GoogleDriveServerSyncProvider(IConfigurationRetriever configurationRetriever, IGoogleDriveService googleDriveService)
+        public GoogleDriveServerSyncProvider(IConfigurationRetriever configurationRetriever, IGoogleDriveService googleDriveService, IUserManager userManager)
         {
             _configurationRetriever = configurationRetriever;
             _googleDriveService = googleDriveService;
+            _userManager = userManager;
         }
 
         public string Name
@@ -85,14 +88,22 @@ namespace MediaBrowser.Plugins.GoogleDrive
             return files.Select(CreateDeviceFileInfo).ToList();
         }
 
-        private static SyncTarget CreateSyncTarget(GoogleDriveUser user)
+        private SyncTarget CreateSyncTarget(GoogleDriveUser user)
         {
-            var userId = string.IsNullOrEmpty(user.MediaBrowserUserId) ? "everyone" : user.MediaBrowserUserId;
+            if (string.IsNullOrEmpty(user.MediaBrowserUserId))
+            {
+                return new SyncTarget
+                {
+                    Id = "single",
+                    Name = "Google Drive"
+                };
+            }
 
+            var mediaBrowserUser = _userManager.GetUserById(user.MediaBrowserUserId);
             return new SyncTarget
             {
                 Id = user.MediaBrowserUserId,
-                Name = "Google Drive for " + userId
+                Name = "Google Drive for " + mediaBrowserUser.Name
             };
         }
 

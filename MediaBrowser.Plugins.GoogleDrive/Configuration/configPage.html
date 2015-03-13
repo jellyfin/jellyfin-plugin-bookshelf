@@ -269,6 +269,8 @@
                     GoogleDriveApi.loadConfiguration(userId);
 
                     GoogleDriveApi.getToken(code, userId, function () {
+                        // TODO: remove code from URL so a refresh or re-save doesn't break everything
+
                         Dashboard.hideLoadingMsg();
                         Dashboard.processPluginConfigurationUpdateResult();
                     });

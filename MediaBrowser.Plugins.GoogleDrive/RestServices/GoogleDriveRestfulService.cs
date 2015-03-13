@@ -30,9 +30,9 @@ namespace MediaBrowser.Plugins.GoogleDrive.RestServices
         {
             return new AccessToken
             {
-                Token = token.AccessToken,
-                ExpiresAtUtc = DateTime.UtcNow.AddSeconds(token.ExpiresIn),
-                RefreshToken = token.RefreshToken
+                Token = token.access_token,
+                ExpiresAtUtc = DateTime.UtcNow.AddSeconds(token.expires_in),
+                RefreshToken = token.refresh_token
             };
         }
     }
