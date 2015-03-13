@@ -1,6 +1,7 @@
 ﻿using FolderSync.Configuration;
 using MediaBrowser.Common.IO;
 using MediaBrowser.Controller.Sync;
+using MediaBrowser.Model.MediaInfo;
 using MediaBrowser.Model.Sync;
 using System;
 using System.Collections.Generic;
@@ -30,12 +31,17 @@ namespace FolderSync
             }, cancellationToken);
         }
 
-        public async Task SendFile(Stream stream, string remotePath, SyncTarget target, IProgress<double> progress, CancellationToken cancellationToken)
+        public async Task<SendFileResult> SendFile(Stream stream, string remotePath, SyncTarget target, IProgress<double> progress, CancellationToken cancellationToken)
         {
             Directory.CreateDirectory(Path.GetDirectoryName(remotePath));
             using (var fileStream = _fileSystem.GetFileStream(remotePath, FileMode.Create, FileAccess.Write, FileShare.Read, true))
             {
                 await stream.CopyToAsync(fileStream).ConfigureAwait(false);
+                return new SendFileResult
+                {
+                    Path = remotePath,
+                    Protocol = MediaProtocol.File
+                };
             }
         }
 
