@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-
+﻿
 namespace FolderSync.Configuration
 {
     public class SyncAccount
@@ -8,11 +7,11 @@ namespace FolderSync.Configuration
         public string Name { get; set; }
         public string Path { get; set; }
         public bool EnableAllUsers { get; set; }
-        public List<string> UserIds { get; set; }
+        public string[] UserIds { get; set; }
 
         public SyncAccount()
         {
-            UserIds = new List<string>();
+            UserIds = new string[]{};
         }
     }
 }
