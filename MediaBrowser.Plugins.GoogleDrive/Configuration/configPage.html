@@ -134,7 +134,7 @@
                 this.grantAccess = function () {
                     var clientId = GoogleDriveUi.googleDriveClientId();
                     var redirectUrl = buildRedirectUrl();
-                    var scope = encodeURIComponent('https://www.googleapis.com/auth/drive.appfolder');
+                    var scope = encodeURIComponent('https://www.googleapis.com/auth/drive.file');
 
                     var url = 'https://accounts.google.com/o/oauth2/auth?response_type=code&access_type=offline&client_id={0}&redirect_uri={1}&scope={2}'.format(clientId,
                         redirectUrl,
