@@ -4,8 +4,8 @@ namespace MediaBrowser.Plugins.GoogleDrive.Configuration
 {
     public interface IConfigurationRetriever
     {
-        GoogleDriveUser GetUserConfiguration(string userId);
-        IEnumerable<GoogleDriveUser> GetConfigurations();
-        void SaveConfiguration();
+        GoogleDriveUserDto GetUserConfiguration(string userId);
+        IEnumerable<GoogleDriveUserDto> GetConfigurations();
+        void SaveUserConfiguration(string userId, AccessToken accessToken, string folderId);
     }
 }

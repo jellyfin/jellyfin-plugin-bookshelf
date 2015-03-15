@@ -91,14 +91,14 @@ namespace MediaBrowser.Plugins.GoogleDrive
             var googleDriveUser = _configurationRetriever.GetUserConfiguration(target.Id);
             var googleCredentials = GetGoogleCredentials(target);
 
-            var files = await _googleDriveService.GetFilesListing(path, googleDriveUser.FolderId, googleCredentials, CancellationToken.None);
+            var files = await _googleDriveService.GetFilesListing(path, googleDriveUser.User.FolderId, googleCredentials, CancellationToken.None);
 
             return files.Select(CreateDeviceFileInfo).ToList();
         }
 
-        private SyncTarget CreateSyncTarget(GoogleDriveUser user)
+        private SyncTarget CreateSyncTarget(GoogleDriveUserDto user)
         {
-            if (string.IsNullOrEmpty(user.MediaBrowserUserId))
+            if (string.IsNullOrEmpty(user.User.MediaBrowserUserId))
             {
                 return new SyncTarget
                 {
@@ -107,10 +107,10 @@ namespace MediaBrowser.Plugins.GoogleDrive
                 };
             }
 
-            var mediaBrowserUser = _userManager.GetUserById(user.MediaBrowserUserId);
+            var mediaBrowserUser = _userManager.GetUserById(user.User.MediaBrowserUserId);
             return new SyncTarget
             {
-                Id = user.MediaBrowserUserId,
+                Id = user.User.MediaBrowserUserId,
                 Name = "Google Drive for " + mediaBrowserUser.Name
             };
         }
@@ -121,7 +121,7 @@ namespace MediaBrowser.Plugins.GoogleDrive
 
             return new GoogleCredentials
             {
-                AccessToken = googleDriveUser.AccessToken,
+                AccessToken = googleDriveUser.User.AccessToken,
                 ClientId = googleDriveUser.GoogleDriveClientId,
                 ClientSecret = googleDriveUser.GoogleDriveClientSecret
             };
@@ -136,7 +136,7 @@ namespace MediaBrowser.Plugins.GoogleDrive
             {
                 Name = Path.GetFileName(path),
                 FolderPath = folder,
-                GoogleDriveFolderId = googleDriveUser.FolderId
+                GoogleDriveFolderId = googleDriveUser.User.FolderId
             };
         }
 

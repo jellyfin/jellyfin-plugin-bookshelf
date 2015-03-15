@@ -11,6 +11,9 @@ namespace MediaBrowser.Plugins.GoogleDrive.Configuration
             Users = new List<GoogleDriveUser>();
         }
 
+        public string GoogleDriveClientId { get; set; }
+        public string GoogleDriveClientSecret { get; set; }
+
         public bool ApplyConfigurationToEveryone { get; set; }
         public GoogleDriveUser SingleUserForEveryone { get; set; }
         public List<GoogleDriveUser> Users { get; set; }

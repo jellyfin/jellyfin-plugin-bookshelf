@@ -10,17 +10,41 @@ namespace MediaBrowser.Plugins.GoogleDrive.Configuration
             get { return Plugin.Instance.Configuration; }
         }
 
-        public GoogleDriveUser GetUserConfiguration(string userId)
+        public GoogleDriveUserDto GetUserConfiguration(string userId)
+        {
+            var googleDriveUser = GetUserConfigurationInternal(userId);
+
+            return MapGoogleDriveUser(googleDriveUser);
+        }
+
+        public IEnumerable<GoogleDriveUserDto> GetConfigurations()
+        {
+            var googleDriveUsers = GetConfigurationsInternal();
+
+            return googleDriveUsers.Select(MapGoogleDriveUser);
+        }
+
+        public void SaveUserConfiguration(string userId, AccessToken accessToken, string folderId)
+        {
+            var googleDriveUser = GetUserConfigurationInternal(userId);
+
+            googleDriveUser.FolderId = folderId;
+            googleDriveUser.AccessToken = accessToken;
+
+            Plugin.Instance.SaveConfiguration();
+        }
+
+        private GoogleDriveUser GetUserConfigurationInternal(string userId)
         {
             if (Configuration.ApplyConfigurationToEveryone)
             {
                 return Configuration.SingleUserForEveryone;
             }
 
-            return GetConfigurations().FirstOrDefault(user => user.MediaBrowserUserId == userId);
+            return GetConfigurationsInternal().FirstOrDefault(userDto => userDto.MediaBrowserUserId == userId);
         }
 
-        public IEnumerable<GoogleDriveUser> GetConfigurations()
+        private IEnumerable<GoogleDriveUser> GetConfigurationsInternal()
         {
             if (Configuration.ApplyConfigurationToEveryone)
             {
@@ -30,9 +54,14 @@ namespace MediaBrowser.Plugins.GoogleDrive.Configuration
             return Configuration.Users;
         }
 
-        public void SaveConfiguration()
+        private GoogleDriveUserDto MapGoogleDriveUser(GoogleDriveUser googleDriveUser)
         {
-            Plugin.Instance.SaveConfiguration();
+            return new GoogleDriveUserDto
+            {
+                GoogleDriveClientId = Configuration.GoogleDriveClientId,
+                GoogleDriveClientSecret = Configuration.GoogleDriveClientSecret,
+                User = googleDriveUser
+            };
         }
     }
 }

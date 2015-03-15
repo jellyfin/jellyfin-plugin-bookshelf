@@ -23,13 +23,16 @@ namespace MediaBrowser.Plugins.GoogleDrive.RestServices
         {
             var googleDriveUser = _configurationRetriever.GetUserConfiguration(code.UserId);
 
-            googleDriveUser.AccessToken = await CreateAccessToken(code.Code, code.RedirectUri, googleDriveUser);
-            googleDriveUser.FolderId = await GetOrCreateFolder(googleDriveUser);
+            var accessToken = await CreateAccessToken(code.Code, code.RedirectUri, googleDriveUser);
 
-            _configurationRetriever.SaveConfiguration();
+            _configurationRetriever.SaveUserConfiguration(code.UserId, accessToken, googleDriveUser.User.FolderId);
+
+            var folderId = await GetOrCreateFolder(googleDriveUser);
+
+            _configurationRetriever.SaveUserConfiguration(code.UserId, accessToken, folderId);
         }
 
-        private async Task<AccessToken> CreateAccessToken(string code, string redirectUri, GoogleDriveUser googleDriveUser)
+        private async Task<AccessToken> CreateAccessToken(string code, string redirectUri, GoogleDriveUserDto googleDriveUser)
         {
             var token = await _googleAuthService.GetToken(code, redirectUri, googleDriveUser.GoogleDriveClientId, googleDriveUser.GoogleDriveClientSecret, CancellationToken.None);
 
@@ -41,11 +44,11 @@ namespace MediaBrowser.Plugins.GoogleDrive.RestServices
             };
         }
 
-        private async Task<string> GetOrCreateFolder(GoogleDriveUser googleDriveUser)
+        private async Task<string> GetOrCreateFolder(GoogleDriveUserDto googleDriveUser)
         {
             var googleCredentials = new GoogleCredentials
             {
-                AccessToken = googleDriveUser.AccessToken,
+                AccessToken = googleDriveUser.User.AccessToken,
                 ClientId = googleDriveUser.GoogleDriveClientId,
                 ClientSecret = googleDriveUser.GoogleDriveClientSecret
             };

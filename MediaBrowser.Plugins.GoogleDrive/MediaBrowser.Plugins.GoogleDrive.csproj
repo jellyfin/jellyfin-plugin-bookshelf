@@ -370,6 +370,7 @@
     <Compile Include="GoogleDriveFile.cs" />
     <Compile Include="GoogleDriveServerSyncProvider.cs" />
     <Compile Include="GoogleDriveService.cs" />
+    <Compile Include="GoogleDriveUserDto.cs" />
     <Compile Include="IGoogleDriveService.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Configuration\PluginConfiguration.cs" />
