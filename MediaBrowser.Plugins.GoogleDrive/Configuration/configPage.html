@@ -4,32 +4,33 @@
     <title>Google Drive</title>
 </head>
 <body>
-    <div data-role="page" class="page type-interior pluginConfigurationPage googleDriveConfigurationPage">
+    <div data-role="page" class="page type-interior pluginConfigurationPage googleDriveConfigurationPage" data-helpurl="https://github.com/MediaBrowser/Wiki/wiki/Google-Drive">
         <div data-role="content">
             <div class="content-primary">
                 <form id="googleDriveGeneralConfigurationForm">
                     <ul class="ulForm" data-role="listview">
                         <li>
                             <label for="googleDriveClientId">
-                                Google Drive Client ID:
+                                Google Drive Client Id:
                             </label>
                             <input id="googleDriveClientId" name="googleDriveClientId" type="text" required />
+                            <div class="fieldDescription"><a href="https://console.developers.google.com/start/api?id=drive&credential=client_key" target="_blank">Create a Google Drive Client Id and Secret</a></div>
                         </li>
                         <li>
                             <label for="googleDriveClientSecret">
                                 Google Drive Client Secret:
                             </label>
                             <input id="googleDriveClientSecret" name="googleDriveClientSecret" type="text" required />
+                            <div class="fieldDescription"><a href="https://console.developers.google.com/start/api?id=drive&credential=client_key" target="_blank">Create a Google Drive Client Id and Secret</a></div>
                         </li>
                         <li>
-                            <button type="submit" data-theme="b">Save</button>
-                            <button type="button" onclick="history.back();">Cancel</button>
+                            <button type="submit" data-theme="b" data-icon="check" data-mini="true">Save</button>
                         </li>
                     </ul>
                 </form>
 
                 <div class="readOnlyContent">
-                    <p>Connect one or more Google Drive account.</p>
+                    <p>Connect one or more Google Drive accounts.</p>
 
                     <div class="googleDriveSyncTargets"></div>
                 </div>
@@ -64,7 +65,7 @@
                             <ul class="ulForm" data-role="listview" style="margin-top:.5em;">
                                 <li>
                                     <input type="hidden" id="configId" />
-                                    <button type="submit" data-theme="b">Grant Access</button>
+                                    <button type="submit" data-theme="b" data-icon="check">Grant Access</button>
                                     <button type="button" data-icon="delete" onclick="$(this).parents('.popup').popup('close');">Cancel</button>
                                 </li>
                             </ul>
