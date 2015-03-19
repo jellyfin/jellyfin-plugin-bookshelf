@@ -65,10 +65,10 @@
       <Link>Properties\SharedVersion.cs</Link>
     </Compile>
     <Compile Include="AuthorizationAccessToken.cs" />
-    <Compile Include="Configuration\AccessToken.cs" />
     <Compile Include="Configuration\ConfigurationPage.cs" />
     <Compile Include="Configuration\ConfigurationRetriever.cs" />
-    <Compile Include="Configuration\GoogleDriveUser.cs" />
+    <Compile Include="Configuration\GeneralConfiguration.cs" />
+    <Compile Include="Configuration\GoogleDriveSyncAccount.cs" />
     <Compile Include="Configuration\IConfigurationRetriever.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Dependencies\DependencyModule.cs" />
@@ -370,14 +370,15 @@
     <Compile Include="GoogleDriveFile.cs" />
     <Compile Include="GoogleDriveServerSyncProvider.cs" />
     <Compile Include="GoogleDriveService.cs" />
-    <Compile Include="GoogleDriveUserDto.cs" />
     <Compile Include="IGoogleDriveService.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Configuration\PluginConfiguration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ApiService.cs" />
-    <Compile Include="RestServices\CodeRequest.cs" />
     <Compile Include="GoogleAuthService.cs" />
+    <Compile Include="RestServices\AddSyncTarget.cs" />
+    <Compile Include="RestServices\DeleteSyncTarget.cs" />
+    <Compile Include="RestServices\GetSyncTarget.cs" />
     <Compile Include="RestServices\GoogleDriveRestfulService.cs" />
     <Compile Include="IGoogleAuthService.cs" />
   </ItemGroup>

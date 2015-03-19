@@ -10,58 +10,49 @@ namespace MediaBrowser.Plugins.GoogleDrive.Configuration
             get { return Plugin.Instance.Configuration; }
         }
 
-        public GoogleDriveUserDto GetUserConfiguration(string userId)
+        public GeneralConfiguration GetGeneralConfiguration()
         {
-            var googleDriveUser = GetUserConfigurationInternal(userId);
-
-            return MapGoogleDriveUser(googleDriveUser);
+            return new GeneralConfiguration
+            {
+                GoogleDriveClientId = Configuration.GoogleDriveClientId,
+                GoogleDriveClientSecret = Configuration.GoogleDriveClientSecret
+            };
         }
 
-        public IEnumerable<GoogleDriveUserDto> GetConfigurations()
+        public GoogleDriveSyncAccount GetSyncAccount(string id)
         {
-            var googleDriveUsers = GetConfigurationsInternal();
-
-            return googleDriveUsers.Select(MapGoogleDriveUser);
+            return Configuration.SyncAccounts.FirstOrDefault(acc => acc.Id == id);
         }
 
-        public void SaveUserConfiguration(string userId, AccessToken accessToken, string folderId)
+        public IEnumerable<GoogleDriveSyncAccount> GetSyncAccounts()
         {
-            var googleDriveUser = GetUserConfigurationInternal(userId);
+            return Configuration.SyncAccounts;
+        }
 
-            googleDriveUser.FolderId = folderId;
-            googleDriveUser.AccessToken = accessToken;
+        public IEnumerable<GoogleDriveSyncAccount> GetUserSyncAccounts(string userId)
+        {
+            return Configuration.SyncAccounts.Where(acc => acc.EnableForEveryone || acc.UserIds.Contains(userId));
+        }
+
+        public void AddSyncAccount(GoogleDriveSyncAccount syncAccount)
+        {
+            RemoveSyncAccount(syncAccount.Id);
+
+            Configuration.SyncAccounts.Add(syncAccount);
 
             Plugin.Instance.SaveConfiguration();
         }
 
-        private GoogleDriveUser GetUserConfigurationInternal(string userId)
+        public void RemoveSyncAccount(string id)
         {
-            if (Configuration.ApplyConfigurationToEveryone)
+            var existingAccountIndex = Configuration.SyncAccounts.FindIndex(acc => acc.Id == id);
+
+            if (existingAccountIndex != -1)
             {
-                return Configuration.SingleUserForEveryone;
+                Configuration.SyncAccounts.RemoveAt(existingAccountIndex);
             }
 
-            return GetConfigurationsInternal().FirstOrDefault(userDto => userDto.MediaBrowserUserId == userId);
-        }
-
-        private IEnumerable<GoogleDriveUser> GetConfigurationsInternal()
-        {
-            if (Configuration.ApplyConfigurationToEveryone)
-            {
-                return new List<GoogleDriveUser> { Configuration.SingleUserForEveryone };
-            }
-
-            return Configuration.Users;
-        }
-
-        private GoogleDriveUserDto MapGoogleDriveUser(GoogleDriveUser googleDriveUser)
-        {
-            return new GoogleDriveUserDto
-            {
-                GoogleDriveClientId = Configuration.GoogleDriveClientId,
-                GoogleDriveClientSecret = Configuration.GoogleDriveClientSecret,
-                User = googleDriveUser
-            };
+            Plugin.Instance.SaveConfiguration();
         }
     }
 }
