@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>MediaBrowser.Plugins.GoogleDrive</RootNamespace>
-    <AssemblyName>MediaBrowser.Plugins.GoogleDrive</AssemblyName>
+    <AssemblyName>GoogleDrive</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
@@ -380,6 +380,7 @@
     <Compile Include="RestServices\GetSyncTarget.cs" />
     <Compile Include="RestServices\GoogleDriveRestfulService.cs" />
     <Compile Include="IGoogleAuthService.cs" />
+    <Compile Include="RestServices\UrlEncodeRequest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Dependencies\GoogleDrive\GoogleApis.Core\Apis\Http\ClassDiagram.cd" />

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Net;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using MediaBrowser.Controller.Net;
 using MediaBrowser.Plugins.GoogleDrive.Configuration;
 
@@ -34,7 +36,7 @@ namespace MediaBrowser.Plugins.GoogleDrive.RestServices
             var syncAccount = new GoogleDriveSyncAccount
             {
                 Id = Guid.NewGuid().ToString(),
-                Name = request.Name,
+                Name = WebUtility.UrlDecode(request.Name),
                 EnableForEveryone = request.EnableForEveryone,
                 UserIds = request.UserIds,
                 RefreshToken = refreshToken,
@@ -54,10 +56,17 @@ namespace MediaBrowser.Plugins.GoogleDrive.RestServices
             return _configurationRetriever.GetSyncAccount(request.Id);
         }
 
+        public string Get(UrlEncodeRequest request)
+        {
+            var encoded = WebUtility.UrlEncode(request.Str);
+
+            return Regex.Replace(encoded, @"%[a-f0-9]{2}", m => m.Value.ToUpperInvariant());
+        }
+
         private async Task<string> GetRefreshToken(AddSyncTarget request)
         {
             var config = _configurationRetriever.GetGeneralConfiguration();
-            var redirectUri = WebUtility.UrlDecode(request.RedirectUri);
+            var redirectUri = request.RedirectUri;
 
             var token = await _googleAuthService.GetToken(request.Code, redirectUri, config.GoogleDriveClientId, config.GoogleDriveClientSecret, CancellationToken.None);
             return token.refresh_token;
