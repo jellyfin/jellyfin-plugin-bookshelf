@@ -308,7 +308,7 @@
                         url += '&configId=' + syncTarget.Id;
                     }
 
-                    url += '&configName=' + syncTarget.Name;
+                    url += '&configName=' + encodeURIComponent(syncTarget.Name).replace("%20", "+");
 
                     if (syncTarget.EnableForEveryone) {
                         url += '&enableForEveryone=' + syncTarget.EnableForEveryone;

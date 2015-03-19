@@ -34,7 +34,7 @@ namespace MediaBrowser.Plugins.GoogleDrive.RestServices
             var syncAccount = new GoogleDriveSyncAccount
             {
                 Id = Guid.NewGuid().ToString(),
-                Name = request.Name,
+                Name = HttpUtility.UrlDecode(request.Name),
                 EnableForEveryone = request.EnableForEveryone,
                 UserIds = request.UserIds,
                 RefreshToken = refreshToken,
@@ -57,7 +57,7 @@ namespace MediaBrowser.Plugins.GoogleDrive.RestServices
         private async Task<string> GetRefreshToken(AddSyncTarget request)
         {
             var config = _configurationRetriever.GetGeneralConfiguration();
-            var redirectUri = HttpUtility.UrlDecode(request.RedirectUri);
+            var redirectUri = request.RedirectUri;
 
             var token = await _googleAuthService.GetToken(request.Code, redirectUri, config.GoogleDriveClientId, config.GoogleDriveClientSecret, CancellationToken.None);
             return token.refresh_token;
