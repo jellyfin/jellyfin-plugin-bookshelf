@@ -78,12 +78,12 @@ namespace MediaBrowser.Plugins.GoogleDrive
         }
 
         // Missing CancellationToken
-        public async Task<List<DeviceFileInfo>> GetFileSystemEntries(string path, SyncTarget target)
+        public async Task<List<DeviceFileInfo>> GetFileSystemEntries(string path, SyncTarget target, CancellationToken cancellationToken)
         {
             var googleDriveUser = _configurationRetriever.GetSyncAccount(target.Id);
             var googleCredentials = GetGoogleCredentials(target);
 
-            var files = await _googleDriveService.GetFilesListing(path, googleDriveUser.FolderId, googleCredentials, CancellationToken.None);
+            var files = await _googleDriveService.GetFilesListing(path, googleDriveUser.FolderId, googleCredentials, cancellationToken);
 
             return files.Select(CreateDeviceFileInfo).ToList();
         }

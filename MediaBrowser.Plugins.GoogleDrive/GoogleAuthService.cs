@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
@@ -24,7 +25,7 @@ namespace MediaBrowser.Plugins.GoogleDrive
             var data = new Dictionary<string, string>
             {
                 { "code", code },
-                { "redirect_uri", HttpUtility.UrlEncode(redirectUri) },
+                { "redirect_uri", WebUtility.UrlEncode(redirectUri) },
                 { "client_id", clientId },
                 { "client_secret", clientSecret },
                 { "grant_type", "authorization_code" }

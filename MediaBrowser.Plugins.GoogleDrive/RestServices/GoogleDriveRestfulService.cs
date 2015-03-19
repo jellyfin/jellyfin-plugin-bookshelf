@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 using MediaBrowser.Controller.Net;
 using MediaBrowser.Plugins.GoogleDrive.Configuration;
 
@@ -57,7 +57,7 @@ namespace MediaBrowser.Plugins.GoogleDrive.RestServices
         private async Task<string> GetRefreshToken(AddSyncTarget request)
         {
             var config = _configurationRetriever.GetGeneralConfiguration();
-            var redirectUri = HttpUtility.UrlDecode(request.RedirectUri);
+            var redirectUri = WebUtility.UrlDecode(request.RedirectUri);
 
             var token = await _googleAuthService.GetToken(request.Code, redirectUri, config.GoogleDriveClientId, config.GoogleDriveClientSecret, CancellationToken.None);
             return token.refresh_token;

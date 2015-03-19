@@ -94,7 +94,7 @@ namespace FolderSync
             return Path.GetDirectoryName(path);
         }
 
-        public Task<List<DeviceFileInfo>> GetFileSystemEntries(string path, SyncTarget target)
+        public Task<List<DeviceFileInfo>> GetFileSystemEntries(string path, SyncTarget target, CancellationToken cancellationToken)
         {
             List<FileInfo> files;
 
