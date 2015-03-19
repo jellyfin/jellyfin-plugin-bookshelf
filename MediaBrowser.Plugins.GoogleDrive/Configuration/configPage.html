@@ -14,14 +14,14 @@
                                 Google Drive Client Id:
                             </label>
                             <input id="googleDriveClientId" name="googleDriveClientId" type="text" required />
-                            <div class="fieldDescription"><a href="https://console.developers.google.com/start/api?id=drive&credential=client_key" target="_blank">Create a Google Drive Client Id and Secret</a></div>
+                            <div class="fieldDescription"><a href="#popupAuthInfo" data-rel="popup">Create a Google Drive Client Id and Secret</a></div>
                         </li>
                         <li>
                             <label for="googleDriveClientSecret">
                                 Google Drive Client Secret:
                             </label>
                             <input id="googleDriveClientSecret" name="googleDriveClientSecret" type="text" required />
-                            <div class="fieldDescription"><a href="https://console.developers.google.com/start/api?id=drive&credential=client_key" target="_blank">Create a Google Drive Client Id and Secret</a></div>
+                            <div class="fieldDescription"><a href="#popupAuthInfo" data-rel="popup">Create a Google Drive Client Id and Secret</a></div>
                         </li>
                         <li>
                             <button type="submit" data-theme="b" data-icon="check" data-mini="true">Save</button>
@@ -33,6 +33,39 @@
                     <p>Connect one or more Google Drive accounts.</p>
 
                     <div class="googleDriveSyncTargets"></div>
+                </div>
+
+                <div data-role="popup" id="popupAuthInfo" class="popup" style="min-width: 300px;" data-position-to="window">
+                    <div class="ui-bar-a" style="text-align: center; padding: 0 20px;">
+                        <h3 class="popupHeader">Instructions</h3>
+                    </div>
+                    <div data-role="content">
+
+                        <div style="line-height:150%;margin:.5em 0;padding:0 .25em;">
+                            <div>1. <a href="https://console.developers.google.com/start/api?id=drive&credential=client_key" target="_blank">Open Google Drive</a></div>
+                            <div>2. Select a Project or create a new one</div>
+                            <div>3. Click "Create new Client Id"</div>
+                            <div>4. In the Client Id popup, set application type to "Web Application" and click "Configure consent screen"</div>
+                            <div>5. On the consent screen, select your email address, enter product name "Emby", then submit.</div>
+                            <div>6. In the Client Id popup, enter the following:</div>
+                            <div>
+                                Authorized JavaScript Origins:
+                                <code class="origins">http</code>
+                            </div>
+                            <div>
+                                Authorized Redirect Uris:
+                                <code class="redirect">http</code>
+                            </div>
+                            <br />
+                            <div>7. Click "Create Client Id".</div>
+                            <div>8. You'll be returned to the main screen, where your Client Id and Client Secret will be displayed. Copy and paste these values into the form here.</div>
+                            <br />
+                        </div>
+
+                        <div>
+                            <button type="button" data-icon="delete" onclick="$(this).parents('.popup').popup('close');">Close</button>
+                        </div>
+                    </div>
                 </div>
 
                 <div data-role="popup" id="popupAddFolder" class="popup" style="min-width: 300px;">
@@ -199,6 +232,14 @@
                     });
                 }
 
+                function loadAuthorizedAddresses(page) {
+
+                    var windowUrl = getWindowUrl();
+
+                    $('.redirect', page).html(windowUrl);
+                    $('.origins', page).html(ApiClient.serverAddress());
+                }
+
                 $('.googleDriveConfigurationPage').on('pageshow', function (event) {
                     var page = this;
 
@@ -209,6 +250,9 @@
                             $('.userAccessListContainer', page).show();
                         }
                     });
+
+                    loadAuthorizedAddresses(page);
+
                 }).on('pageshow', function (event) {
                     var page = this;
                     loadConfig(page);
@@ -226,7 +270,7 @@
                             Code: getQueryString('code')
                         };
 
-                        var currentUrl = window.location.href.split('#')[0];
+                        var currentUrl = getWindowUrl().split('#')[0];
                         syncTarget.RedirectUri = removeQueryStringParameterFromUrl(currentUrl, 'code');
 
                         if (!syncTarget.EnableForEveryone) {
@@ -274,7 +318,7 @@
                 });
 
                 function refreshConfigPage() {
-                    var url = window.location.href.split('#')[0];
+                    var url = getWindowUrl().split('#')[0];
 
                     url = removeQueryStringParameterFromUrl(url, 'code');
                     url = removeQueryStringParameterFromUrl(url, 'configId');
@@ -303,7 +347,7 @@
                 }
 
                 function buildRedirectUrl(syncTarget, callback) {
-                    var currentUrl = window.location.href.split('#')[0];
+                    var currentUrl = getWindowUrl().split('#')[0];
                     var url = removeQueryStringParameterFromUrl(currentUrl, 'code');
 
                     if (syncTarget.Id) {
@@ -333,7 +377,7 @@
 
                 function getQueryString(name) {
                     var values = [];
-                    var queryStrings = window.location.search.substr(1).split("&");
+                    var queryStrings = getWindowLocationSearch().substr(1).split("&");
 
                     queryStrings.forEach(function (item) {
                         if (item.split("=")[0] == name) {
