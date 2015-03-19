@@ -247,10 +247,11 @@
                     var page = $(this).parents('.page');
 
                     var clientId = $('#googleDriveClientId', page).val();
-                    var redirectUrl = buildRedirectUrl(getSyncTarget(page));
-                    var scope = encodeURIComponent('https://www.googleapis.com/auth/drive.file');
+                    buildRedirectUrl(getSyncTarget(page), function (redirectUrl) {
+                        var scope = encodeURIComponent('https://www.googleapis.com/auth/drive.file');
 
-                    window.location.href = 'https://accounts.google.com/o/oauth2/auth?response_type=code&access_type=offline&client_id=' + clientId + '&redirect_uri=' + redirectUrl + '&scope=' + scope;
+                        window.location.href = 'https://accounts.google.com/o/oauth2/auth?response_type=code&access_type=offline&client_id=' + clientId + '&redirect_uri=' + redirectUrl + '&scope=' + scope;
+                    });
 
                     return false;
                 });
@@ -300,15 +301,13 @@
                     return syncTarget;
                 }
 
-                function buildRedirectUrl(syncTarget) {
+                function buildRedirectUrl(syncTarget, callback) {
                     var currentUrl = window.location.href.split('#')[0];
                     var url = removeQueryStringParameterFromUrl(currentUrl, 'code');
 
                     if (syncTarget.Id) {
                         url += '&configId=' + syncTarget.Id;
                     }
-
-                    url += '&configName=' + syncTarget.Name;
 
                     if (syncTarget.EnableForEveryone) {
                         url += '&enableForEveryone=' + syncTarget.EnableForEveryone;
@@ -318,7 +317,17 @@
                         });
                     }
 
-                    return encodeURIComponent(url);
+                    // Since redirectUri is matched during OAuth2, use C# UrlEncode which produces the exact same encoding
+                    ApiClient.ajax({
+                        type: 'GET',
+                        url: ApiClient.getUrl('GoogleDrive/SyncTarget/UrlEncode?Str=' + syncTarget.Name)
+                    }).done(function (str) {
+                        url += '&configName=' + str;
+
+                        url = encodeURIComponent(url);
+
+                        callback(url);
+                    });
                 }
 
                 function getQueryString(name) {
