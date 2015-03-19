@@ -10,28 +10,48 @@ namespace MediaBrowser.Plugins.GoogleDrive.Configuration
             get { return Plugin.Instance.Configuration; }
         }
 
-        public GoogleDriveUser GetUserConfiguration(string userId)
+        public GeneralConfiguration GetGeneralConfiguration()
         {
-            if (Configuration.ApplyConfigurationToEveryone)
+            return new GeneralConfiguration
             {
-                return Configuration.SingleUserForEveryone;
-            }
-
-            return GetConfigurations().FirstOrDefault(user => user.MediaBrowserUserId == userId);
+                GoogleDriveClientId = Configuration.GoogleDriveClientId,
+                GoogleDriveClientSecret = Configuration.GoogleDriveClientSecret
+            };
         }
 
-        public IEnumerable<GoogleDriveUser> GetConfigurations()
+        public GoogleDriveSyncAccount GetSyncAccount(string id)
         {
-            if (Configuration.ApplyConfigurationToEveryone)
-            {
-                return new List<GoogleDriveUser> { Configuration.SingleUserForEveryone };
-            }
-
-            return Configuration.Users;
+            return Configuration.SyncAccounts.FirstOrDefault(acc => acc.Id == id);
         }
 
-        public void SaveConfiguration()
+        public IEnumerable<GoogleDriveSyncAccount> GetSyncAccounts()
         {
+            return Configuration.SyncAccounts;
+        }
+
+        public IEnumerable<GoogleDriveSyncAccount> GetUserSyncAccounts(string userId)
+        {
+            return Configuration.SyncAccounts.Where(acc => acc.EnableForEveryone || acc.UserIds.Contains(userId));
+        }
+
+        public void AddSyncAccount(GoogleDriveSyncAccount syncAccount)
+        {
+            RemoveSyncAccount(syncAccount.Id);
+
+            Configuration.SyncAccounts.Add(syncAccount);
+
+            Plugin.Instance.SaveConfiguration();
+        }
+
+        public void RemoveSyncAccount(string id)
+        {
+            var existingAccountIndex = Configuration.SyncAccounts.FindIndex(acc => acc.Id == id);
+
+            if (existingAccountIndex != -1)
+            {
+                Configuration.SyncAccounts.RemoveAt(existingAccountIndex);
+            }
+
             Plugin.Instance.SaveConfiguration();
         }
     }

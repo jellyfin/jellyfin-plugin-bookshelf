@@ -7,12 +7,11 @@ namespace MediaBrowser.Plugins.GoogleDrive.Configuration
     {
         public PluginConfiguration()
         {
-            ApplyConfigurationToEveryone = true;
-            Users = new List<GoogleDriveUser>();
+            SyncAccounts = new List<GoogleDriveSyncAccount>();
         }
 
-        public bool ApplyConfigurationToEveryone { get; set; }
-        public GoogleDriveUser SingleUserForEveryone { get; set; }
-        public List<GoogleDriveUser> Users { get; set; }
+        public string GoogleDriveClientId { get; set; }
+        public string GoogleDriveClientSecret { get; set; }
+        public List<GoogleDriveSyncAccount> SyncAccounts { get; set; }
     }
 }

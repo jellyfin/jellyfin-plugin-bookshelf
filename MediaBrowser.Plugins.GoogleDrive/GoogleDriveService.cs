@@ -145,7 +145,7 @@ namespace MediaBrowser.Plugins.GoogleDrive
                 }
             };
             var googleAuthorizationCodeFlow = new GoogleAuthorizationCodeFlow(authorizationCodeFlowInitializer);
-            var token = new TokenResponse { RefreshToken = googleCredentials.AccessToken.RefreshToken };
+            var token = new TokenResponse { RefreshToken = googleCredentials.RefreshToken };
             var credentials = new UserCredential(googleAuthorizationCodeFlow, "user", token);
 
             var initializer = new BaseClientService.Initializer

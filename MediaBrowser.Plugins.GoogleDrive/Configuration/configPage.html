@@ -4,19 +4,11 @@
     <title>Google Drive</title>
 </head>
 <body>
-    <div id="googleDriveConfigurationPage" data-role="page" class="page type-interior pluginConfigurationPage">
+    <div data-role="page" class="page type-interior pluginConfigurationPage googleDriveConfigurationPage">
         <div data-role="content">
             <div class="content-primary">
-                <form id="googleDriveConfigurationForm">
+                <form id="googleDriveGeneralConfigurationForm">
                     <ul class="ulForm" data-role="listview">
-                        <li>
-                            <label for="applyToEveryone">Use this configuration for all users</label>
-                            <input type="checkbox" id="applyToEveryone" name="applyToEveryone" data-mini="true" onchange="GoogleDriveUi.toggleUsers(this.checked); GoogleDriveApi.loadConfiguration();" />
-                        </li>
-                        <li id="usersDropdown">
-                            <label for="selectUser">Configure Google Drive for:</label>
-                            <select id="selectUser" name="selectUser" onchange="GoogleDriveApi.loadConfiguration(this.value);"></select>
-                        </li>
                         <li>
                             <label for="googleDriveClientId">
                                 Google Drive Client ID:
@@ -25,285 +17,342 @@
                         </li>
                         <li>
                             <label for="googleDriveClientSecret">
-                                Gogle Drive Client Secret:
+                                Google Drive Client Secret:
                             </label>
                             <input id="googleDriveClientSecret" name="googleDriveClientSecret" type="text" required />
                         </li>
                         <li>
                             <button type="submit" data-theme="b">Save</button>
-                            <button type="button" onclick=" history.back();">Cancel</button>
+                            <button type="button" onclick="history.back();">Cancel</button>
                         </li>
                     </ul>
                 </form>
+
+                <div class="readOnlyContent">
+                    <p>Connect one or more Google Drive account.</p>
+
+                    <div class="googleDriveSyncTargets"></div>
+                </div>
+
+                <div data-role="popup" id="popupAddFolder" class="popup" style="min-width: 300px;">
+                    <form class="googleDriveConfigurationForm">
+                        <div class="ui-bar-a" style="text-align: center; padding: 0 20px;">
+                            <h3 class="popupHeader"></h3>
+                        </div>
+                        <div data-role="content">
+
+                            <ul class="ulForm" data-role="listview" style="margin-top:0;">
+                                <li>
+                                    <label for="displayName">
+                                        Display name:
+                                    </label>
+                                    <input id="displayName" type="text" required />
+                                </li>
+                            </ul>
+                            <div>
+                                <div class="ui-controlgroup-label">User Access</div>
+                                <div>
+                                    <label for="chkEnableForEveryone">Allow all users to sync to this account</label>
+                                    <input type="checkbox" id="chkEnableForEveryone" data-mini="true" />
+                                </div>
+                                <div class="userAccessListContainer">
+                                    <br />
+                                    <div class="userAccess">
+                                    </div>
+                                </div>
+                            </div>
+                            <ul class="ulForm" data-role="listview" style="margin-top:.5em;">
+                                <li>
+                                    <input type="hidden" id="configId" />
+                                    <button type="submit" data-theme="b">Grant Access</button>
+                                    <button type="button" data-icon="delete" onclick="$(this).parents('.popup').popup('close');">Cancel</button>
+                                </li>
+                            </ul>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
 
         <script type="text/javascript">
-            // Define string.format method like in C#
-            // ex.: "Hello {0}!".format("world") => "Hello world!"
-            if (!String.prototype.format) {
-                String.prototype.format = function () {
-                    var args = arguments;
-                    return this.replace(/{(\d+)}/g, function (match, number) {
-                        return typeof args[number] != 'undefined'
-                            ? args[number]
-                            : match;
-                    });
-                };
-            }
+            (function () {
+                var pluginId = 'b2ff6a63-303a-4a84-b937-6e12f87e3eb9';
 
-            function getQueryString(name) {
-                name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
-                var regex = new RegExp('[\\?&]' + name + '=([^&#]*)'),
-                    results = regex.exec(location.search);
-                return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
-            }
+                function getTargetListHtml(targets) {
+                    var html = '';
 
-            function removeQueryStringParameterFromUrl(url, parameter) {
-                var urlparts = url.split('?');
+                    html += '<ul data-inset="true" data-role="listview" data-split-icon="minus">';
 
-                if (urlparts.length >= 2) {
-                    var urlBase = urlparts.shift(); //get first part, and remove from array
-                    var queryString = urlparts.join("?"); //join it back up
+                    html += '<li data-role="list-divider">Google Drive Accounts';
+                    html += '<button type="button" data-icon="plus" data-mini="true" data-iconpos="notext" data-inline="true" class="btnAddAccount" style="margin: 0 0 0 1em;">Add</button>';
+                    html += '</li>';
 
-                    var prefix = encodeURIComponent(parameter) + '=';
-                    var pars = queryString.split(/[&;]/g);
-                    for (var i = pars.length; i-- > 0;)               //reverse iteration as may be destructive
-                        if (pars[i].lastIndexOf(prefix, 0) !== -1)   //idiom for string.startsWith
-                            pars.splice(i, 1);
-                    url = urlBase + '?' + pars.join('&');
+                    for (var i = 0, length = targets.length; i < length; i++) {
+                        var target = targets[i];
+                        html += '<li>';
+                        html += '<a href="#" data-id="' + target.Id + '" class="btnEditAccount">';
+                        html += '<h3>';
+                        html += target.Name;
+                        html += '</h3>';
+                        html += '</a>';
+                        html += '<a href="#" data-id="' + target.Id + '" class="btnDeleteAccount"></a>';
+                        html += '</li>';
+                    }
+
+                    html += '</ul>';
+
+                    return html;
                 }
-                return url;
-            }
 
-            var MediaBrowserApi = new function () {
-                var pluginUniqueId = 'b2ff6a63-303a-4a84-b937-6e12f87e3eb9';
+                function loadUsers(page, account, users) {
+                    var html = '';
 
-                this.loadConfiguration = function (callback) {
-                    ApiClient.getPluginConfiguration(pluginUniqueId).done(callback);
-                };
+                    html += '<div class="ui-controlgroup-label" style="margin-bottom:0;padding-left:2px;">Users</div>';
 
-                this.saveConfiguration = function (config, callback) {
-                    ApiClient.updatePluginConfiguration(pluginUniqueId, config).done(callback);
-                };
-
-                this.getUsers = function (callback) {
-                    ApiClient.getUsers().done(callback);
-                };
-            };
-
-            var GoogleDriveApi = new function () {
-                this.loadConfiguration = function (userId) {
-
-                    Dashboard.showLoadingMsg();
-
-                    MediaBrowserApi.loadConfiguration(function (config) {
-                        var currentUserConfig;
-
-                        if (GoogleDriveUi.applyToEveryone()) {
-                            currentUserConfig = config.SingleUserForEveryone || {};
-                        } else {
-                            currentUserConfig = GoogleDriveApi.getUserFromConfig(config, userId) || {};
-                        }
-
-                        GoogleDriveUi.googleDriveClientId(currentUserConfig.GoogleDriveClientId, true);
-                        GoogleDriveUi.googleDriveClientSecret(currentUserConfig.GoogleDriveClientSecret, true);
-
-                        Dashboard.hideLoadingMsg();
-                    });
-                };
-
-                this.getUserFromConfig = function (config, userId) {
-                    return config.Users.filter(function (user) {
-                        return user.MediaBrowserUserId == userId;
-                    })[0];
-                };
-
-                this.populateUsers = function (users) {
-                    var html = "";
+                    html += '<div data-role="controlgroup" style="max-height:100px;overflow-y:auto;">';
 
                     for (var i = 0, length = users.length; i < length; i++) {
                         var user = users[i];
 
-                        html += '<option value="' + user.Id + '">' + user.Name + '</option>';
+                        var id = 'user' + i;
+
+                        var isChecked = account.EnableForEveryone || (account.UserIds && account.UserIds.indexOf(user.Id) != -1);
+                        var checkedAttribute = isChecked ? ' checked="checked"' : '';
+
+                        html += '<input class="chkUser" data-id="' + user.Id + '" type="checkbox" id="' + id + '"' + checkedAttribute + ' />';
+                        html += '<label for="' + id + '">' + user.Name + '</label>';
                     }
 
-                    $('#selectUser', $.mobile.activePage).html(html).selectmenu("refresh");
-                };
+                    html += '</div>';
 
-                this.grantAccess = function () {
-                    var clientId = GoogleDriveUi.googleDriveClientId();
-                    var redirectUrl = buildRedirectUrl();
+                    $('.userAccess', page).show().html(html).trigger('create');
+
+                    if (users.length) {
+                        $('.userAccessListContainer', page).show();
+                    } else {
+                        $('.userAccessListContainer', page).hide();
+                    }
+
+                    $('#chkEnableForEveryone', page).checked(account.EnableForEveryone).checkboxradio('refresh').trigger('change');
+                }
+
+                function deleteAccount(page, id) {
+                    Dashboard.confirm('Are you sure you wish to remove this account? All sync jobs will be deleted.', 'Confirm Deletion', function (result) {
+                        if (result) {
+                            ApiClient.ajax({
+                                type: 'DELETE',
+                                url: ApiClient.getUrl('GoogleDrive/SyncTarget/' + id)
+                            }).done(function () {
+                                loadConfig(page);
+                            });
+                        }
+                    });
+                }
+
+                function editAccount(page, id) {
+                    ApiClient.getJSON(ApiClient.getUrl('GoogleDrive/SyncTarget/' + id)).done(function (folder) {
+                        editAccountObject(page, folder);
+                    });
+                }
+
+                function editAccountObject(page, folder) {
+                    ApiClient.getUsers().done(function (users) {
+                        loadUsers(page, folder, users);
+                    });
+                    $('#displayName', page).val(folder.Name || '');
+                    $('#configId', page).val(folder.Id || '');
+
+                    if (folder.Id) {
+                        $('.popupHeader', page).html('Edit Account');
+                    } else {
+                        $('.popupHeader', page).html('Add Account');
+                    }
+
+                    $('#popupAddFolder', page).popup('open');
+                }
+
+                function loadPageData(page, config) {
+                    $('#googleDriveClientId', page).val(config.GoogleDriveClientId);
+                    $('#googleDriveClientSecret', page).val(config.GoogleDriveClientSecret);
+
+                    var elem = $('.googleDriveSyncTargets', page).html(getTargetListHtml(config.SyncAccounts)).trigger('create');
+
+                    $('.btnDeleteAccount', elem).on('click', function () {
+                        deleteAccount(page, this.getAttribute('data-id'));
+                    });
+                    $('.btnEditAccount', elem).on('click', function () {
+                        editAccount(page, this.getAttribute('data-id'));
+                    });
+                    $('.btnAddAccount', elem).on('click', function () {
+                        editAccountObject(page, {
+                            EnableForEveryone: true,
+                            UserIds: []
+                        });
+                    });
+                }
+
+                function loadConfig(page) {
+                    ApiClient.getPluginConfiguration(pluginId).done(function (config) {
+                        loadPageData(page, config);
+                        Dashboard.hideLoadingMsg();
+                    });
+                }
+
+                $('.googleDriveConfigurationPage').on('pageshow', function (event) {
+                    var page = this;
+
+                    $('#chkEnableForEveryone', page).on('change', function () {
+                        if (this.checked) {
+                            $('.userAccessListContainer', page).hide();
+                        } else {
+                            $('.userAccessListContainer', page).show();
+                        }
+                    });
+                }).on('pageshow', function (event) {
+                    var page = this;
+                    loadConfig(page);
+                }).on('pageshow', function (event) {
+                    var configName = getQueryString('configName');
+
+                    if (configName) {
+                        Dashboard.showLoadingMsg();
+
+                        var syncTarget = {
+                            Name: configName,
+                            EnableForEveryone: getQueryString('enableForEveryone') || false,
+                            Id: getQueryString('configId'),
+                            UserIds: [],
+                            Code: getQueryString('code')
+                        };
+
+                        var currentUrl = window.location.href.split('#')[0];
+                        syncTarget.RedirectUri = removeQueryStringParameterFromUrl(currentUrl, 'code');
+
+                        if (!syncTarget.EnableForEveryone) {
+                            syncTarget.UserIds = getQueryString('userIds');
+                        }
+
+                        ApiClient.ajax({
+                            type: "POST",
+                            url: ApiClient.getUrl('GoogleDrive/SyncTarget'),
+                            data: JSON.stringify(syncTarget),
+                            contentType: 'application/json'
+                        }).done(function () {
+                            refreshConfigPage();
+                        });
+                    }
+                });
+
+                $('.googleDriveConfigurationForm').off('submit.plugin').on('submit.plugin', function (e) {
+                    var page = $(this).parents('.page');
+
+                    var clientId = $('#googleDriveClientId', page).val();
+                    var redirectUrl = buildRedirectUrl(getSyncTarget(page));
                     var scope = encodeURIComponent('https://www.googleapis.com/auth/drive.file');
 
-                    var url = 'https://accounts.google.com/o/oauth2/auth?response_type=code&access_type=offline&client_id={0}&redirect_uri={1}&scope={2}'.format(clientId,
-                        redirectUrl,
-                        scope);
+                    window.location.href = 'https://accounts.google.com/o/oauth2/auth?response_type=code&access_type=offline&client_id=' + clientId + '&redirect_uri=' + redirectUrl + '&scope=' + scope;
 
-                    window.location.href = url;
-                };
+                    return false;
+                });
 
-                this.getToken = function (code, userId, callback) {
-                    var url = ApiClient.getUrl('GoogleDrive/Auth/Token');
-                    var redirectUri = removeQueryStringParameterFromUrl(window.location.href, 'code');
+                $('#googleDriveGeneralConfigurationForm').off('submit.plugin').on('submit.plugin', function () {
+                    Dashboard.showLoadingMsg();
 
-                    $.ajax(url, {
-                        type: 'POST',
-                        data: {
-                            code: code,
-                            redirectUri: redirectUri,
-                            userId: userId
-                        },
-                        success: callback
+                    var page = $(this).parents('.page');
+
+                    ApiClient.getPluginConfiguration(pluginId).done(function (config) {
+                        config.GoogleDriveClientId = $('#googleDriveClientId', page).val();
+                        config.GoogleDriveClientSecret = $('#googleDriveClientSecret', page).val();
+
+                        ApiClient.updatePluginConfiguration(pluginId, config).done(function (result) {
+                            Dashboard.hideLoadingMsg();
+                            Dashboard.processPluginConfigurationUpdateResult(result);
+                        });
                     });
-                    // TODO: handle error
-                };
+                });
 
-                function buildRedirectUrl() {
-                    var url = window.location;
+                function refreshConfigPage() {
+                    var url = window.location.href.split('#')[0];
 
-                    if (!GoogleDriveUi.applyToEveryone()) {
-                        url += '&userid=' + GoogleDriveUi.selectedUserId();
+                    url = removeQueryStringParameterFromUrl(url, 'code');
+                    url = removeQueryStringParameterFromUrl(url, 'configId');
+                    url = removeQueryStringParameterFromUrl(url, 'configName');
+                    url = removeQueryStringParameterFromUrl(url, 'enableForEveryone');
+                    url = removeQueryStringParameterFromUrl(url, 'userIds');
+
+                    window.location.replace(url);
+                }
+
+                function getSyncTarget(page) {
+                    var syncTarget = {
+                        Name: $('#displayName', page).val(),
+                        EnableForEveryone: $('#chkEnableForEveryone', page).checked(),
+                        Id: $('#configId', page).val(),
+                        UserIds: []
+                    };
+
+                    if (!syncTarget.EnableForEveryone) {
+                        syncTarget.UserIds = $('.chkUser:checked', page).map(function () {
+                            return this.getAttribute('data-id');
+                        }).get();
+                    }
+
+                    return syncTarget;
+                }
+
+                function buildRedirectUrl(syncTarget) {
+                    var currentUrl = window.location.href.split('#')[0];
+                    var url = removeQueryStringParameterFromUrl(currentUrl, 'code');
+
+                    if (syncTarget.Id) {
+                        url += '&configId=' + syncTarget.Id;
+                    }
+
+                    url += '&configName=' + syncTarget.Name;
+
+                    if (syncTarget.EnableForEveryone) {
+                        url += '&enableForEveryone=' + syncTarget.EnableForEveryone;
+                    } else {
+                        syncTarget.UserIds.forEach(function (userId) {
+                            url += '&userIds=' + userId;
+                        });
                     }
 
                     return encodeURIComponent(url);
                 }
-            };
 
-            var GoogleDriveUi = new function () {
-                function property(accessor, value, force) {
-                    var element = $(accessor);
+                function getQueryString(name) {
+                    var values = [];
+                    var queryStrings = window.location.search.substr(1).split("&");
 
-                    if (force || value) {
-                        element.val(value);
-                    } else {
-                        return element.val();
-                    }
-                }
-
-                this.applyToEveryone = function (value) {
-                    var element = $('#applyToEveryone');
-
-                    if (value === undefined) {
-                        return element.prop('checked');
-                    } else {
-                        element.checked(value).checkboxradio('refresh').trigger('change');
-                    }
-                }
-
-                this.googleDriveClientId = function (value, force) {
-                    return property('#googleDriveClientId', value, force);
-                };
-
-                this.googleDriveClientSecret = function (value, force) {
-                    return property('#googleDriveClientSecret', value, force);
-                };
-
-                this.selectedUserId = function (value) {
-                    return property('#selectUser', value);
-                };
-
-                this.toggleUsers = function (value) {
-                    var usersDropdown = $('#usersDropdown');
-
-                    if (value) {
-                        usersDropdown.hide();
-                    } else {
-                        usersDropdown.show();
-                    }
-                }
-            };
-
-            GoogleDriveInitializer = new function () {
-                this.loadPage = function () {
-                    Dashboard.showLoadingMsg();
-
-                    MediaBrowserApi.getUsers(function (users) {
-                        GoogleDriveApi.populateUsers(users);
-
-                        var currentUserId = GoogleDriveUi.selectedUserId();
-
-                        GoogleDriveApi.loadConfiguration(currentUserId);
-                    });
-                };
-
-                this.saveUserConfig = function () {
-                    Dashboard.showLoadingMsg();
-
-                    MediaBrowserApi.loadConfiguration(function (config) {
-                        config.ApplyConfigurationToEveryone = GoogleDriveUi.applyToEveryone();
-                        var currentUserConfig;
-
-                        if (config.ApplyConfigurationToEveryone) {
-                            currentUserConfig = config.SingleUserForEveryone = {};
-                        } else {
-                            var currentUserId = GoogleDriveUi.selectedUserId();
-
-                            currentUserConfig = GoogleDriveApi.getUserFromConfig(config, currentUserId);
-
-                            // User doesn't have a config, so create a default one.
-                            if (!currentUserConfig) {
-                                currentUserConfig = {};
-                                config.Users.push(currentUserConfig);
-                            }
-
-                            currentUserConfig.MediaBrowserUserId = currentUserId;
+                    queryStrings.forEach(function (item) {
+                        if (item.split("=")[0] == name) {
+                            values.push(item.split("=")[1]);
                         }
-
-                        currentUserConfig.GoogleDriveClientId = GoogleDriveUi.googleDriveClientId();
-                        currentUserConfig.GoogleDriveClientSecret = GoogleDriveUi.googleDriveClientSecret();
-
-                        if (currentUserConfig.GoogleDriveClientId == '' && currentUserConfig.GoogleDriveClientSecret == '' && currentUserConfig.MediaBrowserUserId) {
-                            config.Users.remove(config.Users.indexOf(currentUserConfig));
-                        }
-
-                        MediaBrowserApi.saveConfiguration(config, function () {
-                            GoogleDriveApi.grantAccess();
-                        });
                     });
-                };
 
-                this.saveCode = function (code, userId) {
-                    Dashboard.showLoadingMsg();
-
-                    GoogleDriveApi.loadConfiguration(userId);
-
-                    GoogleDriveApi.getToken(code, userId, function () {
-                        // TODO: remove code from URL so a refresh or re-save doesn't break everything
-
-                        Dashboard.hideLoadingMsg();
-                        Dashboard.processPluginConfigurationUpdateResult();
-                    });
+                    if (values.length == 0) return '';
+                    if (values.length == 1) return values[0];
+                    return values;
                 }
 
-                this.loadBasicConfig = function (callback) {
-                    MediaBrowserApi.loadConfiguration(function (config) {
-                        GoogleDriveUi.applyToEveryone(config.ApplyConfigurationToEveryone);
+                function removeQueryStringParameterFromUrl(url, parameter) {
+                    var urlparts = url.split('?');
 
-                        callback();
-                    });
-                }
-            }
+                    if (urlparts.length >= 2) {
+                        var urlBase = urlparts.shift(); //get first part, and remove from array
+                        var queryString = urlparts.join("?"); //join it back up
 
-            $('#googleDriveConfigurationPage').on('pageshow', function () {
-                // TODO: show error message if user denied access
-                var code = getQueryString('code');
-                var userId = getQueryString('userid');
-
-                GoogleDriveInitializer.loadBasicConfig(function () {
-                    if (code) {
-                        GoogleDriveInitializer.saveCode(code, userId);
-                    } else {
-                        GoogleDriveInitializer.loadPage();
+                        var prefix = encodeURIComponent(parameter) + '=';
+                        var pars = queryString.split(/[&;]/g);
+                        for (var i = pars.length; i-- > 0;) //reverse iteration as may be destructive
+                            if (pars[i].lastIndexOf(prefix, 0) !== -1) //idiom for string.startsWith
+                                pars.splice(i, 1);
+                        url = urlBase + '?' + pars.join('&');
                     }
-                });
-            });
-
-            $('#googleDriveConfigurationForm').on('submit', function () {
-                GoogleDriveInitializer.saveUserConfig();
-
-                return false;
-            });
+                    return url;
+                }
+            })();
         </script>
     </div>
 </body>
