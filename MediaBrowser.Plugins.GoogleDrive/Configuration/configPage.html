@@ -291,11 +291,12 @@
                 $('.googleDriveConfigurationForm').off('submit.plugin').on('submit.plugin', function (e) {
                     var page = $(this).parents('.page');
 
-                    var clientId = $('#googleDriveClientId', page).val();
-                    buildRedirectUrl(getSyncTarget(page), function (redirectUrl) {
+                    var syncTarget = getSyncTarget(page);
+                    buildRedirectUrl(syncTarget, function (redirectUrl) {
+                        var clientId = $('#googleDriveClientId', page).val();
                         var scope = encodeURIComponent('https://www.googleapis.com/auth/drive.file');
 
-                        window.location.href = 'https://accounts.google.com/o/oauth2/auth?response_type=code&access_type=offline&client_id=' + clientId + '&redirect_uri=' + redirectUrl + '&scope=' + scope;
+                        window.location.href = 'https://accounts.google.com/o/oauth2/auth?response_type=code&access_type=offline&client_id=' + clientId + '&redirect_uri=' + redirectUrl + '&scope=' + scope + '&device_id=' + syncTarget.Name + '&device_name=' + syncTarget.Name;
                     });
 
                     return false;
