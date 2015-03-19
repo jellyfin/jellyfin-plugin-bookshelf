@@ -4,6 +4,7 @@ using MediaBrowser.Controller.Channels;
 using MediaBrowser.Controller.Drawing;
 using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.Dto;
+using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.MediaInfo;
 using MediaBrowser.Model.Net;
@@ -677,7 +678,22 @@ namespace MediaBrowser.Plugins.NextPvr
                     {
                         Id = _liveStreams.ToString(CultureInfo.InvariantCulture),
                         Path = vlcObj.StreamLocation,
-                        Protocol = MediaProtocol.File
+                        Protocol = MediaProtocol.File,
+                        MediaStreams = new List<MediaStream>
+                        {
+                            new MediaStream
+                            {
+                                Type = MediaStreamType.Video,
+                                // Set the index to -1 because we don't know the exact index of the video stream within the container
+                                Index = -1
+                            },
+                            new MediaStream
+                            {
+                                Type = MediaStreamType.Audio,
+                                // Set the index to -1 because we don't know the exact index of the audio stream within the container
+                                Index = -1
+                            }
+                        }
                     };
                 }
             }
@@ -689,7 +705,22 @@ namespace MediaBrowser.Plugins.NextPvr
                 {
                     Id = _liveStreams.ToString(CultureInfo.InvariantCulture),
                     Path = streamUrl,
-                    Protocol = MediaProtocol.Http
+                    Protocol = MediaProtocol.Http,
+                    MediaStreams = new List<MediaStream>
+                        {
+                            new MediaStream
+                            {
+                                Type = MediaStreamType.Video,
+                                // Set the index to -1 because we don't know the exact index of the video stream within the container
+                                Index = -1
+                            },
+                            new MediaStream
+                            {
+                                Type = MediaStreamType.Audio,
+                                // Set the index to -1 because we don't know the exact index of the audio stream within the container
+                                Index = -1
+                            }
+                        }
                 };               
             }
             throw new ResourceNotFoundException(string.Format("Could not stream channel {0}", channelOid));            
@@ -707,7 +738,22 @@ namespace MediaBrowser.Plugins.NextPvr
                 return new MediaSourceInfo
                 {
                     Path = recording.Path,
-                    Protocol = MediaProtocol.File
+                    Protocol = MediaProtocol.File,
+                    MediaStreams = new List<MediaStream>
+                        {
+                            new MediaStream
+                            {
+                                Type = MediaStreamType.Video,
+                                // Set the index to -1 because we don't know the exact index of the video stream within the container
+                                Index = -1
+                            },
+                            new MediaStream
+                            {
+                                Type = MediaStreamType.Audio,
+                                // Set the index to -1 because we don't know the exact index of the audio stream within the container
+                                Index = -1
+                            }
+                        }
                 };
             }
 
@@ -717,7 +763,22 @@ namespace MediaBrowser.Plugins.NextPvr
                 return new MediaSourceInfo
                 {
                     Path = recording.Url,
-                    Protocol = MediaProtocol.Http
+                    Protocol = MediaProtocol.Http,
+                    MediaStreams = new List<MediaStream>
+                        {
+                            new MediaStream
+                            {
+                                Type = MediaStreamType.Video,
+                                // Set the index to -1 because we don't know the exact index of the video stream within the container
+                                Index = -1
+                            },
+                            new MediaStream
+                            {
+                                Type = MediaStreamType.Audio,
+                                // Set the index to -1 because we don't know the exact index of the audio stream within the container
+                                Index = -1
+                            }
+                        }
                 };
             }
 
