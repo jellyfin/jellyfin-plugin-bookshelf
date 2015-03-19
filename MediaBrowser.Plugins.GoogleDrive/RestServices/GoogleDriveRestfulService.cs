@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
@@ -52,6 +53,13 @@ namespace MediaBrowser.Plugins.GoogleDrive.RestServices
         public GoogleDriveSyncAccount Get(GetSyncTarget request)
         {
             return _configurationRetriever.GetSyncAccount(request.Id);
+        }
+
+        public string Get(UrlEncodeRequest request)
+        {
+            var encoded = HttpUtility.UrlEncode(request.Str);
+
+            return Regex.Replace(encoded, @"%[a-f0-9]{2}", m => m.Value.ToUpperInvariant());
         }
 
         private async Task<string> GetRefreshToken(AddSyncTarget request)
