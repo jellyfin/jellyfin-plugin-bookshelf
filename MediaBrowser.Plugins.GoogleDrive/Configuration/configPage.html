@@ -35,19 +35,19 @@
                     <div class="googleDriveSyncTargets"></div>
                 </div>
 
-                <div data-role="popup" id="popupAuthInfo" class="popup" style="min-width: 300px;" data-position-to="window">
+                <div data-role="popup" id="popupAuthInfo" class="popup" data-position-to="window">
                     <div class="ui-bar-a" style="text-align: center; padding: 0 20px;">
                         <h3 class="popupHeader">Instructions</h3>
                     </div>
                     <div data-role="content">
 
                         <div style="line-height:150%;margin:.5em 0;padding:0 .25em;">
-                            <div>1. <a href="https://console.developers.google.com/start/api?id=drive&credential=client_key" target="_blank">Open Google Drive</a></div>
-                            <div>2. Select a Project or create a new one</div>
-                            <div>3. Click "Create new Client Id"</div>
-                            <div>4. In the Client Id popup, set application type to "Web Application" and click "Configure consent screen"</div>
-                            <div>5. On the consent screen, select your email address, enter product name "Emby", then submit.</div>
-                            <div>6. In the Client Id popup, enter the following:</div>
+                            <div><b>1.</b> <a href="https://console.developers.google.com/start/api?id=drive&credential=client_key" target="_blank">Open Google Drive</a></div>
+                            <div><b>2.</b> Select a Project or create a new one</div>
+                            <div><b>3.</b> Click "Create new Client Id"</div>
+                            <div><b>4.</b> In the Client Id popup, set application type to "Web Application" and click "Configure consent screen"</div>
+                            <div><b>5.</b> On the consent screen, select your email address, enter product name "Emby", then submit.</div>
+                            <div><b>6.</b> In the Client Id popup, enter the following:</div>
                             <div>
                                 Authorized JavaScript Origins:
                                 <code class="origins">http</code>
@@ -56,9 +56,9 @@
                                 Authorized Redirect Uris:
                                 <code class="redirect">http</code>
                             </div>
-                            <br />
-                            <div>7. Click "Create Client Id".</div>
-                            <div>8. You'll be returned to the main screen, where your Client Id and Client Secret will be displayed. Copy and paste these values into the form here.</div>
+                            <div><b>7.</b> Click "Create Client Id".</div>
+                            <div><b>8.</b> You'll be returned to the main screen, where your Client Id and Client Secret will be displayed. Copy these values.</div>
+                            <div><b>9.</b> In the left sidebar, click "APIs" under "APIs & Auth". In the API list, click Drive API and enable it.</div>
                             <br />
                         </div>
 
@@ -68,7 +68,7 @@
                     </div>
                 </div>
 
-                <div data-role="popup" id="popupAddFolder" class="popup" style="min-width: 300px;">
+                <div data-role="popup" id="popupAddFolder" class="popup" style="min-width: 200px;">
                     <form class="googleDriveConfigurationForm">
                         <div class="ui-bar-a" style="text-align: center; padding: 0 20px;">
                             <h3 class="popupHeader"></h3>
