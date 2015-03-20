@@ -238,34 +238,44 @@
                     var page = this;
                     loadConfig(page);
                 }).on('pageshow', function (event) {
-                    var configName = getQueryString('configName');
+                    var error = getQueryString('error');
 
-                    if (configName) {
-                        Dashboard.showLoadingMsg();
-
-                        var syncTarget = {
-                            Name: configName,
-                            EnableForEveryone: getQueryString('enableForEveryone') || false,
-                            Id: getQueryString('configId'),
-                            UserIds: [],
-                            Code: getQueryString('code')
-                        };
-
-                        var currentUrl = getWindowUrl().split('#')[0];
-                        syncTarget.RedirectUri = removeQueryStringParameterFromUrl(currentUrl, 'code');
-
-                        if (!syncTarget.EnableForEveryone) {
-                            syncTarget.UserIds = getQueryString('userIds');
+                    if (error) {
+                        if (error == 'access_denied') {
+                            setTimeout(function () {
+                                Dashboard.showError('Access denied.');
+                            }, 1000);
                         }
+                    } else {
+                        var configName = getQueryString('configName');
 
-                        ApiClient.ajax({
-                            type: "POST",
-                            url: ApiClient.getUrl('GoogleDrive/SyncTarget'),
-                            data: JSON.stringify(syncTarget),
-                            contentType: 'application/json'
-                        }).done(function () {
-                            refreshConfigPage();
-                        });
+                        if (configName) {
+                            Dashboard.showLoadingMsg();
+
+                            var syncTarget = {
+                                Name: configName,
+                                EnableForEveryone: getQueryString('enableForEveryone') || false,
+                                Id: getQueryString('configId'),
+                                UserIds: [],
+                                Code: getQueryString('code')
+                            };
+
+                            var currentUrl = getWindowUrl().split('#')[0];
+                            syncTarget.RedirectUri = removeQueryStringParameterFromUrl(currentUrl, 'code');
+
+                            if (!syncTarget.EnableForEveryone) {
+                                syncTarget.UserIds = getQueryString('userIds');
+                            }
+
+                            ApiClient.ajax({
+                                type: "POST",
+                                url: ApiClient.getUrl('GoogleDrive/SyncTarget'),
+                                data: JSON.stringify(syncTarget),
+                                contentType: 'application/json'
+                            }).done(function () {
+                                refreshConfigPage();
+                            });
+                        }
                     }
                 });
 
@@ -302,15 +312,22 @@
                 });
 
                 function refreshConfigPage() {
+                    var url = getCurrentUrlWithoutQueryStrings();
+
+                    window.location.replace(url);
+                }
+
+                function getCurrentUrlWithoutQueryStrings() {
                     var url = getWindowUrl().split('#')[0];
 
                     url = removeQueryStringParameterFromUrl(url, 'code');
+                    url = removeQueryStringParameterFromUrl(url, 'error');
                     url = removeQueryStringParameterFromUrl(url, 'configId');
                     url = removeQueryStringParameterFromUrl(url, 'configName');
                     url = removeQueryStringParameterFromUrl(url, 'enableForEveryone');
                     url = removeQueryStringParameterFromUrl(url, 'userIds');
 
-                    window.location.replace(url);
+                    return url;
                 }
 
                 function getSyncTarget(page) {
@@ -331,8 +348,7 @@
                 }
 
                 function buildRedirectUrl(syncTarget, callback) {
-                    var currentUrl = getWindowUrl().split('#')[0];
-                    var url = removeQueryStringParameterFromUrl(currentUrl, 'code');
+                    var url = getCurrentUrlWithoutQueryStrings();
 
                     if (syncTarget.Id) {
                         url += '&configId=' + syncTarget.Id;
