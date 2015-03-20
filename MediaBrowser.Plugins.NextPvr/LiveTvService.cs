@@ -732,13 +732,13 @@ namespace MediaBrowser.Plugins.NextPvr
             var recordings = await GetRecordingsAsync(cancellationToken).ConfigureAwait(false);
             var recording = recordings.First(i => string.Equals(i.Id, recordingId, StringComparison.OrdinalIgnoreCase));
 
-            if (!string.IsNullOrEmpty(recording.Path) && File.Exists(recording.Path))
+            if (!string.IsNullOrEmpty(recording.Url))
             {
-                _logger.Info("[NextPvr] RecordingPath: {0}", recording.Path);
+                _logger.Info("[NextPvr] RecordingUrl: {0}", recording.Url);
                 return new MediaSourceInfo
                 {
-                    Path = recording.Path,
-                    Protocol = MediaProtocol.File,
+                    Path = recording.Url,
+                    Protocol = MediaProtocol.Http,
                     MediaStreams = new List<MediaStream>
                         {
                             new MediaStream
@@ -757,13 +757,13 @@ namespace MediaBrowser.Plugins.NextPvr
                 };
             }
 
-            if (!string.IsNullOrEmpty(recording.Url))
+            if (!string.IsNullOrEmpty(recording.Path) && File.Exists(recording.Path))
             {
-                _logger.Info("[NextPvr] RecordingUrl: {0}", recording.Url);
+                _logger.Info("[NextPvr] RecordingPath: {0}", recording.Path);
                 return new MediaSourceInfo
                 {
-                    Path = recording.Url,
-                    Protocol = MediaProtocol.Http,
+                    Path = recording.Path,
+                    Protocol = MediaProtocol.File,
                     MediaStreams = new List<MediaStream>
                         {
                             new MediaStream
