@@ -66,12 +66,18 @@
                         </div>
                         <div data-role="content">
 
-                            <ul class="ulForm" data-role="listview" style="margin-top:0;">
+                            <ul id="popupAddAccountUlForm" class="ulForm" data-role="listview" style="margin-top:0;">
                                 <li>
                                     <label for="displayName">
                                         Display name:
                                     </label>
                                     <input id="displayName" type="text" required />
+                                </li>
+                                <li id="codeSection">
+                                    <label for="code">
+                                        Code:
+                                    </label>
+                                    <input id="code" type="text" />
                                 </li>
                             </ul>
                             <div>
@@ -89,7 +95,7 @@
                             <ul class="ulForm" data-role="listview" style="margin-top:.5em;">
                                 <li>
                                     <input type="hidden" id="configId" />
-                                    <button type="submit" data-theme="b" data-icon="check">Grant Access</button>
+                                    <button id="grantAccessButton" type="submit" data-theme="b" data-icon="check">Grant Access</button>
                                     <button type="button" data-icon="delete" onclick="$(this).parents('.popup').popup('close');">Cancel</button>
                                 </li>
                             </ul>
@@ -193,6 +199,10 @@
                         $('.popupHeader', page).html('Add Account');
                     }
 
+                    $('#grantAccessButton').html('Grant Access');
+                    $('#codeSection', page).hide();
+                    $('#code', page).removeAttr('required');
+                    $('#code', page).val('');
                     $('#popupAddFolder', page).popup('open');
                 }
 
@@ -237,58 +247,25 @@
                 }).on('pageshow', function (event) {
                     var page = this;
                     loadConfig(page);
-                }).on('pageshow', function (event) {
-                    var error = getQueryString('error');
-
-                    if (error) {
-                        if (error == 'access_denied') {
-                            setTimeout(function () {
-                                Dashboard.showError('Access denied.');
-                            }, 1000);
-                        }
-                    } else {
-                        var configName = getQueryString('configName');
-
-                        if (configName) {
-                            Dashboard.showLoadingMsg();
-
-                            var syncTarget = {
-                                Name: configName,
-                                EnableForEveryone: getQueryString('enableForEveryone') || false,
-                                Id: getQueryString('configId'),
-                                UserIds: [],
-                                Code: getQueryString('code')
-                            };
-
-                            var currentUrl = getWindowUrl().split('#')[0];
-                            syncTarget.RedirectUri = removeQueryStringParameterFromUrl(currentUrl, 'code');
-
-                            if (!syncTarget.EnableForEveryone) {
-                                syncTarget.UserIds = getQueryString('userIds');
-                            }
-
-                            ApiClient.ajax({
-                                type: "POST",
-                                url: ApiClient.getUrl('GoogleDrive/SyncTarget'),
-                                data: JSON.stringify(syncTarget),
-                                contentType: 'application/json'
-                            }).done(function () {
-                                refreshConfigPage();
-                            });
-                        }
-                    }
                 });
 
                 $('.googleDriveConfigurationForm').off('submit.plugin').on('submit.plugin', function (e) {
                     var page = $(this).parents('.page');
+                    var code = $('#code', page).val();
 
-                    var syncTarget = getSyncTarget(page);
-                    buildRedirectUrl(syncTarget, function (redirectUrl) {
+                    if (code) {
+                        saveAccount(page);
+                    } else {
                         var clientId = $('#googleDriveClientId', page).val();
                         var scope = encodeURIComponent('https://www.googleapis.com/auth/drive.file');
+                        var url = 'https://accounts.google.com/o/oauth2/auth?response_type=code&access_type=offline&redirect_uri=urn:ietf:wg:oauth:2.0:oob&client_id=' + clientId + '&scope=' + scope;
 
-                        window.location.href = 'https://accounts.google.com/o/oauth2/auth?response_type=code&access_type=offline&client_id=' + clientId + '&redirect_uri=' + redirectUrl + '&scope=' + scope + '&device_id=' + syncTarget.Name + '&device_name=' + syncTarget.Name;
-                    });
+                        window.open(url, '_blank');
+
+                        $('#grantAccessButton', page).html('Save');
+                        $('#codeSection', page).show();
+                        $('#code', page).attr('required', true);
+                    }
 
                     return false;
                 });
@@ -311,10 +288,34 @@
                     return false;
                 });
 
-                function refreshConfigPage() {
-                    var url = getCurrentUrlWithoutQueryStrings();
+                function saveAccount(page) {
+                    Dashboard.showLoadingMsg();
 
-                    window.location.replace(url);
+                    var syncTarget = {
+                        Name: $('#displayName', page).val(),
+                        EnableForEveryone: $('#chkEnableForEveryone', page).checked(),
+                        Id: $('#configId', page).val(),
+                        UserIds: [],
+                        Code: $('#code', page).val(),
+                        redirectUri: 'urn:ietf:wg:oauth:2.0:oob'
+                    };
+
+                    if (!syncTarget.EnableForEveryone) {
+                        syncTarget.UserIds = $('.chkUser:checked', page).map(function () {
+                            return this.getAttribute('data-id');
+                        }).get();
+                    }
+
+                    ApiClient.ajax({
+                        type: "POST",
+                        url: ApiClient.getUrl('GoogleDrive/SyncTarget'),
+                        data: JSON.stringify(syncTarget),
+                        contentType: 'application/json'
+                    }).done(function () {
+                        $('#popupAddFolder', page).popup('close');
+                        loadConfig(page);
+                        Dashboard.hideLoadingMsg();
+                    });
                 }
 
                 function getCurrentUrlWithoutQueryStrings() {
