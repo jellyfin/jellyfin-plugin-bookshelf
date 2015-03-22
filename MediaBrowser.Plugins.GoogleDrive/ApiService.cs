@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -98,9 +99,36 @@ namespace MediaBrowser.Plugins.GoogleDrive
 
         private void ThrowExceptionWithMessage(WebException webException)
         {
+            var errorDescription = GetErrorDescription(webException);
+
+            throw new ApiException(errorDescription);
+        }
+
+        private string GetErrorDescription(WebException webException)
+        {
             var stream = webException.Response.GetResponseStream();
             var response = _jsonSerializer.DeserializeFromStream<GoogleError>(stream);
-            throw new ApiException(response.error_description);
+            return GetErrorMessage(response);
+        }
+
+        private static string GetErrorMessage(GoogleError response)
+        {
+            if (!string.IsNullOrEmpty(response.error_description))
+            {
+                return response.error_description;
+            }
+
+            if (response.error == "invalid_grant")
+            {
+                return "Invalid code.";
+            }
+
+            if (response.error == "invalid_client")
+            {
+                return "Invalid client id or secret.";
+            }
+
+            return null;
         }
     }
 }
