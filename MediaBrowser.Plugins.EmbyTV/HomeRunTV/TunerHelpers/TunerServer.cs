@@ -67,7 +67,7 @@ namespace MediaBrowser.Plugins.EmbyTV.TunerHelpers
                 }
                 if (String.IsNullOrWhiteSpace(model))
                 {
-                    Helper.LogError("[HomeRunTV] Failed to locate the tuner host");
+                    Helper.LogError("[EmbyTV] Failed to locate the tuner host");
                     throw new ApplicationException("Failed to locate the tuner host.");
                 }
             }
@@ -96,7 +96,7 @@ namespace MediaBrowser.Plugins.EmbyTV.TunerHelpers
                 }
                 if (String.IsNullOrWhiteSpace(model))
                 {
-                    _logger.Error("[HomeRunTV] Failed to load tuner info");
+                    _logger.Error("[EmbyTV] Failed to load tuner info");
                     throw new ApplicationException("Failed to load tuner info.");
                 }
             }
@@ -117,7 +117,7 @@ namespace MediaBrowser.Plugins.EmbyTV.TunerHelpers
             Helper.httpOptions = new HttpRequestOptions { Url = string.Format("{0}/lineup.json", getWebUrl()) };           
             System.IO.Stream stream = await Helper.Get().ConfigureAwait(false);
             var root = Helper.DeserializeJSON<List<Channels>>(stream);
-            Helper.LogInfo("[HomeRunTV] Found "+ root.Count() + "channels on host: " + hostname);
+            Helper.LogInfo("[EmbyTV] Found "+ root.Count() + "channels on host: " + hostname);
             if(onlyLoadFavorites){root.RemoveAll(x => x.Favorite == false);}
             if (root != null)
             {

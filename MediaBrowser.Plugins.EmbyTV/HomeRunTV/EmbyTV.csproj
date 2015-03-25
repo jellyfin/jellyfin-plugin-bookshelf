@@ -55,7 +55,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Configuration\HomeRunTVConfigurationPage.cs" />
+    <Compile Include="Configuration\EmbyTVConfigurationPage.cs" />
     <Compile Include="Configuration\PluginConfiguration.cs" />
     <Compile Include="GeneralHelpers\HttpClientHelper.cs" />
     <Compile Include="GeneralHelpers\Xml.cs" />

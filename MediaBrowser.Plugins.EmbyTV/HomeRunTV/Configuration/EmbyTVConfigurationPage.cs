@@ -4,7 +4,7 @@ using MediaBrowser.Controller.Plugins;
 
 namespace MediaBrowser.Plugins.EmbyTV.Configuration
 {
-    class HomeRunTVConfigurationPage : IPluginConfigurationPage
+    class EmbyTVConfigurationPage : IPluginConfigurationPage
     {
         /// <summary>
         /// Gets the type of the configuration page.
@@ -21,7 +21,7 @@ namespace MediaBrowser.Plugins.EmbyTV.Configuration
         /// <returns>Stream.</returns>
         public System.IO.Stream GetHtmlStream()
         {
-            return GetType().Assembly.GetManifestResourceStream("HomeRunTV.Configuration.configPage.html");
+            return GetType().Assembly.GetManifestResourceStream("EmbyTV.Configuration.configPage.html");
         }
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace MediaBrowser.Plugins.EmbyTV.Configuration
         /// <value>The name.</value>
         public string Name
         {
-            get { return "HomeRunTV"; }
+            get { return "EmbyTV"; }
         }
 
         public IPlugin Plugin

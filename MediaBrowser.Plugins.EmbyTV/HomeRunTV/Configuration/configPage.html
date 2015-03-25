@@ -1,14 +1,14 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-    <title>HomeRunTV</title>
+    <title>EmbyTV</title>
 </head>
 <body>
-    <div data-role="page" class="page type-interior pluginConfigurationPage HomeRunTVConfigurationPage">
+    <div data-role="page" class="page type-interior pluginConfigurationPage EmbyVConfigurationPage">
 
         <div data-role="content">
             <div class="content-primary">
-                <form class="HomeRunTVConfigurationForm">
+                <form class="EmbyTVConfigurationForm">
                     <fieldset>
                         <legend>Network Tunner</legend>
                         <ul class="ulForm" data-role="listview">
@@ -229,7 +229,7 @@
             /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
             if (typeof module != 'undefined' && module.exports) module.exports = Sha1; // CommonJs export
             if (typeof define == 'function' && define.amd) define([], function () { return Sha1; }); // AMD
-            var HomeRunTVConfigurationPage = { pluginUniqueId: "b0067c00-62cf-476c-9e63-d53ae7247aa9" };
+            var EmbyTVConfigurationPage = { pluginUniqueId: "b0067c00-62cf-476c-9e63-d53ae7247aa9" };
             function createLineupsDropdown(_lineups,currentLineup,headName,headValue) {
                 var lineups = _lineups.split(",");
                 var values = headValue.split(",");
@@ -258,11 +258,10 @@
                 }
                 return false;
             }
-
-            $('.HomeRunTVConfigurationPage').on('pageshow', function (event) {
+            function fillFormData() {
                 Dashboard.showLoadingMsg();
                 var page = this;
-                ApiClient.getPluginConfiguration(HomeRunTVConfigurationPage.pluginUniqueId).done(function (config) {
+                ApiClient.getPluginConfiguration(EmbyTVConfigurationPage.pluginUniqueId).done(function (config) {
                     $('#txtWebServiceUrl', page).val(config.apiURL || "");
                     $('#txtGuideUsername', page).val(config.username || "");
                     $('#txtGuidePassword', page).val("");
@@ -271,14 +270,28 @@
                     createLineupsDropdown(config.avaliableLineups, config.tvLineUp, config.headendName, config.headendValue);
                     Dashboard.hideLoadingMsg();
                 });
+            }
+            fillFormData();
+            $('.EmbyTVConfigurationPage').on('pageshow', function (event) {
+                Dashboard.showLoadingMsg();
+                var page = this;
+                ApiClient.getPluginConfiguration(EmbyTVConfigurationPage.pluginUniqueId).done(function (config) {
+                    $('#txtWebServiceUrl', page).val(config.apiURL || "");
+                    $('#txtGuideUsername', page).val(config.username || "");
+                    $('#txtGuidePassword', page).val("");
+                    $('#chkLoadFavorites', page).checked(config.loadOnlyFavorites).checkboxradio("refresh");
+                    $('#zipCode', page).val(config.zipCode || "");
+                   // createLineupsDropdown(config.avaliableLineups, config.tvLineUp, config.headendName, config.headendValue);
+                    Dashboard.hideLoadingMsg();
+                });
             });
 
-            $('.HomeRunTVConfigurationForm').on('submit', function (e) {
+            $('.EmbyTVConfigurationForm').on('submit', function (e) {
                 Dashboard.showLoadingMsg();
                 var form = this;
                 var pass="";
                 if ($('#txtGuidePassword', form).val() != "") { pass = Sha1.hash($('#txtGuidePassword', form).val()); }
-                ApiClient.getPluginConfiguration(HomeRunTVConfigurationPage.pluginUniqueId).done(function (config) {
+                ApiClient.getPluginConfiguration(EmbyTVConfigurationPage.pluginUniqueId).done(function (config) {
                     config.apiURL = $('#txtWebServiceUrl', form).val();
                     config.username = $('#txtGuideUsername', form).val();
                     config.zipCode = $('#zipCode', form).val();
@@ -288,7 +301,7 @@
                     config.avaliableLineups = "";
                     config.headendName = "";
                     config.headendValue = "";
-                    ApiClient.updatePluginConfiguration(HomeRunTVConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
+                    ApiClient.updatePluginConfiguration(EmbyTVConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
 
                 });
                 // Disable default form submission

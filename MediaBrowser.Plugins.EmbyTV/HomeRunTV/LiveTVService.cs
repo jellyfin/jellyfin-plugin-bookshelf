@@ -38,7 +38,7 @@ namespace MediaBrowser.Plugins.EmbyTV
 
         public LiveTvService(IHttpClient httpClient, IJsonSerializer jsonSerializer, ILogger logger, IXmlSerializer xmlSerializer)
         {
-            logger.Info("[Emby] Bringing up Live TV Service");
+            logger.Info("[EmbyTV] Bringing up Live TV Service");
             Helper = new GeneralHelpers.HttpClientHelper("EmbyTV");
             Helper.httpClient = httpClient;
             Helper.jsonSerializer  = jsonSerializer;
@@ -81,13 +81,13 @@ namespace MediaBrowser.Plugins.EmbyTV
             if (string.IsNullOrEmpty(_plugin.Configuration.apiURL))
             {
                 Helper.LogError("Tunner hostname/ip missing.");
-                throw new InvalidOperationException("HomeRunTV Tunner hostname/ip missing.");
+                throw new InvalidOperationException("EmbyTV Tunner hostname/ip missing.");
             } 
             await tunerServer.GetDeviceInfo(Helper);
             if (tunerServer.model == "")
             {
                 Helper.LogError("No tuner found at address .");
-                throw new ApplicationException("[HomeRunTV] No tuner found at address .");
+                throw new ApplicationException("[EmbyTV] No tuner found at address .");
             }
             else
             {
