@@ -47,7 +47,7 @@
                                         Schedules Direct Tv LineUp:
                                     </label>
                                     <select name="tvLineups" id="tvLineups">
-                                        <option value="">Select Lineup</option>
+                                      
                                     </select>
                                 </li>     
                                 <li>
@@ -238,15 +238,19 @@
                 if (lineups[0]) {              
                     for (var i = 0; i < names.length; i++) {
                         dropdown[i + 1] = new Option(names[i], values[i]);
-                        if (currentLineup == values[i]) {
-                            dropdown[i + 1].setAttribute("selected", "selected");
-                        }
                         if (contains(lineups, values[i])) {
-                            dropdown[i + 1].style.backgroundColor = 'Aquamarine'
+                            dropdown[i + 1].style.backgroundColor = 'Aquamarine';
                         }
-                 }
-                 } else {
-                    dropdown[1] = new Option("No lineups Avaliable","");
+                    }
+                } else {                                       
+                        dropdown[1] = new Option("No lineups Avaliable","");
+                }
+                if (currentLineup) {
+                    var option = new Option(currentLineup, currentLineup);
+                    $(option).html(currentLineup);
+                    dropdown[0] = option;
+                    dropdown[0].setAttribute("selected", "selected");
+                
                 }
             }
             /*http://stackoverflow.com/questions/237104/array-containsobj-in-javascript*/
@@ -272,19 +276,6 @@
                 });
             }
             fillFormData();
-            $('.EmbyTVConfigurationPage').on('pageshow', function (event) {
-                Dashboard.showLoadingMsg();
-                var page = this;
-                ApiClient.getPluginConfiguration(EmbyTVConfigurationPage.pluginUniqueId).done(function (config) {
-                    $('#txtWebServiceUrl', page).val(config.apiURL || "");
-                    $('#txtGuideUsername', page).val(config.username || "");
-                    $('#txtGuidePassword', page).val("");
-                    $('#chkLoadFavorites', page).checked(config.loadOnlyFavorites).checkboxradio("refresh");
-                    $('#zipCode', page).val(config.zipCode || "");
-                   // createLineupsDropdown(config.avaliableLineups, config.tvLineUp, config.headendName, config.headendValue);
-                    Dashboard.hideLoadingMsg();
-                });
-            });
 
             $('.EmbyTVConfigurationForm').on('submit', function (e) {
                 Dashboard.showLoadingMsg();
@@ -298,13 +289,11 @@
                     if (pass != "") { config.hashPassword = pass; }
                     config.loadOnlyFavorites = $('#chkLoadFavorites', form).checked();
                     config.tvLineUp = document.getElementById("tvLineups").options[document.getElementById("tvLineups").selectedIndex].value;
-                    config.avaliableLineups = "";
-                    config.headendName = "";
-                    config.headendValue = "";
                     ApiClient.updatePluginConfiguration(EmbyTVConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
-
+                    
                 });
                 // Disable default form submission
+                window.setTimeout(function () { location.reload(true); }, 3000);
                 return false;
             });
 

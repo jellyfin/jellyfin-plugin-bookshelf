@@ -33,7 +33,8 @@ namespace MediaBrowser.Plugins.EmbyTV
         private TunerServer tunerServer;
         private Plugin _plugin;
         private GuideData.SchedulesDirect tvGuide;
-        private MediaBrowser.Plugins.EmbyTV.GeneralHelpers.HttpClientHelper Helper; 
+        private MediaBrowser.Plugins.EmbyTV.GeneralHelpers.HttpClientHelper Helper;
+        private DateTime configLastModified;
 
 
         public LiveTvService(IHttpClient httpClient, IJsonSerializer jsonSerializer, ILogger logger, IXmlSerializer xmlSerializer)
@@ -49,25 +50,26 @@ namespace MediaBrowser.Plugins.EmbyTV
             tunerServer = new TunerServer(_plugin.Configuration.apiURL);
             tunerServer.onlyLoadFavorites = _plugin.Configuration.loadOnlyFavorites;           
             tvGuide = new GuideData.SchedulesDirect(_plugin.Configuration.username, _plugin.Configuration.hashPassword, _plugin.Configuration.tvLineUp);
-            var task = Task<string>.Run(async () =>
+            RefreshConfigData();
+            checkForUpdates();
+
+           
+        }
+
+        private void checkForUpdates()
+        {
+            Task.Run(() =>
             {
-                _plugin.Configuration.avaliableLineups = await tvGuide.getLineups(Helper);
-                var dict = await tvGuide.getHeadends(_plugin.Configuration.zipCode,Helper);
-                var names ="";
-                var values = "";
-                foreach(KeyValuePair<string, string> entry in dict){
-                    names = names+","+entry.Key;
-                    values = values+","+entry.Value;
+                while (true)
+                {
+                    Helper.LogInfo("Last Time config modified:" + configLastModified);
+                    if (Plugin.Instance.ConfigurationDateLastModified != configLastModified)
+                    {
+                        RefreshConfigData();
+                    }
+                    System.Threading.Thread.Sleep(1000);
                 }
-                if (!String.IsNullOrWhiteSpace(names)){names=names.Substring(1);values=values.Substring(1);}
-                _plugin.Configuration.headendName = names;
-                _plugin.Configuration.headendValue = values;
-                logger.Info(names);
-                logger.Info(values);
             });
-            task.Wait();     
-
-
         }
 
         /// <summary>
@@ -93,22 +95,7 @@ namespace MediaBrowser.Plugins.EmbyTV
             {
                 Name = "EmbyTV";
             }
-            var task = Task<string>.Run(async () =>
-            {
-                _plugin.Configuration.avaliableLineups = await tvGuide.getLineups(Helper);
-                var dict = await tvGuide.getHeadends(_plugin.Configuration.zipCode, Helper);
-                var names = "";
-                var values = "";
-                foreach (KeyValuePair<string, string> entry in dict)
-                {
-                    names = names + "," + entry.Key;
-                    values = values + "," + entry.Value;
-                }
-                if (!String.IsNullOrWhiteSpace(names)) { names = names.Substring(1); values = values.Substring(1); }
-                _plugin.Configuration.headendName = names;
-                _plugin.Configuration.headendValue = values;
-            });
-            task.Wait();  
+ 
         }
 
           /// <summary>
@@ -173,12 +160,35 @@ namespace MediaBrowser.Plugins.EmbyTV
         {
             throw new NotImplementedException();
         }
-
+        public void RefreshConfigData() {
+            tunerServer = new TunerServer(Plugin.Instance.Configuration.apiURL);
+            tunerServer.onlyLoadFavorites = Plugin.Instance.Configuration.loadOnlyFavorites;
+            tvGuide = new GuideData.SchedulesDirect(Plugin.Instance.Configuration.username, Plugin.Instance.Configuration.hashPassword, Plugin.Instance.Configuration.tvLineUp);
+            var task = Task<string>.Run(async () =>
+            {
+                Plugin.Instance.Configuration.avaliableLineups = await tvGuide.getLineups(Helper);
+                var dict = await tvGuide.getHeadends(Plugin.Instance.Configuration.zipCode, Helper);
+                var names = "";
+                var values = "";
+                foreach (KeyValuePair<string, string> entry in dict)
+                {
+                    names = names + "," + entry.Key;
+                    values = values + "," + entry.Value;
+                }
+                if (!String.IsNullOrWhiteSpace(names)) { names = names.Substring(1); values = values.Substring(1); }
+                Plugin.Instance.Configuration.headendName = names;
+                Plugin.Instance.Configuration.headendValue = values;
+                Plugin.Instance.SaveConfiguration();
+                configLastModified = Plugin.Instance.ConfigurationDateLastModified;
+            });
+            task.Wait();  
+        }
         public Task<ChannelMediaInfo> GetChannelStream(string channelId, CancellationToken cancellationToken)
         {
                 _liveStreams++;
                 string streamUrl = tunerServer.getChannelStreamInfo(channelId);
                Helper.LogInfo("Streaming Channel"+ channelId + "from: "+ streamUrl);
+             //  RefreshConfigData();
                 return Task.FromResult(new ChannelMediaInfo
                 {
                     Id = _liveStreams.ToString(CultureInfo.InvariantCulture),
@@ -253,7 +263,7 @@ namespace MediaBrowser.Plugins.EmbyTV
 
         public string HomePageUrl
         {
-            get {return tunerServer.getWebUrl();}
+            get { return tunerServer.getWebUrl(); }
         }
 
         public string Name
@@ -306,6 +316,7 @@ namespace MediaBrowser.Plugins.EmbyTV
 
         public Task<MediaBrowser.Model.Dto.MediaSourceInfo> GetChannelStream(string channelId, string streamId, CancellationToken cancellationToken)
         {
+           // RefreshConfigData();
             _liveStreams++;
             string streamUrl = tunerServer.getChannelStreamInfo(channelId);
             Helper.LogInfo("Streaming Channel" + channelId + "from: " + streamUrl);

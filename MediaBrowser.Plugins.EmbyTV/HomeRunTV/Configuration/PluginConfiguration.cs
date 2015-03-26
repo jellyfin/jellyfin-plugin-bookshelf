@@ -18,7 +18,7 @@ namespace MediaBrowser.Plugins.EmbyTV.Configuration
         public string headendName { get; set; }
         public string headendValue { get; set; }
         public string zipCode { get; set; }
-
+        //public LiveTvService service {get;set;}
            
 
 
@@ -36,6 +36,12 @@ namespace MediaBrowser.Plugins.EmbyTV.Configuration
             zipCode = "";
 
         }
+       /* public void refreshData(){
+            if (service != null)
+            {
+                service.RefreshConfigData();
+            }
+        }*/
 
 
     }

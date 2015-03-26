@@ -63,6 +63,7 @@ namespace MediaBrowser.Plugins.EmbyTV.GuideData
                 }
             }
         }
+
         public async Task refreshToken(HttpClientHelper httpHelper)
         {
 
@@ -93,37 +94,40 @@ namespace MediaBrowser.Plugins.EmbyTV.GuideData
 
         public async Task<IEnumerable<ChannelInfo>> getChannelInfo(HttpClientHelper httpHelper, IEnumerable<ChannelInfo> channelsInfo)
         {
-            if (apiUrl != "https://json.schedulesdirect.org/20141201") { apiUrl = "https://json.schedulesdirect.org/20141201"; await refreshToken(httpHelper); }
-            else { await getToken(httpHelper); }
-            if (!String.IsNullOrWhiteSpace(_lineup))
+            if (username.Length > 0 && password.Length > 0)
             {
-                httpHelper.httpOptions = new HttpRequestOptionsMod()
+                if (apiUrl != "https://json.schedulesdirect.org/20141201") { apiUrl = "https://json.schedulesdirect.org/20141201"; await refreshToken(httpHelper); }
+                else { await getToken(httpHelper); }
+                if (!String.IsNullOrWhiteSpace(_lineup))
                 {
-                    Url = apiUrl + "/lineups/" + _lineup,
-                    UserAgent = "Emby-Server",
-                    Token = token
-                };
-                channelPair = new Dictionary<string, ScheduleDirect.Station>();
-                var response = await httpHelper.Get();
-                var root = httpHelper.jsonSerializer.DeserializeFromStream<ScheduleDirect.Channel>(response);
-                httpHelper.logger.Info("[EmbyTV] Found " + root.map.Count() + " channels on the lineup on ScheduleDirect");
-                foreach (ScheduleDirect.Map map in root.map)
-                {
-                    channelPair.Add(map.channel, root.stations.First(item => item.stationID == map.stationID));
-                    // httpHelper.logger.Info("[EmbyTV] Added " + map.channel + " " + channelPair[map.channel].name + " " + channelPair[map.channel].stationID);
-                }
-                //httpHelper.logger.Info("[EmbyTV] Added " + channelPair.Count() + " channels to the dictionary");
-                string channelName;
-                foreach (ChannelInfo channel in channelsInfo)
-                {
-                    //  httpHelper.logger.Info("[EmbyTV] Modifyin channel " + channel.Number);
-                    if (channelPair[channel.Number] != null)
+                    httpHelper.httpOptions = new HttpRequestOptionsMod()
                     {
-                        if (channelPair[channel.Number].logo != null) { channel.ImageUrl = channelPair[channel.Number].logo.URL; channel.HasImage = true; }
-                        if (channelPair[channel.Number].affiliate != null) { channelName = channelPair[channel.Number].affiliate; }
-                        else { channelName = channelPair[channel.Number].name; }
-                        channel.Name = channelName;
-                        //channel.Id = channelPair[channel.Number].stationID;
+                        Url = apiUrl + "/lineups/" + _lineup,
+                        UserAgent = "Emby-Server",
+                        Token = token
+                    };
+                    channelPair = new Dictionary<string, ScheduleDirect.Station>();
+                    var response = await httpHelper.Get();
+                    var root = httpHelper.jsonSerializer.DeserializeFromStream<ScheduleDirect.Channel>(response);
+                    httpHelper.logger.Info("[EmbyTV] Found " + root.map.Count() + " channels on the lineup on ScheduleDirect");
+                    foreach (ScheduleDirect.Map map in root.map)
+                    {
+                        channelPair.Add(map.channel, root.stations.First(item => item.stationID == map.stationID));
+                        // httpHelper.logger.Info("[EmbyTV] Added " + map.channel + " " + channelPair[map.channel].name + " " + channelPair[map.channel].stationID);
+                    }
+                    //httpHelper.logger.Info("[EmbyTV] Added " + channelPair.Count() + " channels to the dictionary");
+                    string channelName;
+                    foreach (ChannelInfo channel in channelsInfo)
+                    {
+                        //  httpHelper.logger.Info("[EmbyTV] Modifyin channel " + channel.Number);
+                        if (channelPair[channel.Number] != null)
+                        {
+                            if (channelPair[channel.Number].logo != null) { channel.ImageUrl = channelPair[channel.Number].logo.URL; channel.HasImage = true; }
+                            if (channelPair[channel.Number].affiliate != null) { channelName = channelPair[channel.Number].affiliate; }
+                            else { channelName = channelPair[channel.Number].name; }
+                            channel.Name = channelName;
+                            //channel.Id = channelPair[channel.Number].stationID;
+                        }
                     }
                 }
             }
@@ -132,7 +136,7 @@ namespace MediaBrowser.Plugins.EmbyTV.GuideData
 
         public async Task<IEnumerable<ProgramInfo>> getTvGuideForChannel(HttpClientHelper httpHelper, string channelNumber, DateTime start, DateTime end)
         {
-            if (!String.IsNullOrWhiteSpace(_lineup))
+            if (!String.IsNullOrWhiteSpace(_lineup) && username.Length > 0 && password.Length > 0)
             {
 
                 if (apiUrl != "https://json.schedulesdirect.org/20141201") { apiUrl = "https://json.schedulesdirect.org/20141201"; await refreshToken(httpHelper); }
@@ -337,109 +341,117 @@ namespace MediaBrowser.Plugins.EmbyTV.GuideData
         }
         public async Task<string> getLineups(HttpClientHelper httpHelper)
         {
-            
-            apiUrl = "https://json.schedulesdirect.org/20141201";
-            await refreshToken(httpHelper);
-            httpHelper.logger.Info("[EmbyTV] Lineups on account ");
-            httpHelper.httpOptions = new HttpRequestOptionsMod()
+            if (username.Length > 0 && password.Length > 0)
             {
-                Url = apiUrl + "/lineups",
-                UserAgent = "Emby-Server",
-                Token = token
-            };
-            httpHelper.useCancellationToken();           
-            string Lineups ="";
-            var check = false;
-            try
-            {
-                Stream responce = await httpHelper.Get().ConfigureAwait(false);
-                var root = httpHelper.jsonSerializer.DeserializeFromStream<ScheduleDirect.Lineups>(responce);
+
+                apiUrl = "https://json.schedulesdirect.org/20141201";
+                await refreshToken(httpHelper);
                 httpHelper.logger.Info("[EmbyTV] Lineups on account ");
-                if (root.lineups != null)
+                httpHelper.httpOptions = new HttpRequestOptionsMod()
                 {
-                    foreach (ScheduleDirect.Lineup lineup in root.lineups)
+                    Url = apiUrl + "/lineups",
+                    UserAgent = "Emby-Server",
+                    Token = token
+                };
+                httpHelper.useCancellationToken();
+                string Lineups = "";
+                var check = false;
+                try
+                {
+                    Stream responce = await httpHelper.Get().ConfigureAwait(false);
+                    var root = httpHelper.jsonSerializer.DeserializeFromStream<ScheduleDirect.Lineups>(responce);
+                    httpHelper.logger.Info("[EmbyTV] Lineups on account ");
+                    if (root.lineups != null)
                     {
-                        httpHelper.logger.Info("[EmbyTV] Lineups ID: " + lineup.lineup);
-                        httpHelper.logger.Info("[EmbyTV] Lineups ID: " + _lineup);
-                        httpHelper.logger.Info("[EmbyTV] Lineups ID: " + check);
-                        if (lineup.lineup == _lineup) { check = true; }
-                        if (String.IsNullOrWhiteSpace(Lineups))
+                        foreach (ScheduleDirect.Lineup lineup in root.lineups)
                         {
-                            Lineups = lineup.lineup;
+                            httpHelper.logger.Info("[EmbyTV] Lineups ID: " + lineup.lineup);
+                            if (lineup.lineup == _lineup) { check = true; }
+                            if (String.IsNullOrWhiteSpace(Lineups))
+                            {
+                                Lineups = lineup.lineup;
+                            }
+                            else { Lineups = Lineups + "," + lineup.lineup; }
                         }
-                        else { Lineups = Lineups + "," + lineup.lineup; }
+                        if (!String.IsNullOrWhiteSpace(_lineup) && !check) { await addHeadEnd(httpHelper); }
                     }
-                    if (!String.IsNullOrWhiteSpace(_lineup) && !check) {await addHeadEnd(httpHelper); }
+                    else
+                    {
+                        httpHelper.logger.Info("[EmbyTV] No lineups on account");
+                    }
                 }
-                else
+                catch
                 {
-                    httpHelper.logger.Info("[EmbyTV] No lineups on account");
+                    httpHelper.logger.Error("[EmbyTV] Couldn't obtain lineups");
+                    return Lineups;
                 }
-            }
-            catch
-            {
-                httpHelper.logger.Error("[EmbyTV] Couldn't obtain lineups");
                 return Lineups;
-            }
-            return Lineups;
+            } return "";
         }
         public async Task<Dictionary<string,string>> getHeadends(string zipcode,HttpClientHelper httpHelper)
         {
-            apiUrl = "https://json.schedulesdirect.org/20141201";
-            await refreshToken(httpHelper);
-            httpHelper.logger.Info("[EmbyTV] Headends on account ");
-            httpHelper.httpOptions = new HttpRequestOptionsMod()
-            {
-                Url = apiUrl +"/headends?country=USA&postalcode="+zipcode,
-                UserAgent = "Emby-Server",
-                Token = token
-            };
-            httpHelper.useCancellationToken();
             Dictionary<string, string> lineups = new Dictionary<string, string>();
-            try
+            if (username.Length > 0 && password.Length > 0)
             {
-                Stream responce = await httpHelper.Get().ConfigureAwait(false);
-                var root = httpHelper.jsonSerializer.DeserializeFromStream<List<ScheduleDirect.Headends>>(responce);
-                httpHelper.logger.Info("[EmbyTV] Lineups on account ");
-                if (root != null)
+                apiUrl = "https://json.schedulesdirect.org/20141201";
+                await refreshToken(httpHelper);
+                httpHelper.logger.Info("[EmbyTV] Headends on account ");
+                httpHelper.httpOptions = new HttpRequestOptionsMod()
                 {
-                    foreach (ScheduleDirect.Headends headend in root)
+                    Url = apiUrl + "/headends?country=USA&postalcode=" + zipcode,
+                    UserAgent = "Emby-Server",
+                    Token = token
+                };
+                httpHelper.useCancellationToken();                
+                try
+                {
+                    Stream responce = await httpHelper.Get().ConfigureAwait(false);
+                    var root = httpHelper.jsonSerializer.DeserializeFromStream<List<ScheduleDirect.Headends>>(responce);
+                    httpHelper.logger.Info("[EmbyTV] Lineups on account ");
+                    if (root != null)
                     {
-                        httpHelper.logger.Info("[EmbyTV] Headend: " + headend.headend);
-                        foreach (ScheduleDirect.Lineup lineup in headend.lineups)
-                        if (!String.IsNullOrWhiteSpace(lineup.name))
+                        foreach (ScheduleDirect.Headends headend in root)
                         {
-                            httpHelper.logger.Info("[EmbyTV] Headend: " + lineup.uri.Substring(18));
-                            lineups.Add(lineup.name,lineup.uri.Substring(18));
+                            httpHelper.logger.Info("[EmbyTV] Headend: " + headend.headend);
+                            foreach (ScheduleDirect.Lineup lineup in headend.lineups)
+                                if (!String.IsNullOrWhiteSpace(lineup.name))
+                                {
+                                    httpHelper.logger.Info("[EmbyTV] Headend: " + lineup.uri.Substring(18));
+                                    lineups.Add(lineup.name, lineup.uri.Substring(18));
+                                }
                         }
                     }
+                    else
+                    {
+                        httpHelper.logger.Info("[EmbyTV] No lineups on account");
+                    }
                 }
-                else
+                catch
                 {
-                    httpHelper.logger.Info("[EmbyTV] No lineups on account");
+                    httpHelper.logger.Error("[EmbyTV] Couldn't obtain lineups");
+                    return lineups;
                 }
-            }
-            catch
-            {
-                httpHelper.logger.Error("[EmbyTV] Couldn't obtain lineups");
-                return lineups;
             }
             return lineups;
         }
 
-        public async Task addHeadEnd(HttpClientHelper httpHelper){
-            apiUrl = "https://json.schedulesdirect.org/20141201";
-            await refreshToken(httpHelper);
-            httpHelper.logger.Info("[EmbyTV] Adding new LineUp ");
-            httpHelper.httpOptions = new HttpRequestOptionsMod()
+        public async Task addHeadEnd(HttpClientHelper httpHelper)
+        {
+            if (username.Length > 0 && password.Length > 0 && String.IsNullOrWhiteSpace(_lineup))
             {
-                Url = apiUrl + "/lineups/"+_lineup,
-                UserAgent = "Emby-Server",
-                Token = token
-            };
-            httpHelper.useCancellationToken();
+                apiUrl = "https://json.schedulesdirect.org/20141201";
+                await refreshToken(httpHelper);
+                httpHelper.logger.Info("[EmbyTV] Adding new LineUp ");
+                httpHelper.httpOptions = new HttpRequestOptionsMod()
+                {
+                    Url = apiUrl + "/lineups/" + _lineup,
+                    UserAgent = "Emby-Server",
+                    Token = token
+                };
+                httpHelper.useCancellationToken();
 
-            await httpHelper.httpClient.SendAsync(httpHelper.httpOptions, "PUT");
+                await httpHelper.httpClient.SendAsync(httpHelper.httpOptions, "PUT");
+            }
         }
     }
 }
