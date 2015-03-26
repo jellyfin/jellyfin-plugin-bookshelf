@@ -62,7 +62,7 @@ namespace EmbyTV
             {
                 while (true)
                 {
-                    Helper.LogInfo("Last Time config modified:" + configLastModified);
+                    //Helper.LogInfo("Last Time config modified:" + configLastModified);
                     if (Plugin.Instance.ConfigurationDateLastModified != configLastModified)
                     {
                         RefreshConfigData();
