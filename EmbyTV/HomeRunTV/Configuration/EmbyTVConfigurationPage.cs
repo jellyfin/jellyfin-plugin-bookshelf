@@ -2,7 +2,7 @@
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Controller.Plugins;
 
-namespace MediaBrowser.Plugins.EmbyTV.Configuration
+namespace EmbyTV.Configuration
 {
     class EmbyTVConfigurationPage : IPluginConfigurationPage
     {
@@ -35,7 +35,7 @@ namespace MediaBrowser.Plugins.EmbyTV.Configuration
 
         public IPlugin Plugin
         {
-            get { return MediaBrowser.Plugins.EmbyTV.Plugin.Instance; }
+            get { return EmbyTV.Plugin.Instance; }
         }
     }
 }

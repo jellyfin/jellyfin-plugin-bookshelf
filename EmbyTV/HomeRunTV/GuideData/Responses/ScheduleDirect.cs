@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using MediaBrowser.Model.Serialization;
 
-namespace MediaBrowser.Plugins.EmbyTV.GuideData.Responses
+namespace EmbyTV.GuideData.Responses
 {
     class ScheduleDirect
     {

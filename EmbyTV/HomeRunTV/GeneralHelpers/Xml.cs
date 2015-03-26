@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MediaBrowser.Plugins.EmbyTV.General_Helper
+namespace EmbyTV.General_Helper
 {
     public static class Xml
     {

@@ -9,7 +9,7 @@ using MediaBrowser.Model.Serialization;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Model.Logging;
 
-namespace MediaBrowser.Plugins.EmbyTV.GeneralHelpers
+namespace EmbyTV.GeneralHelpers
 {
     public class HttpClientHelper
     {

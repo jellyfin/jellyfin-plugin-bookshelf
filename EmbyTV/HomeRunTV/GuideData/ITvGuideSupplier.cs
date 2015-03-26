@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using MediaBrowser.Plugins.EmbyTV.GeneralHelpers;
+using EmbyTV.GeneralHelpers;
 
-namespace MediaBrowser.Plugins.EmbyTV.GuideData
+namespace EmbyTV.GuideData
 {
     interface ITvGuideSupplier
     {

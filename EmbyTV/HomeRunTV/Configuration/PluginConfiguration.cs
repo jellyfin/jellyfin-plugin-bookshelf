@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using MediaBrowser.Model.Plugins;
-using MediaBrowser.Plugins.EmbyTV.GuideData;
-using MediaBrowser.Plugins.EmbyTV.GeneralHelpers;
-namespace MediaBrowser.Plugins.EmbyTV.Configuration
+using EmbyTV.GuideData;
+using EmbyTV.GeneralHelpers;
+namespace EmbyTV.Configuration
 {
     public class PluginConfiguration:BasePluginConfiguration
     {

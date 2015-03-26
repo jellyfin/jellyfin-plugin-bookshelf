@@ -11,15 +11,15 @@ using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Model.Net;
 using MediaBrowser.Common.Net;
-using MediaBrowser.Plugins.EmbyTV.General_Helper;
+using EmbyTV.General_Helper;
 using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Controller.Channels;
 using MediaBrowser.Model.LiveTv;
-using MediaBrowser.Plugins.EmbyTV.GuideData.Responses;
-using MediaBrowser.Plugins.EmbyTV.GeneralHelpers;
+using EmbyTV.GuideData.Responses;
+using EmbyTV.GeneralHelpers;
 
 
-namespace MediaBrowser.Plugins.EmbyTV.GuideData
+namespace EmbyTV.GuideData
 {
     public class SchedulesDirect : ITvGuideSupplier
     {

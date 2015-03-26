@@ -1,9 +1,9 @@
 ﻿using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Serialization;
-using MediaBrowser.Plugins.EmbyTV.Configuration;
+using EmbyTV.Configuration;
 
-namespace MediaBrowser.Plugins.EmbyTV
+namespace EmbyTV
 {
     public class Plugin : BasePlugin<PluginConfiguration>
     {

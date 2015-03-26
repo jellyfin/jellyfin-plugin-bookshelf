@@ -8,14 +8,14 @@ using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Model.Net;
 using MediaBrowser.Common.Net;
-using MediaBrowser.Plugins.EmbyTV.General_Helper;
+using EmbyTV.General_Helper;
 using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Controller.Channels;
 using MediaBrowser.Model.LiveTv;
-using MediaBrowser.Plugins.EmbyTV.GeneralHelpers;
+using EmbyTV.GeneralHelpers;
 
 
-namespace MediaBrowser.Plugins.EmbyTV.TunerHelpers
+namespace EmbyTV.TunerHelpers
 {
     public class TunerServer
     {

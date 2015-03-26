@@ -19,8 +19,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-using MediaBrowser.Plugins.EmbyTV.TunerHelpers; 
-namespace MediaBrowser.Plugins.EmbyTV
+using EmbyTV.TunerHelpers; 
+namespace EmbyTV
 {
     /// <summary>
     /// Class LiveTvService
@@ -33,7 +33,7 @@ namespace MediaBrowser.Plugins.EmbyTV
         private TunerServer tunerServer;
         private Plugin _plugin;
         private GuideData.SchedulesDirect tvGuide;
-        private MediaBrowser.Plugins.EmbyTV.GeneralHelpers.HttpClientHelper Helper;
+        private EmbyTV.GeneralHelpers.HttpClientHelper Helper;
         private DateTime configLastModified;
 
 
