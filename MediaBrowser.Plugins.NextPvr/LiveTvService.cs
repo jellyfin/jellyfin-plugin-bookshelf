@@ -3,6 +3,8 @@ using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Channels;
 using MediaBrowser.Controller.Drawing;
 using MediaBrowser.Controller.LiveTv;
+using MediaBrowser.Model.Dto;
+using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.MediaInfo;
 using MediaBrowser.Model.Net;
@@ -636,7 +638,17 @@ namespace MediaBrowser.Plugins.NextPvr
             }
         }
 
-        public async Task<ChannelMediaInfo> GetChannelStream(string channelOid, CancellationToken cancellationToken)
+        public Task<List<MediaSourceInfo>> GetChannelStreamMediaSources(string channelId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<MediaSourceInfo>> GetRecordingStreamMediaSources(string recordingId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<MediaSourceInfo> GetChannelStream(string channelOid, string mediaSourceId, CancellationToken cancellationToken)
         {
             _logger.Info("[NextPvr] Start ChannelStream");
             var config = Plugin.Instance.Configuration;
@@ -662,11 +674,26 @@ namespace MediaBrowser.Plugins.NextPvr
                     await Task.Delay(20000).ConfigureAwait(false);
                     _logger.Info("[NextPvr] Finishing wait");
                     _heartBeat.Add(_liveStreams, vlcObj.ProcessId);
-                    return new ChannelMediaInfo
+                    return new MediaSourceInfo
                     {
                         Id = _liveStreams.ToString(CultureInfo.InvariantCulture),
                         Path = vlcObj.StreamLocation,
-                        Protocol = MediaProtocol.File
+                        Protocol = MediaProtocol.File,
+                        MediaStreams = new List<MediaStream>
+                        {
+                            new MediaStream
+                            {
+                                Type = MediaStreamType.Video,
+                                // Set the index to -1 because we don't know the exact index of the video stream within the container
+                                Index = -1
+                            },
+                            new MediaStream
+                            {
+                                Type = MediaStreamType.Audio,
+                                // Set the index to -1 because we don't know the exact index of the audio stream within the container
+                                Index = -1
+                            }
+                        }
                     };
                 }
             }
@@ -674,39 +701,84 @@ namespace MediaBrowser.Plugins.NextPvr
             {
                 string streamUrl = string.Format("{0}/live?channeloid={1}&client=MB3.{2}", baseUrl, channelOid,_liveStreams.ToString());
                 _logger.Info("[NextPvr] Streaming " + streamUrl);
-                return new ChannelMediaInfo
+                return new MediaSourceInfo
                 {
                     Id = _liveStreams.ToString(CultureInfo.InvariantCulture),
                     Path = streamUrl,
-                    Protocol = MediaProtocol.Http
+                    Protocol = MediaProtocol.Http,
+                    MediaStreams = new List<MediaStream>
+                        {
+                            new MediaStream
+                            {
+                                Type = MediaStreamType.Video,
+                                // Set the index to -1 because we don't know the exact index of the video stream within the container
+                                Index = -1
+                            },
+                            new MediaStream
+                            {
+                                Type = MediaStreamType.Audio,
+                                // Set the index to -1 because we don't know the exact index of the audio stream within the container
+                                Index = -1
+                            }
+                        }
                 };               
             }
             throw new ResourceNotFoundException(string.Format("Could not stream channel {0}", channelOid));            
         }
 
-        public async Task<ChannelMediaInfo> GetRecordingStream(string recordingId, CancellationToken cancellationToken)
+        public async Task<MediaSourceInfo> GetRecordingStream(string recordingId, string mediaSourceId, CancellationToken cancellationToken)
         {
             _logger.Info("[NextPvr] Start GetRecordingStream");
             var recordings = await GetRecordingsAsync(cancellationToken).ConfigureAwait(false);
             var recording = recordings.First(i => string.Equals(i.Id, recordingId, StringComparison.OrdinalIgnoreCase));
 
-            if (!string.IsNullOrEmpty(recording.Path) && File.Exists(recording.Path))
-            {
-                _logger.Info("[NextPvr] RecordingPath: {0}", recording.Path);
-                return new ChannelMediaInfo
-                {
-                    Path = recording.Path,
-                    Protocol = MediaProtocol.File
-                };
-            }
-
             if (!string.IsNullOrEmpty(recording.Url))
             {
                 _logger.Info("[NextPvr] RecordingUrl: {0}", recording.Url);
-                return new ChannelMediaInfo
+                return new MediaSourceInfo
                 {
                     Path = recording.Url,
-                    Protocol = MediaProtocol.Http
+                    Protocol = MediaProtocol.Http,
+                    MediaStreams = new List<MediaStream>
+                        {
+                            new MediaStream
+                            {
+                                Type = MediaStreamType.Video,
+                                // Set the index to -1 because we don't know the exact index of the video stream within the container
+                                Index = -1
+                            },
+                            new MediaStream
+                            {
+                                Type = MediaStreamType.Audio,
+                                // Set the index to -1 because we don't know the exact index of the audio stream within the container
+                                Index = -1
+                            }
+                        }
+                };
+            }
+
+            if (!string.IsNullOrEmpty(recording.Path) && File.Exists(recording.Path))
+            {
+                _logger.Info("[NextPvr] RecordingPath: {0}", recording.Path);
+                return new MediaSourceInfo
+                {
+                    Path = recording.Path,
+                    Protocol = MediaProtocol.File,
+                    MediaStreams = new List<MediaStream>
+                        {
+                            new MediaStream
+                            {
+                                Type = MediaStreamType.Video,
+                                // Set the index to -1 because we don't know the exact index of the video stream within the container
+                                Index = -1
+                            },
+                            new MediaStream
+                            {
+                                Type = MediaStreamType.Audio,
+                                // Set the index to -1 because we don't know the exact index of the audio stream within the container
+                                Index = -1
+                            }
+                        }
                 };
             }
 

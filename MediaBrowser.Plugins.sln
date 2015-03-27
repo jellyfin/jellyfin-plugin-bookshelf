@@ -12,10 +12,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.NextPvr", "MediaBrowser.Plugins.NextPvr\MediaBrowser.Plugins.NextPvr.csproj", "{815AB3F4-6B55-4FC4-9441-9297A3A116CB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.NesBox", "MediaBrowser.Plugins.NesBox\MediaBrowser.Plugins.NesBox.csproj", "{0984E20F-397A-42F9-BA75-ED7693CD205B}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.SnesBox", "MediaBrowser.Plugins.SnesBox\MediaBrowser.Plugins.SnesBox.csproj", "{C2166867-8753-4B59-ACE0-5F7D9D767543}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.ADEProvider", "MediaBrowser.Plugins.ADEProvider\MediaBrowser.Plugins.ADEProvider.csproj", "{2F1E5734-05C5-495D-B11B-42C4762CF4CF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.SmtpNotifications", "MediaBrowser.Plugins.SmtpNotifications\MediaBrowser.Plugins.SmtpNotifications.csproj", "{B318F84E-B740-45BD-ADA8-1773C5A953F5}"
@@ -34,8 +30,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.Chapte
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.ArgusTV", "MediaBrowser.Plugins.ArgusTV\MediaBrowser.Plugins.ArgusTV.csproj", "{30B2A395-5E43-454F-8093-DAF307D6D4FB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.WindowsLiveTiles", "MediaBrowser.Plugins.WindowsLiveTiles\MediaBrowser.Plugins.WindowsLiveTiles.csproj", "{50CFC4B0-5B2C-4FA5-B515-7ED2AB060407}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.PushBulletNotifications", "MediaBrowser.Plugins.PushBulletNotifications\MediaBrowser.Plugins.PushBulletNotifications.csproj", "{D3018C1D-19DD-407E-9A44-304E172599D3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.Lastfm", "MediaBrowser.Plugins.Lastfm\MediaBrowser.Plugins.Lastfm.csproj", "{9D487969-76A8-4CC9-8D4C-FC65B4B3B21E}"
@@ -49,7 +43,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RokuMetadata", "RokuMetadata\RokuMetadata.csproj", "{E0FECDE5-B375-45AF-9B07-BD64977F966C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.GoogleDrive", "MediaBrowser.Plugins.GoogleDrive\MediaBrowser.Plugins.GoogleDrive.csproj", "{1B6D0A02-F1C2-4817-8958-4A996DEF5AC7}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FolderSync", "FolderSync\FolderSync.csproj", "{D18C2B09-4793-4D16-AC5D-C04C0E5AC976}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmbyTV", "EmbyTV\EmbyTV.csproj", "{2B05D1F9-79D2-452F-B311-0A603C57BB22}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -71,18 +68,6 @@ Global
 		{815AB3F4-6B55-4FC4-9441-9297A3A116CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{815AB3F4-6B55-4FC4-9441-9297A3A116CB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{815AB3F4-6B55-4FC4-9441-9297A3A116CB}.Release|x86.ActiveCfg = Release|Any CPU
-		{0984E20F-397A-42F9-BA75-ED7693CD205B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0984E20F-397A-42F9-BA75-ED7693CD205B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0984E20F-397A-42F9-BA75-ED7693CD205B}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{0984E20F-397A-42F9-BA75-ED7693CD205B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0984E20F-397A-42F9-BA75-ED7693CD205B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0984E20F-397A-42F9-BA75-ED7693CD205B}.Release|x86.ActiveCfg = Release|Any CPU
-		{C2166867-8753-4B59-ACE0-5F7D9D767543}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C2166867-8753-4B59-ACE0-5F7D9D767543}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C2166867-8753-4B59-ACE0-5F7D9D767543}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{C2166867-8753-4B59-ACE0-5F7D9D767543}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C2166867-8753-4B59-ACE0-5F7D9D767543}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C2166867-8753-4B59-ACE0-5F7D9D767543}.Release|x86.ActiveCfg = Release|Any CPU
 		{2F1E5734-05C5-495D-B11B-42C4762CF4CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2F1E5734-05C5-495D-B11B-42C4762CF4CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2F1E5734-05C5-495D-B11B-42C4762CF4CF}.Debug|x86.ActiveCfg = Debug|Any CPU
@@ -137,12 +122,6 @@ Global
 		{30B2A395-5E43-454F-8093-DAF307D6D4FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{30B2A395-5E43-454F-8093-DAF307D6D4FB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{30B2A395-5E43-454F-8093-DAF307D6D4FB}.Release|x86.ActiveCfg = Release|Any CPU
-		{50CFC4B0-5B2C-4FA5-B515-7ED2AB060407}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{50CFC4B0-5B2C-4FA5-B515-7ED2AB060407}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{50CFC4B0-5B2C-4FA5-B515-7ED2AB060407}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{50CFC4B0-5B2C-4FA5-B515-7ED2AB060407}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{50CFC4B0-5B2C-4FA5-B515-7ED2AB060407}.Release|Any CPU.Build.0 = Release|Any CPU
-		{50CFC4B0-5B2C-4FA5-B515-7ED2AB060407}.Release|x86.ActiveCfg = Release|Any CPU
 		{D3018C1D-19DD-407E-9A44-304E172599D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D3018C1D-19DD-407E-9A44-304E172599D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D3018C1D-19DD-407E-9A44-304E172599D3}.Debug|x86.ActiveCfg = Debug|Any CPU
@@ -191,6 +170,12 @@ Global
 		{D18C2B09-4793-4D16-AC5D-C04C0E5AC976}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D18C2B09-4793-4D16-AC5D-C04C0E5AC976}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D18C2B09-4793-4D16-AC5D-C04C0E5AC976}.Release|x86.ActiveCfg = Release|Any CPU
+		{2B05D1F9-79D2-452F-B311-0A603C57BB22}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B05D1F9-79D2-452F-B311-0A603C57BB22}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B05D1F9-79D2-452F-B311-0A603C57BB22}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2B05D1F9-79D2-452F-B311-0A603C57BB22}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B05D1F9-79D2-452F-B311-0A603C57BB22}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B05D1F9-79D2-452F-B311-0A603C57BB22}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,17 +1,13 @@
 ﻿using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Serialization;
-using MediaBrowser.Plugins.NesBox.Configuration;
+using EmbyTV.Configuration;
 
-namespace MediaBrowser.Plugins.NesBox
+namespace EmbyTV
 {
-    /// <summary>
-    /// Class Plugin
-    /// </summary>
     public class Plugin : BasePlugin<PluginConfiguration>
     {
-        public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer)
-            : base(applicationPaths, xmlSerializer)
+        public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer) : base(applicationPaths, xmlSerializer)
         {
             Instance = this;
         }
@@ -22,7 +18,7 @@ namespace MediaBrowser.Plugins.NesBox
         /// <value>The name.</value>
         public override string Name
         {
-            get { return "NESBox"; }
+            get { return "EmbyTV"; }
         }
 
         /// <summary>
@@ -33,7 +29,7 @@ namespace MediaBrowser.Plugins.NesBox
         {
             get
             {
-                return "Adds NESBox links for Nintendo games.";
+                return "Provides live tv.";
             }
         }
 
