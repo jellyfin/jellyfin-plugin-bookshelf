@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace EmbyTV.TunerHost
@@ -45,9 +46,13 @@ namespace EmbyTV.TunerHost
         {
             return getWebUrl() + ":" + port;
         }
-        public async Task GetDeviceInfo()
+        public async Task GetDeviceInfo(CancellationToken cancellationToken)
         {
-            var httpOptions = new HttpRequestOptions() { Url = string.Format("{0}/", getWebUrl()) };
+            var httpOptions = new HttpRequestOptions()
+            {
+                Url = string.Format("{0}/", getWebUrl()),
+                CancellationToken = cancellationToken
+            };
             using (var stream = await _httpClient.Get(httpOptions))
             {
                 using (var sr = new StreamReader(stream, System.Text.Encoding.UTF8))
@@ -66,9 +71,13 @@ namespace EmbyTV.TunerHost
                 }
             }
         }
-        public async Task<List<LiveTvTunerInfo>> GetTunersInfo()
+        public async Task<List<LiveTvTunerInfo>> GetTunersInfo(CancellationToken cancellationToken)
         {
-            var httpOptions = new HttpRequestOptions() { Url = string.Format("{0}/tuners.html", getWebUrl()) };
+            var httpOptions = new HttpRequestOptions()
+            {
+                Url = string.Format("{0}/tuners.html", getWebUrl()),
+                CancellationToken = cancellationToken
+            };
             using (var stream = await _httpClient.Get(httpOptions))
             {
                 CreateTuners(stream);
@@ -108,10 +117,14 @@ namespace EmbyTV.TunerHost
             tuners[tunerPos].Status = status;
         }
 
-        public async Task<IEnumerable<ChannelInfo>> GetChannels()
+        public async Task<IEnumerable<ChannelInfo>> GetChannels(CancellationToken cancellationToken)
         {
             List<ChannelInfo> ChannelList;
-            var options = new HttpRequestOptions { Url = string.Format("{0}/lineup.json", getWebUrl()) };
+            var options = new HttpRequestOptions
+            {
+                Url = string.Format("{0}/lineup.json", getWebUrl()),
+                CancellationToken = cancellationToken
+            };
             using (var stream = await _httpClient.Get(options))
             {
                 var root = _jsonSerializer.DeserializeFromStream<List<Channels>>(stream);

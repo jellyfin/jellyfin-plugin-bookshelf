@@ -1,4 +1,5 @@
-﻿using EmbyTV.EPGProvider.Responses;
+﻿using System.Threading;
+using EmbyTV.EPGProvider.Responses;
 using EmbyTV.GeneralHelpers;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.LiveTv;
@@ -37,7 +38,7 @@ namespace EmbyTV.EPGProvider
             apiUrl = "https://json.schedulesdirect.org/20141201";
         }
 
-        public async Task getToken()
+        public async Task getToken(CancellationToken cancellationToken)
         {
 
             if (username.Length > 0 && password.Length > 0)
@@ -47,6 +48,7 @@ namespace EmbyTV.EPGProvider
                     Url = apiUrl + "/token",
                     UserAgent = "Emby-Server",
                     RequestContent = "{\"username\":\"" + username + "\",\"password\":\"" + password + "\"}",
+                    CancellationToken = cancellationToken
                 };
                 _logger.Info("Obtaining token from Schedules Direct from addres: " + httpOptions.Url + " with body " + httpOptions.RequestContent);
                 using (var responce = await _httpClient.Post(httpOptions))
@@ -58,7 +60,7 @@ namespace EmbyTV.EPGProvider
             }
         }
 
-        public async Task refreshToken()
+        public async Task refreshToken(CancellationToken cancellationToken)
         {
             if (username.Length > 0 && password.Length > 0)
             {
@@ -67,6 +69,7 @@ namespace EmbyTV.EPGProvider
                     Url = apiUrl + "/token",
                     UserAgent = "Emby-Server",
                     RequestContent = "{\"username\":\"" + username + "\",\"password\":\"" + password + "\"}",
+                    CancellationToken = cancellationToken
                 };
 
                 _logger.Info("Obtaining token from Schedules Direct from addres: " + httpOptions.Url + " with body " + httpOptions.RequestContent);
@@ -79,19 +82,20 @@ namespace EmbyTV.EPGProvider
             }
         }
 
-        public async Task<IEnumerable<ChannelInfo>> getChannelInfo(IEnumerable<ChannelInfo> channelsInfo)
+        public async Task<IEnumerable<ChannelInfo>> getChannelInfo(IEnumerable<ChannelInfo> channelsInfo, CancellationToken cancellationToken)
         {
             if (username.Length > 0 && password.Length > 0)
             {
-                if (apiUrl != "https://json.schedulesdirect.org/20141201") { apiUrl = "https://json.schedulesdirect.org/20141201"; await refreshToken(); }
-                else { await getToken(); }
+                if (apiUrl != "https://json.schedulesdirect.org/20141201") { apiUrl = "https://json.schedulesdirect.org/20141201"; await refreshToken(cancellationToken); }
+                else { await getToken(cancellationToken); }
                 if (!String.IsNullOrWhiteSpace(_lineup))
                 {
                     var httpOptions = new HttpRequestOptionsMod()
                     {
                         Url = apiUrl + "/lineups/" + _lineup,
                         UserAgent = "Emby-Server",
-                        Token = token
+                        Token = token,
+                        CancellationToken = cancellationToken
                     };
                     channelPair = new Dictionary<string, ScheduleDirect.Station>();
                     using (var response = await _httpClient.Get(httpOptions))
@@ -124,17 +128,18 @@ namespace EmbyTV.EPGProvider
             return channelsInfo;
         }
 
-        public async Task<IEnumerable<ProgramInfo>> getTvGuideForChannel(string channelNumber, DateTime start, DateTime end)
+        public async Task<IEnumerable<ProgramInfo>> getTvGuideForChannel(string channelNumber, DateTime start, DateTime end, CancellationToken cancellationToken)
         {
             if (!String.IsNullOrWhiteSpace(_lineup) && username.Length > 0 && password.Length > 0)
             {
-                if (apiUrl != "https://json.schedulesdirect.org/20141201") { apiUrl = "https://json.schedulesdirect.org/20141201"; await refreshToken(); }
-                else { await getToken(); }
+                if (apiUrl != "https://json.schedulesdirect.org/20141201") { apiUrl = "https://json.schedulesdirect.org/20141201"; await refreshToken(cancellationToken); }
+                else { await getToken(cancellationToken); }
                 HttpRequestOptionsMod httpOptions = new HttpRequestOptionsMod()
                 {
                     Url = apiUrl + "/schedules",
                     UserAgent = "Emby-Server",
-                    Token = token
+                    Token = token,
+                    CancellationToken = cancellationToken
                 };
                 _logger.Info("Schedules 1");
                 List<string> dates = new List<string>();
@@ -175,7 +180,8 @@ namespace EmbyTV.EPGProvider
                     {
                         Url = apiUrl + "/programs",
                         UserAgent = "Emby-Server",
-                        Token = token
+                        Token = token,
+                        CancellationToken = cancellationToken
                     };
                     // httpOptions.SetRequestHeader("Accept-Encoding", "deflate,gzip");
                     httpOptions.EnableHttpCompression = true;
@@ -331,19 +337,20 @@ namespace EmbyTV.EPGProvider
             }
             return false;
         }
-        public async Task<string> getLineups()
+        public async Task<string> getLineups(CancellationToken cancellationToken)
         {
             if (username.Length > 0 && password.Length > 0)
             {
 
                 apiUrl = "https://json.schedulesdirect.org/20141201";
-                await refreshToken();
+                await refreshToken(cancellationToken);
                 _logger.Info("Lineups on account ");
                 var httpOptions = new HttpRequestOptionsMod()
                 {
                     Url = apiUrl + "/lineups",
                     UserAgent = "Emby-Server",
-                    Token = token
+                    Token = token,
+                    CancellationToken = cancellationToken
                 };
                 string Lineups = "";
                 var check = false;
@@ -363,7 +370,7 @@ namespace EmbyTV.EPGProvider
                             }
                             else { Lineups = Lineups + "," + lineup.lineup; }
                         }
-                        if (!String.IsNullOrWhiteSpace(_lineup) && !check) { await addHeadEnd(); }
+                        if (!String.IsNullOrWhiteSpace(_lineup) && !check) { await addHeadEnd(cancellationToken); }
                     }
                     else
                     {
@@ -373,19 +380,20 @@ namespace EmbyTV.EPGProvider
                 }
             } return "";
         }
-        public async Task<Dictionary<string, string>> getHeadends(string zipcode)
+        public async Task<Dictionary<string, string>> getHeadends(string zipcode, CancellationToken cancellationToken)
         {
             Dictionary<string, string> lineups = new Dictionary<string, string>();
             if (username.Length > 0 && password.Length > 0)
             {
                 apiUrl = "https://json.schedulesdirect.org/20141201";
-                await refreshToken();
+                await refreshToken(cancellationToken);
                 _logger.Info("Headends on account ");
                 var httpOptions = new HttpRequestOptionsMod()
                 {
                     Url = apiUrl + "/headends?country=USA&postalcode=" + zipcode,
                     UserAgent = "Emby-Server",
-                    Token = token
+                    Token = token,
+                    CancellationToken = cancellationToken
                 };
 
                 using (Stream responce = await _httpClient.Get(httpOptions).ConfigureAwait(false))
@@ -414,18 +422,19 @@ namespace EmbyTV.EPGProvider
             return lineups;
         }
 
-        public async Task addHeadEnd()
+        public async Task addHeadEnd(CancellationToken cancellationToken)
         {
             if (username.Length > 0 && password.Length > 0 && String.IsNullOrWhiteSpace(_lineup))
             {
                 apiUrl = "https://json.schedulesdirect.org/20141201";
-                await refreshToken();
+                await refreshToken(cancellationToken);
                 _logger.Info("Adding new LineUp ");
                 var httpOptions = new HttpRequestOptionsMod()
                 {
                     Url = apiUrl + "/lineups/" + _lineup,
                     UserAgent = "Emby-Server",
-                    Token = token
+                    Token = token,
+                    CancellationToken = cancellationToken
                 };
 
                 using (var response = await _httpClient.SendAsync(httpOptions, "PUT"))
