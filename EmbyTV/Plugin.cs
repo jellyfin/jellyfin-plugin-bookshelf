@@ -18,7 +18,7 @@ namespace EmbyTV
         /// <value>The name.</value>
         public override string Name
         {
-            get { return "Live TV"; }
+            get { return "EmbyTV"; }
         }
 
         /// <summary>
