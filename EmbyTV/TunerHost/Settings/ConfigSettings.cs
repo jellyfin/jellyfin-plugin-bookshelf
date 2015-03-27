@@ -8,7 +8,7 @@ namespace EmbyTV.TunerHost.Settings
 {
     public class TunerHostSettings
     {
-        public List<Constructor> Settings { get; set; }
+        public Constructor[] Settings { get; set; }
        
     }
     public class Constructor

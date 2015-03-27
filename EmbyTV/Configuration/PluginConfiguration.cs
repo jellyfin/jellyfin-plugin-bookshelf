@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using EmbyTV.TunerHost.Settings;
 using MediaBrowser.Model.Plugins;
-using EmbyTV.TunerHost.Settings;
 
 namespace EmbyTV.Configuration
 {
@@ -19,9 +17,6 @@ namespace EmbyTV.Configuration
         public string zipCode { get; set; }
         public TunerHostSettings Settings { get; set; }
 
-           
-
-
         public PluginConfiguration()
         {
             Port = "5004";
@@ -34,11 +29,14 @@ namespace EmbyTV.Configuration
             headendName = "";
             headendValue = "";
             zipCode = "";
-            Settings = new TunerHostSettings() { Settings = new List<Constructor>() };
-            Settings.Settings.Add(new Constructor() { Name="hostname",Label = "HomeRun hostname or IP address:", DefaultValue = "localhost", Type = "Single", Description = "Tunner url (format --> {hostname})." });
-            Settings.Settings.Add(new Constructor() { Name = "Test Name 2", DefaultValue = "Default Value 2", Type = "Single 2", Description = "test config generator 2" });
+            Settings = new TunerHostSettings()
+            {
+                Settings = new Constructor[]
+                {
+                    new Constructor() { Name="hostname",Label = "HomeRun hostname or IP address:", DefaultValue = "localhost", Type = "Single", Description = "Tunner url (format --> {hostname})." },
+                    new Constructor() { Name = "Test Name 2", DefaultValue = "Default Value 2", Type = "Single 2", Description = "test config generator 2" }
+                }
+            };
         }
-
-
     }
 }

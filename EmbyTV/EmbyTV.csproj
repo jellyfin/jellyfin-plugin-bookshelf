@@ -62,6 +62,7 @@
     </Compile>
     <Compile Include="Configuration\EmbyTVConfigurationPage.cs" />
     <Compile Include="Configuration\PluginConfiguration.cs" />
+    <Compile Include="EntryPoint.cs" />
     <Compile Include="GeneralHelpers\HttpClientHelper.cs" />
     <Compile Include="GeneralHelpers\Xml.cs" />
     <Compile Include="EPGProvider\IEpgProvider.cs" />
@@ -74,7 +75,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TunerHost\Settings\ConfigSettings.cs" />
     <Compile Include="TunerHost\TunerServer.cs" />
-    <Compile Include="TunerHost\webResponseParser.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Configuration\configPage.html" />

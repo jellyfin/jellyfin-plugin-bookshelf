@@ -1,4 +1,4 @@
-﻿﻿using MediaBrowser.Common.Extensions;
+﻿﻿using EmbyTV.TunerHost;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Channels;
 using MediaBrowser.Controller.Drawing;
@@ -7,21 +7,13 @@ using MediaBrowser.Model.Dto;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.MediaInfo;
-using MediaBrowser.Model.Net;
 using MediaBrowser.Model.Serialization;
-
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-using EmbyTV.TunerHost; 
-using EmbyTV.Configuration;
 namespace EmbyTV
 {
     /// <summary>
@@ -29,30 +21,21 @@ namespace EmbyTV
     /// </summary>
     public class LiveTvService : ILiveTvService
     {
-        private readonly CultureInfo _usCulture = new CultureInfo("en-US");
         private int _liveStreams;
-        private readonly Dictionary<int, int> _heartBeat = new Dictionary<int, int>();
-        private TunerServer tunerServer;
-        private Plugin plugin;
-        private PluginConfiguration config;
-        private EPGProvider.SchedulesDirect tvGuide;
-        private EmbyTV.GeneralHelpers.PluginHelper Helper;
-        private DateTime configLastModified;
+        private TunerServer _tunerServer;
+        private EPGProvider.SchedulesDirect _tvGuide;
+        private readonly ILogger _logger;
+        private DateTime _configLastModified;
+        private readonly IJsonSerializer _jsonSerializer;
+        private readonly IHttpClient _httpClient;
 
-
-        public LiveTvService(IHttpClient httpClient, IJsonSerializer jsonSerializer, ILogger logger, IXmlSerializer xmlSerializer)
+        public LiveTvService(IHttpClient httpClient, IJsonSerializer jsonSerializer, ILogManager logManager)
         {
-            logger.Info("[EmbyTV] Bringing up Live TV Service");
-            Helper = new GeneralHelpers.PluginHelper("EmbyTV");
-            Helper.httpClient = httpClient;
-            Helper.jsonSerializer  = jsonSerializer;
-            Helper.logger = logger;
-            Helper.xmlSerializer  = xmlSerializer;
-            plugin = Plugin.Instance;
-            config = Plugin.Instance.Configuration;
-            Name = "EmbyTV";
+            _logger = logManager.GetLogger(Name);
+            _httpClient = httpClient;
+            _jsonSerializer = jsonSerializer;
             RefreshConfigData();
-            checkForUpdates();           
+            checkForUpdates();
         }
 
         private void checkForUpdates()
@@ -62,11 +45,11 @@ namespace EmbyTV
                 while (true)
                 {
                     //Helper.LogInfo("Last Time config modified:" + configLastModified);
-                    if (Plugin.Instance.ConfigurationDateLastModified != configLastModified)
+                    if (Plugin.Instance.ConfigurationDateLastModified != _configLastModified)
                     {
                         RefreshConfigData();
                     }
-                    System.Threading.Thread.Sleep(1000);
+                    Thread.Sleep(1000);
                 }
             });
         }
@@ -78,40 +61,29 @@ namespace EmbyTV
         /// <returns></returns>
         private async Task EnsureConnectionAsync(CancellationToken cancellationToken)
         {
-            Helper.cancellationToken = cancellationToken;
-            if (string.IsNullOrEmpty(config.apiURL))
+            if (string.IsNullOrEmpty(Plugin.Instance.Configuration.apiURL))
             {
-                Helper.LogError("Tunner hostname/ip missing.");
-            } 
-            await tunerServer.GetDeviceInfo(Helper);
-            if (tunerServer.model == "")
-            {
-                Helper.LogError("No tuner found at address.");                
+                throw new ApplicationException("Tunner hostname/ip missing.");
             }
-            else
+            await _tunerServer.GetDeviceInfo();
+            if (_tunerServer.model == "")
             {
-                Name = "EmbyTV";
+                throw new ApplicationException("No tuner found at address.");
             }
- 
         }
 
-          /// <summary>
+        /// <summary>
         /// Gets the channels async.
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>Task{IEnumerable{ChannelInfo}}.</returns>
         public async Task<IEnumerable<ChannelInfo>> GetChannelsAsync(CancellationToken cancellationToken)
         {
-
-            Helper.cancellationToken = cancellationToken;
-            Helper.LogInfo("Start GetChannels Async, retrieve all channels for " + tunerServer.getWebUrl());
-            await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);    
-            var response = await tunerServer.GetChannels(Helper);
-            return await tvGuide.getChannelInfo(Helper, response);    
-            
+            _logger.Info("Start GetChannels Async, retrieve all channels for " + _tunerServer.getWebUrl());
+            await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
+            var response = await _tunerServer.GetChannels();
+            return await _tvGuide.getChannelInfo(response);
         }
-
-
 
         public Task CancelSeriesTimerAsync(string timerId, CancellationToken cancellationToken)
         {
@@ -125,7 +97,7 @@ namespace EmbyTV
 
         public Task CloseLiveStream(string id, CancellationToken cancellationToken)
         {
-            Helper.LogInfo("Closing " + id);
+            _logger.Info("Closing " + id);
             return Task.FromResult(0);
         }
 
@@ -150,40 +122,40 @@ namespace EmbyTV
         {
             throw new NotImplementedException();
         }
-        public void RefreshConfigData() {
-            tunerServer = new TunerServer(Plugin.Instance.Configuration.apiURL);
-            tunerServer.onlyLoadFavorites = Plugin.Instance.Configuration.loadOnlyFavorites;
-            tvGuide = new EPGProvider.SchedulesDirect(Plugin.Instance.Configuration.username, Plugin.Instance.Configuration.hashPassword, Plugin.Instance.Configuration.tvLineUp);
-            var task = Task<string>.Run(async () =>
+
+        public async void RefreshConfigData()
+        {
+            _tunerServer = new TunerServer(Plugin.Instance.Configuration.apiURL, _logger, _jsonSerializer, _httpClient);
+            _tunerServer.onlyLoadFavorites = Plugin.Instance.Configuration.loadOnlyFavorites;
+            _tvGuide = new EPGProvider.SchedulesDirect(Plugin.Instance.Configuration.username, Plugin.Instance.Configuration.hashPassword, Plugin.Instance.Configuration.tvLineUp, _logger, _jsonSerializer, _httpClient);
+            var config = Plugin.Instance.Configuration;
+            config.avaliableLineups = await _tvGuide.getLineups();
+            var dict = await _tvGuide.getHeadends(config.zipCode);
+            var names = "";
+            var values = "";
+            foreach (KeyValuePair<string, string> entry in dict)
             {
-                config.avaliableLineups = await tvGuide.getLineups(Helper);
-                var dict = await tvGuide.getHeadends(config.zipCode, Helper);
-                var names = "";
-                var values = "";
-                foreach (KeyValuePair<string, string> entry in dict)
-                {
-                    names = names + "," + entry.Key;
-                    values = values + "," + entry.Value;
-                }
-                if (!String.IsNullOrWhiteSpace(names)) { names = names.Substring(1); values = values.Substring(1); }
-                config.headendName = names;
-                config.headendValue = values;
-                plugin.SaveConfiguration();
-                configLastModified = plugin.ConfigurationDateLastModified;
-            });
-            task.Wait();  
+                names = names + "," + entry.Key;
+                values = values + "," + entry.Value;
+            }
+            if (!String.IsNullOrWhiteSpace(names)) { names = names.Substring(1); values = values.Substring(1); }
+            config.headendName = names;
+            config.headendValue = values;
+            Plugin.Instance.SaveConfiguration();
+            _configLastModified = Plugin.Instance.ConfigurationDateLastModified;
         }
+
         public Task<ChannelMediaInfo> GetChannelStream(string channelId, CancellationToken cancellationToken)
         {
-                _liveStreams++;
-                string streamUrl = tunerServer.getChannelStreamInfo(channelId);
-                Helper.LogInfo("Streaming Channel"+ channelId + "from: "+ streamUrl);
-                return Task.FromResult(new ChannelMediaInfo
-                {
-                    Id = _liveStreams.ToString(CultureInfo.InvariantCulture),
-                    Path = streamUrl,
-                    Protocol = MediaProtocol.Http
-                });                              
+            _liveStreams++;
+            string streamUrl = _tunerServer.getChannelStreamInfo(channelId);
+            _logger.Info("Streaming Channel" + channelId + "from: " + streamUrl);
+            return Task.FromResult(new ChannelMediaInfo
+            {
+                Id = _liveStreams.ToString(CultureInfo.InvariantCulture),
+                Path = streamUrl,
+                Protocol = MediaProtocol.Http
+            });
         }
 
         public Task<SeriesTimerInfo> GetNewTimerDefaultsAsync(CancellationToken cancellationToken, ProgramInfo program = null)
@@ -198,7 +170,7 @@ namespace EmbyTV
 
         public async Task<IEnumerable<ProgramInfo>> GetProgramsAsync(string channelId, DateTime startDateUtc, DateTime endDateUtc, CancellationToken cancellationToken)
         {
-            return await tvGuide.getTvGuideForChannel(Helper,channelId,startDateUtc,endDateUtc);
+            return await _tvGuide.getTvGuideForChannel(channelId, startDateUtc, endDateUtc);
         }
 
         public Task<ImageStream> GetRecordingImageAsync(string recordingId, CancellationToken cancellationToken)
@@ -213,7 +185,7 @@ namespace EmbyTV
 
         public Task<IEnumerable<RecordingInfo>> GetRecordingsAsync(CancellationToken cancellationToken)
         {
-            IEnumerable < RecordingInfo > result = new List<RecordingInfo>();
+            IEnumerable<RecordingInfo> result = new List<RecordingInfo>();
             return Task.FromResult(result);
         }
 
@@ -225,15 +197,15 @@ namespace EmbyTV
 
         public async Task<LiveTvServiceStatusInfo> GetStatusInfoAsync(CancellationToken cancellationToken)
         {
-            await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);          
+            await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
             //Version Check
             bool upgradeAvailable;
             string serverVersion;
             upgradeAvailable = false;
-            serverVersion = tunerServer.firmware;
+            serverVersion = _tunerServer.firmware;
             //Tuner information
             var _httpOptions = new HttpRequestOptions { CancellationToken = cancellationToken };
-            List<LiveTvTunerInfo> tvTunerInfos = await tunerServer.GetTunersInfo(Helper);
+            List<LiveTvTunerInfo> tvTunerInfos = await _tunerServer.GetTunersInfo();
             return new LiveTvServiceStatusInfo
             {
                 HasUpdateAvailable = upgradeAvailable,
@@ -244,19 +216,18 @@ namespace EmbyTV
 
         public Task<IEnumerable<TimerInfo>> GetTimersAsync(CancellationToken cancellationToken)
         {
-            IEnumerable<TimerInfo> result  = new List<TimerInfo>();
+            IEnumerable<TimerInfo> result = new List<TimerInfo>();
             return Task.FromResult(result);
         }
 
         public string HomePageUrl
         {
-            get { return tunerServer.getWebUrl(); }
+            get { return _tunerServer.getWebUrl(); }
         }
 
         public string Name
         {
-            get;
-            set;
+            get { return "EmbyTV"; }
         }
 
         public Task RecordLiveStream(string id, CancellationToken cancellationToken)
@@ -281,32 +252,27 @@ namespace EmbyTV
             throw new NotImplementedException();
         }
 
-
-      
-        public Task<List<MediaBrowser.Model.Dto.MediaSourceInfo>> GetChannelStreamMediaSources(string channelId, CancellationToken cancellationToken)
+        public Task<List<MediaSourceInfo>> GetChannelStreamMediaSources(string channelId, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public Task<MediaBrowser.Model.Dto.MediaSourceInfo> GetRecordingStream(string recordingId, string streamId, CancellationToken cancellationToken)
+        public Task<MediaSourceInfo> GetRecordingStream(string recordingId, string streamId, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public Task<List<MediaBrowser.Model.Dto.MediaSourceInfo>> GetRecordingStreamMediaSources(string recordingId, CancellationToken cancellationToken)
+        public Task<List<MediaSourceInfo>> GetRecordingStreamMediaSources(string recordingId, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-
-
-
-        public Task<MediaBrowser.Model.Dto.MediaSourceInfo> GetChannelStream(string channelId, string streamId, CancellationToken cancellationToken)
+        public Task<MediaSourceInfo> GetChannelStream(string channelId, string streamId, CancellationToken cancellationToken)
         {
-           // RefreshConfigData();
+            // RefreshConfigData();
             _liveStreams++;
-            string streamUrl = tunerServer.getChannelStreamInfo(channelId);
-            Helper.LogInfo("Streaming Channel" + channelId + "from: " + streamUrl);
+            string streamUrl = _tunerServer.getChannelStreamInfo(channelId);
+            _logger.Info("Streaming Channel" + channelId + "from: " + streamUrl);
             return Task.FromResult(new MediaSourceInfo
             {
                 Id = _liveStreams.ToString(CultureInfo.InvariantCulture),
@@ -327,7 +293,7 @@ namespace EmbyTV
                                 Index = -1
                             }
                         }
-            });        
+            });
         }
     }
 }
