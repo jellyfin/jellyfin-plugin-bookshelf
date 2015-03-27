@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using EmbyTV.GeneralHelpers;
 
-namespace EmbyTV.GuideData
+namespace EmbyTV.EPGProvider
 {
-    interface ITvGuideSupplier
+    interface IEpgSupplier
     {
        // Task getStatus(HttpClientHelper httpClientHelper);
         //Task getTvGuide(HttpClientHelper httpClientHelper);

@@ -3,7 +3,7 @@ using System.IO;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
 
-namespace EmbyTV.TunerHelpers
+namespace EmbyTV.TunerHost
 {
     public class webResponseParser
     {

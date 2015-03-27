@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using MediaBrowser.Model.Plugins;
-using EmbyTV.GuideData;
-using EmbyTV.GeneralHelpers;
+using EmbyTV.TunerHost.Settings;
+
 namespace EmbyTV.Configuration
 {
     public class PluginConfiguration:BasePluginConfiguration
@@ -18,7 +17,8 @@ namespace EmbyTV.Configuration
         public string headendName { get; set; }
         public string headendValue { get; set; }
         public string zipCode { get; set; }
-        //public LiveTvService service {get;set;}
+        public TunerHostSettings Settings { get; set; }
+
            
 
 
@@ -34,14 +34,10 @@ namespace EmbyTV.Configuration
             headendName = "";
             headendValue = "";
             zipCode = "";
-
+            Settings = new TunerHostSettings() { Settings = new List<Constructor>() };
+            Settings.Settings.Add(new Constructor() { Name="hostname",Label = "HomeRun hostname or IP address:", DefaultValue = "localhost", Type = "Single", Description = "Tunner url (format --> {hostname})." });
+            Settings.Settings.Add(new Constructor() { Name = "Test Name 2", DefaultValue = "Default Value 2", Type = "Single 2", Description = "test config generator 2" });
         }
-       /* public void refreshData(){
-            if (service != null)
-            {
-                service.RefreshConfigData();
-            }
-        }*/
 
 
     }

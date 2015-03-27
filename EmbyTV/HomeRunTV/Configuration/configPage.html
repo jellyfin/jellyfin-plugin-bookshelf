@@ -9,6 +9,11 @@
         <div data-role="content">
             <div class="content-primary">
                 <form class="EmbyTVConfigurationForm">
+                    <fieldset id="TestFieldset">
+                        <legend>Test auto config fields</legend>
+                        <ul id="testList" class="ulForm" data-role="listview">
+                        </ul>
+                    </fieldset>
                     <fieldset>
                         <legend>Network Tunner</legend>
                         <ul class="ulForm" data-role="listview">
@@ -47,7 +52,7 @@
                                         Schedules Direct Tv LineUp:
                                     </label>
                                     <select name="tvLineups" id="tvLineups">
-                                      
+                                        <option>Select Lineup</option>
                                     </select>
                                 </li>     
                                 <li>
@@ -243,7 +248,7 @@
                         }
                     }
                 } else {                                       
-                        dropdown[1] = new Option("No lineups Avaliable","");
+                        dropdown[0] = new Option("No lineups Avaliable","");
                 }
                 if (currentLineup) {
                     var option = new Option(currentLineup, currentLineup);
@@ -262,6 +267,58 @@
                 }
                 return false;
             }
+            var startTime = (new Date()).getTime();
+            function logError(msg) {
+                var milliseconds = (new Date()).getTime() - startTime;
+                window.setTimeout(function () {
+                    throw (new Error(milliseconds + ': ' + msg, ""));
+                });
+            }
+            function createField(field,position,size) {
+                
+                var ul = document.getElementById("testList");
+                var li = document.createElement("li");
+                var input;
+                var label = document.createElement("label");
+                var description = document.createElement("div");
+                description.setAttribute("class", "fieldDescription");
+                description.innerText = field.Description;
+                label.setAttribute("for", field.Name);
+                label.innerText = field.Label;
+
+                if (field.Type == "Single") {
+                    input = document.createElement("input");
+                    input.setAttribute("type", "text");
+                    input.value = field.DefaultValue;
+                }
+                if (field.Type == "checkbox") {
+                    input = document.createElement("input");
+                    input.setAttribute("type", "checkbox");
+                    input.setAttribute("data-mini", "true");
+                    input.setAttribute("class", "ui-btn ui-corner-all ui-btn-inherit ui-btn-icon-left");
+                    input.checked=field.DefaultValue;
+                }
+
+                input.setAttribute("id", field.Name);
+
+                li.appendChild(label);
+                li.appendChild(input);
+                li.appendChild(description);
+                var liClass = "ui-li-static ui-body-inherit";
+                if (position == 0) { liClass = liClass + " ui-first-child"; }
+                if (position == size) { liClass = liClass + " ui-last-child"; }
+                li.setAttribute("class", liClass);
+                ul.appendChild(li);
+            }
+            function createAllFields(settings) {
+                if (settings[0]) {
+                    for (var i = 0; i < settings.length; i++) {
+                        createField(settings[i],i,settings.length-1);
+                    }
+                }
+            }
+
+
             function fillFormData() {
                 Dashboard.showLoadingMsg();
                 var page = this;
@@ -271,6 +328,7 @@
                     $('#txtGuidePassword', page).val("");
                     $('#chkLoadFavorites', page).checked(config.loadOnlyFavorites).checkboxradio("refresh");
                     $('#zipCode', page).val(config.zipCode || "");
+                    createAllFields(config.Settings.Settings);
                     createLineupsDropdown(config.avaliableLineups, config.tvLineUp, config.headendName, config.headendValue);
                     Dashboard.hideLoadingMsg();
                 });

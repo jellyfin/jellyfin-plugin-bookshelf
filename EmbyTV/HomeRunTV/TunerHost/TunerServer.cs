@@ -13,12 +13,14 @@ using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Controller.Channels;
 using MediaBrowser.Model.LiveTv;
 using EmbyTV.GeneralHelpers;
+using EmbyTV.TunerHost.Settings;
 
 
-namespace EmbyTV.TunerHelpers
+namespace EmbyTV.TunerHost
 {
     public class TunerServer
     {
+        public TunerHostSettings settings;
         public string model { get; set; }
         public string deviceID { get; set; }
         public string firmware { get; set; }
@@ -28,6 +30,7 @@ namespace EmbyTV.TunerHelpers
         public bool onlyLoadFavorites { get; set; }
         private void initialSetup()
         {
+         
             model = "";
             deviceID = "";
             firmware = "";
@@ -52,7 +55,7 @@ namespace EmbyTV.TunerHelpers
         {
             return getWebUrl() + ":" + port;
         }
-        public async Task GetDeviceInfo(HttpClientHelper Helper)
+        public async Task GetDeviceInfo(PluginHelper Helper)
         {
             Helper.httpOptions = new HttpRequestOptions() { Url = string.Format("{0}/", getWebUrl()) };
             System.IO.Stream stream = await Helper.Get().ConfigureAwait(false);
@@ -72,7 +75,7 @@ namespace EmbyTV.TunerHelpers
                 }
             }
         }
-        public async Task<List<LiveTvTunerInfo>> GetTunersInfo(HttpClientHelper Helper)
+        public async Task<List<LiveTvTunerInfo>> GetTunersInfo(PluginHelper Helper)
         {
             Helper.httpOptions = new HttpRequestOptions() { Url = string.Format("{0}/tuners.html", getWebUrl()) };
             System.IO.Stream stream = await Helper.Get().ConfigureAwait(false);
@@ -111,7 +114,7 @@ namespace EmbyTV.TunerHelpers
             tuners[tunerPos].Status = status;
         }
 
-        public async Task<IEnumerable<ChannelInfo>> GetChannels(HttpClientHelper Helper)
+        public async Task<IEnumerable<ChannelInfo>> GetChannels(PluginHelper Helper)
         {
             List<ChannelInfo> ChannelList;
             Helper.httpOptions = new HttpRequestOptions { Url = string.Format("{0}/lineup.json", getWebUrl()) };           

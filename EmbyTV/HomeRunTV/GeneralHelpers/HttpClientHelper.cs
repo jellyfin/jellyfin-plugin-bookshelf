@@ -11,7 +11,7 @@ using MediaBrowser.Model.Logging;
 
 namespace EmbyTV.GeneralHelpers
 {
-    public class HttpClientHelper
+    public class PluginHelper
     {
         public IHttpClient httpClient{get;set;}
         public HttpRequestOptions httpOptions{get;set;}
@@ -21,7 +21,7 @@ namespace EmbyTV.GeneralHelpers
         public ILogger logger{get;set;}
         public string appName{get;set;}
         public bool debugOn { get; set; }
-        public HttpClientHelper(string appName){
+        public PluginHelper(string appName){
             this.appName=appName;
             debugOn = false;
         }
@@ -51,11 +51,12 @@ namespace EmbyTV.GeneralHelpers
         }
         public void LogDebug(string debug)
         {
-            if (debugOn) { logger.Error("[" + appName + "] " + debug); }
+            if (debugOn) { logger.Debug("[" + appName + "] " + debug); }
         }
         public void LogError(string error)
         {
-            logger.Error("[" + appName + "] " + error); 
+            logger.Error("[" + appName + "] " + error);
+            throw new ApplicationException(appName +" "+ error);
         }
         public T DeserializeJSON<T>(Stream stream)
         {
