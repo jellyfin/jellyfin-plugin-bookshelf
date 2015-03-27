@@ -12,7 +12,7 @@ namespace FolderSync.Configuration
         /// <value>The name.</value>
         public string Name
         {
-            get { return FolderSync.Plugin.StaticName; }
+            get { return "FolderSync"; }
         }
 
         /// <summary>
