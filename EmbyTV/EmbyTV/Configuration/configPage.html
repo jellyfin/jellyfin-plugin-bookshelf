@@ -328,7 +328,7 @@
                     $('#txtGuidePassword', page).val("");
                     $('#chkLoadFavorites', page).checked(config.loadOnlyFavorites).checkboxradio("refresh");
                     $('#zipCode', page).val(config.zipCode || "");
-                    createAllFields(config.Settings.Settings);
+                   // createAllFields(config.Settings.Settings);
                     createLineupsDropdown(config.avaliableLineups, config.tvLineUp, config.headendName, config.headendValue);
                     Dashboard.hideLoadingMsg();
                 });
