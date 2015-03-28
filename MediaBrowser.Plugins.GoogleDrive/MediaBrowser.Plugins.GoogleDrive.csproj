@@ -63,6 +63,7 @@
     <Compile Include="..\SharedVersion.cs">
       <Link>Properties\SharedVersion.cs</Link>
     </Compile>
+    <Compile Include="ApiException.cs" />
     <Compile Include="AuthorizationAccessToken.cs" />
     <Compile Include="Configuration\ConfigurationPage.cs" />
     <Compile Include="Configuration\ConfigurationRetriever.cs" />
@@ -369,6 +370,7 @@
     <Compile Include="GoogleDriveFile.cs" />
     <Compile Include="GoogleDriveServerSyncProvider.cs" />
     <Compile Include="GoogleDriveService.cs" />
+    <Compile Include="GoogleError.cs" />
     <Compile Include="IGoogleDriveService.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Configuration\PluginConfiguration.cs" />
@@ -399,7 +401,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy "$(TargetPath)" "$(SolutionDir)\..\MediaBrowser.Dev\ProgramData-Server\Plugins\" /y</PostBuildEvent>
+    <PostBuildEvent>xcopy "$(TargetPath)" "$(SolutionDir)\..\MediaBrowser\ProgramData-Server\Plugins\" /y</PostBuildEvent>
   </PropertyGroup>
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

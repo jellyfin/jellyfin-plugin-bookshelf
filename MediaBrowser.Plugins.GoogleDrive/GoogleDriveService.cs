@@ -87,7 +87,8 @@ namespace MediaBrowser.Plugins.GoogleDrive
 
             if (file == null)
             {
-                throw new FileNotFoundException();
+                var message = string.Format("Couldn't find file {0}/{1}", googleDriveFile.FolderPath, googleDriveFile.Name);
+                throw new FileNotFoundException(message, googleDriveFile.Name);
             }
 
             return file;
