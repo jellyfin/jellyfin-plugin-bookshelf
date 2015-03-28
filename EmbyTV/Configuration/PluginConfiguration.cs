@@ -1,4 +1,7 @@
-﻿using EmbyTV.TunerHost.Settings;
+﻿using System.Collections.Generic;
+using System.Security.Policy;
+using EmbyTV.TunerHost.Settings;
+using MediaBrowser.Model.Dto;
 using MediaBrowser.Model.Plugins;
 
 namespace EmbyTV.Configuration
@@ -15,7 +18,7 @@ namespace EmbyTV.Configuration
         public string headendName { get; set; }
         public string headendValue { get; set; }
         public string zipCode { get; set; }
-        public TunerHostSettings Settings { get; set; }
+       // public TunerHostSettings Settings { get; set; }
 
         public PluginConfiguration()
         {
@@ -29,14 +32,35 @@ namespace EmbyTV.Configuration
             headendName = "";
             headendValue = "";
             zipCode = "";
-            Settings = new TunerHostSettings()
-            {
-                Settings = new Constructor[]
-                {
-                    new Constructor() { Name="hostname",Label = "HomeRun hostname or IP address:", DefaultValue = "localhost", Type = "Single", Description = "Tunner url (format --> {hostname})." },
-                    new Constructor() { Name = "Test Name 2", DefaultValue = "Default Value 2", Type = "Single 2", Description = "test config generator 2" }
-                }
-            };
         }
     }
+
+    public class ConfigurationFields
+    {
+        public FieldType Type { get; set; }
+        public string Value { get; set; }
+        public string Description { get; set; }
+        public string Label { get; set; }
+    }
+
+    public class SelectOptions
+    {
+        public string Key { get; set; }
+        public string Name { get; set; }
+        public bool Selected { get; set; }
+        public string Color { get; set; }
+    }
+    public enum FieldType
+    {
+        Private = 0,
+        Hidden = 1,
+        Text =2,
+        Checkbox =3,
+        Select =4
+    }
+    public class SelectField:ConfigurationFields
+    {
+        public SelectOptions Options { get; set; }
+    }
+
 }

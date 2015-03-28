@@ -11,8 +11,10 @@ using MediaBrowser.Model.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Threading;
+﻿using System.IO;
+﻿using System.Threading;
 using System.Threading.Tasks;
+﻿using EmbyTV.TunerHost.Settings;
 
 namespace EmbyTV
 {
@@ -22,7 +24,7 @@ namespace EmbyTV
     public class LiveTvService : ILiveTvService
     {
         private int _liveStreams;
-        private TunerServer _tunerServer;
+        private List<TunerHost.TunerHost> _tunerServer;
         private EPGProvider.SchedulesDirect _tvGuide;
         private readonly ILogger _logger;
         private DateTime _configLastModified;
@@ -31,13 +33,19 @@ namespace EmbyTV
 
         public LiveTvService(IHttpClient httpClient, IJsonSerializer jsonSerializer, ILogManager logManager)
         {
+            _liveStreams = 0;
             _logger = logManager.GetLogger(Name);
             _httpClient = httpClient;
             _jsonSerializer = jsonSerializer;
-            checkForUpdates();
+            _tunerServer = new List<TunerHost.TunerHost>();
+            TunerUserConfiguration tunerUserConfiguration = new TunerUserConfiguration(TunerServerType.HdHomerun);
+            tunerUserConfiguration.UserFields["url"].Value = Plugin.Instance.Configuration.apiURL;
+            tunerUserConfiguration.UserFields["onlyFavorites"].Value = Plugin.Instance.Configuration.apiURL;
+            _tunerServer.Add(new TunerHost.TunerHost(tunerUserConfiguration, _logger, _jsonSerializer, _httpClient));
+            CheckForUpdates();
         }
 
-        private void checkForUpdates()
+        private void CheckForUpdates()
         {
             Task.Run(() =>
             {
@@ -64,8 +72,8 @@ namespace EmbyTV
             {
                 throw new ApplicationException("Tunner hostname/ip missing.");
             }
-            await _tunerServer.GetDeviceInfo(cancellationToken);
-            if (_tunerServer.model == "")
+            await _tunerServer[0].GetDeviceInfo(cancellationToken);
+            if (_tunerServer[0].model == "")
             {
                 throw new ApplicationException("No tuner found at address.");
             }
@@ -78,9 +86,9 @@ namespace EmbyTV
         /// <returns>Task{IEnumerable{ChannelInfo}}.</returns>
         public async Task<IEnumerable<ChannelInfo>> GetChannelsAsync(CancellationToken cancellationToken)
         {
-            _logger.Info("Start GetChannels Async, retrieve all channels for " + _tunerServer.getWebUrl());
+            _logger.Info("Start GetChannels Async, retrieve all channels for " + _tunerServer[0].getWebUrl());
             await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
-            var response = await _tunerServer.GetChannels(cancellationToken);
+            var response = await _tunerServer[0].GetChannels(cancellationToken);
             return await _tvGuide.getChannelInfo(response, cancellationToken);
         }
 
@@ -124,8 +132,11 @@ namespace EmbyTV
 
         public async void RefreshConfigData(CancellationToken cancellationToken)
         {
-            _tunerServer = new TunerServer(Plugin.Instance.Configuration.apiURL, _logger, _jsonSerializer, _httpClient);
-            _tunerServer.onlyLoadFavorites = Plugin.Instance.Configuration.loadOnlyFavorites;
+        
+             TunerUserConfiguration tunerUserConfiguration = new TunerUserConfiguration(TunerServerType.HdHomerun);
+            tunerUserConfiguration.UserFields["url"].Value = Plugin.Instance.Configuration.apiURL;
+            tunerUserConfiguration.UserFields["onlyFavorites"].Value = Convert.ToString(Plugin.Instance.Configuration.loadOnlyFavorites);
+            _tunerServer[0] = new TunerHost.TunerHost(tunerUserConfiguration, _logger, _jsonSerializer, _httpClient);
             _tvGuide = new EPGProvider.SchedulesDirect(Plugin.Instance.Configuration.username, Plugin.Instance.Configuration.hashPassword, Plugin.Instance.Configuration.tvLineUp, _logger, _jsonSerializer, _httpClient);
             var config = Plugin.Instance.Configuration;
             config.avaliableLineups = await _tvGuide.getLineups(cancellationToken);
@@ -142,19 +153,6 @@ namespace EmbyTV
             config.headendValue = values;
             Plugin.Instance.SaveConfiguration();
             _configLastModified = Plugin.Instance.ConfigurationDateLastModified;
-        }
-
-        public Task<ChannelMediaInfo> GetChannelStream(string channelId, CancellationToken cancellationToken)
-        {
-            _liveStreams++;
-            string streamUrl = _tunerServer.getChannelStreamInfo(channelId);
-            _logger.Info("Streaming Channel" + channelId + "from: " + streamUrl);
-            return Task.FromResult(new ChannelMediaInfo
-            {
-                Id = _liveStreams.ToString(CultureInfo.InvariantCulture),
-                Path = streamUrl,
-                Protocol = MediaProtocol.Http
-            });
         }
 
         public Task<SeriesTimerInfo> GetNewTimerDefaultsAsync(CancellationToken cancellationToken, ProgramInfo program = null)
@@ -201,10 +199,10 @@ namespace EmbyTV
             bool upgradeAvailable;
             string serverVersion;
             upgradeAvailable = false;
-            serverVersion = _tunerServer.firmware;
+            serverVersion = _tunerServer[0].firmware;
             //Tuner information
             var _httpOptions = new HttpRequestOptions { CancellationToken = cancellationToken };
-            List<LiveTvTunerInfo> tvTunerInfos = await _tunerServer.GetTunersInfo(cancellationToken);
+            List<LiveTvTunerInfo> tvTunerInfos = await _tunerServer[0].GetTunersInfo(cancellationToken);
             return new LiveTvServiceStatusInfo
             {
                 HasUpdateAvailable = upgradeAvailable,
@@ -221,7 +219,7 @@ namespace EmbyTV
 
         public string HomePageUrl
         {
-            get { return _tunerServer.getWebUrl(); }
+            get { return _tunerServer[0].getWebUrl(); }
         }
 
         public string Name
@@ -253,6 +251,7 @@ namespace EmbyTV
 
         public Task<List<MediaSourceInfo>> GetChannelStreamMediaSources(string channelId, CancellationToken cancellationToken)
         {
+            _logger.Info("Streaming Channel Not implemented");
             throw new NotImplementedException();
         }
 
@@ -268,9 +267,9 @@ namespace EmbyTV
 
         public Task<MediaSourceInfo> GetChannelStream(string channelId, string streamId, CancellationToken cancellationToken)
         {
-            // RefreshConfigData();
             _liveStreams++;
-            string streamUrl = _tunerServer.getChannelStreamInfo(channelId);
+            _logger.Info("Streaming Channel");
+            string streamUrl = _tunerServer[0].getChannelStreamInfo(channelId);
             _logger.Info("Streaming Channel" + channelId + "from: " + streamUrl);
             return Task.FromResult(new MediaSourceInfo
             {
