@@ -1,8 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Common;
 using MediaBrowser.Common.Net;
+using MediaBrowser.Model.Net;
 using MediaBrowser.Model.Serialization;
 
 namespace MediaBrowser.Plugins.GoogleDrive
@@ -39,16 +42,42 @@ namespace MediaBrowser.Plugins.GoogleDrive
         protected async Task<T> GetRequest<T>(string url, CancellationToken cancellationToken)
         {
             var httpRequest = PrepareHttpRequestOptions(url, cancellationToken);
-            var resultStream = await _httpClient.Get(httpRequest);
-            return _jsonSerializer.DeserializeFromStream<T>(resultStream);
+
+            try
+            {
+                var resultStream = await _httpClient.Get(httpRequest);
+                return _jsonSerializer.DeserializeFromStream<T>(resultStream);
+            }
+            catch (HttpException ex)
+            {
+                var webException = ex.InnerException as WebException;
+                if (webException != null)
+                {
+                    ThrowExceptionWithMessage(webException);
+                }
+                throw;
+            }
         }
 
         protected async Task<T> PostRequest<T>(string url, IDictionary<string, string> data, CancellationToken cancellationToken)
         {
             var httpRequest = PrepareHttpRequestOptions(url, cancellationToken);
             httpRequest.SetPostData(data);
-            var result = await _httpClient.Post(httpRequest);
-            return _jsonSerializer.DeserializeFromStream<T>(result.Content);
+
+            try
+            {
+                var result = await _httpClient.Post(httpRequest);
+                return _jsonSerializer.DeserializeFromStream<T>(result.Content);
+            }
+            catch (HttpException ex)
+            {
+                var webException = ex.InnerException as WebException;
+                if (webException != null)
+                {
+                    ThrowExceptionWithMessage(webException);
+                }
+                throw;
+            }
         }
 
         private HttpRequestOptions PrepareHttpRequestOptions(string url, CancellationToken cancellationToken)
@@ -66,6 +95,40 @@ namespace MediaBrowser.Plugins.GoogleDrive
         private string BuildUrl(string url, CancellationToken cancellationToken)
         {
             return GetBaseUrl(cancellationToken) + url.TrimStart('/');
+        }
+
+        private void ThrowExceptionWithMessage(WebException webException)
+        {
+            var errorDescription = GetErrorDescription(webException);
+
+            throw new ApiException(errorDescription);
+        }
+
+        private string GetErrorDescription(WebException webException)
+        {
+            var stream = webException.Response.GetResponseStream();
+            var response = _jsonSerializer.DeserializeFromStream<GoogleError>(stream);
+            return GetErrorMessage(response);
+        }
+
+        private static string GetErrorMessage(GoogleError response)
+        {
+            if (!string.IsNullOrEmpty(response.error_description))
+            {
+                return response.error_description;
+            }
+
+            if (response.error == "invalid_grant")
+            {
+                return "Invalid code.";
+            }
+
+            if (response.error == "invalid_client")
+            {
+                return "Invalid client id or secret.";
+            }
+
+            return null;
         }
     }
 }
