@@ -94,27 +94,6 @@ namespace FolderSync
             return Path.GetDirectoryName(path);
         }
 
-        public Task<List<DeviceFileInfo>> GetFileSystemEntries(string path, SyncTarget target, CancellationToken cancellationToken)
-        {
-            List<FileInfo> files;
-
-            try
-            {
-                files = new DirectoryInfo(path).EnumerateFiles("*", SearchOption.TopDirectoryOnly).ToList();
-            }
-            catch (DirectoryNotFoundException)
-            {
-                files = new List<FileInfo>();
-            }
-
-            return Task.FromResult(files.Select(i => new DeviceFileInfo
-            {
-                Name = i.Name,
-                Path = i.FullName
-
-            }).ToList());
-        }
-
         public string Name
         {
             get { return Plugin.StaticName; }

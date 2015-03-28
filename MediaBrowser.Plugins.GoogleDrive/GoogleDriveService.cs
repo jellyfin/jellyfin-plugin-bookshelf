@@ -30,7 +30,7 @@ namespace MediaBrowser.Plugins.GoogleDrive
             await ExecuteUpload(driveService, stream, file, progress, cancellationToken);
 
             var uploadedFile = await FindFileId(googleDriveFile, driveService, cancellationToken);
-            return uploadedFile.WebContentLink;
+            return uploadedFile.DownloadUrl;
         }
 
         public async Task<string> GetOrCreateFolder(string name, GoogleCredentials googleCredentials, CancellationToken cancellationToken)
@@ -78,7 +78,14 @@ namespace MediaBrowser.Plugins.GoogleDrive
                 .Select(CreateGoogleDriveFile);
         }
 
-        private async Task<File> FindFileId(GoogleDriveFile googleDriveFile, DriveService driveService, CancellationToken cancellationToken)
+        public Task<File> FindFileId(GoogleDriveFile googleDriveFile, GoogleCredentials googleCredentials, CancellationToken cancellationToken)
+        {
+            var driveService = CreateDriveService(googleCredentials);
+
+            return FindFileId(googleDriveFile, driveService, cancellationToken);
+        }
+
+        public async Task<File> FindFileId(GoogleDriveFile googleDriveFile, DriveService driveService, CancellationToken cancellationToken)
         {
             var query = string.Format("'{0}' in parents and title = '{1}'", googleDriveFile.GoogleDriveFolderId, googleDriveFile.Name);
             var matchingFiles = await GetFiles(query, driveService, cancellationToken);
