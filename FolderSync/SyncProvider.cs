@@ -31,13 +31,13 @@ namespace FolderSync
             }, cancellationToken);
         }
 
-        public async Task<SendFileResult> SendFile(Stream stream, string remotePath, SyncTarget target, IProgress<double> progress, CancellationToken cancellationToken)
+        public async Task<SyncedFileInfo> SendFile(Stream stream, string remotePath, SyncTarget target, IProgress<double> progress, CancellationToken cancellationToken)
         {
             Directory.CreateDirectory(Path.GetDirectoryName(remotePath));
             using (var fileStream = _fileSystem.GetFileStream(remotePath, FileMode.Create, FileAccess.Write, FileShare.Read, true))
             {
                 await stream.CopyToAsync(fileStream).ConfigureAwait(false);
-                return new SendFileResult
+                return new SyncedFileInfo
                 {
                     Path = remotePath,
                     Protocol = MediaProtocol.File

@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace MediaBrowser.Plugins.GoogleDrive
 {
-    public class GoogleDriveServerSyncProvider : IServerSyncProvider, IRequiresDynamicAccess
+    public class GoogleDriveServerSyncProvider : IServerSyncProvider, IHasDynamicAccess
     {
         private readonly IConfigurationRetriever _configurationRetriever;
         private readonly IGoogleDriveService _googleDriveService;
@@ -37,30 +37,30 @@ namespace MediaBrowser.Plugins.GoogleDrive
             return _configurationRetriever.GetUserSyncAccounts(userId).Select(CreateSyncTarget);
         }
 
-        public async Task<SendFileResult> SendFile(Stream stream, string remotePath, SyncTarget target, IProgress<double> progress, CancellationToken cancellationToken)
+        public async Task<SyncedFileInfo> SendFile(Stream stream, string remotePath, SyncTarget target, IProgress<double> progress, CancellationToken cancellationToken)
         {
             var file = CreateGoogleDriveFile(remotePath, target);
             var googleCredentials = GetGoogleCredentials(target);
 
             var url = await _googleDriveService.UploadFile(stream, file, googleCredentials, progress, cancellationToken);
 
-            return new SendFileResult
+            return new SyncedFileInfo
             {
                 Path = url,
                 Protocol = MediaProtocol.Http
             };
         }
 
-        public async Task<SendFileResult> GetFileInfo(string remotePath, SyncTarget target, CancellationToken cancellationToken)
+        public async Task<SyncedFileInfo> GetSyncedFileInfo(string remotePath, SyncTarget target, CancellationToken cancellationToken)
         {
             var file = CreateGoogleDriveFile(remotePath, target);
             var googleCredentials = GetGoogleCredentials(target);
 
-            var fileId = await _googleDriveService.FindFileId(file, googleCredentials, cancellationToken).ConfigureAwait(false);
+            var url = await _googleDriveService.CreateDownloadUrl(file, googleCredentials, cancellationToken).ConfigureAwait(false);
 
-            return new SendFileResult
+            return new SyncedFileInfo
             {
-                Path = fileId.DownloadUrl,
+                Path = url,
                 Protocol = MediaProtocol.Http
             };
         }

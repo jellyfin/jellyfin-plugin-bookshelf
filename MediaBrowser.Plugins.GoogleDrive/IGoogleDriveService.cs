@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using File = Google.Apis.Drive.v2.Data.File;
 
 namespace MediaBrowser.Plugins.GoogleDrive
 {
@@ -14,6 +13,6 @@ namespace MediaBrowser.Plugins.GoogleDrive
         Task DeleteFile(GoogleDriveFile googleDriveFile, GoogleCredentials googleCredentials, CancellationToken cancellationToken);
         Task<Stream> GetFile(GoogleDriveFile googleDriveFile, GoogleCredentials googleCredentials, CancellationToken cancellationToken);
         Task<IEnumerable<GoogleDriveFile>> GetFilesListing(string googleDrivefolder, string parentFolderId, GoogleCredentials googleCredentials, CancellationToken cancellationToken);
-        Task<File> FindFileId(GoogleDriveFile googleDriveFile, GoogleCredentials googleCredentials, CancellationToken cancellationToken);
+        Task<string> CreateDownloadUrl(GoogleDriveFile googleDriveFile, GoogleCredentials googleCredentials, CancellationToken cancellationToken);
     }
 }
