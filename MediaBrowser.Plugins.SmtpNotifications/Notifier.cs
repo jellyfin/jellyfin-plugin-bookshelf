@@ -63,7 +63,7 @@ namespace MediaBrowser.Plugins.SmtpNotifications
 
             var mail = new MailMessage(options.EmailFrom, options.EmailTo)
             {
-                Subject = "Media Browser: " + request.Name,
+                Subject = "Emby: " + request.Name,
                 Body = request.Description
             };
 

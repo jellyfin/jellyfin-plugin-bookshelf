@@ -7,9 +7,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("MediaBrowser.Plugins.StudioCleaner")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Media Browser Team")]
+[assembly: AssemblyCompany("Emby Team")]
 [assembly: AssemblyProduct("MediaBrowser.Plugins.StudioCleaner")]
-[assembly: AssemblyCopyright("Copyright © Media Browser Team 2013")]
+[assembly: AssemblyCopyright("Copyright © Emby Team 2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

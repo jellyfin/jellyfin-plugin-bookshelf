@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Adult DVD Empire Provider")]
-[assembly: AssemblyCopyright("Copyright © Media Browser 2013")]
+[assembly: AssemblyCopyright("Copyright © Emby 2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

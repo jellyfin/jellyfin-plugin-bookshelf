@@ -37,7 +37,7 @@ namespace MediaBrowser.Plugins.SmtpNotifications.Api
 
             var mail = new MailMessage(options.EmailFrom, options.EmailTo)
             {
-                Subject = "Media Browser: Test Notification",
+                Subject = "Emby: Test Notification",
                 Body = "This is a test notification from MediaBrowser"
             };
 
