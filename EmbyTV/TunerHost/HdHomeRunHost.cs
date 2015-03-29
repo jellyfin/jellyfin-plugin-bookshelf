@@ -10,38 +10,43 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using EmbyTV.TunerHost.Settings;
+using EmbyTV.Configuration;
+using  System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace EmbyTV.TunerHost
 {
-    public class TunerHost:ITunerHost
+    public class HdHomeRunHost:ITunerHost
     {
         private readonly ILogger _logger;
         private readonly IJsonSerializer _jsonSerializer;
         private readonly IHttpClient _httpClient;
-        public TunerUserConfiguration UserConfiguration;
         public string deviceType { get; set; }
         public string model { get; set; }
         public string deviceID { get; set; }
         public string firmware { get; set; }
         public string port { get; set; }
+        public string Url { get; set; }
+        private bool _onlyFavorites { get; set; }
+        public string OnlyFavorites { get { return this._onlyFavorites.ToString(); }set { this._onlyFavorites = Convert.ToBoolean(value); } }
         public List<LiveTvTunerInfo> tuners;       
 
-        public TunerHost(TunerUserConfiguration userConfiguration, ILogger logger, IJsonSerializer jsonSerializer, IHttpClient httpClient)
+        public HdHomeRunHost(ILogger logger, IJsonSerializer jsonSerializer, IHttpClient httpClient)
         {
             model = "";
             deviceID = "";
             firmware = "";
             port = "5004";
+            _onlyFavorites = false;
             tuners = new List<LiveTvTunerInfo>();
-            UserConfiguration = userConfiguration;
             _logger = logger;
             _jsonSerializer = jsonSerializer;
             _httpClient = httpClient;
         }
+
         public string getWebUrl()
         {
-            return "http://" + UserConfiguration.UserFields["url"].Value;
+            return "http://" +Url;
         }
         public string getApiUrl()
         {
@@ -130,9 +135,9 @@ namespace EmbyTV.TunerHost
             using (var stream = await _httpClient.Get(options))
             {
                 var root = _jsonSerializer.DeserializeFromStream<List<Channels>>(stream);
-                _logger.Info("Found " + root.Count() + "channels on host: " + UserConfiguration.UserFields["url"].Value);
-                _logger.Info("Only Favorites?" + UserConfiguration.UserFields["onlyFavorites"].Value);
-                if (Convert.ToBoolean(UserConfiguration.UserFields["onlyFavorites"].Value)) { root.RemoveAll(x => x.Favorite == false); }
+                _logger.Info("Found " + root.Count() + "channels on host: " + Url);
+                _logger.Info("Only Favorites?" + OnlyFavorites);
+                if (Convert.ToBoolean(_onlyFavorites)) { root.RemoveAll(x => x.Favorite == false); }
                 if (root != null)
                 {
                     ChannelList = root.Select(i => new ChannelInfo

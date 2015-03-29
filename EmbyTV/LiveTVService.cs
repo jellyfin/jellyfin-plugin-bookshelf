@@ -14,7 +14,7 @@ using System.Globalization;
 ﻿using System.IO;
 ﻿using System.Threading;
 using System.Threading.Tasks;
-﻿using EmbyTV.TunerHost.Settings;
+﻿using EmbyTV.Configuration;
 
 namespace EmbyTV
 {
@@ -24,25 +24,24 @@ namespace EmbyTV
     public class LiveTvService : ILiveTvService
     {
         private int _liveStreams;
-        private List<TunerHost.TunerHost> _tunerServer;
+        private List<ITunerHost> _tunerServer;
         private EPGProvider.SchedulesDirect _tvGuide;
         private readonly ILogger _logger;
         private DateTime _configLastModified;
         private readonly IJsonSerializer _jsonSerializer;
         private readonly IHttpClient _httpClient;
+        private bool FirstRun;
 
-        public LiveTvService(IHttpClient httpClient, IJsonSerializer jsonSerializer, ILogManager logManager)
+       public LiveTvService(IHttpClient httpClient, IJsonSerializer jsonSerializer, ILogManager logManager)
         {
             _liveStreams = 0;
             _logger = logManager.GetLogger(Name);
             _httpClient = httpClient;
             _jsonSerializer = jsonSerializer;
-            _tunerServer = new List<TunerHost.TunerHost>();
-            TunerUserConfiguration tunerUserConfiguration = new TunerUserConfiguration(TunerServerType.HdHomerun);
-            tunerUserConfiguration.UserFields["url"].Value = Plugin.Instance.Configuration.apiURL;
-            tunerUserConfiguration.UserFields["onlyFavorites"].Value = Plugin.Instance.Configuration.apiURL;
-            _tunerServer.Add(new TunerHost.TunerHost(tunerUserConfiguration, _logger, _jsonSerializer, _httpClient));
-            CheckForUpdates();
+            _tunerServer = new List<TunerHost.ITunerHost>();
+           FirstRun = true;
+            
+           CheckForUpdates();
         }
 
         private void CheckForUpdates()
@@ -52,7 +51,7 @@ namespace EmbyTV
                 while (true)
                 {
                     //Helper.LogInfo("Last Time config modified:" + configLastModified);
-                    if (Plugin.Instance.ConfigurationDateLastModified != _configLastModified)
+                    if ((Plugin.Instance.ConfigurationDateLastModified != _configLastModified) || FirstRun)
                     {
                         RefreshConfigData(CancellationToken.None);
                     }
@@ -86,7 +85,7 @@ namespace EmbyTV
         /// <returns>Task{IEnumerable{ChannelInfo}}.</returns>
         public async Task<IEnumerable<ChannelInfo>> GetChannelsAsync(CancellationToken cancellationToken)
         {
-            _logger.Info("Start GetChannels Async, retrieve all channels for " + _tunerServer[0].getWebUrl());
+            _logger.Info("Start GetChannels Async, retrieve all channels for " + _tunerServer[0].model);
             await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
             var response = await _tunerServer[0].GetChannels(cancellationToken);
             return await _tvGuide.getChannelInfo(response, cancellationToken);
@@ -132,11 +131,25 @@ namespace EmbyTV
 
         public async void RefreshConfigData(CancellationToken cancellationToken)
         {
-        
-             TunerUserConfiguration tunerUserConfiguration = new TunerUserConfiguration(TunerServerType.HdHomerun);
-            tunerUserConfiguration.UserFields["url"].Value = Plugin.Instance.Configuration.apiURL;
-            tunerUserConfiguration.UserFields["onlyFavorites"].Value = Convert.ToString(Plugin.Instance.Configuration.loadOnlyFavorites);
-            _tunerServer[0] = new TunerHost.TunerHost(tunerUserConfiguration, _logger, _jsonSerializer, _httpClient);
+            
+            TunerUserConfiguration tunerUserConfiguration = new TunerUserConfiguration()
+            {
+                ServerType = TunerServerType.HdHomerun,
+                ServerId = "1",
+                ConfigurationFields = new List<ConfigurationField>()
+            };
+            tunerUserConfiguration.ConfigurationFields.Add(new ConfigurationField() { Name = "Url", Value = Plugin.Instance.Configuration.apiURL });
+            tunerUserConfiguration.ConfigurationFields.Add(new ConfigurationField() { Name = "OnlyFavorites", Value = Convert.ToString(Plugin.Instance.Configuration.loadOnlyFavorites) });
+            if (FirstRun)
+            {
+                _tunerServer.Add(TunerHostFactory.CreateTunerHost(tunerUserConfiguration, _logger, _jsonSerializer,_httpClient));
+                FirstRun = false;
+            }
+            else
+            {
+                _tunerServer[0] = TunerHostFactory.CreateTunerHost(tunerUserConfiguration, _logger, _jsonSerializer, _httpClient);   
+            }
+           
             _tvGuide = new EPGProvider.SchedulesDirect(Plugin.Instance.Configuration.username, Plugin.Instance.Configuration.hashPassword, Plugin.Instance.Configuration.tvLineUp, _logger, _jsonSerializer, _httpClient);
             var config = Plugin.Instance.Configuration;
             config.avaliableLineups = await _tvGuide.getLineups(cancellationToken);
@@ -201,7 +214,6 @@ namespace EmbyTV
             upgradeAvailable = false;
             serverVersion = _tunerServer[0].firmware;
             //Tuner information
-            var _httpOptions = new HttpRequestOptions { CancellationToken = cancellationToken };
             List<LiveTvTunerInfo> tvTunerInfos = await _tunerServer[0].GetTunersInfo(cancellationToken);
             return new LiveTvServiceStatusInfo
             {
