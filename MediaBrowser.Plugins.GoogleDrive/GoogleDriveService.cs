@@ -122,7 +122,8 @@ namespace MediaBrowser.Plugins.GoogleDrive
 
         public async Task<File> FindFileId(GoogleDriveFile googleDriveFile, bool isFolder, DriveService driveService, CancellationToken cancellationToken)
         {
-            var query = string.Format("title = '{0}'", googleDriveFile.Name);
+            var queryName = googleDriveFile.Name.Replace("'", "\\'");
+            var query = string.Format("title = '{0}'", queryName);
 
             if (isFolder)
             {
@@ -284,6 +285,7 @@ namespace MediaBrowser.Plugins.GoogleDrive
 
         private async Task<File> FindFolder(string name, string parentId, DriveService driveService, CancellationToken cancellationToken)
         {
+            name = name.Replace("'", "\\'");
             var query = string.Format(@"title = '{0}' and properties has {{ key='{1}' and value='{2}' and visibility='PRIVATE' }}", name, SyncFolderPropertyKey, SyncFolderPropertyValue);
 
             if (!string.IsNullOrWhiteSpace(parentId))
