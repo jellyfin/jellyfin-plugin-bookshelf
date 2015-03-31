@@ -20,10 +20,37 @@ namespace MediaBrowser.Plugins.GoogleDrive
         private const string SyncFolderPropertyValue = "ba460da6-2cdf-43d8-98fc-ecda617ff1db";
         private const string PathPropertyKey = "Path";
 
+        private async Task<string> GetOrCreateParent(GoogleCredentials googleCredentials, string path, string rootParentId, CancellationToken cancellationToken)
+        {
+            var parts = path.Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+
+            string currentPath = null;
+            string currentparentId = rootParentId;
+
+            foreach (var part in parts)
+            {
+                if (currentPath == null)
+                {
+                    currentPath = part;
+                }
+                else
+                {
+                    currentPath = Path.Combine(currentPath, part);
+                }
+
+                currentparentId = await GetOrCreateFolder(part, currentparentId, googleCredentials, cancellationToken);
+            }
+
+            return currentparentId;
+        }
+
         public async Task<string> UploadFile(Stream stream, GoogleDriveFile googleDriveFile, GoogleCredentials googleCredentials, IProgress<double> progress, CancellationToken cancellationToken)
         {
             var fullDriveService = CreateDriveServiceAndCredentials(googleCredentials);
             var driveService = fullDriveService.Item1;
+
+            var parentId = await GetOrCreateParent(googleCredentials, googleDriveFile.FolderPath, googleDriveFile.GoogleDriveFolderId, cancellationToken);
+            googleDriveFile.GoogleDriveFolderId = parentId;
 
             await TryDeleteFile(googleDriveFile, googleCredentials, cancellationToken);
 
@@ -43,18 +70,18 @@ namespace MediaBrowser.Plugins.GoogleDrive
             return uploadedFile.DownloadUrl + "&access_token=" + fullDriveService.Item2.Token.AccessToken;
         }
 
-        public async Task<string> GetOrCreateFolder(string name, GoogleCredentials googleCredentials, CancellationToken cancellationToken)
+        public async Task<string> GetOrCreateFolder(string name, string parentId, GoogleCredentials googleCredentials, CancellationToken cancellationToken)
         {
             var driveService = CreateDriveService(googleCredentials);
 
-            var folder = await FindFolder(name, driveService, cancellationToken);
+            var folder = await FindFolder(name, parentId, driveService, cancellationToken);
 
             if (folder != null)
             {
                 return folder.Id;
             }
 
-            return await CreateFolder(name, cancellationToken, driveService);
+            return await CreateFolder(name, parentId, cancellationToken, driveService);
         }
 
         public async Task DeleteFile(GoogleDriveFile googleDriveFile, GoogleCredentials googleCredentials, CancellationToken cancellationToken)
@@ -88,9 +115,21 @@ namespace MediaBrowser.Plugins.GoogleDrive
                 .Select(CreateGoogleDriveFile);
         }
 
-        public async Task<File> FindFileId(GoogleDriveFile googleDriveFile, DriveService driveService, CancellationToken cancellationToken)
+        public Task<File> FindFileId(GoogleDriveFile googleDriveFile, DriveService driveService, CancellationToken cancellationToken)
         {
-            var query = string.Format("'{0}' in parents and title = '{1}'", googleDriveFile.GoogleDriveFolderId, googleDriveFile.Name);
+            return FindFileId(googleDriveFile, false, driveService, cancellationToken);
+        }
+
+        public async Task<File> FindFileId(GoogleDriveFile googleDriveFile, bool isFolder, DriveService driveService, CancellationToken cancellationToken)
+        {
+            var queryName = googleDriveFile.Name.Replace("'", "\\'");
+            var query = string.Format("title = '{0}'", queryName);
+
+            if (isFolder)
+            {
+                query += " and mimeType = 'application/vnd.google-apps.folder'";
+            }
+
             var matchingFiles = await GetFiles(query, driveService, cancellationToken);
 
             var file = matchingFiles.FirstOrDefault(f => FileIsInPath(f, googleDriveFile.FolderPath));
@@ -161,7 +200,7 @@ namespace MediaBrowser.Plugins.GoogleDrive
 
             var initializer = new BaseClientService.Initializer
             {
-                ApplicationName = "Media Browser",
+                ApplicationName = "Emby",
                 HttpClientInitializer = credentials
             };
 
@@ -189,7 +228,7 @@ namespace MediaBrowser.Plugins.GoogleDrive
 
             var initializer = new BaseClientService.Initializer
             {
-                ApplicationName = "Media Browser",
+                ApplicationName = "Emby",
                 HttpClientInitializer = credentials
             };
 
@@ -244,17 +283,23 @@ namespace MediaBrowser.Plugins.GoogleDrive
             return pathProperty.Value;
         }
 
-        private async Task<File> FindFolder(string name, DriveService driveService, CancellationToken cancellationToken)
+        private async Task<File> FindFolder(string name, string parentId, DriveService driveService, CancellationToken cancellationToken)
         {
+            name = name.Replace("'", "\\'");
             var query = string.Format(@"title = '{0}' and properties has {{ key='{1}' and value='{2}' and visibility='PRIVATE' }}", name, SyncFolderPropertyKey, SyncFolderPropertyValue);
+
+            if (!string.IsNullOrWhiteSpace(parentId))
+            {
+                query += string.Format(" and '{0}' in parents", parentId);
+            }
             var matchingFolders = await GetFiles(query, driveService, cancellationToken);
 
             return matchingFolders.FirstOrDefault();
         }
 
-        private static async Task<string> CreateFolder(string name, CancellationToken cancellationToken, DriveService driveService)
+        private static async Task<string> CreateFolder(string name, string parentId, CancellationToken cancellationToken, DriveService driveService)
         {
-            var file = CreateFolderToUpload(name);
+            var file = CreateFolderToUpload(name, parentId);
 
             var request = driveService.Files.Insert(file);
             var newFolder = await request.ExecuteAsync(cancellationToken);
@@ -262,7 +307,7 @@ namespace MediaBrowser.Plugins.GoogleDrive
             return newFolder.Id;
         }
 
-        private static File CreateFolderToUpload(string name)
+        private static File CreateFolderToUpload(string name, string parentId)
         {
             var property = new Property
             {
@@ -271,12 +316,25 @@ namespace MediaBrowser.Plugins.GoogleDrive
                 Visibility = "PRIVATE"
             };
 
-            return new File
+            File file = new File
             {
                 Title = name,
                 MimeType = "application/vnd.google-apps.folder",
                 Properties = new List<Property> { property }
             };
+
+            if (!string.IsNullOrWhiteSpace(parentId))
+            {
+                file.Parents = new List<ParentReference>
+                {
+                    new ParentReference
+                    {
+                       Id = parentId
+                    }
+                };
+            }
+
+            return file;
         }
     }
 }

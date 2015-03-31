@@ -1,4 +1,5 @@
 ﻿using MediaBrowser.Controller.Sync;
+using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.MediaInfo;
 using MediaBrowser.Model.Sync;
 using MediaBrowser.Plugins.GoogleDrive.Configuration;
@@ -15,11 +16,13 @@ namespace MediaBrowser.Plugins.GoogleDrive
     {
         private readonly IConfigurationRetriever _configurationRetriever;
         private readonly IGoogleDriveService _googleDriveService;
+        private readonly ILogger _logger;
 
-        public GoogleDriveServerSyncProvider(IConfigurationRetriever configurationRetriever, IGoogleDriveService googleDriveService)
+        public GoogleDriveServerSyncProvider(IConfigurationRetriever configurationRetriever, IGoogleDriveService googleDriveService, ILogManager logManager)
         {
             _configurationRetriever = configurationRetriever;
             _googleDriveService = googleDriveService;
+            _logger = logManager.GetLogger("GoogleDrive");
         }
 
         public string Name
@@ -39,6 +42,8 @@ namespace MediaBrowser.Plugins.GoogleDrive
 
         public async Task<SyncedFileInfo> SendFile(Stream stream, string remotePath, SyncTarget target, IProgress<double> progress, CancellationToken cancellationToken)
         {
+            _logger.Debug("Sending file {0} to {1}", remotePath, target.Name);
+            
             var file = CreateGoogleDriveFile(remotePath, target);
             var googleCredentials = GetGoogleCredentials(target);
 
@@ -53,6 +58,8 @@ namespace MediaBrowser.Plugins.GoogleDrive
 
         public async Task<SyncedFileInfo> GetSyncedFileInfo(string remotePath, SyncTarget target, CancellationToken cancellationToken)
         {
+            _logger.Debug("Getting synced file info for {0} from {1}", remotePath, target.Name);
+
             var file = CreateGoogleDriveFile(remotePath, target);
             var googleCredentials = GetGoogleCredentials(target);
 
@@ -124,25 +131,6 @@ namespace MediaBrowser.Plugins.GoogleDrive
                 FolderPath = folder,
                 GoogleDriveFolderId = syncAccount.FolderId
             };
-        }
-
-        private DeviceFileInfo CreateDeviceFileInfo(GoogleDriveFile file)
-        {
-            return new DeviceFileInfo
-            {
-                Name = file.Name,
-                Path = GetGoogleDriveFilePath(file)
-            };
-        }
-
-        private static string GetGoogleDriveFilePath(GoogleDriveFile file)
-        {
-            if (!string.IsNullOrEmpty(file.FolderPath))
-            {
-                return Path.Combine(file.FolderPath, file.Name);
-            }
-
-            return file.Name;
         }
     }
 }

@@ -47,7 +47,7 @@ namespace MediaBrowser.Plugins.NotifyMyAndroidNotifications
             var parameters = new Dictionary<string, string>
             {
                 {"apikey", options.Token},
-                {"application", "Media Browser"}
+                {"application", "Emby"}
             };
 
             if (string.IsNullOrEmpty(request.Description))

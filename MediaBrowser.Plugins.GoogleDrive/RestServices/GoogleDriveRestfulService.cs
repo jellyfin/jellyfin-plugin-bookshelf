@@ -82,7 +82,7 @@ namespace MediaBrowser.Plugins.GoogleDrive.RestServices
                 RefreshToken = refreshToken
             };
 
-            return await _googleDriveService.GetOrCreateFolder(Constants.GoogleDriveFolderName, googleCredentials, CancellationToken.None);
+            return await _googleDriveService.GetOrCreateFolder(Constants.GoogleDriveFolderName, null, googleCredentials, CancellationToken.None);
         }
     }
 }
