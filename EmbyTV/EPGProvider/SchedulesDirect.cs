@@ -112,9 +112,10 @@ namespace EmbyTV.EPGProvider
                         foreach (ChannelInfo channel in channelsInfo)
                         {
                             //  Helper.logger.Info("Modifyin channel " + channel.Number);
-                            if (channelPair.ContainsKey(channel.Number.TrimStart('0')))
+                            if (channelPair.ContainsKey(channel.Number))
                             {
-                                if (channelPair[channel.Number].logo != null) { channel.ImageUrl = channelPair[channel.Number].logo.URL; channel.HasImage = true; }
+                                if (channelPair[channel.Number].logo != null) { channel.ImageUrl = channelPair[channel.Number].logo.URL;
+                                channel.HasImage = true; }
                                 if (channelPair[channel.Number].affiliate != null) { channelName = channelPair[channel.Number].affiliate; }
                                 else { channelName = channelPair[channel.Number].name; }
                                 channel.Name = channelName;
@@ -337,11 +338,11 @@ namespace EmbyTV.EPGProvider
             }
             return false;
         }
-        public async Task<string> getLineups(CancellationToken cancellationToken)
+        public async Task<List<string>> getLineups(CancellationToken cancellationToken)
         {
+            List<string> Lineups = new List<string>();
             if (username.Length > 0 && password.Length > 0)
             {
-
                 apiUrl = "https://json.schedulesdirect.org/20141201";
                 await refreshToken(cancellationToken);
                 _logger.Info("Lineups on account ");
@@ -352,7 +353,6 @@ namespace EmbyTV.EPGProvider
                     Token = token,
                     CancellationToken = cancellationToken
                 };
-                string Lineups = "";
                 var check = false;
                 using (Stream responce = await _httpClient.Get(httpOptions).ConfigureAwait(false))
                 {
@@ -363,22 +363,27 @@ namespace EmbyTV.EPGProvider
                         foreach (ScheduleDirect.Lineup lineup in root.lineups)
                         {
                             _logger.Info("Lineups ID: " + lineup.lineup);
-                            if (lineup.lineup == _lineup) { check = true; }
-                            if (String.IsNullOrWhiteSpace(Lineups))
+                            if (lineup.lineup == _lineup)
                             {
-                                Lineups = lineup.lineup;
+                                check = true;
                             }
-                            else { Lineups = Lineups + "," + lineup.lineup; }
+                            Lineups.Add(lineup.lineup);
                         }
-                        if (!String.IsNullOrWhiteSpace(_lineup) && !check) { await addHeadEnd(cancellationToken); }
+                        if (!String.IsNullOrWhiteSpace(_lineup) && !check)
+                        {
+                            await addHeadEnd(cancellationToken);
+                        }
                     }
                     else
                     {
                         _logger.Info("No lineups on account");
+                        Lineups.Add("");
                     }
                     return Lineups;
                 }
-            } return "";
+            }
+            Lineups.Add("");
+            return Lineups;
         }
         public async Task<Dictionary<string, string>> getHeadends(string zipcode, CancellationToken cancellationToken)
         {
