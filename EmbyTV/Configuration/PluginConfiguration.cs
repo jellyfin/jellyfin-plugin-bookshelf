@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Policy;
 using MediaBrowser.Model.Dto;
@@ -14,11 +15,12 @@ namespace EmbyTV.Configuration
         public string hashPassword { get; set; }
         public string username { get; set; }
         public string tvLineUp { get; set; }
-        public string avaliableLineups { get; set; }
-        public string headendName { get; set; }
-        public string headendValue { get; set; }
+        public List<string> avaliableLineups { get; set; }
+        public List<string> headendName { get; set; }
+        public List<string> headendValue { get; set; }
         public string zipCode { get; set; }
-        public List<TunerUserConfiguration> TunerConfigurationsFields { get; set; }
+        public List<FieldBuilder> TunerDefaultConfigurationsFields { get; set; }
+        public List<TunerUserConfiguration> TunerHostsConfiguration { get; set; }
 
         public PluginConfiguration()
         {
@@ -27,19 +29,19 @@ namespace EmbyTV.Configuration
             tvLineUp = "";
             username = "";
             hashPassword = "";
-            avaliableLineups = "";
-            headendName = "";
-            headendValue = "";
+            avaliableLineups = new List<string>(){""};
+            headendName = new List<string>() { "" };
+            headendValue = new List<string>() { "" };
             zipCode = "";
+            TunerDefaultConfigurationsFields = TunerHostConfig.BuildDefaultForTunerHostsBuilders();
             
         }
     }
 
-
     public class ConfigurationField
     {
         public FieldType Type { get; set; }
-        public string Value { get; set; }
+        public string defaultValue { get; set; }
         public string Description { get; set; }
         public string Label { get; set; }
         public string ParentId { get; set; }
@@ -67,40 +69,25 @@ namespace EmbyTV.Configuration
     {
         public SelectOptions Options { get; set; }
     }
-
+    public class UserField
+    {
+        public string Name { get; set; }
+        public string Value { get; set; }
+    }
     public class TunerUserConfiguration
     {
         public string ServerId { get; set; }
         public TunerServerType ServerType { get; set; }
-        public List<ConfigurationField> ConfigurationFields { get; set; }
+        public List<UserField> UserFields { get; set; }
 
-        public static List<ConfigurationField> GetDefaultConfigurationFields(TunerServerType tunerServerType)
-        {
-            List<ConfigurationField> userFields = new List<ConfigurationField>();
-            switch (tunerServerType)
-            {
-                case TunerServerType.HdHomerun:
-                    userFields.Add(new ConfigurationField()
-                    {
-                        Name = "Url",
-                        Type = FieldType.Text,
-                        Value = "localhost",
-                        Description = "Hostname or IP address of the HDHomerun",
-                        Label = "Hostname/IP"
-                    }
-                        );
-                    userFields.Add(new ConfigurationField()
-                    {
-                        Name = "OnlyFavorites",
-                        Type = FieldType.Checkbox,
-                        Value = "true",
-                        Description = "Only import starred channels on the HDHomerun",
-                        Label = "Import Only Favorites"
-                    }
-                        );
-                    break;
-            }
-            return userFields;
-        }
     }
+
+    public class FieldBuilder
+    {
+        public TunerServerType Type { get; set; }
+        public List<ConfigurationField> DefaultConfigurationFields { get; set; }
+
+    }
+
+
 }

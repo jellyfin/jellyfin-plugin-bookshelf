@@ -9,11 +9,6 @@
 <div data-role="content">
     <div class="content-primary">
         <form class="EmbyTVConfigurationForm">
-            <fieldset id="TestFieldset">
-                <legend>Test auto config fields</legend>
-                <ul id="testList" class="ulForm" data-role="listview">
-                </ul>
-            </fieldset>
             <fieldset>
                 <legend>Network Tunner</legend>
                 <ul class="ulForm" data-role="listview">
@@ -249,10 +244,8 @@
     if (typeof define == 'function' && define.amd) define([], function() { return Sha1; }); // AMD
     var EmbyTVConfigurationPage = { pluginUniqueId: "b0067c00-62cf-476c-9e63-d53ae7247aa9" };
 
-    function createLineupsDropdown(_lineups, currentLineup, headName, headValue) {
-        var lineups = _lineups.split(",");
-        var values = headValue.split(",");
-        var names = headName.split(",");
+    function createLineupsDropdown(lineups, currentLineup, names, values) {
+
         var dropdown = document.getElementById("tvLineups");
         if (lineups[0]) {
             for (var i = 0; i < names.length; i++) {
@@ -304,13 +297,13 @@
 
         description.innerText = field.Description;
         label.setAttribute("for", field.Name);
-        label.innerText = field.Value;
+        label.innerText = field.Label;
 
         if (field.Type == "Text") {
             input = document.createElement("input");
             input.setAttribute("type", "text");
             inputDiv.setAttribute("class", "ui-input-text ui-body-inherit ui-corner-all ui-shadow-inset");
-            input.value = field.Value;
+            input.value = field.defaultValue;
             li.appendChild(label);
 
         }
@@ -326,10 +319,8 @@
             input.setAttribute("type", "checkbox");
             input.setAttribute("data-mini", "true");
             label.setAttribute("class", labelClass);
-            input.checked = ("true" === field.Value);
+            input.checked = ("true" === field.defaultValue);
             inputDiv.appendChild(label);
-
-
         }
 
         input.setAttribute("id", field.Name);
@@ -355,18 +346,23 @@
             }
         }
     }
-
+    function getByName(fields, name) {
+        for (var i=0; i<fields.length; i++) {
+            if (fields[i].Name == name) return fields[i].Value;
+        }
+    }
 
     function fillFormData() {
         Dashboard.showLoadingMsg();
         var page = this;
         ApiClient.getPluginConfiguration(EmbyTVConfigurationPage.pluginUniqueId).done(function(config) {
-            $('#txtWebServiceUrl', page).val(config.apiURL || "");
+            var fields = config.TunerHostsConfiguration[0].UserFields;
+            $('#txtWebServiceUrl', page).val(getByName(fields,"Url") || "");
             $('#txtGuideUsername', page).val(config.username || "");
             $('#txtGuidePassword', page).val("");
-            $('#chkLoadFavorites', page).checked(config.loadOnlyFavorites).checkboxradio("refresh");
+            $('#chkLoadFavorites', page).checked(getByName(fields, "OnlyFavorites")).checkboxradio("refresh");
             $('#zipCode', page).val(config.zipCode || "");
-            createAllFields(config.TunerConfigurationsFields[0].ConfigurationFields);
+           // createAllFields(config.TunerDefaultConfigurationsFields[0].DefaultConfigurationFields);
             createLineupsDropdown(config.avaliableLineups, config.tvLineUp, config.headendName, config.headendValue);
             Dashboard.hideLoadingMsg();
         });
@@ -374,21 +370,38 @@
 
     fillFormData();
 
-    $('.EmbyTVConfigurationForm').on('submit', function(e) {
+    $(".EmbyTVConfigurationForm").on('submit', function (e) {
         Dashboard.showLoadingMsg();
         var form = this;
         var pass = "";
         if ($('#txtGuidePassword', form).val() != "") {
             pass = Sha1.hash($('#txtGuidePassword', form).val());
         }
-        ApiClient.getPluginConfiguration(EmbyTVConfigurationPage.pluginUniqueId).done(function(config) {
-            config.apiURL = $('#txtWebServiceUrl', form).val();
+        ApiClient.getPluginConfiguration(EmbyTVConfigurationPage.pluginUniqueId).done(function (config) {
+            var userConfig = {
+                ServerId: "",
+                ServerType: "",
+                UserFields: []
+            }
+            userConfig.ServerType = "HdHomerun";
+            var url = {
+                Name: "Url",
+                Value: $('#txtWebServiceUrl', form).val()
+            }
+            var favs = {
+                Name: "OnlyFavorites",
+                Value: $('#chkLoadFavorites', form).checked()
+            }
+            userConfig.UserFields[0] = url;
+            userConfig.UserFields[1] = favs;
+
+            var tunerHostsConfigurations = [userConfig];
+            config.TunerHostsConfiguration = tunerHostsConfigurations;
             config.username = $('#txtGuideUsername', form).val();
             config.zipCode = $('#zipCode', form).val();
             if (pass != "") {
                 config.hashPassword = pass;
             }
-            config.loadOnlyFavorites = $('#chkLoadFavorites', form).checked();
             config.tvLineUp = document.getElementById("tvLineups").options[document.getElementById("tvLineups").selectedIndex].value;
             ApiClient.updatePluginConfiguration(EmbyTVConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
 
@@ -398,12 +411,6 @@
         return false;
     });
 
-    window.onload = function () {
-        if (!window.location.hash) {
-            window.location = window.location + '#loaded';
-            window.location.reload();
-        }
-    }
    
 </script>
 </div>

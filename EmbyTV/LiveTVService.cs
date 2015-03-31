@@ -12,9 +12,12 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 ﻿using System.IO;
+﻿using System.Linq;
 ﻿using System.Threading;
 using System.Threading.Tasks;
 ﻿using EmbyTV.Configuration;
+﻿using MediaBrowser.Model.Connect;
+
 
 namespace EmbyTV
 {
@@ -38,9 +41,8 @@ namespace EmbyTV
             _logger = logManager.GetLogger(Name);
             _httpClient = httpClient;
             _jsonSerializer = jsonSerializer;
-            _tunerServer = new List<TunerHost.ITunerHost>();
-           FirstRun = true;
-            
+            FirstRun = true;
+            Plugin.Instance.Configuration.TunerDefaultConfigurationsFields = TunerHostConfig.BuildDefaultForTunerHostsBuilders();
            CheckForUpdates();
         }
 
@@ -131,39 +133,14 @@ namespace EmbyTV
 
         public async void RefreshConfigData(CancellationToken cancellationToken)
         {
-            
-            TunerUserConfiguration tunerUserConfiguration = new TunerUserConfiguration()
-            {
-                ServerType = TunerServerType.HdHomerun,
-                ServerId = "1",
-                ConfigurationFields = new List<ConfigurationField>()
-            };
-            tunerUserConfiguration.ConfigurationFields.Add(new ConfigurationField() { Name = "Url", Value = Plugin.Instance.Configuration.apiURL });
-            tunerUserConfiguration.ConfigurationFields.Add(new ConfigurationField() { Name = "OnlyFavorites", Value = Convert.ToString(Plugin.Instance.Configuration.loadOnlyFavorites) });
-            if (FirstRun)
-            {
-                _tunerServer.Add(TunerHostFactory.CreateTunerHost(tunerUserConfiguration, _logger, _jsonSerializer,_httpClient));
-                FirstRun = false;
-            }
-            else
-            {
-                _tunerServer[0] = TunerHostFactory.CreateTunerHost(tunerUserConfiguration, _logger, _jsonSerializer, _httpClient);   
-            }
-           
-            _tvGuide = new EPGProvider.SchedulesDirect(Plugin.Instance.Configuration.username, Plugin.Instance.Configuration.hashPassword, Plugin.Instance.Configuration.tvLineUp, _logger, _jsonSerializer, _httpClient);
             var config = Plugin.Instance.Configuration;
+            _tunerServer = TunerHostFactory.CreateTunerHosts(config.TunerHostsConfiguration, _logger, _jsonSerializer,_httpClient);
+            FirstRun = false;
+            _tvGuide = new EPGProvider.SchedulesDirect(config.username,config.hashPassword,config.tvLineUp, _logger, _jsonSerializer, _httpClient);
             config.avaliableLineups = await _tvGuide.getLineups(cancellationToken);
-            var dict = await _tvGuide.getHeadends(config.zipCode, cancellationToken);
-            var names = "";
-            var values = "";
-            foreach (KeyValuePair<string, string> entry in dict)
-            {
-                names = names + "," + entry.Key;
-                values = values + "," + entry.Value;
-            }
-            if (!String.IsNullOrWhiteSpace(names)) { names = names.Substring(1); values = values.Substring(1); }
-            config.headendName = names;
-            config.headendValue = values;
+            var dict = await _tvGuide.getHeadends(config.zipCode, cancellationToken);;
+            config.headendName = dict.Keys.ToList();
+            config.headendValue = dict.Values.ToList();
             Plugin.Instance.SaveConfiguration();
             _configLastModified = Plugin.Instance.ConfigurationDateLastModified;
         }
