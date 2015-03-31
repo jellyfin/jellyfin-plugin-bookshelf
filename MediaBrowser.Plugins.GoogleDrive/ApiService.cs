@@ -21,7 +21,7 @@ namespace MediaBrowser.Plugins.GoogleDrive
             get
             {
                 var version = _applicationHost.ApplicationVersion.ToString();
-                return string.Format("Media Browser/{0} +http://mediabrowser.tv/", version);
+                return string.Format("Emby/{0} +http://emby.media/", version);
             }
         }
 

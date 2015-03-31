@@ -46,7 +46,7 @@ namespace MediaBrowser.Plugins.NotifyMyAndroidNotifications.Api
                 {"apikey", options.Token},
                 {"event", "Test Notification"},
                 {"description", "This is a test notification from MediaBrowser"},
-                {"application", "Media Browser"}
+                {"application", "Emby"}
             };
 
             _logger.Debug("NotifyMyAndroid <TEST> to {0}", options.Token);
