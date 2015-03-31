@@ -1,15 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Google.Apis.Auth.OAuth2;
+﻿using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Auth.OAuth2.Responses;
 using Google.Apis.Drive.v2;
 using Google.Apis.Drive.v2.Data;
 using Google.Apis.Services;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using File = Google.Apis.Drive.v2.Data.File;
 
 namespace MediaBrowser.Plugins.GoogleDrive
@@ -22,7 +22,8 @@ namespace MediaBrowser.Plugins.GoogleDrive
 
         public async Task<string> UploadFile(Stream stream, GoogleDriveFile googleDriveFile, GoogleCredentials googleCredentials, IProgress<double> progress, CancellationToken cancellationToken)
         {
-            var driveService = CreateDriveService(googleCredentials);
+            var fullDriveService = CreateDriveServiceAndCredentials(googleCredentials);
+            var driveService = fullDriveService.Item1;
 
             await TryDeleteFile(googleDriveFile, googleCredentials, cancellationToken);
 
@@ -30,7 +31,16 @@ namespace MediaBrowser.Plugins.GoogleDrive
             await ExecuteUpload(driveService, stream, file, progress, cancellationToken);
 
             var uploadedFile = await FindFileId(googleDriveFile, driveService, cancellationToken);
-            return uploadedFile.WebContentLink;
+            return uploadedFile.DownloadUrl + "&access_token=" + fullDriveService.Item2.Token.AccessToken;
+        }
+
+        public async Task<string> CreateDownloadUrl(GoogleDriveFile googleDriveFile, GoogleCredentials googleCredentials, CancellationToken cancellationToken)
+        {
+            var fullDriveService = CreateDriveServiceAndCredentials(googleCredentials);
+            var driveService = fullDriveService.Item1;
+
+            var uploadedFile = await FindFileId(googleDriveFile, driveService, cancellationToken);
+            return uploadedFile.DownloadUrl + "&access_token=" + fullDriveService.Item2.Token.AccessToken;
         }
 
         public async Task<string> GetOrCreateFolder(string name, GoogleCredentials googleCredentials, CancellationToken cancellationToken)
@@ -78,7 +88,7 @@ namespace MediaBrowser.Plugins.GoogleDrive
                 .Select(CreateGoogleDriveFile);
         }
 
-        private async Task<File> FindFileId(GoogleDriveFile googleDriveFile, DriveService driveService, CancellationToken cancellationToken)
+        public async Task<File> FindFileId(GoogleDriveFile googleDriveFile, DriveService driveService, CancellationToken cancellationToken)
         {
             var query = string.Format("'{0}' in parents and title = '{1}'", googleDriveFile.GoogleDriveFolderId, googleDriveFile.Name);
             var matchingFiles = await GetFiles(query, driveService, cancellationToken);
@@ -87,7 +97,8 @@ namespace MediaBrowser.Plugins.GoogleDrive
 
             if (file == null)
             {
-                throw new FileNotFoundException();
+                var message = string.Format("Couldn't find file {0}/{1}", googleDriveFile.FolderPath, googleDriveFile.Name);
+                throw new FileNotFoundException(message, googleDriveFile.Name);
             }
 
             return file;
@@ -134,6 +145,34 @@ namespace MediaBrowser.Plugins.GoogleDrive
             return !subPathParts.Where((t, i) => pathParts.Length <= i || t != pathParts[i]).Any();
         }
 
+        private Tuple<DriveService, UserCredential> CreateDriveServiceAndCredentials(GoogleCredentials googleCredentials)
+        {
+            var authorizationCodeFlowInitializer = new GoogleAuthorizationCodeFlow.Initializer
+            {
+                ClientSecrets = new ClientSecrets
+                {
+                    ClientId = googleCredentials.ClientId,
+                    ClientSecret = googleCredentials.ClientSecret
+                }
+            };
+            var googleAuthorizationCodeFlow = new GoogleAuthorizationCodeFlow(authorizationCodeFlowInitializer);
+            var token = new TokenResponse { RefreshToken = googleCredentials.RefreshToken };
+            var credentials = new UserCredential(googleAuthorizationCodeFlow, "user", token);
+
+            var initializer = new BaseClientService.Initializer
+            {
+                ApplicationName = "Media Browser",
+                HttpClientInitializer = credentials
+            };
+
+            var service = new DriveService(initializer)
+            {
+                HttpClient = { Timeout = TimeSpan.FromHours(1) }
+            };
+
+            return new Tuple<DriveService, UserCredential>(service, credentials);
+        }
+
         private DriveService CreateDriveService(GoogleCredentials googleCredentials)
         {
             var authorizationCodeFlowInitializer = new GoogleAuthorizationCodeFlow.Initializer
@@ -145,7 +184,7 @@ namespace MediaBrowser.Plugins.GoogleDrive
                 }
             };
             var googleAuthorizationCodeFlow = new GoogleAuthorizationCodeFlow(authorizationCodeFlowInitializer);
-            var token = new TokenResponse { RefreshToken = googleCredentials.AccessToken.RefreshToken };
+            var token = new TokenResponse { RefreshToken = googleCredentials.RefreshToken };
             var credentials = new UserCredential(googleAuthorizationCodeFlow, "user", token);
 
             var initializer = new BaseClientService.Initializer

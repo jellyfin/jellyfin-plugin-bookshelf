@@ -4,8 +4,11 @@ namespace MediaBrowser.Plugins.GoogleDrive.Configuration
 {
     public interface IConfigurationRetriever
     {
-        GoogleDriveUser GetUserConfiguration(string userId);
-        IEnumerable<GoogleDriveUser> GetConfigurations();
-        void SaveConfiguration();
+        GeneralConfiguration GetGeneralConfiguration();
+        GoogleDriveSyncAccount GetSyncAccount(string id);
+        IEnumerable<GoogleDriveSyncAccount> GetSyncAccounts();
+        IEnumerable<GoogleDriveSyncAccount> GetUserSyncAccounts(string userId);
+        void AddSyncAccount(GoogleDriveSyncAccount syncAccount);
+        void RemoveSyncAccount(string id);
     }
 }

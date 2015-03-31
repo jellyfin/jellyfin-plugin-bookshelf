@@ -31,13 +31,13 @@ namespace FolderSync
             }, cancellationToken);
         }
 
-        public async Task<SendFileResult> SendFile(Stream stream, string remotePath, SyncTarget target, IProgress<double> progress, CancellationToken cancellationToken)
+        public async Task<SyncedFileInfo> SendFile(Stream stream, string remotePath, SyncTarget target, IProgress<double> progress, CancellationToken cancellationToken)
         {
             Directory.CreateDirectory(Path.GetDirectoryName(remotePath));
             using (var fileStream = _fileSystem.GetFileStream(remotePath, FileMode.Create, FileAccess.Write, FileShare.Read, true))
             {
                 await stream.CopyToAsync(fileStream).ConfigureAwait(false);
-                return new SendFileResult
+                return new SyncedFileInfo
                 {
                     Path = remotePath,
                     Protocol = MediaProtocol.File
@@ -92,27 +92,6 @@ namespace FolderSync
         public string GetParentDirectoryPath(string path, SyncTarget target)
         {
             return Path.GetDirectoryName(path);
-        }
-
-        public Task<List<DeviceFileInfo>> GetFileSystemEntries(string path, SyncTarget target)
-        {
-            List<FileInfo> files;
-
-            try
-            {
-                files = new DirectoryInfo(path).EnumerateFiles("*", SearchOption.TopDirectoryOnly).ToList();
-            }
-            catch (DirectoryNotFoundException)
-            {
-                files = new List<FileInfo>();
-            }
-
-            return Task.FromResult(files.Select(i => new DeviceFileInfo
-            {
-                Name = i.Name,
-                Path = i.FullName
-
-            }).ToList());
         }
 
         public string Name

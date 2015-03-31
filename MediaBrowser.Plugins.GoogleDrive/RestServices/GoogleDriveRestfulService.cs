@@ -1,53 +1,85 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Net;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Controller.Net;
+using MediaBrowser.Model.Net;
 using MediaBrowser.Plugins.GoogleDrive.Configuration;
 
 namespace MediaBrowser.Plugins.GoogleDrive.RestServices
 {
-    public class GoogleDriveRestfulService : IRestfulService
+    [Authenticated]
+    public class GoogleDriveRestfulService2 : IRestfulService
     {
         private readonly IConfigurationRetriever _configurationRetriever;
         private readonly IGoogleAuthService _googleAuthService;
         private readonly IGoogleDriveService _googleDriveService;
 
-        public GoogleDriveRestfulService(IConfigurationRetriever configurationRetriever, IGoogleAuthService googleAuthService, IGoogleDriveService googleDriveService)
+        public GoogleDriveRestfulService2(IConfigurationRetriever configurationRetriever, IGoogleAuthService googleAuthService, IGoogleDriveService googleDriveService)
         {
             _configurationRetriever = configurationRetriever;
             _googleAuthService = googleAuthService;
             _googleDriveService = googleDriveService;
         }
 
-        public async Task Post(CodeRequest code)
+        public void Delete(DeleteSyncTarget request)
         {
-            var googleDriveUser = _configurationRetriever.GetUserConfiguration(code.UserId);
-
-            googleDriveUser.AccessToken = await CreateAccessToken(code.Code, code.RedirectUri, googleDriveUser);
-            googleDriveUser.FolderId = await GetOrCreateFolder(googleDriveUser);
-
-            _configurationRetriever.SaveConfiguration();
+            _configurationRetriever.RemoveSyncAccount(request.Id);
         }
 
-        private async Task<AccessToken> CreateAccessToken(string code, string redirectUri, GoogleDriveUser googleDriveUser)
+        public async Task Post(AddSyncTarget request)
         {
-            var token = await _googleAuthService.GetToken(code, redirectUri, googleDriveUser.GoogleDriveClientId, googleDriveUser.GoogleDriveClientSecret, CancellationToken.None);
+            var config = _configurationRetriever.GetGeneralConfiguration();
+            var refreshToken = await GetRefreshToken(request);
 
-            return new AccessToken
+            var syncAccount = new GoogleDriveSyncAccount
             {
-                Token = token.access_token,
-                ExpiresAtUtc = DateTime.UtcNow.AddSeconds(token.expires_in),
-                RefreshToken = token.refresh_token
+                Id = Guid.NewGuid().ToString(),
+                Name = WebUtility.UrlDecode(request.Name),
+                EnableForEveryone = request.EnableForEveryone,
+                UserIds = request.UserIds,
+                RefreshToken = refreshToken,
+                FolderId = await GetOrCreateFolder(config.GoogleDriveClientId, config.GoogleDriveClientSecret, refreshToken)
             };
+
+            if (!string.IsNullOrEmpty(request.Id))
+            {
+                syncAccount.Id = request.Id;
+            }
+
+            _configurationRetriever.AddSyncAccount(syncAccount);
         }
 
-        private async Task<string> GetOrCreateFolder(GoogleDriveUser googleDriveUser)
+        public GoogleDriveSyncAccount Get(GetSyncTarget request)
+        {
+            return _configurationRetriever.GetSyncAccount(request.Id);
+        }
+
+        public string Get(UrlEncodeRequest request)
+        {
+            var encoded = WebUtility.UrlEncode(request.Str);
+
+            return Regex.Replace(encoded, @"%[a-f0-9]{2}", m => m.Value.ToUpperInvariant());
+        }
+
+        private async Task<string> GetRefreshToken(AddSyncTarget request)
+        {
+            var config = _configurationRetriever.GetGeneralConfiguration();
+            var redirectUri = request.RedirectUri;
+
+            var token = await _googleAuthService.GetToken(request.Code, redirectUri, config.GoogleDriveClientId, config.GoogleDriveClientSecret, CancellationToken.None);
+            return token.refresh_token;
+        }
+
+        private async Task<string> GetOrCreateFolder(string clientId, string clientSecret, string refreshToken)
         {
             var googleCredentials = new GoogleCredentials
             {
-                AccessToken = googleDriveUser.AccessToken,
-                ClientId = googleDriveUser.GoogleDriveClientId,
-                ClientSecret = googleDriveUser.GoogleDriveClientSecret
+                ClientId = clientId,
+                ClientSecret = clientSecret,
+                RefreshToken = refreshToken
             };
 
             return await _googleDriveService.GetOrCreateFolder(Constants.GoogleDriveFolderName, googleCredentials, CancellationToken.None);
