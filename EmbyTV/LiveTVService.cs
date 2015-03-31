@@ -134,7 +134,10 @@ namespace EmbyTV
         public async void RefreshConfigData(CancellationToken cancellationToken)
         {
             var config = Plugin.Instance.Configuration;
-            _tunerServer = TunerHostFactory.CreateTunerHosts(config.TunerHostsConfiguration, _logger, _jsonSerializer,_httpClient);
+            if (config.TunerHostsConfiguration != null)
+            {
+                _tunerServer = TunerHostFactory.CreateTunerHosts(config.TunerHostsConfiguration, _logger,_jsonSerializer, _httpClient);
+            }
             FirstRun = false;
             _tvGuide = new EPGProvider.SchedulesDirect(config.username,config.hashPassword,config.tvLineUp, _logger, _jsonSerializer, _httpClient);
             config.avaliableLineups = await _tvGuide.getLineups(cancellationToken);
