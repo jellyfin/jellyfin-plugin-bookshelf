@@ -69,7 +69,7 @@ namespace EmbyTV
         /// <returns></returns>
         private async Task EnsureConnectionAsync(CancellationToken cancellationToken)
         {
-            if (string.IsNullOrEmpty(Plugin.Instance.Configuration.apiURL))
+            if (string.IsNullOrEmpty(_tunerServer[0].getWebUrl()))
             {
                 throw new ApplicationException("Tunner hostname/ip missing.");
             }
@@ -141,6 +141,10 @@ namespace EmbyTV
             FirstRun = false;
             _tvGuide = new EPGProvider.SchedulesDirect(config.username,config.hashPassword,config.tvLineUp, _logger, _jsonSerializer, _httpClient);
             config.avaliableLineups = await _tvGuide.getLineups(cancellationToken);
+            if (_tvGuide.badPassword)
+            {
+                config.hashPassword = "";
+            }
             var dict = await _tvGuide.getHeadends(config.zipCode, cancellationToken);;
             config.headendName = dict.Keys.ToList();
             config.headendValue = dict.Values.ToList();

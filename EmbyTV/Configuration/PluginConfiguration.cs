@@ -10,8 +10,6 @@ namespace EmbyTV.Configuration
 {
     public class PluginConfiguration : BasePluginConfiguration
     {
-        public string apiURL { get; set; }
-        public bool loadOnlyFavorites { get; set; }
         public string hashPassword { get; set; }
         public string username { get; set; }
         public string tvLineUp { get; set; }
@@ -24,8 +22,6 @@ namespace EmbyTV.Configuration
 
         public PluginConfiguration()
         {
-            apiURL = "localhost";
-            loadOnlyFavorites = true;
             tvLineUp = "";
             username = "";
             hashPassword = "";

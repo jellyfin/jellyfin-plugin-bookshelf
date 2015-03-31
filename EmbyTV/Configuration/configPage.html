@@ -47,7 +47,7 @@
                             Schedules Direct Tv LineUp:
                         </label>
                         <select name="tvLineups" id="tvLineups">
-                            <option>Select Lineup</option>
+                            <option value="">Select Lineup</option>
                         </select>
                     </li>
                     <li>
@@ -247,7 +247,7 @@
     function createLineupsDropdown(lineups, currentLineup, names, values) {
 
         var dropdown = document.getElementById("tvLineups");
-        if (lineups[0]) {
+        if (names[0]) {
             for (var i = 0; i < names.length; i++) {
                 dropdown[i + 1] = new Option(names[i], values[i]);
                 if (contains(lineups, values[i])) {
@@ -360,7 +360,7 @@
             $('#txtWebServiceUrl', page).val(getByName(fields,"Url") || "");
             $('#txtGuideUsername', page).val(config.username || "");
             $('#txtGuidePassword', page).val("");
-            $('#chkLoadFavorites', page).checked(getByName(fields, "OnlyFavorites")).checkboxradio("refresh");
+            $('#chkLoadFavorites', page).checked(getByName(fields, "OnlyFavorites") === "true").checkboxradio("refresh");
             $('#zipCode', page).val(config.zipCode || "");
            // createAllFields(config.TunerDefaultConfigurationsFields[0].DefaultConfigurationFields);
             createLineupsDropdown(config.avaliableLineups, config.tvLineUp, config.headendName, config.headendValue);

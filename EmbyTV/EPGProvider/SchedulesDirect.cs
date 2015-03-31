@@ -12,6 +12,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using MediaBrowser.Model.Net;
 
 namespace EmbyTV.EPGProvider
 {
@@ -26,6 +27,8 @@ namespace EmbyTV.EPGProvider
         private readonly ILogger _logger;
         private readonly IJsonSerializer _jsonSerializer;
         private readonly IHttpClient _httpClient;
+        public bool badPassword = false;
+        
 
         public SchedulesDirect(string username, string password, string lineup, ILogger logger, IJsonSerializer jsonSerializer, IHttpClient httpClient)
         {
@@ -38,10 +41,10 @@ namespace EmbyTV.EPGProvider
             apiUrl = "https://json.schedulesdirect.org/20141201";
         }
 
-        public async Task getToken(CancellationToken cancellationToken)
+        public async Task GetToken(CancellationToken cancellationToken)
         {
 
-            if (username.Length > 0 && password.Length > 0)
+            if (!String.IsNullOrWhiteSpace(username) && !String.IsNullOrWhiteSpace(password))
             {
                 var httpOptions = new HttpRequestOptions()
                 {
@@ -50,44 +53,45 @@ namespace EmbyTV.EPGProvider
                     RequestContent = "{\"username\":\"" + username + "\",\"password\":\"" + password + "\"}",
                     CancellationToken = cancellationToken
                 };
-                _logger.Info("Obtaining token from Schedules Direct from addres: " + httpOptions.Url + " with body " + httpOptions.RequestContent);
-                using (var responce = await _httpClient.Post(httpOptions))
+                _logger.Info("Obtaining token from Schedules Direct from addres: " + httpOptions.Url + " with body " +
+                             httpOptions.RequestContent);
+                try
                 {
-                    var root = _jsonSerializer.DeserializeFromStream<ScheduleDirect.Token>(responce.Content);
-                    if (root.message == "OK") { token = root.token; _logger.Info("Authenticated with Schedules Direct token: " + token); }
-                    else { throw new ApplicationException("Could not authenticate with Schedules Direct Error: " + root.message); }
+                    using (var responce = await _httpClient.Post(httpOptions))
+                    {
+                        var root = _jsonSerializer.DeserializeFromStream<ScheduleDirect.Token>(responce.Content);
+                        if (root.message == "OK")
+                        {
+                            token = root.token;
+                            _logger.Info("Authenticated with Schedules Direct token: " + token);
+                            badPassword = false;
+                        }
+                        else
+                        {
+                            throw new ApplicationException("Could not authenticate with Schedules Direct Error: " +
+                                                           root.message);
+                        }
+                    }
+                }
+                catch (HttpException e)
+                {
+                    _logger.Error("Bad username or password for schedules direct");
+                    password = "";
+                    token = "";
+                    badPassword = true;
                 }
             }
-        }
-
-        public async Task refreshToken(CancellationToken cancellationToken)
-        {
-            if (username.Length > 0 && password.Length > 0)
+            else
             {
-                var httpOptions = new HttpRequestOptions()
-                {
-                    Url = apiUrl + "/token",
-                    UserAgent = "Emby-Server",
-                    RequestContent = "{\"username\":\"" + username + "\",\"password\":\"" + password + "\"}",
-                    CancellationToken = cancellationToken
-                };
-
-                _logger.Info("Obtaining token from Schedules Direct from addres: " + httpOptions.Url + " with body " + httpOptions.RequestContent);
-                using (var response = await _httpClient.Post(httpOptions))
-                {
-                    var root = _jsonSerializer.DeserializeFromStream<ScheduleDirect.Token>(response.Content);
-                    if (root.message == "OK") { token = root.token; _logger.Info("Authenticated with Schedules Direct token: " + token); }
-                    else { throw new ApplicationException("Could not authenticate with Schedules Direct Error: " + root.message); }
-                }
+                token = "";
             }
         }
 
         public async Task<IEnumerable<ChannelInfo>> getChannelInfo(IEnumerable<ChannelInfo> channelsInfo, CancellationToken cancellationToken)
         {
-            if (username.Length > 0 && password.Length > 0)
+            await GetToken(cancellationToken);
+            if (!String.IsNullOrWhiteSpace(token))
             {
-                if (apiUrl != "https://json.schedulesdirect.org/20141201") { apiUrl = "https://json.schedulesdirect.org/20141201"; await refreshToken(cancellationToken); }
-                else { await getToken(cancellationToken); }
                 if (!String.IsNullOrWhiteSpace(_lineup))
                 {
                     var httpOptions = new HttpRequestOptionsMod()
@@ -131,10 +135,9 @@ namespace EmbyTV.EPGProvider
 
         public async Task<IEnumerable<ProgramInfo>> getTvGuideForChannel(string channelNumber, DateTime start, DateTime end, CancellationToken cancellationToken)
         {
-            if (!String.IsNullOrWhiteSpace(_lineup) && username.Length > 0 && password.Length > 0)
+             await GetToken(cancellationToken);
+            if (!String.IsNullOrWhiteSpace(_lineup) && !String.IsNullOrWhiteSpace(token))
             {
-                if (apiUrl != "https://json.schedulesdirect.org/20141201") { apiUrl = "https://json.schedulesdirect.org/20141201"; await refreshToken(cancellationToken); }
-                else { await getToken(cancellationToken); }
                 HttpRequestOptionsMod httpOptions = new HttpRequestOptionsMod()
                 {
                     Url = apiUrl + "/schedules",
@@ -152,16 +155,20 @@ namespace EmbyTV.EPGProvider
                     dates.Add(lastEntry.ToString("yyyy-MM-dd"));
                     numberOfDay++;
                 }
-                _logger.Info("Schedules dates is null?" + (dates != null || dates.All(x => string.IsNullOrWhiteSpace(x))));
+                _logger.Info("Schedules dates is null?" +
+                             (dates != null || dates.All(x => string.IsNullOrWhiteSpace(x))));
                 _logger.Info("Date count?" + dates[0]);
 
                 string stationID = channelPair[channelNumber].stationID;
                 _logger.Info("Channel ?" + stationID);
                 List<ScheduleDirect.RequestScheduleForChannel> requestList =
-                    new List<ScheduleDirect.RequestScheduleForChannel>() {
-                        new ScheduleDirect.RequestScheduleForChannel() {
-                            stationID = stationID, date = dates 
-                        } 
+                    new List<ScheduleDirect.RequestScheduleForChannel>()
+                    {
+                        new ScheduleDirect.RequestScheduleForChannel()
+                        {
+                            stationID = stationID,
+                            date = dates
+                        }
                     };
 
                 _logger.Info("Schedules 3");
@@ -222,8 +229,11 @@ namespace EmbyTV.EPGProvider
                         {
                             responseString = innerReader.ReadToEnd();
                             responseString = "{ \"result\":" + responseString + "}";
-                            var programDetails = _jsonSerializer.DeserializeFromString<ScheduleDirect.ProgramDetailsResilt>(responseString);
-                            Dictionary<string, ScheduleDirect.ProgramDetails> programDict = programDetails.result.ToDictionary(p => p.programID, y => y);
+                            var programDetails =
+                                _jsonSerializer.DeserializeFromString<ScheduleDirect.ProgramDetailsResilt>(
+                                    responseString);
+                            Dictionary<string, ScheduleDirect.ProgramDetails> programDict =
+                                programDetails.result.ToDictionary(p => p.programID, y => y);
 
 
 
@@ -231,7 +241,9 @@ namespace EmbyTV.EPGProvider
                             {
                                 foreach (ScheduleDirect.Program schedule in day.programs)
                                 {
-                                    _logger.Info("Proccesing Schedule for statio ID " + stationID + " which corresponds to channel" + channelNumber + " and program id " + schedule.programID);
+                                    _logger.Info("Proccesing Schedule for statio ID " + stationID +
+                                                 " which corresponds to channel" + channelNumber + " and program id " +
+                                                 schedule.programID);
 
                                     programsInfo.Add(GetProgram(channelNumber, schedule, programDict[schedule.programID]));
                                 }
@@ -242,7 +254,6 @@ namespace EmbyTV.EPGProvider
                     }
                 }
             }
-
             return (IEnumerable<ProgramInfo>)new List<ProgramInfo>();
         }
 
@@ -341,10 +352,9 @@ namespace EmbyTV.EPGProvider
         public async Task<List<string>> getLineups(CancellationToken cancellationToken)
         {
             List<string> Lineups = new List<string>();
-            if (username.Length > 0 && password.Length > 0)
+            await GetToken(cancellationToken);
+            if (!String.IsNullOrWhiteSpace(token))
             {
-                apiUrl = "https://json.schedulesdirect.org/20141201";
-                await refreshToken(cancellationToken);
                 _logger.Info("Lineups on account ");
                 var httpOptions = new HttpRequestOptionsMod()
                 {
@@ -388,10 +398,9 @@ namespace EmbyTV.EPGProvider
         public async Task<Dictionary<string, string>> getHeadends(string zipcode, CancellationToken cancellationToken)
         {
             Dictionary<string, string> lineups = new Dictionary<string, string>();
-            if (username.Length > 0 && password.Length > 0)
+            await GetToken(cancellationToken);
+            if (!String.IsNullOrWhiteSpace(token) && !String.IsNullOrWhiteSpace(zipcode))
             {
-                apiUrl = "https://json.schedulesdirect.org/20141201";
-                await refreshToken(cancellationToken);
                 _logger.Info("Headends on account ");
                 var httpOptions = new HttpRequestOptionsMod()
                 {
@@ -429,10 +438,9 @@ namespace EmbyTV.EPGProvider
 
         public async Task addHeadEnd(CancellationToken cancellationToken)
         {
-            if (username.Length > 0 && password.Length > 0 && String.IsNullOrWhiteSpace(_lineup))
+            await GetToken(cancellationToken);
+            if (!String.IsNullOrWhiteSpace(token) && !String.IsNullOrWhiteSpace(_lineup))
             {
-                apiUrl = "https://json.schedulesdirect.org/20141201";
-                await refreshToken(cancellationToken);
                 _logger.Info("Adding new LineUp ");
                 var httpOptions = new HttpRequestOptionsMod()
                 {
