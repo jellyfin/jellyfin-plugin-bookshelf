@@ -13,4 +13,9 @@ namespace EmbyTV.EPGProvider
         //Task getTvGuide(HttpClientHelper httpClientHelper);
     }
 
+    public class Headend
+    {
+        public string Name { get; set; }
+        public string Id { get; set; }
+    }
 }

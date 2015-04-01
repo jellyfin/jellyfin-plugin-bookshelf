@@ -62,6 +62,7 @@
     </Compile>
     <Compile Include="Configuration\EmbyTVConfigurationPage.cs" />
     <Compile Include="Configuration\PluginConfiguration.cs" />
+    <Compile Include="DVR\RecordingHelper.cs" />
     <Compile Include="EntryPoint.cs" />
     <Compile Include="GeneralHelpers\HttpClientHelper.cs" />
     <Compile Include="GeneralHelpers\Xml.cs" />

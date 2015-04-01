@@ -244,13 +244,13 @@
     if (typeof define == 'function' && define.amd) define([], function() { return Sha1; }); // AMD
     var EmbyTVConfigurationPage = { pluginUniqueId: "b0067c00-62cf-476c-9e63-d53ae7247aa9" };
 
-    function createLineupsDropdown(lineups, currentLineup, names, values) {
+    function createLineupsDropdown(lineups, currentLineup, headends) {
 
         var dropdown = document.getElementById("tvLineups");
-        if (names[0]) {
-            for (var i = 0; i < names.length; i++) {
-                dropdown[i + 1] = new Option(names[i], values[i]);
-                if (contains(lineups, values[i])) {
+        if (headends[0]) {
+            for (var i = 0; i < headends.length; i++) {
+                dropdown[i + 1] = new Option(headends[i].Name, headends[i].Id);
+                if (contains(lineups, headends[i].Id)) {
                     dropdown[i + 1].style.backgroundColor = 'Aquamarine';
                 }
             }
@@ -258,8 +258,8 @@
             dropdown[0] = new Option("No lineups Avaliable", "");
         }
         if (currentLineup) {
-            var option = new Option(currentLineup, currentLineup);
-            $(option).html(currentLineup);
+            var option = new Option(currentLineup.Name, currentLineup.Id);
+            $(option).html(currentLineup.Name);
             dropdown[0] = option;
             dropdown[0].setAttribute("selected", "selected");
 
@@ -363,7 +363,7 @@
             $('#chkLoadFavorites', page).checked(getByName(fields, "OnlyFavorites") === "true").checkboxradio("refresh");
             $('#zipCode', page).val(config.zipCode || "");
            // createAllFields(config.TunerDefaultConfigurationsFields[0].DefaultConfigurationFields);
-            createLineupsDropdown(config.avaliableLineups, config.tvLineUp, config.headendName, config.headendValue);
+            createLineupsDropdown(config.avaliableLineups, config.lineup, config.headends);
             Dashboard.hideLoadingMsg();
         });
     }
@@ -402,7 +402,11 @@
             if (pass != "") {
                 config.hashPassword = pass;
             }
-            config.tvLineUp = document.getElementById("tvLineups").options[document.getElementById("tvLineups").selectedIndex].value;
+            var lineup = {
+                Name: document.getElementById("tvLineups").options[document.getElementById("tvLineups").selectedIndex].innerHTML,
+                Id: document.getElementById("tvLineups").options[document.getElementById("tvLineups").selectedIndex].value
+            }
+            config.lineup = lineup;
             ApiClient.updatePluginConfiguration(EmbyTVConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
 
         });

@@ -19,7 +19,7 @@ namespace EmbyTV.EPGProvider
     public class SchedulesDirect : IEpgSupplier
     {
         public string username;
-        public string _lineup;
+        public Headend _lineup;
         private string password;
         private string token;
         private string apiUrl;
@@ -30,7 +30,7 @@ namespace EmbyTV.EPGProvider
         public bool badPassword = false;
         
 
-        public SchedulesDirect(string username, string password, string lineup, ILogger logger, IJsonSerializer jsonSerializer, IHttpClient httpClient)
+        public SchedulesDirect(string username, string password, Headend lineup, ILogger logger, IJsonSerializer jsonSerializer, IHttpClient httpClient)
         {
             this.username = username;
             this.password = password;
@@ -92,11 +92,11 @@ namespace EmbyTV.EPGProvider
             await GetToken(cancellationToken);
             if (!String.IsNullOrWhiteSpace(token))
             {
-                if (!String.IsNullOrWhiteSpace(_lineup))
+                if (!String.IsNullOrWhiteSpace(_lineup.Id))
                 {
                     var httpOptions = new HttpRequestOptionsMod()
                     {
-                        Url = apiUrl + "/lineups/" + _lineup,
+                        Url = apiUrl + "/lineups/" + _lineup.Id,
                         UserAgent = "Emby-Server",
                         Token = token,
                         CancellationToken = cancellationToken
@@ -136,7 +136,7 @@ namespace EmbyTV.EPGProvider
         public async Task<IEnumerable<ProgramInfo>> getTvGuideForChannel(string channelNumber, DateTime start, DateTime end, CancellationToken cancellationToken)
         {
              await GetToken(cancellationToken);
-            if (!String.IsNullOrWhiteSpace(_lineup) && !String.IsNullOrWhiteSpace(token))
+            if (!String.IsNullOrWhiteSpace(_lineup.Id) && !String.IsNullOrWhiteSpace(token))
             {
                 HttpRequestOptionsMod httpOptions = new HttpRequestOptionsMod()
                 {
@@ -373,13 +373,13 @@ namespace EmbyTV.EPGProvider
                         foreach (ScheduleDirect.Lineup lineup in root.lineups)
                         {
                             _logger.Info("Lineups ID: " + lineup.lineup);
-                            if (lineup.lineup == _lineup)
+                            if (lineup.lineup == _lineup.Id)
                             {
                                 check = true;
                             }
                             Lineups.Add(lineup.lineup);
                         }
-                        if (!String.IsNullOrWhiteSpace(_lineup) && !check)
+                        if (!String.IsNullOrWhiteSpace(_lineup.Id) && !check)
                         {
                             await addHeadEnd(cancellationToken);
                         }
@@ -395,9 +395,9 @@ namespace EmbyTV.EPGProvider
             Lineups.Add("");
             return Lineups;
         }
-        public async Task<Dictionary<string, string>> getHeadends(string zipcode, CancellationToken cancellationToken)
+        public async Task<List<Headend>> getHeadends(string zipcode, CancellationToken cancellationToken)
         {
-            Dictionary<string, string> lineups = new Dictionary<string, string>();
+            List<Headend> lineups = new List<Headend>();
             await GetToken(cancellationToken);
             if (!String.IsNullOrWhiteSpace(token) && !String.IsNullOrWhiteSpace(zipcode))
             {
@@ -423,7 +423,7 @@ namespace EmbyTV.EPGProvider
                                 if (!String.IsNullOrWhiteSpace(lineup.name))
                                 {
                                     _logger.Info("Headend: " + lineup.uri.Substring(18));
-                                    lineups.Add(lineup.name, lineup.uri.Substring(18));
+                                    lineups.Add(new Headend() {Name = lineup.name, Id = lineup.uri.Substring(18)});
                                 }
                         }
                     }
@@ -439,12 +439,12 @@ namespace EmbyTV.EPGProvider
         public async Task addHeadEnd(CancellationToken cancellationToken)
         {
             await GetToken(cancellationToken);
-            if (!String.IsNullOrWhiteSpace(token) && !String.IsNullOrWhiteSpace(_lineup))
+            if (!String.IsNullOrWhiteSpace(token) && !String.IsNullOrWhiteSpace(_lineup.Id))
             {
                 _logger.Info("Adding new LineUp ");
                 var httpOptions = new HttpRequestOptionsMod()
                 {
-                    Url = apiUrl + "/lineups/" + _lineup,
+                    Url = apiUrl + "/lineups/" + _lineup.Id,
                     UserAgent = "Emby-Server",
                     Token = token,
                     CancellationToken = cancellationToken

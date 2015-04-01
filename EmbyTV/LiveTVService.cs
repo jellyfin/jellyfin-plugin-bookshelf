@@ -15,8 +15,11 @@ using System.Globalization;
 ﻿using System.Linq;
 ﻿using System.Threading;
 using System.Threading.Tasks;
+﻿using System.Timers;
 ﻿using EmbyTV.Configuration;
+﻿using EmbyTV.DVR;
 ﻿using MediaBrowser.Model.Connect;
+
 
 
 namespace EmbyTV
@@ -34,6 +37,7 @@ namespace EmbyTV
         private readonly IJsonSerializer _jsonSerializer;
         private readonly IHttpClient _httpClient;
         private bool FirstRun;
+        private List<Recording> recordings; 
         
 
        public LiveTvService(IHttpClient httpClient, IJsonSerializer jsonSerializer, ILogManager logManager)
@@ -43,6 +47,7 @@ namespace EmbyTV
             _httpClient = httpClient;
             _jsonSerializer = jsonSerializer;
             FirstRun = true;
+            recordings = new List<Recording>();
             RefreshConfigData(CancellationToken.None);
             Plugin.Instance.Configuration.TunerDefaultConfigurationsFields = TunerHostConfig.BuildDefaultForTunerHostsBuilders();
             Plugin.Instance.ConfigurationUpdated += (sender, args) => { RefreshConfigData(CancellationToken.None); };
@@ -104,7 +109,8 @@ namespace EmbyTV
 
         public Task CreateTimerAsync(TimerInfo info, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            recordings.Add(new Recording(info));
+            return Task.FromResult(0);
         }
 
         public event EventHandler DataSourceChanged;
@@ -127,15 +133,13 @@ namespace EmbyTV
                 _tunerServer = TunerHostFactory.CreateTunerHosts(config.TunerHostsConfiguration, _logger,_jsonSerializer, _httpClient);
             }
             FirstRun = false;
-            _tvGuide = new EPGProvider.SchedulesDirect(config.username,config.hashPassword,config.tvLineUp, _logger, _jsonSerializer, _httpClient);
+            _tvGuide = new EPGProvider.SchedulesDirect(config.username,config.hashPassword,config.lineup, _logger, _jsonSerializer, _httpClient);
             config.avaliableLineups = await _tvGuide.getLineups(cancellationToken);
             if (_tvGuide.badPassword)
             {
                 config.hashPassword = "";
             }
-            var dict = await _tvGuide.getHeadends(config.zipCode, cancellationToken);;
-            config.headendName = dict.Keys.ToList();
-            config.headendValue = dict.Values.ToList();
+            config.headends = await _tvGuide.getHeadends(config.zipCode, cancellationToken);
             Plugin.Instance.SaveConfiguration();
             _configLastModified = Plugin.Instance.ConfigurationDateLastModified;
         }
@@ -197,8 +201,12 @@ namespace EmbyTV
 
         public Task<IEnumerable<TimerInfo>> GetTimersAsync(CancellationToken cancellationToken)
         {
-            IEnumerable<TimerInfo> result = new List<TimerInfo>();
-            return Task.FromResult(result);
+            List<TimerInfo> result = new List<TimerInfo>();
+            foreach (var recording in recordings)
+            {
+                result.Add(recording.TimerInfo);
+            }
+            return Task.FromResult((IEnumerable<TimerInfo>)result);
         }
 
         public string HomePageUrl
@@ -213,14 +221,27 @@ namespace EmbyTV
 
         public Task RecordLiveStream(string id, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            HttpRequestOptions options = new HttpRequestOptions()
+            {
+                Url = "http://192.168.2.238:5004/auto/v508?duration=10",
+                CancellationToken = cancellationToken
+            };
+            string filePath = Path.GetTempPath() + "/test.ts";
+            DVR.RecordingHelper.DownloadVideo(_httpClient, options, _logger,filePath).Start();
+            return Task.FromResult(0);
         }
 
         public event EventHandler<RecordingStatusChangedEventArgs> RecordingStatusChanged;
 
         public Task ResetTuner(string id, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            HttpRequestOptions options = new HttpRequestOptions()
+            {
+                Url = "http://192.168.2.238:5004/auto/v508?duration=10"
+            };
+
+            //DVR.RecordingHelper.DownloadVideo(_httpClient, options, _logger).Start();
+            return Task.FromResult(0);
         }
 
         public Task UpdateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
