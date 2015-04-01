@@ -34,6 +34,7 @@ namespace EmbyTV
         private readonly IJsonSerializer _jsonSerializer;
         private readonly IHttpClient _httpClient;
         private bool FirstRun;
+        
 
        public LiveTvService(IHttpClient httpClient, IJsonSerializer jsonSerializer, ILogManager logManager)
         {
@@ -42,25 +43,12 @@ namespace EmbyTV
             _httpClient = httpClient;
             _jsonSerializer = jsonSerializer;
             FirstRun = true;
+            RefreshConfigData(CancellationToken.None);
             Plugin.Instance.Configuration.TunerDefaultConfigurationsFields = TunerHostConfig.BuildDefaultForTunerHostsBuilders();
-           CheckForUpdates();
+            Plugin.Instance.ConfigurationUpdated += (sender, args) => { RefreshConfigData(CancellationToken.None); };
+   
         }
 
-        private void CheckForUpdates()
-        {
-            Task.Run(() =>
-            {
-                while (true)
-                {
-                    //Helper.LogInfo("Last Time config modified:" + configLastModified);
-                    if ((Plugin.Instance.ConfigurationDateLastModified != _configLastModified) || FirstRun)
-                    {
-                        RefreshConfigData(CancellationToken.None);
-                    }
-                    Thread.Sleep(1000);
-                }
-            });
-        }
 
         /// <summary>
         /// Ensure that we are connected to the HomeRunTV server
@@ -278,13 +266,15 @@ namespace EmbyTV
                             {
                                 Type = MediaStreamType.Video,
                                 // Set the index to -1 because we don't know the exact index of the video stream within the container
-                                Index = -1
+                                Index = -1,
+                                IsInterlaced = true
                             },
                             new MediaStream
                             {
                                 Type = MediaStreamType.Audio,
                                 // Set the index to -1 because we don't know the exact index of the audio stream within the container
                                 Index = -1
+                               
                             }
                         }
             });
