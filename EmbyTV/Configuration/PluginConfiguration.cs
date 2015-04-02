@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Policy;
 using EmbyTV.EPGProvider;
@@ -19,6 +20,7 @@ namespace EmbyTV.Configuration
         public string zipCode { get; set; }
         public List<FieldBuilder> TunerDefaultConfigurationsFields { get; set; }
         public List<TunerUserConfiguration> TunerHostsConfiguration { get; set; }
+       
 
         public PluginConfiguration()
         {
@@ -28,7 +30,6 @@ namespace EmbyTV.Configuration
             zipCode = "";
             headends = new List<Headend>();
             TunerDefaultConfigurationsFields = TunerHostConfig.BuildDefaultForTunerHostsBuilders();
-            
         }
     }
 

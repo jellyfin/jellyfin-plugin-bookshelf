@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.IsolatedStorage;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using MediaBrowser.Common.IO;
@@ -28,24 +30,69 @@ namespace EmbyTV.DVR
                     await request.Result.Content.CopyToAsync(output);
                 }
             }
+            TimerInfo test = new Recording();
         }
     }
 
-    public class Recording
+    public class Recording:TimerInfo
     {
-        public TimerInfo TimerInfo;
-        DateTime start { get; set; }
-        double duration { get; set; }
-        string programID { get; set; }
-        string Url { get; set; }
         public event EventHandler StartRecording;
-        public Recording(TimerInfo info)
+
+        public Recording() 
         {
-            start = info.StartDate.AddSeconds(info.PrePaddingSeconds);
-            duration = (info.EndDate - info.StartDate).TotalSeconds + info.PrePaddingSeconds;
-            programID = info.Id;
-            TimerInfo = info;
+            
         }
+        public Recording(TimerInfo parent)
+        {
+            foreach (PropertyInfo prop in parent.GetType().GetProperties())
+            {
+                GetType().GetProperty(prop.Name).SetValue(this, prop.GetValue(parent, null), null);
+            }
+        }
+
+        public void CopyTimer(TimerInfo parent)
+        {
+            foreach (PropertyInfo prop in parent.GetType().GetProperties())
+            {
+                GetType().GetProperty(prop.Name).SetValue(this, prop.GetValue(parent, null), null);
+            }
+        }
+
+        public DateTime StartTime()
+        {
+            return StartDate.AddSeconds(PrePaddingSeconds);
+        }
+
+        public double Duration()
+        {
+            return (EndDate - StartDate).TotalSeconds + PrePaddingSeconds;
+        }
+
+    }
+
+    public class RecordingSeries : SeriesTimerInfo
+    {
+        public RecordingSeries()
+        {
+        }
+        public RecordingSeries(SeriesTimerInfo parent)
+        {
+            foreach (PropertyInfo prop in parent.GetType().GetProperties())
+            {
+                GetType().GetProperty(prop.Name).SetValue(this, prop.GetValue(parent, null), null);
+            }
+        }
+        public void CopyTimer(SeriesTimerInfo parent)
+        {
+            foreach (PropertyInfo prop in parent.GetType().GetProperties())
+            {
+                GetType().GetProperty(prop.Name).SetValue(this, prop.GetValue(parent, null), null);
+            }
+        }
+        
+
+
+    
     }
 
     public enum RecordingMethod
