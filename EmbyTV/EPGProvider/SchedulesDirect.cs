@@ -259,9 +259,10 @@ namespace EmbyTV.EPGProvider
 
         private ProgramInfo GetProgram(string channel, ScheduleDirect.Program programInfo, ScheduleDirect.ProgramDetails details)
         {
+            _logger.Info("Show type is: " + (details.showType ?? "No ShowType"));
             DateTime startAt = DateTime.ParseExact(programInfo.airDateTime, "yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'", CultureInfo.InvariantCulture);
             DateTime endAt = startAt.AddSeconds(programInfo.duration);
-            ProgramAudio audioType = ProgramAudio.Mono;
+            ProgramAudio audioType = ProgramAudio.Stereo;
             bool hdtv = false;
             bool repeat = (programInfo.@new == null);
             string newID = programInfo.programID + "T" + startAt.Ticks + "C" + channel;
@@ -282,7 +283,7 @@ namespace EmbyTV.EPGProvider
             if (details.metadata != null)
             {
                 gracenote = details.metadata.Find(x => x.Gracenote != null).Gracenote;
-                if (details.eventDetails.subType == "Series") { EpisodeTitle = "Season: " + gracenote.season + " Episode: " + gracenote.episode; }
+                if ((details.showType ?? "No ShowType") == "Series") { EpisodeTitle = "Season: " + gracenote.season + " Episode: " + gracenote.episode; }
                 if (details.episodeTitle150 != null) { EpisodeTitle = EpisodeTitle + " " + details.episodeTitle150; }
             }
             if (details.episodeTitle150 != null) { EpisodeTitle = EpisodeTitle + " " + details.episodeTitle150; }
@@ -295,6 +296,7 @@ namespace EmbyTV.EPGProvider
 
             }
              */
+           
             var info = new ProgramInfo
             {
                 ChannelId = channel,
@@ -310,16 +312,15 @@ namespace EmbyTV.EPGProvider
                 Audio = audioType,
                 IsHD = hdtv,
                 IsRepeat = repeat,
-                IsSeries = (details.eventDetails.subType == "Series"),
+                IsSeries = ((details.showType ?? "No ShowType") == "Series") || (details.showType ?? "No ShowType") == "Miniseries",
                 ImageUrl = imageLink,
                 HasImage = hasImage,
                 IsNews = false,
                 IsKids = false,
-                IsSports = false,
+                IsSports = ((details.showType ?? "No ShowType") == "Sports non-event") || (details.showType ?? "No ShowType") == "Sports event",
                 IsLive = false,
-                IsMovie = false,
+                IsMovie = (details.showType ?? "No ShowType") == "Feature Film" || (details.showType ?? "No ShowType") == "TV Movie" || (details.showType ?? "No ShowType") == "Short Film",
                 IsPremiere = false,
-
             };
             //logger.Info("Done init");
             if (null != details.originalAirDate)
@@ -331,13 +332,7 @@ namespace EmbyTV.EPGProvider
             {
                 info.Genres = details.genres.Where(g => !string.IsNullOrWhiteSpace(g)).ToList();
                 info.IsNews = details.genres.Contains("news", StringComparer.OrdinalIgnoreCase);
-                info.IsMovie = details.genres.Contains("Feature Film", StringComparer.OrdinalIgnoreCase) || (details.movie != null);
                 info.IsKids = false;
-                info.IsSports = details.genres.Contains("sports", StringComparer.OrdinalIgnoreCase) ||
-                    details.genres.Contains("Sports non-event", StringComparer.OrdinalIgnoreCase) ||
-                    details.genres.Contains("Sports event", StringComparer.OrdinalIgnoreCase) ||
-                    details.genres.Contains("Sports talk", StringComparer.OrdinalIgnoreCase) ||
-                    details.genres.Contains("Sports news", StringComparer.OrdinalIgnoreCase);
             }
             return info;
         }
