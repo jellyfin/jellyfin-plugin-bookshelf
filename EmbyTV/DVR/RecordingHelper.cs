@@ -12,7 +12,8 @@ using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.LiveTv;
 using MediaBrowser.Model.Logging;
-
+using System.Timers;
+using System.Xml;
 
 namespace EmbyTV.DVR
 {
@@ -22,27 +23,30 @@ namespace EmbyTV.DVR
         {
             
             //string filePath = Path.GetTempPath()+"/test.ts";
+            httpRequestOptions.BufferContent = false;
+          
+         
             logger.Info("Writing file to path: "+filePath);
-            using (var request = httpClient.SendAsync(httpRequestOptions, "GET"))
+            using (var request = httpClient.SendAsync(httpRequestOptions,"GET"))
             {
-                using (var output = File.Open(filePath, FileMode.Create))
+                using (var output = File.Open(filePath, FileMode.Create,FileAccess.Read))
                 {
                     await request.Result.Content.CopyToAsync(output);
                 }
             }
-            TimerInfo test = new Recording();
         }
     }
 
-    public class Recording:TimerInfo
+    public class SingleTimer:TimerInfo
     {
+        private Timer countDown;
         public event EventHandler StartRecording;
 
-        public Recording() 
+        public SingleTimer() 
         {
             
         }
-        public Recording(TimerInfo parent)
+        public SingleTimer(TimerInfo parent)
         {
             foreach (PropertyInfo prop in parent.GetType().GetProperties())
             {
@@ -58,9 +62,28 @@ namespace EmbyTV.DVR
             }
         }
 
+        public void GenerateEvent()
+        {
+            if (StartRecording != null)
+            {
+                var wait = (StartTime() - DateTime.UtcNow).TotalMilliseconds;
+                if (wait < 0)
+                {wait = 1;}
+                countDown = new Timer(wait);
+                countDown.Elapsed += sendSignal;
+                countDown.AutoReset = false;
+                countDown.Start();
+            }
+        }
+
+        private void sendSignal(object obj, ElapsedEventArgs arg)
+        {
+            StartRecording(this, null);
+        }
+
         public DateTime StartTime()
         {
-            return StartDate.AddSeconds(PrePaddingSeconds);
+            return StartDate.AddSeconds(-PrePaddingSeconds);
         }
 
         public double Duration()
@@ -68,14 +91,19 @@ namespace EmbyTV.DVR
             return (EndDate - StartDate).TotalSeconds + PrePaddingSeconds;
         }
 
+        public string GetRecordingName()
+        {
+            return (ProgramId + ".ts");
+        }
+
     }
 
-    public class RecordingSeries : SeriesTimerInfo
+    public class SeriesTimer : SeriesTimerInfo
     {
-        public RecordingSeries()
+        public SeriesTimer()
         {
         }
-        public RecordingSeries(SeriesTimerInfo parent)
+        public SeriesTimer(SeriesTimerInfo parent)
         {
             foreach (PropertyInfo prop in parent.GetType().GetProperties())
             {

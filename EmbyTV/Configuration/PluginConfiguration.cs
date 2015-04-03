@@ -20,10 +20,12 @@ namespace EmbyTV.Configuration
         public string zipCode { get; set; }
         public List<FieldBuilder> TunerDefaultConfigurationsFields { get; set; }
         public List<TunerUserConfiguration> TunerHostsConfiguration { get; set; }
+        public string RecordingPath { get; set; }
        
 
         public PluginConfiguration()
         {
+            RecordingPath = @"C:\Temp";
             lineup = new Headend() {Name = "", Id = ""};
             username = "";
             hashPassword = "";

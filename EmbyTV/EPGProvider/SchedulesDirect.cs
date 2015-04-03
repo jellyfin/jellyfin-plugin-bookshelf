@@ -321,6 +321,7 @@ namespace EmbyTV.EPGProvider
                 IsLive = false,
                 IsMovie = (details.showType ?? "No ShowType") == "Feature Film" || (details.showType ?? "No ShowType") == "TV Movie" || (details.showType ?? "No ShowType") == "Short Film",
                 IsPremiere = false,
+                
             };
             //logger.Info("Done init");
             if (null != details.originalAirDate)
