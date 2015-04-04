@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net.Mime;
 using System.Threading.Tasks;
 using MediaBrowser.Model.Net;
 
@@ -195,34 +196,19 @@ namespace EmbyTV.EPGProvider
                     httpOptions.EnableHttpCompression = true;
                     string requestBody = "";
                     List<string> programsID = new List<string>();
-                    List<string> imageID = new List<string>();
-                    Dictionary<string, List<string>> haveImageID = new Dictionary<string, List<string>>();
                     foreach (ScheduleDirect.Day day in root.days)
                     {
                         foreach (ScheduleDirect.Program schedule in day.programs)
                         {
-                            var imageId = schedule.programID.Substring(0, 10);
                             programsID.Add(schedule.programID);
-                            imageID.Add(imageId);
-
-                            if (!haveImageID.ContainsKey(imageId))
-                            {
-                                haveImageID.Add(imageId, new List<string>());
-                            }
-                            if (!haveImageID[imageId].Contains(schedule.programID))
-                            {
-                                haveImageID[imageId].Add(schedule.programID);
-                            }
                         }
                     }
                     _logger.Info("finish creating dict: ");
-
                     programsID = programsID.Distinct().ToList();
-                    imageID = imageID.Distinct().ToList();
-
 
                     requestBody = "[\"" + string.Join("\", \"", programsID) + "\"]";
                     httpOptions.RequestContent = requestBody;
+                    List<string> imageID = new List<string>();
                     using (var innerResponse = await _httpClient.Post(httpOptions))
                     {
                         using (var innerReader = new StreamReader(innerResponse.Content))
@@ -234,9 +220,39 @@ namespace EmbyTV.EPGProvider
                                     responseString);
                             Dictionary<string, ScheduleDirect.ProgramDetails> programDict =
                                 programDetails.result.ToDictionary(p => p.programID, y => y);
-
-
-
+                            foreach (var program in programDetails.result)
+                            {
+                                var imageId = program.programID.Substring(0, 10);
+                                if (program.hasImageArtwork && !imageID.Contains(imageId))
+                                {
+                                    imageID.Add(imageId);
+                                }
+                            }
+                            Dictionary<string, string> imageUrls = new Dictionary<string, string>();
+                            foreach (var image in imageID)
+                            {
+                                var imageIdString = "[\"" + image+ "\"]";
+                                _logger.Info("Json for show images = " + imageIdString);
+                                httpOptions = new HttpRequestOptionsMod()
+                                {
+                                    Url = "https://json.schedulesdirect.org/20140530/metadata/programs/",
+                                    UserAgent = "Emby-Server",
+                                    CancellationToken = cancellationToken
+                                };
+                                httpOptions.RequestContent = imageIdString;
+                                
+                                using (var innerResponse2 = await _httpClient.Post(httpOptions))
+                                {
+                                    List<ScheduleDirect.Image> images;
+                                    images = _jsonSerializer.DeserializeFromStream<List<ScheduleDirect.Image>>(
+                                        innerResponse2.Content);
+                                    //_logger.Info("Images Response: " + _jsonSerializer.SerializeToString(images));
+                                    if (images[0] != null)
+                                    {
+                                        imageUrls.Add(image, images[0].uri);
+                                    }
+                                }
+                            }
                             foreach (ScheduleDirect.Day day in root.days)
                             {
                                 foreach (ScheduleDirect.Program schedule in day.programs)
@@ -245,6 +261,23 @@ namespace EmbyTV.EPGProvider
                                                  " which corresponds to channel" + channelNumber + " and program id " +
                                                  schedule.programID);
 
+                                    
+                                    if (imageUrls.ContainsKey(schedule.programID.Substring(0,10)))
+                                    {
+                                        string url;
+                                        if (imageUrls[schedule.programID.Substring(0, 10)].Contains("http"))
+                                        {
+                                            url = imageUrls[schedule.programID.Substring(0, 10)];
+                                        }
+                                        else
+                                        {
+                                            url = "https://json.schedulesdirect.org/20140530/image/" +
+                                                  imageUrls[schedule.programID.Substring(0, 10)];
+                                        }
+                                        programDict[schedule.programID].images = url;
+                                        _logger.Info("URL for image is : "+ programDict[schedule.programID].images);
+                                    }
+                                    
                                     programsInfo.Add(GetProgram(channelNumber, schedule, programDict[schedule.programID]));
                                 }
                             }
@@ -254,6 +287,7 @@ namespace EmbyTV.EPGProvider
                     }
                 }
             }
+
             return (IEnumerable<ProgramInfo>)new List<ProgramInfo>();
         }
 
@@ -289,13 +323,13 @@ namespace EmbyTV.EPGProvider
             if (details.episodeTitle150 != null) { EpisodeTitle = EpisodeTitle + " " + details.episodeTitle150; }
             bool hasImage = false;
             var imageLink = "";
-            /*
-            if (!details.hasImageArtwork != null) {
+            
+            if (details.hasImageArtwork) {
                 hasImage = true;
                 imageLink = details.images;
 
             }
-             */
+             
            
             var info = new ProgramInfo
             {
