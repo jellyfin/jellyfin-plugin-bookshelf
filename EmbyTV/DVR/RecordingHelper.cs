@@ -25,13 +25,14 @@ namespace EmbyTV.DVR
             //string filePath = Path.GetTempPath()+"/test.ts";
             httpRequestOptions.BufferContent = false;
           
-         
+           
             logger.Info("Writing file to path: "+filePath);
             using (var request = httpClient.SendAsync(httpRequestOptions,"GET"))
             {
-                using (var output = File.Open(filePath, FileMode.Create,FileAccess.Read))
+                using (var output = File.Open(filePath, FileMode.Create,FileAccess.Write,FileShare.Read))
                 {
                     await request.Result.Content.CopyToAsync(output);
+                    output.Dispose();
                 }
             }
         }
@@ -66,10 +67,7 @@ namespace EmbyTV.DVR
         {
             if (StartRecording != null)
             {
-                var wait = (StartTime() - DateTime.UtcNow).TotalMilliseconds;
-                if (wait < 0)
-                {wait = 1;}
-                countDown = new Timer(wait);
+                countDown = new Timer((StartTime() - DateTime.UtcNow).TotalMilliseconds);
                 countDown.Elapsed += sendSignal;
                 countDown.AutoReset = false;
                 countDown.Start();
@@ -83,12 +81,16 @@ namespace EmbyTV.DVR
 
         public DateTime StartTime()
         {
-            return StartDate.AddSeconds(-PrePaddingSeconds);
+            if (StartDate.AddSeconds(-PrePaddingSeconds+1) < DateTime.UtcNow)
+            {
+                return DateTime.UtcNow.AddSeconds(1);
+            }
+            return  StartDate.AddSeconds(-PrePaddingSeconds);
         }
 
         public double Duration()
         {
-            return (EndDate - StartDate).TotalSeconds + PrePaddingSeconds;
+            return (EndDate - StartTime()).TotalSeconds + PrePaddingSeconds;
         }
 
         public string GetRecordingName()

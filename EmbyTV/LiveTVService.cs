@@ -55,16 +55,27 @@ namespace EmbyTV
             FirstRun = true;
            _xmlSerializer = xmlSerializer;
             dataPath = Plugin.Instance.DataFolderPath;
-           
             recordingPath = Plugin.Instance.Configuration.RecordingPath;
            _logger.Info("Directory is: "+dataPath);
             Directory.CreateDirectory(dataPath);
             RefreshConfigData(CancellationToken.None);
-            timers = GetTimerData(dataPath, _xmlSerializer);
-            seriesTimers= GetSeriesTimerData(dataPath,_xmlSerializer);
             Plugin.Instance.Configuration.TunerDefaultConfigurationsFields = TunerHostConfig.BuildDefaultForTunerHostsBuilders();
             Plugin.Instance.ConfigurationUpdated += (sender, args) => { RefreshConfigData(CancellationToken.None); };
    
+        }
+
+        private void InitializeTimer()
+        {
+            timers.RemoveAll(t => t.Duration()<0);
+            for(var i = 0;i<timers.Count(); i++)
+            {
+                    var fileName = timers[i].GetRecordingName();
+                    var recordUrl = _tunerServer[0].getChannelStreamInfo(timers[i].ChannelId) + "?duration=" +
+                                    timers[i].Duration();
+                    timers[i].StartRecording += (sender, args) => { RecordStream(recordUrl, fileName); };
+                    timers[i].GenerateEvent();
+                    _logger.Info("Added timer for: " + recordUrl);
+            }
         }
 
        private static List<SeriesTimer> GetSeriesTimerData(string dataPath, IXmlSerializer xmlSerializer)
@@ -160,14 +171,21 @@ namespace EmbyTV
 
         public Task CreateTimerAsync(TimerInfo info, CancellationToken cancellationToken)
         {
-            timers.Add(new SingleTimer(info));
-            UpdateTimerData();
-            var lastTimer = timers.Last();
-            var fileName = lastTimer.GetRecordingName();
-            var recordUrl = _tunerServer[0].getChannelStreamInfo(info.ChannelId) + "?duration=" + lastTimer.Duration();
-            timers.Last().StartRecording += (sender, args) => { RecordStream(recordUrl,fileName); };
-            timers.Last().GenerateEvent();
-            _logger.Info("Started Recording for:"+recordUrl);
+            var lastTimer = new SingleTimer(info);
+            if (lastTimer.Duration() > 5)
+            {
+                timers.Add(lastTimer);
+                UpdateTimerData();
+                var fileName = lastTimer.GetRecordingName();
+                var recordUrl = _tunerServer[0].getChannelStreamInfo(info.ChannelId) + "?duration=" + lastTimer.Duration();
+                timers.Last().StartRecording += (sender, args) => { RecordStream(recordUrl, fileName); };
+                timers.Last().GenerateEvent();
+                _logger.Info("Added timer for: " + recordUrl);
+            }
+            else
+            {
+                _logger.Error("Timer not created the show is about to end or has already ended");
+            }
             return Task.FromResult(0);
         }
 
@@ -188,6 +206,12 @@ namespace EmbyTV
             if (config.TunerHostsConfiguration != null)
             {
                 _tunerServer = TunerHostFactory.CreateTunerHosts(config.TunerHostsConfiguration, _logger,_jsonSerializer, _httpClient);
+            }
+            if (FirstRun)
+            {
+                timers = GetTimerData(dataPath, _xmlSerializer);
+                seriesTimers = GetSeriesTimerData(dataPath, _xmlSerializer);
+                InitializeTimer();
             }
             FirstRun = false;
             _tvGuide = new EPGProvider.SchedulesDirect(config.username,config.hashPassword,config.lineup, _logger, _jsonSerializer, _httpClient);
