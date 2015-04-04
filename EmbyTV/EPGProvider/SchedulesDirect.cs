@@ -232,10 +232,13 @@ namespace EmbyTV.EPGProvider
                             foreach (var image in imageID)
                             {
                                 var imageIdString = "[\"" + image+ "\"]";
-                                _logger.Info("Json for show images = " + imageIdString);
+                                string programs = String.Join(" ",programDict.Keys.ToList().FindAll(x=>x.Substring(0,10) == image))
+                                ;
+                                _logger.Info("Json for show images = " + imageIdString +" used on prgrams "+
+                                    programs);
                                 httpOptions = new HttpRequestOptionsMod()
                                 {
-                                    Url = "https://json.schedulesdirect.org/20140530/metadata/programs/",
+                                    Url = "https://json.schedulesdirect.org/20141201/metadata/programs/",
                                     UserAgent = "Emby-Server",
                                     CancellationToken = cancellationToken
                                 };
