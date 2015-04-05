@@ -73,8 +73,9 @@
     </Compile>
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TunerHost\Settings\ConfigSettings.cs" />
-    <Compile Include="TunerHost\TunerServer.cs" />
+    <Compile Include="TunerHost\HdHomeRunHost.cs" />
+    <Compile Include="TunerHost\ITunerHost.cs" />
+    <Compile Include="TunerHost\TunerHostFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Configuration\configPage.html" />
@@ -84,6 +85,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="TunerHost\Settings\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
