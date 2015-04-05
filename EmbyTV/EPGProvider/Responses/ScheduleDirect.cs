@@ -48,6 +48,9 @@ namespace EmbyTV.EPGProvider.Responses
         {
             public string stationID { get; set; }
             public string channel { get; set; }
+            public int uhfVhf { get; set; }
+            public int atscMajor { get; set; }
+            public int atscMinor { get; set; }
         }
 
         public class Broadcaster

@@ -54,8 +54,8 @@ namespace EmbyTV.EPGProvider
                     RequestContent = "{\"username\":\"" + username + "\",\"password\":\"" + password + "\"}",
                     CancellationToken = cancellationToken
                 };
-                _logger.Info("Obtaining token from Schedules Direct from addres: " + httpOptions.Url + " with body " +
-                             httpOptions.RequestContent);
+                //_logger.Info("Obtaining token from Schedules Direct from addres: " + httpOptions.Url + " with body " +
+                            // httpOptions.RequestContent);
                 try
                 {
                     using (var responce = await _httpClient.Post(httpOptions))
@@ -111,8 +111,10 @@ namespace EmbyTV.EPGProvider
                         _logger.Info("Mapping Stations to Channel");
                         foreach (ScheduleDirect.Map map in root.map)
                         {
-                            channelPair.Add(map.channel.TrimStart('0'),
-                                root.stations.First(item => item.stationID == map.stationID));
+                            var channel = map.channel ?? (map.atscMajor + "." + map.atscMajor); 
+                            channelPair.Add(channel.TrimStart('0'),
+                                root.stations.FirstOrDefault(item => item.stationID == map.stationID) );
+                            
                         }
                         _logger.Info("Added " + channelPair.Count() + " channels to the dictionary");
                         string channelName;
