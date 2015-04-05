@@ -114,7 +114,7 @@ namespace EmbyTV.EPGProvider
                             //  Helper.logger.Info("Modifyin channel " + channel.Number);
                             if (channelPair.ContainsKey(channel.Number.TrimStart('0')))
                             {
-                                if (channelPair[channel.Number].logo != null) { channel.ImageUrl = channelPair[channel.Number].logo.URL; channel.HasImage = true; }
+                                if (channelPair[channel.Number].logo != null) { channel.ImageUrl = channelPair[channel.Number].logo.URL; }
                                 if (channelPair[channel.Number].affiliate != null) { channelName = channelPair[channel.Number].affiliate; }
                                 else { channelName = channelPair[channel.Number].name; }
                                 channel.Name = channelName;

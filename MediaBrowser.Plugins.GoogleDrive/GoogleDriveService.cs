@@ -20,24 +20,14 @@ namespace MediaBrowser.Plugins.GoogleDrive
         private const string SyncFolderPropertyValue = "ba460da6-2cdf-43d8-98fc-ecda617ff1db";
         private const string PathPropertyKey = "Path";
 
-        private async Task<string> GetOrCreateParent(GoogleCredentials googleCredentials, string path, string rootParentId, CancellationToken cancellationToken)
+        private async Task<string> FindOrCreateParent(GoogleCredentials googleCredentials, bool enableCreate, string path, string rootParentId, CancellationToken cancellationToken)
         {
             var parts = path.Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries).ToList();
 
-            string currentPath = null;
             string currentparentId = rootParentId;
 
             foreach (var part in parts)
             {
-                if (currentPath == null)
-                {
-                    currentPath = part;
-                }
-                else
-                {
-                    currentPath = Path.Combine(currentPath, part);
-                }
-
                 currentparentId = await GetOrCreateFolder(part, currentparentId, googleCredentials, cancellationToken);
             }
 
@@ -49,7 +39,7 @@ namespace MediaBrowser.Plugins.GoogleDrive
             var fullDriveService = CreateDriveServiceAndCredentials(googleCredentials);
             var driveService = fullDriveService.Item1;
 
-            var parentId = await GetOrCreateParent(googleCredentials, googleDriveFile.FolderPath, googleDriveFile.GoogleDriveFolderId, cancellationToken);
+            var parentId = await FindOrCreateParent(googleCredentials, true, googleDriveFile.FolderPath, googleDriveFile.GoogleDriveFolderId, cancellationToken);
             googleDriveFile.GoogleDriveFolderId = parentId;
 
             await TryDeleteFile(googleDriveFile, googleCredentials, cancellationToken);
@@ -84,9 +74,28 @@ namespace MediaBrowser.Plugins.GoogleDrive
             return await CreateFolder(name, parentId, cancellationToken, driveService);
         }
 
+        private async Task TryDeleteFile(GoogleDriveFile googleDriveFile, GoogleCredentials googleCredentials, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var fullDriveService = CreateDriveServiceAndCredentials(googleCredentials);
+                var driveService = fullDriveService.Item1;
+
+                var file = await FindFileId(googleDriveFile, driveService, cancellationToken);
+
+                var request = driveService.Files.Delete(file.Id);
+                await request.ExecuteAsync(cancellationToken);
+            }
+            catch (FileNotFoundException) { }
+        }
+
         public async Task DeleteFile(GoogleDriveFile googleDriveFile, GoogleCredentials googleCredentials, CancellationToken cancellationToken)
         {
-            var driveService = CreateDriveService(googleCredentials);
+            var fullDriveService = CreateDriveServiceAndCredentials(googleCredentials);
+            var driveService = fullDriveService.Item1;
+
+            var parentId = await FindOrCreateParent(googleCredentials, false, googleDriveFile.FolderPath, googleDriveFile.GoogleDriveFolderId, cancellationToken);
+            googleDriveFile.GoogleDriveFolderId = parentId;
 
             var file = await FindFileId(googleDriveFile, driveService, cancellationToken);
 
@@ -96,7 +105,8 @@ namespace MediaBrowser.Plugins.GoogleDrive
 
         public async Task<Stream> GetFile(GoogleDriveFile googleDriveFile, GoogleCredentials googleCredentials, CancellationToken cancellationToken)
         {
-            var driveService = CreateDriveService(googleCredentials);
+            var fullDriveService = CreateDriveServiceAndCredentials(googleCredentials);
+            var driveService = fullDriveService.Item1;
 
             var file = await FindFileId(googleDriveFile, driveService, cancellationToken);
 
@@ -236,15 +246,6 @@ namespace MediaBrowser.Plugins.GoogleDrive
             {
                 HttpClient = { Timeout = TimeSpan.FromHours(1) }
             };
-        }
-
-        private async Task TryDeleteFile(GoogleDriveFile googleDriveFile, GoogleCredentials googleCredentials, CancellationToken cancellationToken)
-        {
-            try
-            {
-                await DeleteFile(googleDriveFile, googleCredentials, cancellationToken);
-            }
-            catch (FileNotFoundException) { }
         }
 
         private static File CreateFileToUpload(GoogleDriveFile googleDriveFile)

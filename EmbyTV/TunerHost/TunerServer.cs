@@ -136,9 +136,8 @@ namespace EmbyTV.TunerHost
                     {
                         Name = i.GuideName,
                         Number = i.GuideNumber.ToString(),
-                        Id = i.GuideNumber.ToString(),
-                        ImageUrl = null,
-                        HasImage = false
+                        Id = i.GuideNumber.ToString()
+
                     }).ToList();
 
                 }
