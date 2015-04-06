@@ -111,10 +111,13 @@ namespace EmbyTV.EPGProvider
                         _logger.Info("Mapping Stations to Channel");
                         foreach (ScheduleDirect.Map map in root.map)
                         {
-                            var channel = map.channel ?? (map.atscMajor + "." + map.atscMajor); 
-                            channelPair.Add(channel.TrimStart('0'),
-                                root.stations.FirstOrDefault(item => item.stationID == map.stationID) );
-                            
+                            var channel = map.channel ?? (map.atscMajor + "." + map.atscMinor); 
+                            _logger.Info("Found channel: "+channel+" in Schedules Direct");
+                            if (!channelPair.ContainsKey(channel) && channel != "0.0")
+                            {
+                                channelPair.Add(channel.TrimStart('0'),
+                                    root.stations.FirstOrDefault(item => item.stationID == map.stationID));
+                            }
                         }
                         _logger.Info("Added " + channelPair.Count() + " channels to the dictionary");
                         string channelName;
