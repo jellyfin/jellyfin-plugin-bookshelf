@@ -140,27 +140,10 @@ namespace MediaBrowser.Plugins.TVHclient.DataHelper
                             continue;
                         }
                         result.Add(ci);
-
-                        //if (ci.Name.Contains("ZDF"))
-                        //{
-                        //    _logger.Fatal("[TVHclient] " + dumpCI(ci));
-                        //}
-
                     }
                     return result;
                 }
             });
-        }
-
-        private string dumpCI(ChannelInfo ci)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.Append("\n<ChannelInfo>\n");
-            sb.Append("  ID: " + ci.Id + "\n");
-            sb.Append("  Name: " + ci.Name + "\n");
-            sb.Append("  Number: " + ci.Number + "\n");
-            sb.Append("</ChannelInfo>\n");
-            return sb.ToString();
         }
     }
 }

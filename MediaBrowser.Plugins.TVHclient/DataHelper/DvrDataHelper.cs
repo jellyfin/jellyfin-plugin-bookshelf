@@ -150,6 +150,10 @@ namespace MediaBrowser.Plugins.TVHclient.DataHelper
                                 case "missed":
                                     ri.Status = RecordingStatus.Error;
                                     break;
+                                case "recording":
+                                    ri.Status = RecordingStatus.InProgress;
+                                    break;
+
                                 default:
                                     _logger.Fatal("[TVHclient] DvrDataHelper.buildDvrInfos: state '" + state + "' not handled!");
                                     continue;

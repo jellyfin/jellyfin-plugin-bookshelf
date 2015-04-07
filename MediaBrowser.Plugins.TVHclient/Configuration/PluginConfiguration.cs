@@ -9,7 +9,7 @@ namespace MediaBrowser.Plugins.TVHclient.Configuration
     public class PluginConfiguration : BasePluginConfiguration
     {
         public string TVH_ServerName { get; set; }
-		//public int HTTP_Port { get; set; }
+		public int HTTP_Port { get; set; }
 		public int HTSP_Port { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
@@ -19,7 +19,7 @@ namespace MediaBrowser.Plugins.TVHclient.Configuration
         public PluginConfiguration()
         {
             TVH_ServerName = "localhost";
-            //HTTP_Port = 9981;
+            HTTP_Port = 9981;
 			HTSP_Port = 9982;
             Username = "";
             Password = "";

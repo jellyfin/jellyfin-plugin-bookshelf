@@ -27,6 +27,7 @@ namespace MediaBrowser.Plugins.TVHclient
     {
         private volatile Boolean _connected = false;
         private volatile Boolean _initialLoadFinished = false;
+        private volatile int _subscriptionId = 0;
 
         private readonly IJsonSerializer _jsonSerializer;
         private readonly ILogger _logger;
@@ -37,6 +38,8 @@ namespace MediaBrowser.Plugins.TVHclient
         private readonly TunerDataHelper _tunerDataHelper;
         private readonly DvrDataHelper _dvrDataHelper;
         private readonly AutorecDataHelper _autorecDataHelper;
+
+        private string _httpBaseUrl;
 
         //private readonly CultureInfo _deCulture = new CultureInfo("de-DE");
         //private int _liveStreams;
@@ -90,6 +93,8 @@ namespace MediaBrowser.Plugins.TVHclient
                         _logger.Error(message);
                         throw new InvalidOperationException(message);
                     }
+
+                    _httpBaseUrl = "http://" + config.TVH_ServerName + ":" + config.HTTP_Port;
 
                     _htsConnection.open(config.TVH_ServerName, config.HTSP_Port);
                     _connected = _htsConnection.authenticate(config.Username, config.Password);
@@ -365,7 +370,7 @@ namespace MediaBrowser.Plugins.TVHclient
             }
             createSeriesTimerMessage.putField("minDuration", 0);
             createSeriesTimerMessage.putField("maxDuration", 0);
-            
+
             createSeriesTimerMessage.putField("priority", info.Priority);
             if (!info.RecordAnyTime)
             {
@@ -394,7 +399,7 @@ namespace MediaBrowser.Plugins.TVHclient
             {
                 _logger.Error("[TVHclient] Can't create series timer: '" + createSeriesTimerResponse.getString("error") + "'");
             }
-            
+
         }
 
         /// <summary>
@@ -451,30 +456,31 @@ namespace MediaBrowser.Plugins.TVHclient
 
         public async Task<MediaSourceInfo> GetChannelStream(string channelId, string mediaSourceId, CancellationToken cancellationToken)
         {
-            _logger.Info("[TVHclient] GetChannelStream channelId = {0}, mediaSourceId = {1}", channelId, mediaSourceId);
-
             ensureConnection();
 
             await WaitForInitialLoadTask(cancellationToken);
 
-            HTSMessage subscribeMessage = new HTSMessage();
-            subscribeMessage.Method = "subscribe";
-            subscribeMessage.putField("channelId", channelId);
-            subscribeMessage.putField("subscriptionId", 1);
+            HTSMessage getTicketMessage = new HTSMessage();
+            getTicketMessage.Method = "getTicket";
+            getTicketMessage.putField("channelId", channelId);
 
-            //HTSMessage subscribeResponse = await Task.Factory.StartNew<HTSMessage>(() =>
-            //{
-            //    LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
-            //    _htsConnection.sendMessage(subscribeMessage, lbrh);
-            //    return lbrh.getResponse();
-            //});
+            HTSMessage getTicketResponse = await Task.Factory.StartNew<HTSMessage>(() =>
+            {
+                LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
+                _htsConnection.sendMessage(getTicketMessage, lbrh);
+                return lbrh.getResponse();
+            });
 
-            //_logger.Fatal("[TVHclient] " + subscribeResponse);
+            if (_subscriptionId == int.MaxValue)
+            {
+                _subscriptionId = 0;
+            }
+            int currSubscriptionId = _subscriptionId++;
 
             return new MediaSourceInfo
             {
-                Id = "Implement me please",
-                Path = null,
+                Id = "" + currSubscriptionId,
+                Path = _httpBaseUrl + getTicketResponse.getString("path") + "?ticket=" + getTicketResponse.getString("ticket"),
                 Protocol = MediaProtocol.Http,
                 MediaStreams = new List<MediaStream>
                         {
@@ -493,19 +499,36 @@ namespace MediaBrowser.Plugins.TVHclient
                         }
             };
         }
-
-
 
         public async Task<MediaSourceInfo> GetRecordingStream(string recordingId, string mediaSourceId, CancellationToken cancellationToken)
         {
-            _logger.Info("[TVHclient] GetRecordingStream");
-
             ensureConnection();
 
-            _logger.Info("[TVHclient] Implement GetRecordingStream please");
+            _logger.Fatal("[TVHclient] recordingId: " + recordingId + " // mediaSourceId: " + mediaSourceId);
+
+            await WaitForInitialLoadTask(cancellationToken);
+
+            HTSMessage getTicketMessage = new HTSMessage();
+            getTicketMessage.Method = "getTicket";
+            getTicketMessage.putField("dvrId", recordingId);
+
+            HTSMessage getTicketResponse = await Task.Factory.StartNew<HTSMessage>(() =>
+            {
+                LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
+                _htsConnection.sendMessage(getTicketMessage, lbrh);
+                return lbrh.getResponse();
+            });
+
+            if (_subscriptionId == int.MaxValue)
+            {
+                _subscriptionId = 0;
+            }
+            int currSubscriptionId = _subscriptionId++;
+
             return new MediaSourceInfo
             {
-                Path = null,
+                Id = "" + currSubscriptionId,
+                Path = _httpBaseUrl + getTicketResponse.getString("path") + "?ticket=" + getTicketResponse.getString("ticket"),
                 Protocol = MediaProtocol.Http,
                 MediaStreams = new List<MediaStream>
                         {
@@ -525,13 +548,13 @@ namespace MediaBrowser.Plugins.TVHclient
             };
         }
 
-        public async Task CloseLiveStream(string id, CancellationToken cancellationToken)
+        public async Task CloseLiveStream(string subscriptionId, CancellationToken cancellationToken)
         {
-            _logger.Info("[TVHclient] Closing " + id);
-            _logger.Info("[TVHclient] Implement CloseLiveStream");
-
-            //ensureConnection();
-
+            await Task.Factory.StartNew<int>(() =>
+            {
+                _logger.Info("[TVHclient] CloseLiveStream for subscriptionId = " + subscriptionId);
+                return 0;
+            });
         }
 
         public async Task CopyFilesAsync(StreamReader source, StreamWriter destination)

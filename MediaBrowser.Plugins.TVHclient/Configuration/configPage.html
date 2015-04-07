@@ -16,12 +16,12 @@
                             </label>
                             <input type="text" id="txtTVH_ServerName" name="txtTVH_ServerName" />
                         </li>
-                        <!--<li>
+                        <li>
                             <label for="txtHTTP_Port">
                                 HTTP-Port:
                             </label>
                             <input type="text" id="txtHTTP_Port" name="txtHTTP_Port" />
-                        </li>-->
+                        </li>
                         <li>
                             <label for="txtHTSP_Port">
                                 HTSP-Port:
@@ -73,7 +73,7 @@
 
                 ApiClient.getPluginConfiguration(TVHclientConfigurationPageVar.pluginUniqueId).done(function (config) {
                     $('#txtTVH_ServerName', page).val(config.TVH_ServerName || "");
-                    //$('#txtHTTP_Port', page).val(config.HTTP_Port || "9981");
+                    $('#txtHTTP_Port', page).val(config.HTTP_Port || "9981");
                     $('#txtHTSP_Port', page).val(config.HTSP_Port || "9982");
                     $('#txtUserName', page).val(config.Username || "");
                     $('#txtPassword', page).val(config.Password || "");
