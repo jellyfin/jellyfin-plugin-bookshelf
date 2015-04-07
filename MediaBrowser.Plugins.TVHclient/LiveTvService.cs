@@ -504,8 +504,6 @@ namespace MediaBrowser.Plugins.TVHclient
         {
             ensureConnection();
 
-            _logger.Fatal("[TVHclient] recordingId: " + recordingId + " // mediaSourceId: " + mediaSourceId);
-
             await WaitForInitialLoadTask(cancellationToken);
 
             HTSMessage getTicketMessage = new HTSMessage();
@@ -742,37 +740,37 @@ namespace MediaBrowser.Plugins.TVHclient
                         // should not happen as we don't subscribe for this events.
                         break;
 
-                    case "subscriptionStart":
-                    case "subscriptionGrace":
-                    case "subscriptionStop":
-                    case "subscriptionSkip":
-                    case "subscriptionSpeed":
-                    case "subscriptionStatus":
-                        _logger.Fatal("[TVHclient] subscription events " + response.ToString());
-                        break;
+                    //case "subscriptionStart":
+                    //case "subscriptionGrace":
+                    //case "subscriptionStop":
+                    //case "subscriptionSkip":
+                    //case "subscriptionSpeed":
+                    //case "subscriptionStatus":
+                    //    _logger.Fatal("[TVHclient] subscription events " + response.ToString());
+                    //    break;
 
-                    case "queueStatus":
-                        _logger.Fatal("[TVHclient] queueStatus event " + response.ToString());
-                        break;
+                    //case "queueStatus":
+                    //    _logger.Fatal("[TVHclient] queueStatus event " + response.ToString());
+                    //    break;
 
-                    case "signalStatus":
-                        _logger.Fatal("[TVHclient] signalStatus event " + response.ToString());
-                        break;
+                    //case "signalStatus":
+                    //    _logger.Fatal("[TVHclient] signalStatus event " + response.ToString());
+                    //    break;
 
-                    case "timeshiftStatus":
-                        _logger.Fatal("[TVHclient] timeshiftStatus event " + response.ToString());
-                        break;
+                    //case "timeshiftStatus":
+                    //    _logger.Fatal("[TVHclient] timeshiftStatus event " + response.ToString());
+                    //    break;
 
-                    case "muxpkt": // streaming data
-                        _logger.Fatal("[TVHclient] muxpkt event " + response.ToString());
-                        break;
+                    //case "muxpkt": // streaming data
+                    //    _logger.Fatal("[TVHclient] muxpkt event " + response.ToString());
+                    //    break;
 
                     case "initialSyncCompleted":
                         _initialLoadFinished = true;
                         break;
 
                     default:
-                        _logger.Fatal("[TVHclient] Method '" + response.Method + "' not handled in LiveTvService.cs");
+                        //_logger.Fatal("[TVHclient] Method '" + response.Method + "' not handled in LiveTvService.cs");
                         break;
                 }
             }

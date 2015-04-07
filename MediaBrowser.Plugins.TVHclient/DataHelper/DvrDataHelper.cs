@@ -161,10 +161,11 @@ namespace MediaBrowser.Plugins.TVHclient.DataHelper
                             }
                         }
 
-                        if (m.containsField("path"))
-                        {
-                            ri.Path = m.getString("path");
-                        }
+                        // Path must not be set to force emby use of the LiveTvService methods!!!!
+                        //if (m.containsField("path"))
+                        //{
+                        //    ri.Path = m.getString("path");
+                        //}
 
                         if (m.containsField("autorecId"))
                         {
