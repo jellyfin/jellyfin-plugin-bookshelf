@@ -56,6 +56,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataHelper\ChannelDataHelper.cs" />
+    <Compile Include="DataHelper\AutorecDataHelper.cs" />
     <Compile Include="DataHelper\DvrDataHelper.cs" />
     <Compile Include="DataHelper\TunerDataHelper.cs" />
     <Compile Include="Helper\ByteBuffer.cs" />
@@ -70,8 +71,8 @@
     <Compile Include="HTSP\HTSResponseHandler.cs" />
     <Compile Include="HTSP_Responses\GetEventsResponseHandler.cs" />
     <Compile Include="HTSP_Responses\LoopBackResponseHandler.cs" />
-    <Compile Include="LiveTvService.cs" />
     <Compile Include="Configuration\PluginConfiguration.cs" />
+    <Compile Include="LiveTvService.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Configuration\TVHclientConfigurationPage .cs" />

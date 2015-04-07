@@ -147,8 +147,11 @@ namespace MediaBrowser.Plugins.TVHclient.DataHelper
                                     ri.Status = RecordingStatus.Scheduled;
                                     continue;
                                     //break;
+                                case "missed":
+                                    ri.Status = RecordingStatus.Error;
+                                    break;
                                 default:
-                                    _logger.Fatal("[TVHclient] state '" + state + "' not handled!");
+                                    _logger.Fatal("[TVHclient] DvrDataHelper.buildDvrInfos: state '" + state + "' not handled!");
                                     continue;
                                 //break;
                             }

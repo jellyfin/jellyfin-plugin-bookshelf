@@ -8,6 +8,7 @@ using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.MediaInfo;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Plugins.TVHclient.DataHelper;
+using MediaBrowser.Plugins.TVHclient.Helper;
 using MediaBrowser.Plugins.TVHclient.HTSP;
 using MediaBrowser.Plugins.TVHclient.HTSP_Responses;
 using System;
@@ -16,7 +17,6 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Plugins.TVHclient.Helper;
 
 namespace MediaBrowser.Plugins.TVHclient
 {
@@ -36,6 +36,7 @@ namespace MediaBrowser.Plugins.TVHclient
         private readonly ChannelDataHelper _channelDataHelper;
         private readonly TunerDataHelper _tunerDataHelper;
         private readonly DvrDataHelper _dvrDataHelper;
+        private readonly AutorecDataHelper _autorecDataHelper;
 
         //private readonly CultureInfo _deCulture = new CultureInfo("de-DE");
         //private int _liveStreams;
@@ -50,6 +51,7 @@ namespace MediaBrowser.Plugins.TVHclient
             _tunerDataHelper = new TunerDataHelper(logger);
             _channelDataHelper = new ChannelDataHelper(logger, _tunerDataHelper);
             _dvrDataHelper = new DvrDataHelper(logger);
+            _autorecDataHelper = new AutorecDataHelper(logger);
 
             Version version = Assembly.GetEntryAssembly().GetName().Version;
             _htsConnection = new HTSConnectionAsync(this, "TVHclient", version.ToString(), logger);
@@ -94,6 +96,7 @@ namespace MediaBrowser.Plugins.TVHclient
 
                     _channelDataHelper.clean();
                     _dvrDataHelper.clean();
+                    _autorecDataHelper.clean();
                 }
             }
         }
@@ -111,7 +114,7 @@ namespace MediaBrowser.Plugins.TVHclient
             await WaitForInitialLoadTask(cancellationToken);
             if (cancellationToken.IsCancellationRequested)
             {
-                _logger.Info("[TVHclient] Start GetChannels Async, call canceled - returning empty list.");
+                _logger.Info("[TVHclient] GetChannels Async, call canceled - returning empty list.");
                 return new List<ChannelInfo>();
             }
 
@@ -146,7 +149,7 @@ namespace MediaBrowser.Plugins.TVHclient
             await WaitForInitialLoadTask(cancellationToken);
             if (cancellationToken.IsCancellationRequested)
             {
-                _logger.Info("[TVHclient] Start GetRecordingsAsync Async, call canceled - returning empty list.");
+                _logger.Info("[TVHclient] GetRecordingsAsync Async, call canceled - returning empty list.");
                 return new List<RecordingInfo>();
             }
 
@@ -171,7 +174,7 @@ namespace MediaBrowser.Plugins.TVHclient
         /// <returns></returns>
         public async Task DeleteRecordingAsync(string recordingId, CancellationToken cancellationToken)
         {
-           ensureConnection();
+            ensureConnection();
 
             await WaitForInitialLoadTask(cancellationToken);
 
@@ -201,7 +204,7 @@ namespace MediaBrowser.Plugins.TVHclient
         /// <returns></returns>
         public async Task CancelTimerAsync(string timerId, CancellationToken cancellationToken)
         {
-           ensureConnection();
+            ensureConnection();
 
             await WaitForInitialLoadTask(cancellationToken);
 
@@ -269,7 +272,7 @@ namespace MediaBrowser.Plugins.TVHclient
         /// <returns></returns>
         public async Task UpdateTimerAsync(TimerInfo info, CancellationToken cancellationToken)
         {
-           ensureConnection();
+            ensureConnection();
 
             await WaitForInitialLoadTask(cancellationToken);
 
@@ -307,7 +310,7 @@ namespace MediaBrowser.Plugins.TVHclient
             await WaitForInitialLoadTask(cancellationToken);
             if (cancellationToken.IsCancellationRequested)
             {
-                _logger.Info("[TVHclient] Start GetTimersAsync Async, call canceled - returning empty list.");
+                _logger.Info("[TVHclient] GetTimersAsync Async, call canceled - returning empty list.");
                 return new List<TimerInfo>();
             }
 
@@ -322,11 +325,17 @@ namespace MediaBrowser.Plugins.TVHclient
         /// <returns></returns>
         public async Task<IEnumerable<SeriesTimerInfo>> GetSeriesTimersAsync(CancellationToken cancellationToken)
         {
-            _logger.Info("[TVHclient] Start GetSeriesTimer Async, retrieve the recurring recordings");
+            ensureConnection();
 
-            //ensureConnection();
+            await WaitForInitialLoadTask(cancellationToken);
+            if (cancellationToken.IsCancellationRequested)
+            {
+                _logger.Info("[TVHclient] GetRecordingsAsync Async, call canceled - returning empty list.");
+                return new List<SeriesTimerInfo>();
+            }
 
-            return new List<SeriesTimerInfo>();
+            IEnumerable<SeriesTimerInfo> data = await _autorecDataHelper.buildAutorecInfos(cancellationToken);
+            return data;
         }
 
         /// <summary>
@@ -337,11 +346,55 @@ namespace MediaBrowser.Plugins.TVHclient
         /// <returns></returns>
         public async Task CreateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
         {
-            _logger.Info(string.Format("[TVHclient] Start CreateSeriesTimer Async for ChannelId: {0} & Name: {1}", info.ChannelId, info.Name));
+            ensureConnection();
 
-            //ensureConnection();
+            await WaitForInitialLoadTask(cancellationToken);
+            if (cancellationToken.IsCancellationRequested)
+            {
+                _logger.Info("[TVHclient] CreateSeriesTimerAsync Async, call canceled - returning empty list.");
+                return;
+            }
 
-            _logger.Info("[TVHclient] Implement CreateSeriesTimerAsync");
+            HTSMessage createSeriesTimerMessage = new HTSMessage();
+            createSeriesTimerMessage.Method = "addAutorecEntry";
+            createSeriesTimerMessage.putField("title", info.Name);
+            //createSeriesTimerMessage.putField("configName", ???);
+            if (!info.RecordAnyChannel)
+            {
+                createSeriesTimerMessage.putField("channelId", info.ChannelId);
+            }
+            createSeriesTimerMessage.putField("minDuration", 0);
+            createSeriesTimerMessage.putField("maxDuration", 0);
+            
+            createSeriesTimerMessage.putField("priority", info.Priority);
+            if (!info.RecordAnyTime)
+            {
+                createSeriesTimerMessage.putField("daysOfWeek", AutorecDataHelper.getDaysOfWeekFromList(info.Days));
+                createSeriesTimerMessage.putField("approxTime", AutorecDataHelper.getMinutesFromMidnight(info.StartDate));
+            }
+            createSeriesTimerMessage.putField("startExtra", (long)(info.PrePaddingSeconds / 60));
+            createSeriesTimerMessage.putField("stopExtra", (long)(info.PostPaddingSeconds / 60));
+            createSeriesTimerMessage.putField("comment", info.Overview);
+
+            /*
+                    public DateTime EndDate { get; set; }
+                    public string ProgramId { get; set; }
+                    public bool RecordNewOnly { get; set; } 
+             */
+
+            HTSMessage createSeriesTimerResponse = await Task.Factory.StartNew<HTSMessage>(() =>
+            {
+                LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
+                _htsConnection.sendMessage(createSeriesTimerMessage, lbrh);
+                return lbrh.getResponse();
+            });
+
+            Boolean success = createSeriesTimerResponse.getInt("success", 0) == 1;
+            if (!success)
+            {
+                _logger.Error("[TVHclient] Can't create series timer: '" + createSeriesTimerResponse.getString("error") + "'");
+            }
+            
         }
 
         /// <summary>
@@ -352,11 +405,8 @@ namespace MediaBrowser.Plugins.TVHclient
         /// <returns></returns>
         public async Task UpdateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
         {
-            _logger.Info(string.Format("[TVHclient] Start UpdateSeriesTimer Async for ChannelId: {0} & Name: {1}", info.ChannelId, info.Name));
-
-            //ensureConnection();
-
-            _logger.Info("[TVHclient] Implement UpdateSeriesTimerAsync");
+            await CancelSeriesTimerAsync(info.Id, cancellationToken);
+            await CreateSeriesTimerAsync(info, cancellationToken);
         }
 
         /// <summary>
@@ -367,11 +417,26 @@ namespace MediaBrowser.Plugins.TVHclient
         /// <returns></returns>
         public async Task CancelSeriesTimerAsync(string timerId, CancellationToken cancellationToken)
         {
-            _logger.Info(string.Format("[TVHclient] Start Cancel SeriesRecording Async for recordingId: {0}", timerId));
+            ensureConnection();
 
-            //ensureConnection();
+            await WaitForInitialLoadTask(cancellationToken);
 
-            _logger.Info("[TVHclient] Implement CancelSeriesTimerAsync");
+            HTSMessage deleteAutorecMessage = new HTSMessage();
+            deleteAutorecMessage.Method = "deleteAutorecEntry";
+            deleteAutorecMessage.putField("id", timerId);
+
+            HTSMessage deleteAutorecResponse = await Task.Factory.StartNew<HTSMessage>(() =>
+            {
+                LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
+                _htsConnection.sendMessage(deleteAutorecMessage, lbrh);
+                return lbrh.getResponse();
+            });
+
+            Boolean success = deleteAutorecResponse.getInt("success", 0) == 1;
+            if (!success)
+            {
+                _logger.Error("[TVHclient] Can't cancel timer: '" + deleteAutorecResponse.getString("error") + "'");
+            }
         }
 
         public Task<List<MediaSourceInfo>> GetChannelStreamMediaSources(string channelId, CancellationToken cancellationToken)
@@ -384,11 +449,27 @@ namespace MediaBrowser.Plugins.TVHclient
             throw new NotImplementedException();
         }
 
-        public async Task<MediaSourceInfo> GetChannelStream(string channelOid, string mediaSourceId, CancellationToken cancellationToken)
+        public async Task<MediaSourceInfo> GetChannelStream(string channelId, string mediaSourceId, CancellationToken cancellationToken)
         {
-            _logger.Info("[TVHclient] Start ChannelStream");
+            _logger.Info("[TVHclient] GetChannelStream channelId = {0}, mediaSourceId = {1}", channelId, mediaSourceId);
 
             ensureConnection();
+
+            await WaitForInitialLoadTask(cancellationToken);
+
+            HTSMessage subscribeMessage = new HTSMessage();
+            subscribeMessage.Method = "subscribe";
+            subscribeMessage.putField("channelId", channelId);
+            subscribeMessage.putField("subscriptionId", 1);
+
+            //HTSMessage subscribeResponse = await Task.Factory.StartNew<HTSMessage>(() =>
+            //{
+            //    LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
+            //    _htsConnection.sendMessage(subscribeMessage, lbrh);
+            //    return lbrh.getResponse();
+            //});
+
+            //_logger.Fatal("[TVHclient] " + subscribeResponse);
 
             return new MediaSourceInfo
             {
@@ -417,7 +498,7 @@ namespace MediaBrowser.Plugins.TVHclient
 
         public async Task<MediaSourceInfo> GetRecordingStream(string recordingId, string mediaSourceId, CancellationToken cancellationToken)
         {
-            _logger.Info("[TVHclient] Start GetRecordingStream");
+            _logger.Info("[TVHclient] GetRecordingStream");
 
             ensureConnection();
 
@@ -455,7 +536,6 @@ namespace MediaBrowser.Plugins.TVHclient
 
         public async Task CopyFilesAsync(StreamReader source, StreamWriter destination)
         {
-            _logger.Info("[TVHclient] Start CopyFiles Async");
             char[] buffer = new char[0x1000];
             int numRead;
             while ((numRead = await source.ReadAsync(buffer, 0, buffer.Length)) != 0)
@@ -486,7 +566,7 @@ namespace MediaBrowser.Plugins.TVHclient
             await WaitForInitialLoadTask(cancellationToken);
             if (cancellationToken.IsCancellationRequested)
             {
-                _logger.Info("[TVHclient] Start GetChannels Async, call canceled - returning empty list.");
+                _logger.Info("[TVHclient] GetProgramsAsync, call canceled - returning empty list.");
                 return new List<ProgramInfo>();
             }
 
@@ -510,8 +590,6 @@ namespace MediaBrowser.Plugins.TVHclient
 
         public async Task<LiveTvServiceStatusInfo> GetStatusInfoAsync(CancellationToken cancellationToken)
         {
-            // retrieve status info of the TVHserver");
-
             ensureConnection();
 
             await WaitForInitialLoadTask(cancellationToken);
@@ -565,10 +643,6 @@ namespace MediaBrowser.Plugins.TVHclient
             throw new NotImplementedException();
         }
 
-
-
-
-
         public Task<ChannelMediaInfo> GetChannelStream(string channelId, CancellationToken cancellationToken)
         {
             _logger.Fatal("[TVHclient] LiveTvService.GetChannelStream called for channelID '" + channelId + "'");
@@ -583,11 +657,9 @@ namespace MediaBrowser.Plugins.TVHclient
             throw new NotImplementedException();
         }
 
-
         public event EventHandler DataSourceChanged;
 
         public event EventHandler<RecordingStatusChangedEventArgs> RecordingStatusChanged;
-
 
         private void sendRecordingStatusChanged()
         {
@@ -598,12 +670,8 @@ namespace MediaBrowser.Plugins.TVHclient
             }
         }
 
-
         public void onMessage(HTSMessage response)
         {
-            //_logger.Fatal("[TVHclient]" + response);
-
-
             if (response != null)
             {
                 switch (response.Method)
@@ -633,10 +701,16 @@ namespace MediaBrowser.Plugins.TVHclient
                         break;
 
                     case "autorecEntryAdd":
-                    case "autorecEntryUpdate":
-                    case "autorecEntryDelete":
+                        _autorecDataHelper.autorecEntryAdd(response);
                         sendRecordingStatusChanged();
-                        _logger.Fatal("[TVHclient] autorecEntry Add/Update/Delete " + response.ToString());
+                        break;
+                    case "autorecEntryUpdate":
+                        _autorecDataHelper.autorecEntryUpdate(response);
+                        sendRecordingStatusChanged();
+                        break;
+                    case "autorecEntryDelete":
+                        _autorecDataHelper.autorecEntryDelete(response);
+                        sendRecordingStatusChanged();
                         break;
 
                     case "eventAdd":
@@ -674,8 +748,6 @@ namespace MediaBrowser.Plugins.TVHclient
                         _initialLoadFinished = true;
                         break;
 
-
-
                     default:
                         _logger.Fatal("[TVHclient] Method '" + response.Method + "' not handled in LiveTvService.cs");
                         break;
@@ -695,8 +767,5 @@ namespace MediaBrowser.Plugins.TVHclient
                 handler(this, new EventArgs());
             }
         }
-
-
     }
-
 }
