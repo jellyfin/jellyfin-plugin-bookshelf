@@ -1,5 +1,5 @@
 ﻿
-namespace MediaBrowser.Plugins.TVHclient.HTSP
+namespace TVHeadEnd.HTSP
 {
     public interface HTSResponseHandler
     {

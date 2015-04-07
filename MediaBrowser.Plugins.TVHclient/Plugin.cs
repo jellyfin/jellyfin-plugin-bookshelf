@@ -1,10 +1,10 @@
 ﻿using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Serialization;
-using MediaBrowser.Plugins.TVHclient.Configuration;
+using TVHeadEnd.Configuration;
 
 
-namespace MediaBrowser.Plugins.TVHclient
+namespace TVHeadEnd
 {
     /// <summary>
     /// Class Plugin

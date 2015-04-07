@@ -2,7 +2,7 @@ using System.IO;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Controller.Plugins;
 
-namespace MediaBrowser.Plugins.TVHclient.Configuration
+namespace TVHeadEnd.Configuration
 {
     /// <summary>
     /// Class TVHclientConfigurationPage
@@ -24,7 +24,7 @@ namespace MediaBrowser.Plugins.TVHclient.Configuration
         /// <returns>Stream.</returns>
         public Stream GetHtmlStream()
         {
-            return GetType().Assembly.GetManifestResourceStream("MediaBrowser.Plugins.TVHclient.Configuration.configPage.html");
+            return GetType().Assembly.GetManifestResourceStream("TVHeadEnd.Configuration.configPage.html");
         }
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace MediaBrowser.Plugins.TVHclient.Configuration
 
         public IPlugin Plugin
         {
-            get { return TVHclient.Plugin.Instance; }
+            get { return TVHeadEnd.Plugin.Instance; }
         }
     }
 }

@@ -1,7 +1,7 @@
 using System;
 using MediaBrowser.Model.Plugins;
 
-namespace MediaBrowser.Plugins.TVHclient.Configuration
+namespace TVHeadEnd.Configuration
 {
     /// <summary>
     /// Class PluginConfiguration

@@ -7,18 +7,18 @@ using MediaBrowser.Model.LiveTv;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.MediaInfo;
 using MediaBrowser.Model.Serialization;
-using MediaBrowser.Plugins.TVHclient.DataHelper;
-using MediaBrowser.Plugins.TVHclient.Helper;
-using MediaBrowser.Plugins.TVHclient.HTSP;
-using MediaBrowser.Plugins.TVHclient.HTSP_Responses;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using TVHeadEnd.DataHelper;
+using TVHeadEnd.Helper;
+using TVHeadEnd.HTSP;
+using TVHeadEnd.HTSP_Responses;
 
-namespace MediaBrowser.Plugins.TVHclient
+namespace TVHeadEnd
 {
     /// <summary>
     /// Class LiveTvService

@@ -1,14 +1,14 @@
 ﻿using MediaBrowser.Model.Logging;
-using MediaBrowser.Plugins.TVHclient.Helper;
-using MediaBrowser.Plugins.TVHclient.HTSP_Responses;
 using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using TVHeadEnd.Helper;
+using TVHeadEnd.HTSP_Responses;
 
 
-namespace MediaBrowser.Plugins.TVHclient.HTSP
+namespace TVHeadEnd.HTSP
 {
     public class HTSConnectionAsync
     {

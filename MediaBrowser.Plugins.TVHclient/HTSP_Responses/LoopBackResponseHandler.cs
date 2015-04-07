@@ -1,7 +1,7 @@
-﻿using MediaBrowser.Plugins.TVHclient.Helper;
-using MediaBrowser.Plugins.TVHclient.HTSP;
+﻿using TVHeadEnd.Helper;
+using TVHeadEnd.HTSP;
 
-namespace MediaBrowser.Plugins.TVHclient.HTSP_Responses
+namespace TVHeadEnd.HTSP_Responses
 {
     public class LoopBackResponseHandler : HTSResponseHandler
     {

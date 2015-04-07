@@ -1,6 +1,6 @@
 ﻿using System.Security.Cryptography;
 
-namespace MediaBrowser.Plugins.TVHclient.Helper
+namespace TVHeadEnd.Helper
 {
     public class SHA1helper
     {

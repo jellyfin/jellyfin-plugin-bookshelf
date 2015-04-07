@@ -1,5 +1,5 @@
 ﻿
-namespace MediaBrowser.Plugins.TVHclient.Helper
+namespace TVHeadEnd.Helper
 {
     public class ByteBuffer
     {

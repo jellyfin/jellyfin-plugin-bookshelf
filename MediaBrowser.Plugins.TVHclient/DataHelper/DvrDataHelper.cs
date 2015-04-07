@@ -1,14 +1,14 @@
 ﻿using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.LiveTv;
 using MediaBrowser.Model.Logging;
-using MediaBrowser.Plugins.TVHclient.HTSP;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using TVHeadEnd.HTSP;
 
 
-namespace MediaBrowser.Plugins.TVHclient.DataHelper
+namespace TVHeadEnd.DataHelper
 {
     public class DvrDataHelper
     {

@@ -1,13 +1,13 @@
 ﻿using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.Logging;
-using MediaBrowser.Plugins.TVHclient.HTSP;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using TVHeadEnd.HTSP;
 
-namespace MediaBrowser.Plugins.TVHclient.HTSP_Responses
+namespace TVHeadEnd.HTSP_Responses
 {
     public class GetEventsResponseHandler : HTSResponseHandler
     {

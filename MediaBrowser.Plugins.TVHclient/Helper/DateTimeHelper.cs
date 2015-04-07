@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MediaBrowser.Plugins.TVHclient.Helper
+namespace TVHeadEnd.Helper
 {
     public class DateTimeHelper
     {
