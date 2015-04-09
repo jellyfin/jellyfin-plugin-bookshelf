@@ -126,10 +126,13 @@ namespace TVHeadEnd.HTSP
             }
             catch (Exception ex)
             {
-                _logger.Error("Unexpected exception : {0}", ex.ToString());
                 if (_listener != null)
                 {
                     _listener.onError(ex);
+                }
+                else
+                {
+                    _logger.Error("[TVHclient] HTSConnectionAsync.open: caught exception : {0}", ex.ToString());
                 }
             }
             finally
