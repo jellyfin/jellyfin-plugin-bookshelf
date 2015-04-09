@@ -116,10 +116,10 @@ namespace TVHeadEnd
         {
             ensureConnection();
 
-            await WaitForInitialLoadTask(cancellationToken);
-            if (cancellationToken.IsCancellationRequested)
+            int timeOut = await WaitForInitialLoadTask(cancellationToken);
+            if (timeOut == -1 || cancellationToken.IsCancellationRequested)
             {
-                _logger.Info("[TVHclient] GetChannels Async, call canceled - returning empty list.");
+                _logger.Info("[TVHclient] GetChannelsAsync, call canceled or timed out - returning empty list.");
                 return new List<ChannelInfo>();
             }
 
@@ -131,9 +131,16 @@ namespace TVHeadEnd
         {
             return Task.Factory.StartNew<int>(() =>
             {
+                DateTime start = DateTime.Now;
                 while (!_initialLoadFinished || cancellationToken.IsCancellationRequested)
                 {
                     Thread.Sleep(500);
+                    TimeSpan duration = DateTime.Now - start;
+                    long durationInSec = duration.Ticks / TimeSpan.TicksPerSecond;
+                    if(durationInSec > 60 * 5) // 5 Min timeout
+                    {
+                        return -1;
+                    }
                 }
                 return 0;
             });
@@ -151,10 +158,10 @@ namespace TVHeadEnd
 
             ensureConnection();
 
-            await WaitForInitialLoadTask(cancellationToken);
-            if (cancellationToken.IsCancellationRequested)
+            int timeOut = await WaitForInitialLoadTask(cancellationToken);
+            if (timeOut == -1 || cancellationToken.IsCancellationRequested)
             {
-                _logger.Info("[TVHclient] GetRecordingsAsync Async, call canceled - returning empty list.");
+                _logger.Info("[TVHclient] GetRecordingsAsync, call canceled or timed out - returning empty list.");
                 return new List<RecordingInfo>();
             }
 
@@ -181,7 +188,12 @@ namespace TVHeadEnd
         {
             ensureConnection();
 
-            await WaitForInitialLoadTask(cancellationToken);
+            int timeOut = await WaitForInitialLoadTask(cancellationToken);
+            if (timeOut == -1 || cancellationToken.IsCancellationRequested)
+            {
+                _logger.Info("[TVHclient] DeleteRecordingAsync, call canceled or timed out.");
+                return;
+            }
 
             HTSMessage deleteRecordingMessage = new HTSMessage();
             deleteRecordingMessage.Method = "deleteDvrEntry";
@@ -211,7 +223,12 @@ namespace TVHeadEnd
         {
             ensureConnection();
 
-            await WaitForInitialLoadTask(cancellationToken);
+            int timeOut = await WaitForInitialLoadTask(cancellationToken);
+            if (timeOut == -1 || cancellationToken.IsCancellationRequested)
+            {
+                _logger.Info("[TVHclient] CancelTimerAsync, call canceled or timed out.");
+                return;
+            }
 
             HTSMessage cancelTimerMessage = new HTSMessage();
             cancelTimerMessage.Method = "cancelDvrEntry";
@@ -241,7 +258,12 @@ namespace TVHeadEnd
         {
             ensureConnection();
 
-            await WaitForInitialLoadTask(cancellationToken);
+            int timeOut = await WaitForInitialLoadTask(cancellationToken);
+            if (timeOut == -1 || cancellationToken.IsCancellationRequested)
+            {
+                _logger.Info("[TVHclient] CreateTimerAsync, call canceled or timed out.");
+                return;
+            }
 
             HTSMessage createTimerMessage = new HTSMessage();
             createTimerMessage.Method = "addDvrEntry";
@@ -279,7 +301,12 @@ namespace TVHeadEnd
         {
             ensureConnection();
 
-            await WaitForInitialLoadTask(cancellationToken);
+            int timeOut = await WaitForInitialLoadTask(cancellationToken);
+            if (timeOut == -1 || cancellationToken.IsCancellationRequested)
+            {
+                _logger.Info("[TVHclient] UpdateTimerAsync, call canceled or timed out.");
+                return;
+            }
 
             HTSMessage updateTimerMessage = new HTSMessage();
             updateTimerMessage.Method = "updateDvrEntry";
@@ -312,10 +339,10 @@ namespace TVHeadEnd
 
             ensureConnection();
 
-            await WaitForInitialLoadTask(cancellationToken);
-            if (cancellationToken.IsCancellationRequested)
+            int timeOut = await WaitForInitialLoadTask(cancellationToken);
+            if (timeOut == -1 || cancellationToken.IsCancellationRequested)
             {
-                _logger.Info("[TVHclient] GetTimersAsync Async, call canceled - returning empty list.");
+                _logger.Info("[TVHclient] GetTimersAsync, call canceled or timed out - returning empty list.");
                 return new List<TimerInfo>();
             }
 
@@ -332,10 +359,10 @@ namespace TVHeadEnd
         {
             ensureConnection();
 
-            await WaitForInitialLoadTask(cancellationToken);
-            if (cancellationToken.IsCancellationRequested)
+            int timeOut = await WaitForInitialLoadTask(cancellationToken);
+            if (timeOut == -1 || cancellationToken.IsCancellationRequested)
             {
-                _logger.Info("[TVHclient] GetRecordingsAsync Async, call canceled - returning empty list.");
+                _logger.Info("[TVHclient] GetSeriesTimersAsync, call canceled ot timed out - returning empty list.");
                 return new List<SeriesTimerInfo>();
             }
 
@@ -353,10 +380,10 @@ namespace TVHeadEnd
         {
             ensureConnection();
 
-            await WaitForInitialLoadTask(cancellationToken);
-            if (cancellationToken.IsCancellationRequested)
+            int timeOut = await WaitForInitialLoadTask(cancellationToken);
+            if (timeOut == -1 || cancellationToken.IsCancellationRequested)
             {
-                _logger.Info("[TVHclient] CreateSeriesTimerAsync Async, call canceled - returning empty list.");
+                _logger.Info("[TVHclient] CreateSeriesTimerAsync, call canceled or timed out - returning empty list.");
                 return;
             }
 
@@ -424,7 +451,12 @@ namespace TVHeadEnd
         {
             ensureConnection();
 
-            await WaitForInitialLoadTask(cancellationToken);
+            int timeOut = await WaitForInitialLoadTask(cancellationToken);
+            if (timeOut == -1 || cancellationToken.IsCancellationRequested)
+            {
+                _logger.Info("[TVHclient] CancelSeriesTimerAsync, call canceled or timed out.");
+                return;
+            }
 
             HTSMessage deleteAutorecMessage = new HTSMessage();
             deleteAutorecMessage.Method = "deleteAutorecEntry";
@@ -457,8 +489,6 @@ namespace TVHeadEnd
         public async Task<MediaSourceInfo> GetChannelStream(string channelId, string mediaSourceId, CancellationToken cancellationToken)
         {
             ensureConnection();
-
-            await WaitForInitialLoadTask(cancellationToken);
 
             HTSMessage getTicketMessage = new HTSMessage();
             getTicketMessage.Method = "getTicket";
@@ -503,8 +533,6 @@ namespace TVHeadEnd
         public async Task<MediaSourceInfo> GetRecordingStream(string recordingId, string mediaSourceId, CancellationToken cancellationToken)
         {
             ensureConnection();
-
-            await WaitForInitialLoadTask(cancellationToken);
 
             HTSMessage getTicketMessage = new HTSMessage();
             getTicketMessage.Method = "getTicket";
@@ -584,10 +612,10 @@ namespace TVHeadEnd
         {
             ensureConnection();
 
-            await WaitForInitialLoadTask(cancellationToken);
-            if (cancellationToken.IsCancellationRequested)
+            int timeOut = await WaitForInitialLoadTask(cancellationToken);
+            if (timeOut == -1 || cancellationToken.IsCancellationRequested)
             {
-                _logger.Info("[TVHclient] GetProgramsAsync, call canceled - returning empty list.");
+                _logger.Info("[TVHclient] GetProgramsAsync, call canceled or timed out - returning empty list.");
                 return new List<ProgramInfo>();
             }
 
@@ -613,7 +641,15 @@ namespace TVHeadEnd
         {
             ensureConnection();
 
-            await WaitForInitialLoadTask(cancellationToken);
+            int timeOut = await WaitForInitialLoadTask(cancellationToken);
+            if (timeOut == -1 || cancellationToken.IsCancellationRequested)
+            {
+                _logger.Info("[TVHclient] GetStatusInfoAsync, call canceled or timed out.");
+                return new LiveTvServiceStatusInfo
+                {
+                    Status = LiveTvServiceStatus.Unavailable
+                };
+            }
 
             string serverName = _htsConnection.getServername();
             string serverVersion = _htsConnection.getServerversion();
