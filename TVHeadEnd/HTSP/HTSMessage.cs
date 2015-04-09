@@ -18,6 +18,9 @@ namespace TVHeadEnd.HTSP
         private const byte HMF_BIN = 4;
         private const byte HMF_LIST = 5;
 
+        private ILogger _logger = null;
+        private byte[] _data = null;
+
         public void putField(string name, object value)
         {
             if (value != null)
@@ -46,7 +49,16 @@ namespace TVHeadEnd.HTSP
 
         public System.Numerics.BigInteger getBigInteger(string name)
         {
-            return (System.Numerics.BigInteger)this[name];
+            try
+            {
+                return (System.Numerics.BigInteger)this[name];
+            }
+            catch(InvalidCastException ice)
+            {
+                _logger.Fatal("[TVHclient] Caught InvalidCastException for field name '" + name + "'. Expected  System.Numerics.BigInteger but got '" + 
+                    this[name].GetType() + "'");
+                throw ice;
+            }
         }
 
         public long getLong(string name)
@@ -373,6 +385,10 @@ namespace TVHeadEnd.HTSP
             Array.Copy(data, 4, messageData, 0, len);
 
             HTSMessage msg = deserializeBinary(messageData);
+
+            msg._logger = logger;
+            msg._data = data;
+
             return msg;
         }
 
