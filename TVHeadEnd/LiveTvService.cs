@@ -137,7 +137,7 @@ namespace TVHeadEnd
                     Thread.Sleep(500);
                     TimeSpan duration = DateTime.Now - start;
                     long durationInSec = duration.Ticks / TimeSpan.TicksPerSecond;
-                    if(durationInSec > 60 * 5) // 5 Min timeout
+                    if (durationInSec > 60 * 5) // 5 Min timeout
                     {
                         return -1;
                     }
@@ -576,10 +576,10 @@ namespace TVHeadEnd
 
         public async Task CloseLiveStream(string subscriptionId, CancellationToken cancellationToken)
         {
-            await Task.Factory.StartNew<int>(() =>
+            await Task.Factory.StartNew<string>(() =>
             {
-                _logger.Info("[TVHclient] CloseLiveStream for subscriptionId = " + subscriptionId);
-                return 0;
+                //_logger.Info("[TVHclient] CloseLiveStream for subscriptionId = " + subscriptionId);
+                return subscriptionId;
             });
         }
 
@@ -656,19 +656,17 @@ namespace TVHeadEnd
             int serverProtokollVersion = _htsConnection.getServerProtocolVersion();
             string diskSpace = _htsConnection.getDiskspace();
 
-            bool upgradeAvailable = false;
-            string serverVersionMessage = serverName + " " + serverVersion + " // HTSP protokoll version: " + serverProtokollVersion;
-            string statusMessage = "Diskspace: " + diskSpace;
+            string serverVersionMessage = "<p>" + serverName + " " + serverVersion + "</p>" 
+                + "<p>HTSP protokoll version: " + serverProtokollVersion + "</p>" 
+                + "<p>Free diskspace: " + diskSpace + "</p>";
 
             List<LiveTvTunerInfo> tvTunerInfos = await _tunerDataHelper.buildTunerInfos(cancellationToken);
 
             return new LiveTvServiceStatusInfo
             {
-                HasUpdateAvailable = upgradeAvailable,
                 Version = serverVersionMessage,
                 //Tuners = tvTunerInfos,
                 Status = LiveTvServiceStatus.Ok,
-                StatusMessage = statusMessage
             };
         }
 
