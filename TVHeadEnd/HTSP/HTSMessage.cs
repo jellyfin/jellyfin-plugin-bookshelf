@@ -185,6 +185,11 @@ namespace TVHeadEnd.HTSP
 
         public byte[] BuildBytes()
         {
+            if(_data != null)
+            {
+                return _data;
+            }
+
             byte[] buf = new byte[0];
 
             // calc data
