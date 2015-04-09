@@ -532,7 +532,9 @@ namespace TVHeadEnd
                             {
                                 Type = MediaStreamType.Video,
                                 // Set the index to -1 because we don't know the exact index of the video stream within the container
-                                Index = -1
+                                Index = -1,
+                                // Set to true if unknown to enable deinterlacing
+                                IsInterlaced = true
                             },
                             new MediaStream
                             {
@@ -576,7 +578,9 @@ namespace TVHeadEnd
                             {
                                 Type = MediaStreamType.Video,
                                 // Set the index to -1 because we don't know the exact index of the video stream within the container
-                                Index = -1
+                                Index = -1,
+                                // Set to true if unknown to enable deinterlacing
+                                IsInterlaced = true
                             },
                             new MediaStream
                             {
