@@ -12,6 +12,8 @@ namespace TVHeadEnd.HTSP
 {
     public class HTSConnectionAsync
     {
+        private const long BytesPerGiga = 1024 * 1024 * 1024; 
+
         private volatile Boolean _connected;
         private volatile int _seq = 0;
 
@@ -179,7 +181,8 @@ namespace TVHeadEnd.HTSP
                         HTSMessage diskSpaceResponse = loopBackResponseHandler.getResponse();
                         if (diskSpaceResponse != null)
                         {
-                            _diskSpace = diskSpaceResponse.getLong("freediskspace") + " / " + diskSpaceResponse.getLong("totaldiskspace");
+                            _diskSpace = (diskSpaceResponse.getLong("freediskspace") / BytesPerGiga) + "GB / " 
+                                + (diskSpaceResponse.getLong("totaldiskspace") / BytesPerGiga) + "GB";
                         }
 
                         HTSMessage enableAsyncMetadataMessage = new HTSMessage();
