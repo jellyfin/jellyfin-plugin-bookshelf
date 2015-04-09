@@ -94,71 +94,119 @@ namespace TVHeadEnd.DataHelper
                         HTSMessage m = entry.Value;
                         RecordingInfo ri = new RecordingInfo();
 
-                        if (m.containsField("id"))
+                        try
                         {
-                            ri.Id = "" + m.getInt("id");
+                            if (m.containsField("id"))
+                            {
+                                ri.Id = "" + m.getInt("id");
+                            }
+                        }
+                        catch (InvalidCastException)
+                        {
                         }
 
-                        if (m.containsField("channel"))
+                        try
                         {
-                            ri.ChannelId = "" + m.getInt("channel");
+                            if (m.containsField("channel"))
+                            {
+                                ri.ChannelId = "" + m.getInt("channel");
+                            }
+                        }
+                        catch (InvalidCastException)
+                        {
                         }
 
-                        if (m.containsField("start"))
+                        try
                         {
-                            long unixUtc = m.getLong("start");
-                            ri.StartDate = _initialDateTimeUTC.AddSeconds(unixUtc).ToUniversalTime();
+                            if (m.containsField("start"))
+                            {
+                                long unixUtc = m.getLong("start");
+                                ri.StartDate = _initialDateTimeUTC.AddSeconds(unixUtc).ToUniversalTime();
+                            }
+                        }
+                        catch (InvalidCastException)
+                        {
                         }
 
-                        if (m.containsField("stop"))
+                        try
                         {
-                            long unixUtc = m.getLong("stop");
-                            ri.EndDate = _initialDateTimeUTC.AddSeconds(unixUtc).ToUniversalTime();
+                            if (m.containsField("stop"))
+                            {
+                                long unixUtc = m.getLong("stop");
+                                ri.EndDate = _initialDateTimeUTC.AddSeconds(unixUtc).ToUniversalTime();
+                            }
+                        }
+                        catch (InvalidCastException)
+                        {
                         }
 
-                        if (m.containsField("title"))
+                        try
                         {
-                            ri.Name = m.getString("title");
+                            if (m.containsField("title"))
+                            {
+                                ri.Name = m.getString("title");
+                            }
+                        }
+                        catch (InvalidCastException)
+                        {
                         }
 
-                        if (m.containsField("description"))
+                        try
                         {
-                            ri.Overview = m.getString("description");
+                            if (m.containsField("description"))
+                            {
+                                ri.Overview = m.getString("description");
+                            }
+                        }
+                        catch (InvalidCastException)
+                        {
                         }
 
-                        if (m.containsField("summary"))
+                        try
                         {
-                            ri.EpisodeTitle = m.getString("summary");
+                            if (m.containsField("summary"))
+                            {
+                                ri.EpisodeTitle = m.getString("summary");
+                            }
+                        }
+                        catch (InvalidCastException)
+                        {
                         }
 
                         ri.HasImage = false;
                         // public string ImagePath { get; set; }
                         // public string ImageUrl { get; set; }
 
-                        if (m.containsField("state"))
+                        try
                         {
-                            string state = m.getString("state");
-                            switch (state)
+                            if (m.containsField("state"))
                             {
-                                case "completed":
-                                    ri.Status = RecordingStatus.Completed;
-                                    break;
-                                case "scheduled":
-                                    ri.Status = RecordingStatus.Scheduled;
-                                    continue;
+                                string state = m.getString("state");
+                                switch (state)
+                                {
+                                    case "completed":
+                                        ri.Status = RecordingStatus.Completed;
+                                        break;
+                                    case "scheduled":
+                                        ri.Status = RecordingStatus.Scheduled;
+                                        continue;
                                     //break;
-                                case "missed":
-                                    ri.Status = RecordingStatus.Error;
-                                    break;
-                                case "recording":
-                                    ri.Status = RecordingStatus.InProgress;
-                                    break;
+                                    case "missed":
+                                        ri.Status = RecordingStatus.Error;
+                                        break;
+                                    case "recording":
+                                        ri.Status = RecordingStatus.InProgress;
+                                        break;
 
-                                default:
-                                    _logger.Fatal("[TVHclient] DvrDataHelper.buildDvrInfos: state '" + state + "' not handled!");
-                                    continue;
-                                //break;
+                                    default:
+                                        _logger.Fatal("[TVHclient] DvrDataHelper.buildDvrInfos: state '" + state + "' not handled!");
+                                        continue;
+                                    //break;
+                                }
                             }
+                        }
+                        catch (InvalidCastException)
+                        {
                         }
 
                         // Path must not be set to force emby use of the LiveTvService methods!!!!
@@ -167,14 +215,26 @@ namespace TVHeadEnd.DataHelper
                         //    ri.Path = m.getString("path");
                         //}
 
-                        if (m.containsField("autorecId"))
+                        try
                         {
-                            ri.SeriesTimerId = "" + m.getInt("autorecId");
+                            if (m.containsField("autorecId"))
+                            {
+                                ri.SeriesTimerId = m.getString("autorecId");
+                            }
+                        }
+                        catch (InvalidCastException)
+                        {
                         }
 
-                        if (m.containsField("eventId"))
+                        try
                         {
-                            ri.ProgramId = "" + m.getInt("eventId");
+                            if (m.containsField("eventId"))
+                            {
+                                ri.ProgramId = "" + m.getInt("eventId");
+                            }
+                        }
+                        catch (InvalidCastException)
+                        {
                         }
 
                         /*
@@ -221,77 +281,151 @@ namespace TVHeadEnd.DataHelper
                         HTSMessage m = entry.Value;
                         TimerInfo ti = new TimerInfo();
 
-                        if (m.containsField("id"))
+                        try
                         {
-                            ti.Id = "" + m.getInt("id");
-                        }
-
-                        if (m.containsField("channel"))
-                        {
-                            ti.ChannelId = "" + m.getInt("channel");
-                        }
-
-                        if (m.containsField("start"))
-                        {
-                            long unixUtc = m.getLong("start");
-                            ti.StartDate = _initialDateTimeUTC.AddSeconds(unixUtc).ToUniversalTime();
-                        }
-
-                        if (m.containsField("stop"))
-                        {
-                            long unixUtc = m.getLong("stop");
-                            ti.EndDate = _initialDateTimeUTC.AddSeconds(unixUtc).ToUniversalTime();
-                        }
-
-                        if (m.containsField("title"))
-                        {
-                            ti.Name = m.getString("title");
-                        }
-
-                        if (m.containsField("description"))
-                        {
-                            ti.Overview = m.getString("description");
-                        }
-
-                        if (m.containsField("state"))
-                        {
-                            string state = m.getString("state");
-                            switch (state)
+                            if (m.containsField("id"))
                             {
-                                case "scheduled":
-                                    ti.Status = RecordingStatus.Scheduled;
-                                    break;
-                                default:
-                                    // only scheduled timers need to be delivered
-                                    continue;
+                                ti.Id = "" + m.getInt("id");
                             }
                         }
-
-                        if(m.containsField("startExtra"))
+                        catch (InvalidCastException)
                         {
-                            ti.PrePaddingSeconds = (int) m.getLong("startExtra") * 60;
-                            ti.IsPrePaddingRequired = true;
                         }
 
-                        if (m.containsField("stopExtra"))
+                        try
                         {
-                            ti.PostPaddingSeconds = (int)m.getLong("stopExtra") * 60;
-                            ti.IsPostPaddingRequired = true;
+                            if (m.containsField("channel"))
+                            {
+                                ti.ChannelId = "" + m.getInt("channel");
+                            }
+                        }
+                        catch (InvalidCastException)
+                        {
                         }
 
-                        if(m.containsField("priority"))
+                        try
                         {
-                            ti.Priority = m.getInt("priority");
+                            if (m.containsField("start"))
+                            {
+                                long unixUtc = m.getLong("start");
+                                ti.StartDate = _initialDateTimeUTC.AddSeconds(unixUtc).ToUniversalTime();
+                            }
+                        }
+                        catch (InvalidCastException)
+                        {
                         }
 
-                        if(m.containsField("autorecId"))
+                        try
                         {
-                            ti.SeriesTimerId = "" + m.getInt("autorecId");
+                            if (m.containsField("stop"))
+                            {
+                                long unixUtc = m.getLong("stop");
+                                ti.EndDate = _initialDateTimeUTC.AddSeconds(unixUtc).ToUniversalTime();
+                            }
+                        }
+                        catch (InvalidCastException)
+                        {
                         }
 
-                        if(m.containsField("eventId"))
+                        try
                         {
-                            ti.ProgramId = "" + m.getInt("eventId");
+                            if (m.containsField("title"))
+                            {
+                                ti.Name = m.getString("title");
+                            }
+                        }
+                        catch (InvalidCastException)
+                        {
+                        }
+
+                        try
+                        {
+                            if (m.containsField("description"))
+                            {
+                                ti.Overview = m.getString("description");
+                            }
+                        }
+                        catch (InvalidCastException)
+                        {
+                        }
+
+                        try
+                        {
+                            if (m.containsField("state"))
+                            {
+                                string state = m.getString("state");
+                                switch (state)
+                                {
+                                    case "scheduled":
+                                        ti.Status = RecordingStatus.Scheduled;
+                                        break;
+                                    default:
+                                        // only scheduled timers need to be delivered
+                                        continue;
+                                }
+                            }
+                        }
+                        catch (InvalidCastException)
+                        {
+                        }
+
+                        try
+                        {
+                            if (m.containsField("startExtra"))
+                            {
+
+                                ti.PrePaddingSeconds = (int)m.getLong("startExtra") * 60;
+                                ti.IsPrePaddingRequired = true;
+                            }
+                        }
+                        catch (InvalidCastException)
+                        {
+                        }
+
+                        try
+                        {
+                            if (m.containsField("stopExtra"))
+                            {
+
+                                ti.PostPaddingSeconds = (int)m.getLong("stopExtra") * 60;
+                                ti.IsPostPaddingRequired = true;
+                            }
+                        }
+                        catch (InvalidCastException)
+                        {
+                        }
+
+                        try
+                        {
+                            if (m.containsField("priority"))
+                            {
+                                ti.Priority = m.getInt("priority");
+                            }
+                        }
+                        catch (InvalidCastException)
+                        {
+                        }
+
+                        try
+                        {
+                            if (m.containsField("autorecId"))
+                            {
+                                ti.SeriesTimerId = "" + m.getString("autorecId");
+                            }
+                        }
+                        catch (InvalidCastException)
+                        {
+                        }
+
+                        try
+                        {
+                            if (m.containsField("eventId"))
+                            {
+                                ti.ProgramId = "" + m.getInt("eventId");
+                            }
+                        }
+                        catch (InvalidCastException)
+                        {
                         }
 
                         result.Add(ti);
