@@ -59,9 +59,9 @@ namespace TVHeadEnd.DataHelper
                 {
                     if (oldMessage.containsField(entry.Key))
                     {
-                        oldMessage.Remove(entry.Key);
+                        oldMessage.removeField(entry.Key);
                     }
-                    oldMessage.Add(entry.Key, entry.Value);
+                    oldMessage.putField(entry.Key, entry.Value);
                 }
             }
         }

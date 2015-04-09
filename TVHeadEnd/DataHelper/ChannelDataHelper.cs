@@ -48,9 +48,9 @@ namespace TVHeadEnd.DataHelper
                         {
                             if (storedMessage.containsField(entry.Key))
                             {
-                                storedMessage.Remove(entry.Key);
+                                storedMessage.removeField(entry.Key);
                             }
-                            storedMessage.Add(entry.Key, entry.Value);
+                            storedMessage.putField(entry.Key, entry.Value);
                         }
                     }
                     else
@@ -90,10 +90,10 @@ namespace TVHeadEnd.DataHelper
 
                         ci.ImagePath = "";
 
-                        if (m.ContainsKey("channelIcon"))
+                        if (m.containsField("channelIcon"))
                             ci.ImageUrl = m.getString("channelIcon");
 
-                        if (m.ContainsKey("channelName"))
+                        if (m.containsField("channelName"))
                         {
                             string name = m.getString("channelName");
                             if (string.IsNullOrEmpty(name))
@@ -103,17 +103,17 @@ namespace TVHeadEnd.DataHelper
                             ci.Name = m.getString("channelName");
                         }
 
-                        if (m.ContainsKey("channelNumber"))
+                        if (m.containsField("channelNumber"))
                         {
                             int chNo = m.getInt("channelNumber");
                             ci.Number = "" + chNo;
                         }
 
-                        if (m.ContainsKey("services"))
+                        if (m.containsField("services"))
                         {
                             IList tunerInfoList = m.getList("services");
                             HTSMessage firstServiceInList = (HTSMessage)tunerInfoList[0];
-                            if (firstServiceInList.ContainsKey("type"))
+                            if (firstServiceInList.containsField("type"))
                             {
                                 string type = firstServiceInList.getString("type");
 
