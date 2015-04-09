@@ -40,6 +40,21 @@
                             </label>
                             <input type="password" id="txtPassword" name="txtPassword" />
                         </li>
+                        <li>
+                            <label for="txtPriority">
+                                Priority of recordings:
+                            </label>
+                            <input type="text" id="txtPriority" name="txtPriority" />
+                            <div class="fieldDescription">
+                                0 = Important, 1 = High, 2 = Normal, 3 = Low, 4 = Unimportant
+                            </div>
+                        </li>
+                        <li>
+                            <label for="txtProfile">
+                                Profile for recordings:
+                            </label>
+                            <input type="text" id="txtProfile" name="txtProfile" />
+                        </li>
                         <!--<li>
                             <label for="txtConnectionTimeout">
                                 Connection Timeout:
@@ -77,6 +92,8 @@
                     $('#txtHTSP_Port', page).val(config.HTSP_Port || "9982");
                     $('#txtUserName', page).val(config.Username || "");
                     $('#txtPassword', page).val(config.Password || "");
+                    $('#txtPriority', page).val(config.Priority || "5");
+                    $('#txtProfile', page).val(config.Profile || "");
                     //$('#txtConnectionTimeout', page).val(config.ConnectionTimeout || "30");
                     //$('#txtResponseTimeout', page).val(config.ResponseTimeout || "15");
 
@@ -93,6 +110,8 @@
                     config.HTSP_Port = $('#txtHTSP_Port', form).val();
                     config.Username = $('#txtUserName', form).val();
                     config.Password = $('#txtPassword', form).val();
+                    config.Priority = $('#txtPriority', form).val();
+                    config.Profile = $('#txtProfile', form).val();
                     //config.ConnectionTimeout = $('#txtConnectionTimeout', form).val();
                     //config.ResponseTimeout = $('#txtResponseTimeout', form).val();
                     ApiClient.updatePluginConfiguration(TVHclientConfigurationPageVar.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);

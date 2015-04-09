@@ -410,7 +410,7 @@ namespace TVHeadEnd.DataHelper
                         {
                             if (m.containsField("autorecId"))
                             {
-                                ti.SeriesTimerId = "" + m.getString("autorecId");
+                                ti.SeriesTimerId = m.getString("autorecId");
                             }
                         }
                         catch (InvalidCastException)

@@ -33,6 +33,9 @@ namespace TVHeadEnd
         private readonly ILogger _logger;
         private readonly HTSConnectionAsync _htsConnection;
 
+        private int _priority;
+        private string _profile;
+
         // Data helpers
         private readonly ChannelDataHelper _channelDataHelper;
         private readonly TunerDataHelper _tunerDataHelper;
@@ -92,6 +95,15 @@ namespace TVHeadEnd
                         string message = "[TVHclient] Password must be configured.";
                         _logger.Error(message);
                         throw new InvalidOperationException(message);
+                    }
+
+                    _priority = config.Priority;
+                    _profile = config.Profile;
+
+                    if(_priority < 0 || _priority > 4)
+                    {
+                        _priority = 2;
+                        _logger.Info("[TVHclient] _priority was out of range [0-4] - set to 2");
                     }
 
                     _httpBaseUrl = "http://" + config.TVH_ServerName + ":" + config.HTTP_Port;
@@ -272,7 +284,8 @@ namespace TVHeadEnd
             createTimerMessage.putField("stop", DateTimeHelper.getUnixUTCTimeFromUtcDateTime(info.EndDate));
             createTimerMessage.putField("startExtra", (long)(info.PrePaddingSeconds / 60));
             createTimerMessage.putField("stopExtra", (long)(info.PostPaddingSeconds / 60));
-            createTimerMessage.putField("priority", info.Priority);
+            createTimerMessage.putField("priority", _priority); // info.Priority delivers always 0 - no GUI
+            createTimerMessage.putField("configName", _profile);
             createTimerMessage.putField("description", info.Overview);
             createTimerMessage.putField("title", info.Name);
             createTimerMessage.putField("creator", Plugin.Instance.Configuration.Username);
@@ -390,7 +403,6 @@ namespace TVHeadEnd
             HTSMessage createSeriesTimerMessage = new HTSMessage();
             createSeriesTimerMessage.Method = "addAutorecEntry";
             createSeriesTimerMessage.putField("title", info.Name);
-            //createSeriesTimerMessage.putField("configName", ???);
             if (!info.RecordAnyChannel)
             {
                 createSeriesTimerMessage.putField("channelId", info.ChannelId);
@@ -398,7 +410,9 @@ namespace TVHeadEnd
             createSeriesTimerMessage.putField("minDuration", 0);
             createSeriesTimerMessage.putField("maxDuration", 0);
 
-            createSeriesTimerMessage.putField("priority", info.Priority);
+            createSeriesTimerMessage.putField("priority", _priority); // info.Priority delivers always 0 - no GUI
+            createSeriesTimerMessage.putField("configName", _profile);
+
             if (!info.RecordAnyTime)
             {
                 createSeriesTimerMessage.putField("daysOfWeek", AutorecDataHelper.getDaysOfWeekFromList(info.Days));

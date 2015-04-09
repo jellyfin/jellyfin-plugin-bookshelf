@@ -74,7 +74,7 @@ namespace TVHeadEnd.HTSP
             }
             catch(InvalidCastException ice)
             {
-                _logger.Fatal("[TVHclient] Caught InvalidCastException for field name '" + name + "'. Expected  System.Numerics.BigInteger but got '" +
+                _logger.Fatal("[TVHclient] Caught InvalidCastException for field name '" + name + "'. Expected  'System.Numerics.BigInteger' but got '" +
                     _dict[name].GetType() + "'");
                 throw ice;
             }
