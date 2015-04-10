@@ -237,7 +237,7 @@ namespace TVHeadEnd.HTSP
             StringBuilder sb = new StringBuilder();
             sb.Append("\nHTSMessage:\n");
             sb.Append("  <dump>\n");
-            sb.Append(getValueString(this, "    "));
+            sb.Append(getValueString(_dict, "    "));
             sb.Append("  </dump>\n\n");
             return sb.ToString();
         }
