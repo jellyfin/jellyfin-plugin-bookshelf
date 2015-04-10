@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TVHclient</title>
+</head>
+<body>
+
+    <div data-role="page" class="page type-interior pluginConfigurationPage TVHclientConfigurationPage">
+        <div data-role="content">
+            <div class="content-primary">
+                <form class="TVHclientConfigurationForm">
+                    <ul class="ulForm" data-role="listview">
+                        <li>
+                            <label for="txtTVH_ServerName">
+                                Tvheadend-Hostname or IP-Address:
+                            </label>
+                            <input type="text" id="txtTVH_ServerName" name="txtTVH_ServerName" />
+                        </li>
+                        <li>
+                            <label for="txtHTTP_Port">
+                                HTTP-Port:
+                            </label>
+                            <input type="text" id="txtHTTP_Port" name="txtHTTP_Port" />
+                        </li>
+                        <li>
+                            <label for="txtHTSP_Port">
+                                HTSP-Port:
+                            </label>
+                            <input type="text" id="txtHTSP_Port" name="txtHTSP_Port" />
+                        </li>
+                        <li>
+                            <label for="txtUserName">
+                                User name:
+                            </label>
+                            <input type="text" id="txtUserName" name="txtUserName" />
+                        </li>
+                        <li>
+                            <label for="txtPassword">
+                                Password:
+                            </label>
+                            <input type="password" id="txtPassword" name="txtPassword" />
+                        </li>
+                        <!--<li>
+                            <label for="txtConnectionTimeout">
+                                Connection Timeout:
+                            </label>
+                            <input type="text" id="txtConnectionTimeout" name="txtConnectionTimeout" />
+                        </li>
+                        <li>
+                            <label for="txtResponseTimeout">
+                                Response Timeout:
+                            </label>
+                            <input type="text" id="txtResponseTimeout" name="txtResponseTimeout" />
+                        </li>-->
+                        <li>
+                            <button type="submit" data-theme="b">Save</button>
+                            <button type="button" onclick="history.back();">Cancel</button>
+                        </li>
+                    </ul>
+                </form>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+
+            var TVHclientConfigurationPageVar = {
+                pluginUniqueId: "95732bbe-15ed-4293-bab2-e056ccc50159"
+            };
+
+            $('.TVHclientConfigurationPage').on('pageshow', function (event) {
+                Dashboard.showLoadingMsg();
+                var page = this;
+
+                ApiClient.getPluginConfiguration(TVHclientConfigurationPageVar.pluginUniqueId).done(function (config) {
+                    $('#txtTVH_ServerName', page).val(config.TVH_ServerName || "");
+                    $('#txtHTTP_Port', page).val(config.HTTP_Port || "9981");
+                    $('#txtHTSP_Port', page).val(config.HTSP_Port || "9982");
+                    $('#txtUserName', page).val(config.Username || "");
+                    $('#txtPassword', page).val(config.Password || "");
+                    //$('#txtConnectionTimeout', page).val(config.ConnectionTimeout || "30");
+                    //$('#txtResponseTimeout', page).val(config.ResponseTimeout || "15");
+
+                    Dashboard.hideLoadingMsg();
+                });
+            });
+
+            $('.TVHclientConfigurationForm').on('submit', function (e) {
+                Dashboard.showLoadingMsg();
+                var form = this;
+                ApiClient.getPluginConfiguration(TVHclientConfigurationPageVar.pluginUniqueId).done(function (config) {
+                    config.TVH_ServerName = $('#txtTVH_ServerName', form).val();
+                    //config.HTTP_Port = $('#txtHTTP_Port', form).val();
+                    config.HTSP_Port = $('#txtHTSP_Port', form).val();
+                    config.Username = $('#txtUserName', form).val();
+                    config.Password = $('#txtPassword', form).val();
+                    //config.ConnectionTimeout = $('#txtConnectionTimeout', form).val();
+                    //config.ResponseTimeout = $('#txtResponseTimeout', form).val();
+                    ApiClient.updatePluginConfiguration(TVHclientConfigurationPageVar.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
+                });
+                // Disable default form submission
+                return false;
+            });
+
+        </script>
+
+    </div>
+</body>
+</html>

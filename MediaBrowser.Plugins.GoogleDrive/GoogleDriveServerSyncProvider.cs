@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Controller.Sync;
+﻿using MediaBrowser.Common.Net;
+using MediaBrowser.Controller.Sync;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.MediaInfo;
 using MediaBrowser.Model.Sync;
@@ -12,16 +13,18 @@ using System.Threading.Tasks;
 
 namespace MediaBrowser.Plugins.GoogleDrive
 {
-    public class GoogleDriveServerSyncProvider : IServerSyncProvider, IHasDynamicAccess
+    public class GoogleDriveServerSyncProvider : IServerSyncProvider, IHasDynamicAccess, IRemoteSyncProvider
     {
         private readonly IConfigurationRetriever _configurationRetriever;
         private readonly IGoogleDriveService _googleDriveService;
         private readonly ILogger _logger;
+        private readonly IHttpClient _httpClient;
 
-        public GoogleDriveServerSyncProvider(IConfigurationRetriever configurationRetriever, IGoogleDriveService googleDriveService, ILogManager logManager)
+        public GoogleDriveServerSyncProvider(IConfigurationRetriever configurationRetriever, IGoogleDriveService googleDriveService, ILogManager logManager, IHttpClient httpClient)
         {
             _configurationRetriever = configurationRetriever;
             _googleDriveService = googleDriveService;
+            _httpClient = httpClient;
             _logger = logManager.GetLogger("GoogleDrive");
         }
 
@@ -43,7 +46,7 @@ namespace MediaBrowser.Plugins.GoogleDrive
         public async Task<SyncedFileInfo> SendFile(Stream stream, string remotePath, SyncTarget target, IProgress<double> progress, CancellationToken cancellationToken)
         {
             _logger.Debug("Sending file {0} to {1}", remotePath, target.Name);
-            
+
             var file = CreateGoogleDriveFile(remotePath, target);
             var googleCredentials = GetGoogleCredentials(target);
 
@@ -85,7 +88,16 @@ namespace MediaBrowser.Plugins.GoogleDrive
             var file = CreateGoogleDriveFile(path, target);
             var googleCredentials = GetGoogleCredentials(target);
 
-            return await _googleDriveService.GetFile(file, googleCredentials, cancellationToken);
+            // This isn't the correct way to get the file, but it works
+            var url = await _googleDriveService.CreateDownloadUrl(file, googleCredentials, cancellationToken).ConfigureAwait(false);
+            return await _httpClient.Get(new HttpRequestOptions
+            {
+                Url = url,
+                BufferContent = false,
+                CancellationToken = cancellationToken
+            }).ConfigureAwait(false);
+
+            //return await _googleDriveService.GetFile(file, googleCredentials, cancellationToken);
         }
 
         public string GetFullPath(IEnumerable<string> path, SyncTarget target)
