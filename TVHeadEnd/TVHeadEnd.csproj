@@ -83,7 +83,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Configuration\configPage.html" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="Images\TVHeadEnd.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy "$(TargetPath)" "%25AppData%25\MediaBrowser-Server\Plugins\" /y
