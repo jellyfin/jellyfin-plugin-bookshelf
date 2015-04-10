@@ -8,16 +8,17 @@ using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.MediaInfo;
 using MediaBrowser.Model.Serialization;
 using System;
-using System.Text;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using TVHeadEnd.DataHelper;
 using TVHeadEnd.Helper;
 using TVHeadEnd.HTSP;
 using TVHeadEnd.HTSP_Responses;
+using TVHeadEnd.TimeoutHelper;
 
 namespace TVHeadEnd
 {
@@ -26,13 +27,15 @@ namespace TVHeadEnd
     /// </summary>
     public class LiveTvService : ILiveTvService, HTSConnectionListener
     {
+        private readonly TimeSpan TIMEOUT = TimeSpan.FromMinutes(5);
+
         private volatile Boolean _connected = false;
         private volatile Boolean _initialLoadFinished = false;
         private volatile int _subscriptionId = 0;
 
         private readonly IJsonSerializer _jsonSerializer;
         private readonly ILogger _logger;
-        
+
         private HTSConnectionAsync _htsConnection;
 
         private int _priority;
@@ -79,7 +82,7 @@ namespace TVHeadEnd
                 return;
             }
 
-            if(_htsConnection.needsRestart())
+            if (_htsConnection.needsRestart())
             {
                 createHTSConnection();
             }
@@ -151,8 +154,19 @@ namespace TVHeadEnd
                 return new List<ChannelInfo>();
             }
 
-            IEnumerable<ChannelInfo> data = await _channelDataHelper.buildChannelInfos(cancellationToken);
-            return data;
+            //IEnumerable<ChannelInfo> data = await _channelDataHelper.buildChannelInfos(cancellationToken);
+            //return data;
+
+            TaskWithTimeoutRunner<IEnumerable<ChannelInfo>> twtr = new TaskWithTimeoutRunner<IEnumerable<ChannelInfo>>(TIMEOUT);
+            TaskWithTimeoutResult<IEnumerable<ChannelInfo>> twtRes = await 
+                twtr.RunWithTimeout(_channelDataHelper.buildChannelInfos(cancellationToken));
+
+            if (twtRes.HasTimeout)
+            {
+                return new List<ChannelInfo>();
+            }
+
+            return twtRes.Result;
         }
 
         private Task<int> WaitForInitialLoadTask(CancellationToken cancellationToken)
@@ -165,7 +179,7 @@ namespace TVHeadEnd
                     Thread.Sleep(500);
                     TimeSpan duration = DateTime.Now - start;
                     long durationInSec = duration.Ticks / TimeSpan.TicksPerSecond;
-                    if (durationInSec > 60 * 5) // 5 Min timeout
+                    if (durationInSec > 60 * 15) // 15 Min timeout, should be enough to load huge data count
                     {
                         return -1;
                     }
@@ -193,8 +207,19 @@ namespace TVHeadEnd
                 return new List<RecordingInfo>();
             }
 
-            IEnumerable<RecordingInfo> data = await _dvrDataHelper.buildDvrInfos(cancellationToken);
-            return data;
+            //IEnumerable<RecordingInfo> data = await _dvrDataHelper.buildDvrInfos(cancellationToken);
+            //return data;
+
+            TaskWithTimeoutRunner<IEnumerable<RecordingInfo>> twtr = new TaskWithTimeoutRunner<IEnumerable<RecordingInfo>>(TIMEOUT);
+            TaskWithTimeoutResult<IEnumerable<RecordingInfo>> twtRes = await 
+                twtr.RunWithTimeout(_dvrDataHelper.buildDvrInfos(cancellationToken));
+
+            if (twtRes.HasTimeout)
+            {
+                return new List<RecordingInfo>();
+            }
+
+            return twtRes.Result;
         }
 
         /// <summary>
@@ -227,17 +252,33 @@ namespace TVHeadEnd
             deleteRecordingMessage.Method = "deleteDvrEntry";
             deleteRecordingMessage.putField("id", recordingId);
 
-            HTSMessage deleteRecordingResponse = await Task.Factory.StartNew<HTSMessage>(() =>
-            {
-                LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
-                _htsConnection.sendMessage(deleteRecordingMessage, lbrh);
-                return lbrh.getResponse();
-            });
+            //HTSMessage deleteRecordingResponse = await Task.Factory.StartNew<HTSMessage>(() =>
+            //{
+            //    LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
+            //    _htsConnection.sendMessage(deleteRecordingMessage, lbrh);
+            //    return lbrh.getResponse();
+            //});
 
-            Boolean success = deleteRecordingResponse.getInt("success", 0) == 1;
-            if (!success)
+            TaskWithTimeoutRunner<HTSMessage> twtr = new TaskWithTimeoutRunner<HTSMessage>(TIMEOUT);
+            TaskWithTimeoutResult<HTSMessage> twtRes = await twtr.RunWithTimeout(Task.Factory.StartNew<HTSMessage>(() =>
+                {
+                    LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
+                    _htsConnection.sendMessage(deleteRecordingMessage, lbrh);
+                    return lbrh.getResponse();
+                }));
+
+            if (twtRes.HasTimeout)
             {
-                _logger.Error("[TVHclient] Can't delete recording: '" + deleteRecordingResponse.getString("error") + "'");
+                _logger.Error("[TVHclient] Can't delete recording because of timeout");
+            }
+            else
+            {
+                HTSMessage deleteRecordingResponse = twtRes.Result;
+                Boolean success = deleteRecordingResponse.getInt("success", 0) == 1;
+                if (!success)
+                {
+                    _logger.Error("[TVHclient] Can't delete recording: '" + deleteRecordingResponse.getString("error") + "'");
+                }
             }
         }
 
@@ -262,17 +303,33 @@ namespace TVHeadEnd
             cancelTimerMessage.Method = "cancelDvrEntry";
             cancelTimerMessage.putField("id", timerId);
 
-            HTSMessage cancelTimerResponse = await Task.Factory.StartNew<HTSMessage>(() =>
+            //HTSMessage cancelTimerResponse = await Task.Factory.StartNew<HTSMessage>(() =>
+            //{
+            //    LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
+            //    _htsConnection.sendMessage(cancelTimerMessage, lbrh);
+            //    return lbrh.getResponse();
+            //});
+
+            TaskWithTimeoutRunner<HTSMessage> twtr = new TaskWithTimeoutRunner<HTSMessage>(TIMEOUT);
+            TaskWithTimeoutResult<HTSMessage> twtRes = await twtr.RunWithTimeout(Task.Factory.StartNew<HTSMessage > (() =>
             {
                 LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
                 _htsConnection.sendMessage(cancelTimerMessage, lbrh);
                 return lbrh.getResponse();
-            });
+            }));
 
-            Boolean success = cancelTimerResponse.getInt("success", 0) == 1;
-            if (!success)
+            if (twtRes.HasTimeout)
             {
-                _logger.Error("[TVHclient] Can't cancel timer: '" + cancelTimerResponse.getString("error") + "'");
+                _logger.Error("[TVHclient] Can't cancel timer because of timeout");
+            }
+            else
+            {
+                HTSMessage cancelTimerResponse = twtRes.Result;
+                Boolean success = cancelTimerResponse.getInt("success", 0) == 1;
+                if (!success)
+                {
+                    _logger.Error("[TVHclient] Can't cancel timer: '" + cancelTimerResponse.getString("error") + "'");
+                }
             }
         }
 
@@ -306,17 +363,33 @@ namespace TVHeadEnd
             createTimerMessage.putField("title", info.Name);
             createTimerMessage.putField("creator", Plugin.Instance.Configuration.Username);
 
-            HTSMessage createTimerResponse = await Task.Factory.StartNew<HTSMessage>(() =>
+            //HTSMessage createTimerResponse = await Task.Factory.StartNew<HTSMessage>(() =>
+            //{
+            //    LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
+            //    _htsConnection.sendMessage(createTimerMessage, lbrh);
+            //    return lbrh.getResponse();
+            //});
+
+            TaskWithTimeoutRunner<HTSMessage> twtr = new TaskWithTimeoutRunner<HTSMessage>(TIMEOUT);
+            TaskWithTimeoutResult<HTSMessage> twtRes = await twtr.RunWithTimeout(Task.Factory.StartNew<HTSMessage>(() =>
             {
                 LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
                 _htsConnection.sendMessage(createTimerMessage, lbrh);
                 return lbrh.getResponse();
-            });
+            }));
 
-            Boolean success = createTimerResponse.getInt("success", 0) == 1;
-            if (!success)
+            if (twtRes.HasTimeout)
             {
-                _logger.Error("[TVHclient] Can't create timer: '" + createTimerResponse.getString("error") + "'");
+                _logger.Error("[TVHclient] Can't create timer because of timeout");
+            }
+            else
+            {
+                HTSMessage createTimerResponse = twtRes.Result;
+                Boolean success = createTimerResponse.getInt("success", 0) == 1;
+                if (!success)
+                {
+                    _logger.Error("[TVHclient] Can't create timer: '" + createTimerResponse.getString("error") + "'");
+                }
             }
         }
 
@@ -343,17 +416,33 @@ namespace TVHeadEnd
             updateTimerMessage.putField("startExtra", (long)(info.PrePaddingSeconds / 60));
             updateTimerMessage.putField("stopExtra", (long)(info.PostPaddingSeconds / 60));
 
-            HTSMessage updateTimerResponse = await Task.Factory.StartNew<HTSMessage>(() =>
+            //HTSMessage updateTimerResponse = await Task.Factory.StartNew<HTSMessage>(() =>
+            //{
+            //    LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
+            //    _htsConnection.sendMessage(updateTimerMessage, lbrh);
+            //    return lbrh.getResponse();
+            //});
+
+            TaskWithTimeoutRunner<HTSMessage> twtr = new TaskWithTimeoutRunner<HTSMessage>(TIMEOUT);
+            TaskWithTimeoutResult<HTSMessage> twtRes = await twtr.RunWithTimeout(Task.Factory.StartNew<HTSMessage>(() =>
             {
                 LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
                 _htsConnection.sendMessage(updateTimerMessage, lbrh);
                 return lbrh.getResponse();
-            });
+            }));
 
-            Boolean success = updateTimerResponse.getInt("success", 0) == 1;
-            if (!success)
+            if (twtRes.HasTimeout)
             {
-                _logger.Error("[TVHclient] Can't update timer: '" + updateTimerResponse.getString("error") + "'");
+                _logger.Error("[TVHclient] Can't update timer because of timeout");
+            }
+            else
+            {
+                HTSMessage updateTimerResponse = twtRes.Result;
+                Boolean success = updateTimerResponse.getInt("success", 0) == 1;
+                if (!success)
+                {
+                    _logger.Error("[TVHclient] Can't update timer: '" + updateTimerResponse.getString("error") + "'");
+                }
             }
         }
 
@@ -375,8 +464,19 @@ namespace TVHeadEnd
                 return new List<TimerInfo>();
             }
 
-            IEnumerable<TimerInfo> data = await _dvrDataHelper.buildPendingTimersInfos(cancellationToken);
-            return data;
+            //IEnumerable<TimerInfo> data = await _dvrDataHelper.buildPendingTimersInfos(cancellationToken);
+            //return data;
+
+            TaskWithTimeoutRunner<IEnumerable<TimerInfo>> twtr = new TaskWithTimeoutRunner<IEnumerable<TimerInfo>>(TIMEOUT);
+            TaskWithTimeoutResult<IEnumerable<TimerInfo>> twtRes = await 
+                twtr.RunWithTimeout(_dvrDataHelper.buildPendingTimersInfos(cancellationToken));
+
+            if (twtRes.HasTimeout)
+            {
+                return new List<TimerInfo>();
+            }
+
+            return twtRes.Result;
         }
 
         /// <summary>
@@ -395,8 +495,19 @@ namespace TVHeadEnd
                 return new List<SeriesTimerInfo>();
             }
 
-            IEnumerable<SeriesTimerInfo> data = await _autorecDataHelper.buildAutorecInfos(cancellationToken);
-            return data;
+            //IEnumerable<SeriesTimerInfo> data = await _autorecDataHelper.buildAutorecInfos(cancellationToken);
+            //return data;
+
+            TaskWithTimeoutRunner<IEnumerable<SeriesTimerInfo>> twtr = new TaskWithTimeoutRunner<IEnumerable<SeriesTimerInfo>>(TIMEOUT);
+            TaskWithTimeoutResult<IEnumerable<SeriesTimerInfo>> twtRes = await 
+                twtr.RunWithTimeout(_autorecDataHelper.buildAutorecInfos(cancellationToken));
+
+            if (twtRes.HasTimeout)
+            {
+                return new List<SeriesTimerInfo>();
+            }
+
+            return twtRes.Result;
         }
 
         /// <summary>
@@ -429,16 +540,16 @@ namespace TVHeadEnd
             createSeriesTimerMessage.putField("maxDuration", 0);
 
             int tempPriority = info.Priority;
-            if(tempPriority == 0)
+            if (tempPriority == 0)
             {
                 tempPriority = _priority; // info.Priority delivers 0 if timers is newly created - no GUI
             }
-            createSeriesTimerMessage.putField("priority", tempPriority); 
+            createSeriesTimerMessage.putField("priority", tempPriority);
             createSeriesTimerMessage.putField("configName", _profile);
+            createSeriesTimerMessage.putField("daysOfWeek", AutorecDataHelper.getDaysOfWeekFromList(info.Days));
 
             if (!info.RecordAnyTime)
             {
-                createSeriesTimerMessage.putField("daysOfWeek", AutorecDataHelper.getDaysOfWeekFromList(info.Days));
                 createSeriesTimerMessage.putField("approxTime", AutorecDataHelper.getMinutesFromMidnight(info.StartDate));
             }
             createSeriesTimerMessage.putField("startExtra", (long)(info.PrePaddingSeconds / 60L));
@@ -455,17 +566,33 @@ namespace TVHeadEnd
                     public bool RecordNewOnly { get; set; } 
              */
 
-            HTSMessage createSeriesTimerResponse = await Task.Factory.StartNew<HTSMessage>(() =>
+            //HTSMessage createSeriesTimerResponse = await Task.Factory.StartNew<HTSMessage>(() =>
+            //{
+            //    LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
+            //    _htsConnection.sendMessage(createSeriesTimerMessage, lbrh);
+            //    return lbrh.getResponse();
+            //});
+
+            TaskWithTimeoutRunner<HTSMessage> twtr = new TaskWithTimeoutRunner<HTSMessage>(TIMEOUT);
+            TaskWithTimeoutResult<HTSMessage> twtRes = await  twtr.RunWithTimeout(Task.Factory.StartNew<HTSMessage>(() =>
             {
                 LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
                 _htsConnection.sendMessage(createSeriesTimerMessage, lbrh);
                 return lbrh.getResponse();
-            });
+            }));
 
-            Boolean success = createSeriesTimerResponse.getInt("success", 0) == 1;
-            if (!success)
+            if (twtRes.HasTimeout)
             {
-                _logger.Error("[TVHclient] Can't create series timer: '" + createSeriesTimerResponse.getString("error") + "'");
+                _logger.Error("[TVHclient] Can't create series because of timeout");
+            }
+            else
+            {
+                HTSMessage createSeriesTimerResponse = twtRes.Result;
+                Boolean success = createSeriesTimerResponse.getInt("success", 0) == 1;
+                if (!success)
+                {
+                    _logger.Error("[TVHclient] Can't create series timer: '" + createSeriesTimerResponse.getString("error") + "'");
+                }
             }
         }
 
@@ -541,17 +668,33 @@ namespace TVHeadEnd
             deleteAutorecMessage.Method = "deleteAutorecEntry";
             deleteAutorecMessage.putField("id", timerId);
 
-            HTSMessage deleteAutorecResponse = await Task.Factory.StartNew<HTSMessage>(() =>
-            {
-                LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
-                _htsConnection.sendMessage(deleteAutorecMessage, lbrh);
-                return lbrh.getResponse();
-            });
+            //HTSMessage deleteAutorecResponse = await Task.Factory.StartNew<HTSMessage>(() =>
+            //{
+            //    LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
+            //    _htsConnection.sendMessage(deleteAutorecMessage, lbrh);
+            //    return lbrh.getResponse();
+            //});
 
-            Boolean success = deleteAutorecResponse.getInt("success", 0) == 1;
-            if (!success)
+            TaskWithTimeoutRunner<HTSMessage> twtr = new TaskWithTimeoutRunner<HTSMessage>(TIMEOUT);
+            TaskWithTimeoutResult<HTSMessage> twtRes = await twtr.RunWithTimeout(Task.Factory.StartNew<HTSMessage>(() =>
+                {
+                    LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
+                    _htsConnection.sendMessage(deleteAutorecMessage, lbrh);
+                    return lbrh.getResponse();
+                }));
+
+            if (twtRes.HasTimeout)
             {
-                _logger.Error("[TVHclient] Can't cancel timer: '" + deleteAutorecResponse.getString("error") + "'");
+                _logger.Error("[TVHclient] Can't delete recording because of timeout");
+            }
+            else
+            {
+                HTSMessage deleteAutorecResponse = twtRes.Result;
+                Boolean success = deleteAutorecResponse.getInt("success", 0) == 1;
+                if (!success)
+                {
+                    _logger.Error("[TVHclient] Can't cancel timer: '" + deleteAutorecResponse.getString("error") + "'");
+                }
             }
         }
 
@@ -573,25 +716,41 @@ namespace TVHeadEnd
             getTicketMessage.Method = "getTicket";
             getTicketMessage.putField("channelId", channelId);
 
-            HTSMessage getTicketResponse = await Task.Factory.StartNew<HTSMessage>(() =>
-            {
-                LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
-                _htsConnection.sendMessage(getTicketMessage, lbrh);
-                return lbrh.getResponse();
-            });
+            //HTSMessage getTicketResponse = await Task.Factory.StartNew<HTSMessage>(() =>
+            //{
+            //    LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
+            //    _htsConnection.sendMessage(getTicketMessage, lbrh);
+            //    return lbrh.getResponse();
+            //});
 
-            if (_subscriptionId == int.MaxValue)
+            TaskWithTimeoutRunner<HTSMessage> twtr = new TaskWithTimeoutRunner<HTSMessage>(TIMEOUT);
+            TaskWithTimeoutResult<HTSMessage> twtRes = await twtr.RunWithTimeout(Task.Factory.StartNew<HTSMessage>(() =>
+                {
+                    LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
+                    _htsConnection.sendMessage(getTicketMessage, lbrh);
+                    return lbrh.getResponse();
+                }));
+
+            if (twtRes.HasTimeout)
             {
-                _subscriptionId = 0;
+                _logger.Error("[TVHclient] Can't delete recording because of timeout");
             }
-            int currSubscriptionId = _subscriptionId++;
-
-            return new MediaSourceInfo
+            else
             {
-                Id = "" + currSubscriptionId,
-                Path = _httpBaseUrl + getTicketResponse.getString("path") + "?ticket=" + getTicketResponse.getString("ticket"),
-                Protocol = MediaProtocol.Http,
-                MediaStreams = new List<MediaStream>
+                HTSMessage getTicketResponse = twtRes.Result;
+
+                if (_subscriptionId == int.MaxValue)
+                {
+                    _subscriptionId = 0;
+                }
+                int currSubscriptionId = _subscriptionId++;
+
+                return new MediaSourceInfo
+                {
+                    Id = "" + currSubscriptionId,
+                    Path = _httpBaseUrl + getTicketResponse.getString("path") + "?ticket=" + getTicketResponse.getString("ticket"),
+                    Protocol = MediaProtocol.Http,
+                    MediaStreams = new List<MediaStream>
                         {
                             new MediaStream
                             {
@@ -608,7 +767,10 @@ namespace TVHeadEnd
                                 Index = -1
                             }
                         }
-            };
+                };
+            }
+
+            throw new TimeoutException("");
         }
 
         public async Task<MediaSourceInfo> GetRecordingStream(string recordingId, string mediaSourceId, CancellationToken cancellationToken)
@@ -619,25 +781,41 @@ namespace TVHeadEnd
             getTicketMessage.Method = "getTicket";
             getTicketMessage.putField("dvrId", recordingId);
 
-            HTSMessage getTicketResponse = await Task.Factory.StartNew<HTSMessage>(() =>
-            {
-                LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
-                _htsConnection.sendMessage(getTicketMessage, lbrh);
-                return lbrh.getResponse();
-            });
+            //HTSMessage getTicketResponse = await Task.Factory.StartNew<HTSMessage>(() =>
+            //{
+            //    LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
+            //    _htsConnection.sendMessage(getTicketMessage, lbrh);
+            //    return lbrh.getResponse();
+            //});
 
-            if (_subscriptionId == int.MaxValue)
+            TaskWithTimeoutRunner<HTSMessage> twtr = new TaskWithTimeoutRunner<HTSMessage>(TIMEOUT);
+            TaskWithTimeoutResult<HTSMessage> twtRes = await  twtr.RunWithTimeout(Task.Factory.StartNew<HTSMessage>(() =>
+                {
+                    LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
+                    _htsConnection.sendMessage(getTicketMessage, lbrh);
+                    return lbrh.getResponse();
+                }));
+
+            if (twtRes.HasTimeout)
             {
-                _subscriptionId = 0;
+                _logger.Error("[TVHclient] Can't delete recording because of timeout");
             }
-            int currSubscriptionId = _subscriptionId++;
-
-            return new MediaSourceInfo
+            else
             {
-                Id = "" + currSubscriptionId,
-                Path = _httpBaseUrl + getTicketResponse.getString("path") + "?ticket=" + getTicketResponse.getString("ticket"),
-                Protocol = MediaProtocol.Http,
-                MediaStreams = new List<MediaStream>
+                HTSMessage getTicketResponse = twtRes.Result;
+
+                if (_subscriptionId == int.MaxValue)
+                {
+                    _subscriptionId = 0;
+                }
+                int currSubscriptionId = _subscriptionId++;
+
+                return new MediaSourceInfo
+                {
+                    Id = "" + currSubscriptionId,
+                    Path = _httpBaseUrl + getTicketResponse.getString("path") + "?ticket=" + getTicketResponse.getString("ticket"),
+                    Protocol = MediaProtocol.Http,
+                    MediaStreams = new List<MediaStream>
                         {
                             new MediaStream
                             {
@@ -654,7 +832,10 @@ namespace TVHeadEnd
                                 Index = -1
                             }
                         }
-            };
+                };
+            }
+
+            throw new TimeoutException();
         }
 
         public async Task CloseLiveStream(string subscriptionId, CancellationToken cancellationToken)
@@ -709,8 +890,19 @@ namespace TVHeadEnd
             queryEvents.putField("channelId", Convert.ToInt32(channelId));
             _htsConnection.sendMessage(queryEvents, currGetEventsResponseHandler);
 
-            IEnumerable<ProgramInfo> pi = await currGetEventsResponseHandler.GetEvents(cancellationToken);
-            return pi;
+            //IEnumerable<ProgramInfo> pi = await currGetEventsResponseHandler.GetEvents(cancellationToken);
+            //return pi;
+
+            TaskWithTimeoutRunner<IEnumerable<ProgramInfo>> twtr = new TaskWithTimeoutRunner<IEnumerable<ProgramInfo>>(TIMEOUT);
+            TaskWithTimeoutResult<IEnumerable<ProgramInfo>> twtRes = await 
+                twtr.RunWithTimeout(currGetEventsResponseHandler.GetEvents(cancellationToken));
+
+            if (twtRes.HasTimeout)
+            {
+                return new List<ProgramInfo>();
+            }
+
+            return twtRes.Result;
         }
 
         public Task RecordLiveStream(string id, CancellationToken cancellationToken)
@@ -743,7 +935,21 @@ namespace TVHeadEnd
                 + "<p>HTSP protokoll version: " + serverProtokollVersion + "</p>"
                 + "<p>Free diskspace: " + diskSpace + "</p>";
 
-            List<LiveTvTunerInfo> tvTunerInfos = await _tunerDataHelper.buildTunerInfos(cancellationToken);
+            //List<LiveTvTunerInfo> tvTunerInfos = await _tunerDataHelper.buildTunerInfos(cancellationToken);
+
+            TaskWithTimeoutRunner<List<LiveTvTunerInfo>> twtr = new TaskWithTimeoutRunner<List<LiveTvTunerInfo>>(TIMEOUT);
+            TaskWithTimeoutResult<List<LiveTvTunerInfo>> twtRes = await 
+                twtr.RunWithTimeout(_tunerDataHelper.buildTunerInfos(cancellationToken));
+
+            List<LiveTvTunerInfo> tvTunerInfos;
+            if (twtRes.HasTimeout)
+            {
+                tvTunerInfos = new List<LiveTvTunerInfo>();
+            }
+            else
+            {
+                tvTunerInfos = twtRes.Result;
+            }
 
             return new LiveTvServiceStatusInfo
             {

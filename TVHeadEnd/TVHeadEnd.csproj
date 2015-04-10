@@ -76,6 +76,8 @@
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Configuration\TVHclientConfigurationPage .cs" />
+    <Compile Include="TimeoutHelper\TaskWithTimeoutResult.cs" />
+    <Compile Include="TimeoutHelper\TaskWithTimeoutRunner.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
