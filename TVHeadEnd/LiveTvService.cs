@@ -8,6 +8,7 @@ using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.MediaInfo;
 using MediaBrowser.Model.Serialization;
 using System;
+using System.Text;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -31,7 +32,8 @@ namespace TVHeadEnd
 
         private readonly IJsonSerializer _jsonSerializer;
         private readonly ILogger _logger;
-        private readonly HTSConnectionAsync _htsConnection;
+        
+        private HTSConnectionAsync _htsConnection;
 
         private int _priority;
         private string _profile;
@@ -59,8 +61,15 @@ namespace TVHeadEnd
             _dvrDataHelper = new DvrDataHelper(logger);
             _autorecDataHelper = new AutorecDataHelper(logger);
 
+            createHTSConnection();
+        }
+
+        private void createHTSConnection()
+        {
+            _logger.Info("[TVHclient] LiveTvService.createHTSConnection()");
             Version version = Assembly.GetEntryAssembly().GetName().Version;
-            _htsConnection = new HTSConnectionAsync(this, "TVHclient", version.ToString(), logger);
+            _htsConnection = new HTSConnectionAsync(this, "TVHclient", version.ToString(), _logger);
+            _connected = false;
         }
 
         private void ensureConnection()
@@ -68,6 +77,11 @@ namespace TVHeadEnd
             if (_htsConnection == null)
             {
                 return;
+            }
+
+            if(_htsConnection.needsRestart())
+            {
+                createHTSConnection();
             }
 
             lock (_htsConnection)
@@ -78,21 +92,21 @@ namespace TVHeadEnd
 
                     if (string.IsNullOrEmpty(config.TVH_ServerName))
                     {
-                        string message = "[TVHclient] TVH-Server name must be configured.";
+                        string message = "[TVHclient] LiveTvService.ensureConnection: TVH-Server name must be configured.";
                         _logger.Error(message);
                         throw new InvalidOperationException(message);
                     }
 
                     if (string.IsNullOrEmpty(config.Username))
                     {
-                        string message = "[TVHclient] Username must be configured.";
+                        string message = "[TVHclient] LiveTvService.ensureConnection: Username must be configured.";
                         _logger.Error(message);
                         throw new InvalidOperationException(message);
                     }
 
                     if (string.IsNullOrEmpty(config.Password))
                     {
-                        string message = "[TVHclient] Password must be configured.";
+                        string message = "[TVHclient] LiveTvService.ensureConnection: Password must be configured.";
                         _logger.Error(message);
                         throw new InvalidOperationException(message);
                     }
@@ -100,16 +114,18 @@ namespace TVHeadEnd
                     _priority = config.Priority;
                     _profile = config.Profile;
 
-                    if(_priority < 0 || _priority > 4)
+                    if (_priority < 0 || _priority > 4)
                     {
                         _priority = 2;
-                        _logger.Info("[TVHclient] _priority was out of range [0-4] - set to 2");
+                        _logger.Info("[TVHclient] LiveTvService.ensureConnection: Priority was out of range [0-4] - set to 2");
                     }
 
                     _httpBaseUrl = "http://" + config.TVH_ServerName + ":" + config.HTTP_Port;
 
                     _htsConnection.open(config.TVH_ServerName, config.HTSP_Port);
                     _connected = _htsConnection.authenticate(config.Username, config.Password);
+
+                    _logger.Info("[TVHclient] LiveTvService.ensureConnection: connection established " + _connected);
 
                     _channelDataHelper.clean();
                     _dvrDataHelper.clean();
@@ -400,6 +416,8 @@ namespace TVHeadEnd
                 return;
             }
 
+            //_logger.Info("[TVHclient] CreateSeriesTimerAsync: got SeriesTimerInfo: " + dump(info));
+
             HTSMessage createSeriesTimerMessage = new HTSMessage();
             createSeriesTimerMessage.Method = "addAutorecEntry";
             createSeriesTimerMessage.putField("title", info.Name);
@@ -410,7 +428,12 @@ namespace TVHeadEnd
             createSeriesTimerMessage.putField("minDuration", 0);
             createSeriesTimerMessage.putField("maxDuration", 0);
 
-            createSeriesTimerMessage.putField("priority", _priority); // info.Priority delivers always 0 - no GUI
+            int tempPriority = info.Priority;
+            if(tempPriority == 0)
+            {
+                tempPriority = _priority; // info.Priority delivers 0 if timers is newly created - no GUI
+            }
+            createSeriesTimerMessage.putField("priority", tempPriority); 
             createSeriesTimerMessage.putField("configName", _profile);
 
             if (!info.RecordAnyTime)
@@ -418,9 +441,13 @@ namespace TVHeadEnd
                 createSeriesTimerMessage.putField("daysOfWeek", AutorecDataHelper.getDaysOfWeekFromList(info.Days));
                 createSeriesTimerMessage.putField("approxTime", AutorecDataHelper.getMinutesFromMidnight(info.StartDate));
             }
-            createSeriesTimerMessage.putField("startExtra", (long)(info.PrePaddingSeconds / 60));
-            createSeriesTimerMessage.putField("stopExtra", (long)(info.PostPaddingSeconds / 60));
+            createSeriesTimerMessage.putField("startExtra", (long)(info.PrePaddingSeconds / 60L));
+            createSeriesTimerMessage.putField("stopExtra", (long)(info.PostPaddingSeconds / 60L));
             createSeriesTimerMessage.putField("comment", info.Overview);
+
+
+            //_logger.Info("[TVHclient] CreateSeriesTimerAsync: created HTSP message: " + createSeriesTimerMessage.ToString());
+
 
             /*
                     public DateTime EndDate { get; set; }
@@ -440,7 +467,45 @@ namespace TVHeadEnd
             {
                 _logger.Error("[TVHclient] Can't create series timer: '" + createSeriesTimerResponse.getString("error") + "'");
             }
+        }
 
+        private string dump(SeriesTimerInfo sti)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("\n<SeriesTimerInfo>\n");
+            sb.Append("  Id:                    " + sti.Id + "\n");
+            sb.Append("  Name:                  " + sti.Name + "\n");
+            sb.Append("  Overview:              " + sti.Overview + "\n");
+            sb.Append("  Priority:              " + sti.Priority + "\n");
+            sb.Append("  ChannelId:             " + sti.ChannelId + "\n");
+            sb.Append("  ProgramId:             " + sti.ProgramId + "\n");
+            sb.Append("  Days:                  " + dump(sti.Days) + "\n");
+            sb.Append("  StartDate:             " + sti.StartDate + "\n");
+            sb.Append("  EndDate:               " + sti.EndDate + "\n");
+            sb.Append("  IsPrePaddingRequired:  " + sti.IsPrePaddingRequired + "\n");
+            sb.Append("  PrePaddingSeconds:     " + sti.PrePaddingSeconds + "\n");
+            sb.Append("  IsPostPaddingRequired: " + sti.IsPrePaddingRequired + "\n");
+            sb.Append("  PostPaddingSeconds:    " + sti.PostPaddingSeconds + "\n");
+            sb.Append("  RecordAnyChannel:      " + sti.RecordAnyChannel + "\n");
+            sb.Append("  RecordAnyTime:         " + sti.RecordAnyTime + "\n");
+            sb.Append("  RecordNewOnly:         " + sti.RecordNewOnly + "\n");
+            sb.Append("</SeriesTimerInfo>\n");
+            return sb.ToString();
+        }
+
+        private string dump(List<DayOfWeek> days)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (DayOfWeek dow in days)
+            {
+                sb.Append(dow + ", ");
+            }
+            string tmpResult = sb.ToString();
+            if (tmpResult.EndsWith(","))
+            {
+                tmpResult = tmpResult.Substring(0, tmpResult.Length - 2);
+            }
+            return tmpResult;
         }
 
         /// <summary>
@@ -674,8 +739,8 @@ namespace TVHeadEnd
             int serverProtokollVersion = _htsConnection.getServerProtocolVersion();
             string diskSpace = _htsConnection.getDiskspace();
 
-            string serverVersionMessage = "<p>" + serverName + " " + serverVersion + "</p>" 
-                + "<p>HTSP protokoll version: " + serverProtokollVersion + "</p>" 
+            string serverVersionMessage = "<p>" + serverName + " " + serverVersion + "</p>"
+                + "<p>HTSP protokoll version: " + serverProtokollVersion + "</p>"
                 + "<p>Free diskspace: " + diskSpace + "</p>";
 
             List<LiveTvTunerInfo> tvTunerInfos = await _tunerDataHelper.buildTunerInfos(cancellationToken);
@@ -731,6 +796,23 @@ namespace TVHeadEnd
         }
 
         public event EventHandler DataSourceChanged;
+
+
+        private void sendDataSourceChanged()
+        {
+            try
+            {
+                EventHandler handler = DataSourceChanged;
+                if (handler != null)
+                {
+                    handler(this, EventArgs.Empty);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("[TVHclient] LiveTvService.sendDataSourceChanged caught exception: " + ex.Message);
+            }
+        }
 
         public event EventHandler<RecordingStatusChangedEventArgs> RecordingStatusChanged;
 
@@ -830,15 +912,11 @@ namespace TVHeadEnd
 
         public void onError(Exception ex)
         {
-            _logger.Fatal("[TVHclient] HTSP error: " + ex);
+            _logger.Error("[TVHclient] HTSP error: " + ex.Message);
             _htsConnection.stop();
             _connected = false;
 
-            EventHandler handler = DataSourceChanged;
-            if (handler != null)
-            {
-                handler(this, new EventArgs());
-            }
+            sendDataSourceChanged();
         }
     }
 }
