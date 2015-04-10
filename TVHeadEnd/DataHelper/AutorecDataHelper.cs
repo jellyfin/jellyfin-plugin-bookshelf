@@ -83,11 +83,169 @@ namespace TVHeadEnd.DataHelper
                 {
                     List<SeriesTimerInfo> result = new List<SeriesTimerInfo>();
 
-                    // TODO
+                    foreach (KeyValuePair<string, HTSMessage> entry in _data)
+                    {
+                        if (cancellationToken.IsCancellationRequested)
+                        {
+                            _logger.Info("[TVHclient] DvrDataHelper.buildDvrInfos, call canceled - returning part list.");
+                            return result;
+                        }
+
+                        HTSMessage m = entry.Value;
+                        SeriesTimerInfo sti = new SeriesTimerInfo();
+
+                        try
+                        {
+                            if (m.containsField("id"))
+                            {
+                                sti.Id = m.getString("id");
+                            }
+                        }
+                        catch (InvalidCastException)
+                        {
+                        }
+
+                        try
+                        {
+                            if (m.containsField("daysOfWeek"))
+                            {
+                                int daysOfWeek = m.getInt("daysOfWeek");
+                                sti.Days = getDayOfWeekListFromInt(daysOfWeek);
+                            }
+                        }
+                        catch (InvalidCastException)
+                        {
+                        }
+
+                       sti.StartDate = DateTime.Now.ToUniversalTime();
+
+                       try
+                       {
+                           if (m.containsField("retention"))
+                           {
+                               int retentionInDays = m.getInt("retention");
+                               sti.EndDate = DateTime.Now.AddDays(retentionInDays).ToUniversalTime();
+                           }
+                       }
+                       catch (InvalidCastException)
+                       {
+                       }
+
+                       try
+                       {
+                           if (m.containsField("channel"))
+                           {
+                               sti.ChannelId = "" + m.getInt("channel");
+                           }
+                       }
+                       catch (InvalidCastException)
+                       {
+                       }
+
+                       try
+                       {
+                           if (m.containsField("startExtra"))
+                           {
+                               sti.PrePaddingSeconds = (int)m.getLong("startExtra") * 60;
+                               sti.IsPrePaddingRequired = true;
+                           }
+                       }
+                       catch (InvalidCastException)
+                       {
+                       }
+
+                       try
+                       {
+                           if (m.containsField("stopExtra"))
+                           {
+                               sti.PostPaddingSeconds = (int)m.getLong("stopExtra") * 60;
+                               sti.IsPostPaddingRequired = true;
+                           }
+                       }
+                       catch (InvalidCastException)
+                       {
+                       }
+
+                       try
+                       {
+                           if (m.containsField("title"))
+                           {
+                               sti.Name = m.getString("title");
+                           }
+                       }
+                       catch (InvalidCastException)
+                       {
+                       }
+
+                       try
+                       {
+                           if (m.containsField("description"))
+                           {
+                               sti.Overview = m.getString("description");
+                           }
+                       }
+                       catch (InvalidCastException)
+                       {
+                       }
+
+                       try
+                       {
+                           if (m.containsField("priority"))
+                           {
+                               sti.Priority = m.getInt("priority");
+                           }
+                       }
+                       catch (InvalidCastException)
+                       {
+                       }
+
+                        /*
+                                public string ProgramId { get; set; }
+                                public bool RecordAnyChannel { get; set; }
+                                public bool RecordAnyTime { get; set; }
+                                public bool RecordNewOnly { get; set; }
+                         */
+
+                        result.Add(sti);
+                    }
 
                     return result;
                 }
             });
+        }
+
+        private List<DayOfWeek> getDayOfWeekListFromInt(int daysOfWeek)
+        {
+            List<DayOfWeek> result = new List<DayOfWeek>();
+            if((daysOfWeek & 0x01) != 0)
+            {
+                result.Add(DayOfWeek.Monday);
+            }
+            if ((daysOfWeek & 0x02) != 0)
+            {
+                result.Add(DayOfWeek.Tuesday);
+            }
+            if ((daysOfWeek & 0x04) != 0)
+            {
+                result.Add(DayOfWeek.Wednesday);
+            }
+            if ((daysOfWeek & 0x08) != 0)
+            {
+                result.Add(DayOfWeek.Thursday);
+            }
+            if ((daysOfWeek & 0x10) != 0)
+            {
+                result.Add(DayOfWeek.Friday);
+            }
+            if ((daysOfWeek & 0x20) != 0)
+            {
+                result.Add(DayOfWeek.Saturday);
+            }
+            if ((daysOfWeek & 0x40) != 0)
+            {
+                result.Add(DayOfWeek.Sunday);
+            }
+            return result;
         }
 
         public static int getDaysOfWeekFromList(List<DayOfWeek> days)
