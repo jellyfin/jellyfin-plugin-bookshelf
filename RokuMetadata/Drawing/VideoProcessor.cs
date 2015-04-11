@@ -49,7 +49,7 @@ namespace RokuMetadata.Drawing
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var streamInfo = new StreamBuilder().BuildVideoItem(new VideoOptions
+                var streamInfo = new StreamBuilder(_logger).BuildVideoItem(new VideoOptions
                 {
                     Context = EncodingContext.Streaming,
                     ItemId = item.Id.ToString("N"),
