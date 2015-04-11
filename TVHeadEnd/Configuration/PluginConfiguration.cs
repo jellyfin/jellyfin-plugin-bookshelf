@@ -15,6 +15,8 @@ namespace TVHeadEnd.Configuration
         public string Password { get; set; }
         //public int ConnectionTimeout { get; set; }
         //public int ResponseTimeout { get; set; }
+        public int Priority { get; set; }
+        public string Profile { get; set; }
 
         public PluginConfiguration()
         {
@@ -23,6 +25,8 @@ namespace TVHeadEnd.Configuration
 			HTSP_Port = 9982;
             Username = "";
             Password = "";
+            Priority = 5;
+            Profile = "";
             //ConnectionTimeout = 30;
             //ResponseTimeout = 15;
         }

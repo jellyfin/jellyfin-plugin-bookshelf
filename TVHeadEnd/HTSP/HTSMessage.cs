@@ -9,7 +9,7 @@ using TVHeadEnd.Helper;
 
 namespace TVHeadEnd.HTSP
 {
-    public class HTSMessage : Dictionary<string, object>
+    public class HTSMessage //: Dictionary<string, object>
     {
         public const long HTSP_VERSION = 17;
         private const byte HMF_MAP = 1;
@@ -18,19 +18,41 @@ namespace TVHeadEnd.HTSP
         private const byte HMF_BIN = 4;
         private const byte HMF_LIST = 5;
 
+        private readonly Dictionary<string, object> _dict;
+        private ILogger _logger = null;
+        private byte[] _data = null;
+
+        public HTSMessage()
+        {
+            _dict = new Dictionary<string, object>();
+        }
+
         public void putField(string name, object value)
         {
             if (value != null)
             {
-                this[name] = value;
+                _dict[name] = value;
+                _data = null;
             }
+        }
+
+        public void removeField(string name)
+        {
+            _dict.Remove(name);
+            _data = null;
+        }
+
+        public Dictionary<string, object>.Enumerator GetEnumerator()
+        {
+            return _dict.GetEnumerator();
         }
 
         public string Method
         {
             set
             {
-                this["method"] = value;
+                _dict["method"] = value;
+                _data = null;
             }
             get
             {
@@ -41,12 +63,21 @@ namespace TVHeadEnd.HTSP
 
         public bool containsField(string name)
         {
-            return this.ContainsKey(name);
+            return _dict.ContainsKey(name);
         }
 
         public System.Numerics.BigInteger getBigInteger(string name)
         {
-            return (System.Numerics.BigInteger)this[name];
+            try
+            {
+                return (System.Numerics.BigInteger)_dict[name];
+            }
+            catch(InvalidCastException ice)
+            {
+                _logger.Fatal("[TVHclient] Caught InvalidCastException for field name '" + name + "'. Expected  'System.Numerics.BigInteger' but got '" +
+                    _dict[name].GetType() + "'");
+                throw ice;
+            }
         }
 
         public long getLong(string name)
@@ -88,7 +119,7 @@ namespace TVHeadEnd.HTSP
 
         public string getString(string name)
         {
-            object obj = this[name];
+            object obj = _dict[name];
             if (obj == null)
             {
                 return null;
@@ -105,7 +136,7 @@ namespace TVHeadEnd.HTSP
                 return list;
             }
 
-            foreach (object obj in (IList)this[name])
+            foreach (object obj in (IList)_dict[name])
             {
                 if (obj is System.Numerics.BigInteger)
                 {
@@ -135,7 +166,7 @@ namespace TVHeadEnd.HTSP
                 return list;
             }
 
-            foreach (object obj in (IList)this[name])
+            foreach (object obj in (IList)_dict[name])
             {
                 if (obj is System.Numerics.BigInteger)
                 {
@@ -158,12 +189,12 @@ namespace TVHeadEnd.HTSP
 
         public IList getList(string name)
         {
-            return (IList)this[name];
+            return (IList)_dict[name];
         }
 
         public byte[] getByteArray(string name)
         {
-            return (byte[])this[name];
+            return (byte[])_dict[name];
         }
 
         public DateTime getDate(string name)
@@ -173,10 +204,15 @@ namespace TVHeadEnd.HTSP
 
         public byte[] BuildBytes()
         {
+            if(_data != null)
+            {
+                return _data;
+            }
+
             byte[] buf = new byte[0];
 
             // calc data
-            byte[] data = serializeBinary(this);
+            byte[] data = serializeBinary(_dict);
 
             // calc length
             int len = data.Length;
@@ -201,7 +237,7 @@ namespace TVHeadEnd.HTSP
             StringBuilder sb = new StringBuilder();
             sb.Append("\nHTSMessage:\n");
             sb.Append("  <dump>\n");
-            sb.Append(getValueString(this, "    "));
+            sb.Append(getValueString(_dict, "    "));
             sb.Append("  </dump>\n\n");
             return sb.ToString();
         }
@@ -373,6 +409,10 @@ namespace TVHeadEnd.HTSP
             Array.Copy(data, 4, messageData, 0, len);
 
             HTSMessage msg = deserializeBinary(messageData);
+
+            msg._logger = logger;
+            msg._data = data;
+
             return msg;
         }
 
@@ -463,7 +503,7 @@ namespace TVHeadEnd.HTSP
                         }
                     case HMF_LIST:
                         {
-                            obj = new List<object>(deserializeBinary(bData).Values);
+                            obj = new List<object>(deserializeBinary(bData)._dict.Values);
                             break;
                         }
                     default:

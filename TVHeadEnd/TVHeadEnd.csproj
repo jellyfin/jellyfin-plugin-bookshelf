@@ -76,6 +76,8 @@
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Configuration\TVHclientConfigurationPage .cs" />
+    <Compile Include="TimeoutHelper\TaskWithTimeoutResult.cs" />
+    <Compile Include="TimeoutHelper\TaskWithTimeoutRunner.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -83,7 +85,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Configuration\configPage.html" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="Images\TVHeadEnd.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy "$(TargetPath)" "%25AppData%25\MediaBrowser-Server\Plugins\" /y
