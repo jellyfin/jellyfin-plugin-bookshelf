@@ -33,13 +33,12 @@ namespace TVHeadEnd
         private volatile Boolean _initialLoadFinished = false;
         private volatile int _subscriptionId = 0;
 
-        private readonly IJsonSerializer _jsonSerializer;
         private readonly ILogger _logger;
 
         private HTSConnectionAsync _htsConnection;
-
         private int _priority;
         private string _profile;
+        private string _httpBaseUrl;
 
         // Data helpers
         private readonly ChannelDataHelper _channelDataHelper;
@@ -47,17 +46,9 @@ namespace TVHeadEnd
         private readonly DvrDataHelper _dvrDataHelper;
         private readonly AutorecDataHelper _autorecDataHelper;
 
-        private string _httpBaseUrl;
-
-        //private readonly CultureInfo _deCulture = new CultureInfo("de-DE");
-        //private int _liveStreams;
-        //private readonly Dictionary<int, int> _heartBeat = new Dictionary<int, int>();
-        //private string Sid { get; set; }
-
-        public LiveTvService(ILogger logger, IJsonSerializer jsonSerializer)
+        public LiveTvService(ILogger logger)
         {
             _logger = logger;
-            _jsonSerializer = jsonSerializer;
 
             _tunerDataHelper = new TunerDataHelper(logger);
             _channelDataHelper = new ChannelDataHelper(logger, _tunerDataHelper);
@@ -518,82 +509,87 @@ namespace TVHeadEnd
         /// <returns></returns>
         public async Task CreateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
         {
-            ensureConnection();
+            // Dummy method to avoid warnings
+            await Task.Factory.StartNew<int>(() => { return 0; });
 
-            int timeOut = await WaitForInitialLoadTask(cancellationToken);
-            if (timeOut == -1 || cancellationToken.IsCancellationRequested)
-            {
-                _logger.Info("[TVHclient] CreateSeriesTimerAsync, call canceled or timed out - returning empty list.");
-                return;
-            }
+            throw new NotImplementedException();
 
-            //_logger.Info("[TVHclient] CreateSeriesTimerAsync: got SeriesTimerInfo: " + dump(info));
+            //ensureConnection();
 
-            HTSMessage createSeriesTimerMessage = new HTSMessage();
-            createSeriesTimerMessage.Method = "addAutorecEntry";
-            createSeriesTimerMessage.putField("title", info.Name);
-            if (!info.RecordAnyChannel)
-            {
-                createSeriesTimerMessage.putField("channelId", info.ChannelId);
-            }
-            createSeriesTimerMessage.putField("minDuration", 0);
-            createSeriesTimerMessage.putField("maxDuration", 0);
+            //int timeOut = await WaitForInitialLoadTask(cancellationToken);
+            //if (timeOut == -1 || cancellationToken.IsCancellationRequested)
+            //{
+            //    _logger.Info("[TVHclient] CreateSeriesTimerAsync, call canceled or timed out - returning empty list.");
+            //    return;
+            //}
 
-            int tempPriority = info.Priority;
-            if (tempPriority == 0)
-            {
-                tempPriority = _priority; // info.Priority delivers 0 if timers is newly created - no GUI
-            }
-            createSeriesTimerMessage.putField("priority", tempPriority);
-            createSeriesTimerMessage.putField("configName", _profile);
-            createSeriesTimerMessage.putField("daysOfWeek", AutorecDataHelper.getDaysOfWeekFromList(info.Days));
+            ////_logger.Info("[TVHclient] CreateSeriesTimerAsync: got SeriesTimerInfo: " + dump(info));
 
-            if (!info.RecordAnyTime)
-            {
-                createSeriesTimerMessage.putField("approxTime", AutorecDataHelper.getMinutesFromMidnight(info.StartDate));
-            }
-            createSeriesTimerMessage.putField("startExtra", (long)(info.PrePaddingSeconds / 60L));
-            createSeriesTimerMessage.putField("stopExtra", (long)(info.PostPaddingSeconds / 60L));
-            createSeriesTimerMessage.putField("comment", info.Overview);
+            //HTSMessage createSeriesTimerMessage = new HTSMessage();
+            //createSeriesTimerMessage.Method = "addAutorecEntry";
+            //createSeriesTimerMessage.putField("title", info.Name);
+            //if (!info.RecordAnyChannel)
+            //{
+            //    createSeriesTimerMessage.putField("channelId", info.ChannelId);
+            //}
+            //createSeriesTimerMessage.putField("minDuration", 0);
+            //createSeriesTimerMessage.putField("maxDuration", 0);
+
+            //int tempPriority = info.Priority;
+            //if (tempPriority == 0)
+            //{
+            //    tempPriority = _priority; // info.Priority delivers 0 if timers is newly created - no GUI
+            //}
+            //createSeriesTimerMessage.putField("priority", tempPriority);
+            //createSeriesTimerMessage.putField("configName", _profile);
+            //createSeriesTimerMessage.putField("daysOfWeek", AutorecDataHelper.getDaysOfWeekFromList(info.Days));
+
+            //if (!info.RecordAnyTime)
+            //{
+            //    createSeriesTimerMessage.putField("approxTime", AutorecDataHelper.getMinutesFromMidnight(info.StartDate));
+            //}
+            //createSeriesTimerMessage.putField("startExtra", (long)(info.PrePaddingSeconds / 60L));
+            //createSeriesTimerMessage.putField("stopExtra", (long)(info.PostPaddingSeconds / 60L));
+            //createSeriesTimerMessage.putField("comment", info.Overview);
 
 
-            //_logger.Info("[TVHclient] CreateSeriesTimerAsync: created HTSP message: " + createSeriesTimerMessage.ToString());
+            ////_logger.Info("[TVHclient] CreateSeriesTimerAsync: created HTSP message: " + createSeriesTimerMessage.ToString());
 
 
-            /*
-                    public DateTime EndDate { get; set; }
-                    public string ProgramId { get; set; }
-                    public bool RecordNewOnly { get; set; } 
-             */
+            ///*
+            //        public DateTime EndDate { get; set; }
+            //        public string ProgramId { get; set; }
+            //        public bool RecordNewOnly { get; set; } 
+            // */
 
-            //HTSMessage createSeriesTimerResponse = await Task.Factory.StartNew<HTSMessage>(() =>
+            ////HTSMessage createSeriesTimerResponse = await Task.Factory.StartNew<HTSMessage>(() =>
+            ////{
+            ////    LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
+            ////    _htsConnection.sendMessage(createSeriesTimerMessage, lbrh);
+            ////    return lbrh.getResponse();
+            ////});
+
+            //TaskWithTimeoutRunner<HTSMessage> twtr = new TaskWithTimeoutRunner<HTSMessage>(TIMEOUT);
+            //TaskWithTimeoutResult<HTSMessage> twtRes = await  twtr.RunWithTimeout(Task.Factory.StartNew<HTSMessage>(() =>
             //{
             //    LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
             //    _htsConnection.sendMessage(createSeriesTimerMessage, lbrh);
             //    return lbrh.getResponse();
-            //});
+            //}));
 
-            TaskWithTimeoutRunner<HTSMessage> twtr = new TaskWithTimeoutRunner<HTSMessage>(TIMEOUT);
-            TaskWithTimeoutResult<HTSMessage> twtRes = await  twtr.RunWithTimeout(Task.Factory.StartNew<HTSMessage>(() =>
-            {
-                LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
-                _htsConnection.sendMessage(createSeriesTimerMessage, lbrh);
-                return lbrh.getResponse();
-            }));
-
-            if (twtRes.HasTimeout)
-            {
-                _logger.Error("[TVHclient] Can't create series because of timeout");
-            }
-            else
-            {
-                HTSMessage createSeriesTimerResponse = twtRes.Result;
-                Boolean success = createSeriesTimerResponse.getInt("success", 0) == 1;
-                if (!success)
-                {
-                    _logger.Error("[TVHclient] Can't create series timer: '" + createSeriesTimerResponse.getString("error") + "'");
-                }
-            }
+            //if (twtRes.HasTimeout)
+            //{
+            //    _logger.Error("[TVHclient] Can't create series because of timeout");
+            //}
+            //else
+            //{
+            //    HTSMessage createSeriesTimerResponse = twtRes.Result;
+            //    Boolean success = createSeriesTimerResponse.getInt("success", 0) == 1;
+            //    if (!success)
+            //    {
+            //        _logger.Error("[TVHclient] Can't create series timer: '" + createSeriesTimerResponse.getString("error") + "'");
+            //    }
+            //}
         }
 
         private string dump(SeriesTimerInfo sti)
@@ -643,8 +639,13 @@ namespace TVHeadEnd
         /// <returns></returns>
         public async Task UpdateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
         {
-            await CancelSeriesTimerAsync(info.Id, cancellationToken);
-            await CreateSeriesTimerAsync(info, cancellationToken);
+            // Dummy method to avoid warnings
+            await Task.Factory.StartNew<int>(() => { return 0; });
+
+            throw new NotImplementedException();
+
+            //await CancelSeriesTimerAsync(info.Id, cancellationToken);
+            //await CreateSeriesTimerAsync(info, cancellationToken);
         }
 
         /// <summary>
@@ -954,7 +955,7 @@ namespace TVHeadEnd
             return new LiveTvServiceStatusInfo
             {
                 Version = serverVersionMessage,
-                //Tuners = tvTunerInfos,
+                Tuners = tvTunerInfos,
                 Status = LiveTvServiceStatus.Ok,
             };
         }
