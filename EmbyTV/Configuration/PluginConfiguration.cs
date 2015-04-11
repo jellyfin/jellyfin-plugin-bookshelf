@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Policy;
+using EmbyTV.EPGProvider;
 using MediaBrowser.Model.Dto;
 using MediaBrowser.Model.Plugins;
 using EmbyTV.TunerHost;
@@ -12,25 +14,24 @@ namespace EmbyTV.Configuration
     {
         public string hashPassword { get; set; }
         public string username { get; set; }
-        public string tvLineUp { get; set; }
+        public Headend lineup { get; set; }
         public List<string> avaliableLineups { get; set; }
-        public List<string> headendName { get; set; }
-        public List<string> headendValue { get; set; }
+        public List<Headend> headends{ get; set; }
         public string zipCode { get; set; }
         public List<FieldBuilder> TunerDefaultConfigurationsFields { get; set; }
         public List<TunerUserConfiguration> TunerHostsConfiguration { get; set; }
+        public string RecordingPath { get; set; }
+       
 
         public PluginConfiguration()
         {
-            tvLineUp = "";
+            RecordingPath = @"C:\Temp";
+            lineup = new Headend() {Name = "", Id = ""};
             username = "";
             hashPassword = "";
-            avaliableLineups = new List<string>(){""};
-            headendName = new List<string>() { "" };
-            headendValue = new List<string>() { "" };
             zipCode = "";
+            headends = new List<Headend>();
             TunerDefaultConfigurationsFields = TunerHostConfig.BuildDefaultForTunerHostsBuilders();
-            
         }
     }
 

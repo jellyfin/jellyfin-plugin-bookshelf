@@ -9,14 +9,19 @@ using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.MediaInfo;
 using MediaBrowser.Model.Serialization;
 using System;
-using System.Collections.Generic;
+﻿using System.CodeDom;
+﻿using System.Collections.Generic;
 using System.Globalization;
 ﻿using System.IO;
 ﻿using System.Linq;
 ﻿using System.Threading;
 using System.Threading.Tasks;
+﻿using System.Timers;
 ﻿using EmbyTV.Configuration;
+﻿using EmbyTV.DVR;
+﻿using EmbyTV.GeneralHelpers;
 ﻿using MediaBrowser.Model.Connect;
+
 
 
 namespace EmbyTV
@@ -34,33 +39,94 @@ namespace EmbyTV
         private readonly IJsonSerializer _jsonSerializer;
         private readonly IHttpClient _httpClient;
         private bool FirstRun;
+        private List<SingleTimer> timers;
+        private List<SeriesTimer> seriesTimers;
+        private string dataPath;
+        private readonly IXmlSerializer _xmlSerializer;
+        private string recordingPath;
+        
 
-       public LiveTvService(IHttpClient httpClient, IJsonSerializer jsonSerializer, ILogManager logManager)
+       public LiveTvService(IHttpClient httpClient, IJsonSerializer jsonSerializer, ILogManager logManager, IXmlSerializer xmlSerializer)
         {
             _liveStreams = 0;
             _logger = logManager.GetLogger(Name);
             _httpClient = httpClient;
             _jsonSerializer = jsonSerializer;
             FirstRun = true;
+           _xmlSerializer = xmlSerializer;
+            dataPath = Plugin.Instance.DataFolderPath;
+            recordingPath = Plugin.Instance.Configuration.RecordingPath;
+           _logger.Info("Directory is: "+dataPath);
+            Directory.CreateDirectory(dataPath);
+            RefreshConfigData(CancellationToken.None);
             Plugin.Instance.Configuration.TunerDefaultConfigurationsFields = TunerHostConfig.BuildDefaultForTunerHostsBuilders();
-           CheckForUpdates();
+            Plugin.Instance.ConfigurationUpdated += (sender, args) => { RefreshConfigData(CancellationToken.None); };
+   
         }
 
-        private void CheckForUpdates()
+        private void InitializeTimer()
         {
-            Task.Run(() =>
+            timers.RemoveAll(t => t.Duration()<0);
+            for(var i = 0;i<timers.Count(); i++)
             {
-                while (true)
-                {
-                    //Helper.LogInfo("Last Time config modified:" + configLastModified);
-                    if ((Plugin.Instance.ConfigurationDateLastModified != _configLastModified) || FirstRun)
-                    {
-                        RefreshConfigData(CancellationToken.None);
-                    }
-                    Thread.Sleep(1000);
-                }
-            });
+                    var fileName = timers[i].GetRecordingName();
+                    var recordUrl = _tunerServer[0].getChannelStreamInfo(timers[i].ChannelId) + "?duration=" +
+                                    timers[i].Duration();
+                    timers[i].StartRecording += (sender, args) => { RecordStream(recordUrl, fileName); };
+                    timers[i].GenerateEvent();
+                    _logger.Info("Added timer for: " + recordUrl);
+            }
         }
+
+       private static List<SeriesTimer> GetSeriesTimerData(string dataPath, IXmlSerializer xmlSerializer)
+       {
+           List<SeriesTimer> dummy = new List<SeriesTimer>();
+           var timerPath = dataPath + @"\seriesTimers.xml";
+           if (File.Exists(timerPath))
+           {
+            return  (List<SeriesTimer>)xmlSerializer.DeserializeFromFile(dummy.GetType(),timerPath);
+           }
+           else { return dummy; }
+       }
+       private static List<SingleTimer> GetTimerData(string dataPath,IXmlSerializer xmlSerializer)
+       {
+           List<SingleTimer> dummy = new List<SingleTimer>();
+           var timerPath = dataPath + @"\timers.xml";
+           if (File.Exists(timerPath))
+           {
+               return (List<SingleTimer>) xmlSerializer.DeserializeFromFile(dummy.GetType(), timerPath);
+           }
+           else
+           {
+               return dummy;
+           }
+       }
+
+        private void UpdateSeriesTimerData()
+        {
+           var timerPath = dataPath + @"\seriesTimers.xml";
+         
+           _xmlSerializer.SerializeToFile(seriesTimers,timerPath);
+        }
+        private void UpdateTimerData()
+        {
+            var timerPath = dataPath + @"\timers.xml";
+            if (timers != null)
+            {
+                _xmlSerializer.SerializeToFile(timers, timerPath);
+            }
+        }
+
+        public async Task RecordStream(string url,string fileName)
+        {
+            HttpRequestOptions options = new HttpRequestOptionsMod()
+            {
+                Url = url
+            };
+            await RecordingHelper.DownloadVideo(_httpClient,options, _logger, recordingPath+@"\"+fileName);
+            _logger.Info("Recording was a success");
+        }
+
 
         /// <summary>
         /// Ensure that we are connected to the HomeRunTV server
@@ -93,15 +159,7 @@ namespace EmbyTV
             return await _tvGuide.getChannelInfo(response, cancellationToken);
         }
 
-        public Task CancelSeriesTimerAsync(string timerId, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task CancelTimerAsync(string timerId, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+  
 
         public Task CloseLiveStream(string id, CancellationToken cancellationToken)
         {
@@ -109,27 +167,38 @@ namespace EmbyTV
             return Task.FromResult(0);
         }
 
-        public Task CreateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+
 
         public Task CreateTimerAsync(TimerInfo info, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var lastTimer = new SingleTimer(info);
+            if (lastTimer.Duration() > 5)
+            {
+                timers.Add(lastTimer);
+                UpdateTimerData();
+                var fileName = lastTimer.GetRecordingName();
+                var recordUrl = _tunerServer[0].getChannelStreamInfo(info.ChannelId) + "?duration=" + lastTimer.Duration();
+                timers.Last().StartRecording += (sender, args) => { RecordStream(recordUrl, fileName); };
+                timers.Last().GenerateEvent();
+                _logger.Info("Added timer for: " + recordUrl);
+            }
+            else
+            {
+                _logger.Error("Timer not created the show is about to end or has already ended");
+            }
+            return Task.FromResult(0);
         }
 
         public event EventHandler DataSourceChanged;
 
         public Task DeleteRecordingAsync(string recordingId, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var remove = timers.SingleOrDefault(r => r.Id == recordingId);
+            if(remove != null) { timers.Remove(remove);}
+            return Task.FromResult(true);
         }
 
-        public Task<ImageStream> GetChannelImageAsync(string channelId, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+
 
         public async void RefreshConfigData(CancellationToken cancellationToken)
         {
@@ -138,44 +207,31 @@ namespace EmbyTV
             {
                 _tunerServer = TunerHostFactory.CreateTunerHosts(config.TunerHostsConfiguration, _logger,_jsonSerializer, _httpClient);
             }
+            if (FirstRun)
+            {
+                timers = GetTimerData(dataPath, _xmlSerializer);
+                seriesTimers = GetSeriesTimerData(dataPath, _xmlSerializer);
+                InitializeTimer();
+            }
             FirstRun = false;
-            _tvGuide = new EPGProvider.SchedulesDirect(config.username,config.hashPassword,config.tvLineUp, _logger, _jsonSerializer, _httpClient);
+            _tvGuide = new EPGProvider.SchedulesDirect(config.username,config.hashPassword,config.lineup, _logger, _jsonSerializer, _httpClient);
             config.avaliableLineups = await _tvGuide.getLineups(cancellationToken);
             if (_tvGuide.badPassword)
             {
                 config.hashPassword = "";
             }
-            var dict = await _tvGuide.getHeadends(config.zipCode, cancellationToken);;
-            config.headendName = dict.Keys.ToList();
-            config.headendValue = dict.Values.ToList();
+            config.headends = await _tvGuide.getHeadends(config.zipCode, cancellationToken);
             Plugin.Instance.SaveConfiguration();
             _configLastModified = Plugin.Instance.ConfigurationDateLastModified;
         }
 
-        public Task<SeriesTimerInfo> GetNewTimerDefaultsAsync(CancellationToken cancellationToken, ProgramInfo program = null)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ImageStream> GetProgramImageAsync(string programId, string channelId, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+     
 
         public async Task<IEnumerable<ProgramInfo>> GetProgramsAsync(string channelId, DateTime startDateUtc, DateTime endDateUtc, CancellationToken cancellationToken)
         {
             return await _tvGuide.getTvGuideForChannel(channelId, startDateUtc, endDateUtc, cancellationToken);
         }
 
-        public Task<ImageStream> GetRecordingImageAsync(string recordingId, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ChannelMediaInfo> GetRecordingStream(string recordingId, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
 
         public Task<IEnumerable<RecordingInfo>> GetRecordingsAsync(CancellationToken cancellationToken)
         {
@@ -185,8 +241,8 @@ namespace EmbyTV
 
         public Task<IEnumerable<SeriesTimerInfo>> GetSeriesTimersAsync(CancellationToken cancellationToken)
         {
-            IEnumerable<SeriesTimerInfo> result = new List<SeriesTimerInfo>();
-            return Task.FromResult(result);
+            
+            return Task.FromResult((IEnumerable<SeriesTimerInfo>) seriesTimers);
         }
 
         public async Task<LiveTvServiceStatusInfo> GetStatusInfoAsync(CancellationToken cancellationToken)
@@ -209,8 +265,7 @@ namespace EmbyTV
 
         public Task<IEnumerable<TimerInfo>> GetTimersAsync(CancellationToken cancellationToken)
         {
-            IEnumerable<TimerInfo> result = new List<TimerInfo>();
-            return Task.FromResult(result);
+            return Task.FromResult((IEnumerable<TimerInfo>) timers);
         }
 
         public string HomePageUrl
@@ -225,41 +280,32 @@ namespace EmbyTV
 
         public Task RecordLiveStream(string id, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            HttpRequestOptions options = new HttpRequestOptions()
+            {
+                Url = "http://192.168.2.238:5004/auto/v508?duration=10",
+                CancellationToken = cancellationToken
+            };
+            string filePath = Path.GetTempPath() + "/test.ts";
+            DVR.RecordingHelper.DownloadVideo(_httpClient, options, _logger,filePath).Start();
+            return Task.FromResult(0);
         }
 
         public event EventHandler<RecordingStatusChangedEventArgs> RecordingStatusChanged;
 
         public Task ResetTuner(string id, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            HttpRequestOptions options = new HttpRequestOptions()
+            {
+                Url = "http://192.168.2.238:5004/auto/v508?duration=10"
+            };
+
+            //DVR.RecordingHelper.DownloadVideo(_httpClient, options, _logger).Start();
+            return Task.FromResult(0);
         }
 
-        public Task UpdateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
 
-        public Task UpdateTimerAsync(TimerInfo info, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
 
-        public Task<List<MediaSourceInfo>> GetChannelStreamMediaSources(string channelId, CancellationToken cancellationToken)
-        {
-            _logger.Info("Streaming Channel Not implemented");
-            throw new NotImplementedException();
-        }
-
-        public Task<MediaSourceInfo> GetRecordingStream(string recordingId, string streamId, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<List<MediaSourceInfo>> GetRecordingStreamMediaSources(string recordingId, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+ 
 
         public Task<MediaSourceInfo> GetChannelStream(string channelId, string streamId, CancellationToken cancellationToken)
         {
@@ -278,16 +324,100 @@ namespace EmbyTV
                             {
                                 Type = MediaStreamType.Video,
                                 // Set the index to -1 because we don't know the exact index of the video stream within the container
-                                Index = -1
+                                Index = -1,
+                                IsInterlaced = true
                             },
                             new MediaStream
                             {
                                 Type = MediaStreamType.Audio,
                                 // Set the index to -1 because we don't know the exact index of the audio stream within the container
                                 Index = -1
+                               
                             }
                         }
             });
+        }
+
+        public Task CancelSeriesTimerAsync(string timerId, CancellationToken cancellationToken)
+        {
+            var remove = seriesTimers.SingleOrDefault(r => r.Id == timerId);
+            if (remove != null) { seriesTimers.Remove(remove); }
+            UpdateSeriesTimerData();
+            return Task.FromResult(true);
+        }
+
+        public Task CancelTimerAsync(string timerId, CancellationToken cancellationToken)
+        {
+            var remove = timers.SingleOrDefault(r => r.Id == timerId);
+            if (remove != null) { timers.Remove(remove); }
+            UpdateTimerData();
+            return Task.FromResult(true);
+        }
+
+        public Task CreateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
+        {
+            seriesTimers.Add(new SeriesTimer(info));
+            UpdateSeriesTimerData();
+            return Task.FromResult(true);
+        }
+
+        public Task<ImageStream> GetChannelImageAsync(string channelId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<MediaSourceInfo>> GetChannelStreamMediaSources(string channelId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<SeriesTimerInfo> GetNewTimerDefaultsAsync(CancellationToken cancellationToken, ProgramInfo program = null)
+        {
+            var defaults = new SeriesTimerInfo()
+            {
+                PostPaddingSeconds = 60,
+                PrePaddingSeconds = 60,
+                RecordAnyChannel = false,
+                RecordAnyTime = false,
+                RecordNewOnly = false
+            };
+            return Task.FromResult(defaults);
+        }
+
+        public Task<ImageStream> GetProgramImageAsync(string programId, string channelId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ImageStream> GetRecordingImageAsync(string recordingId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<MediaSourceInfo> GetRecordingStream(string recordingId, string streamId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<MediaSourceInfo>> GetRecordingStreamMediaSources(string recordingId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task UpdateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
+        {
+            var recording = seriesTimers.FindIndex(r => r.Id == info.Id);
+            if (recording >= 0) { seriesTimers[recording] = new SeriesTimer(info);}
+            UpdateSeriesTimerData();
+            return Task.FromResult(true);
+        }
+
+        public Task UpdateTimerAsync(TimerInfo info, CancellationToken cancellationToken)
+        {
+            var recording = timers.FindIndex(r => r.Id == info.Id);
+            if (recording >= 0) { timers[recording] = new SingleTimer(info); }
+            UpdateTimerData();
+            return Task.FromResult(true);
         }
     }
 }

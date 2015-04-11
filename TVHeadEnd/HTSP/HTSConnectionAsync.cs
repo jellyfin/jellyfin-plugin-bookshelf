@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Threading.Tasks;
 using TVHeadEnd.Helper;
 using TVHeadEnd.HTSP_Responses;
 
@@ -12,6 +13,9 @@ namespace TVHeadEnd.HTSP
 {
     public class HTSConnectionAsync
     {
+        private const long BytesPerGiga = 1024 * 1024 * 1024;
+
+        private volatile Boolean _needsRestart = false;
         private volatile Boolean _connected;
         private volatile int _seq = 0;
 
@@ -53,7 +57,6 @@ namespace TVHeadEnd.HTSP
             _receivedMessagesQueue = new SizeQueue<HTSMessage>(int.MaxValue);
             _messagesForSendQueue = new SizeQueue<HTSMessage>(int.MaxValue);
             _responseHandlers = new Dictionary<int, HTSResponseHandler>();
-
         }
 
         public void stop()
@@ -78,7 +81,13 @@ namespace TVHeadEnd.HTSP
             {
                 _socket.Close();
             }
+            _needsRestart = true;
             _connected = false;
+        }
+
+        public Boolean needsRestart()
+        {
+            return _needsRestart;
         }
 
         public void open(String hostname, int port)
@@ -89,58 +98,60 @@ namespace TVHeadEnd.HTSP
             }
 
             Monitor.Enter(_lock);
-            try
+            while (!_connected)
             {
-                // Establish the remote endpoint for the socket.
-                IPHostEntry ipHostInfo = Dns.GetHostEntry(hostname);
-                IPAddress ipAddress = ipHostInfo.AddressList[0];
-                IPEndPoint remoteEP = new IPEndPoint(ipAddress, port);
-
-                // Create a TCP/IP  socket.
-                _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-
-                // connect to server
-                _socket.Connect(remoteEP);
-
-                _connected = true;
-
-                ThreadStart ReceiveHandlerRef = new ThreadStart(ReceiveHandler);
-                _receiveHandlerThread = new Thread(ReceiveHandlerRef);
-                _receiveHandlerThread.IsBackground = true;
-                _receiveHandlerThread.Start();
-
-                ThreadStart MessageBuilderRef = new ThreadStart(MessageBuilder);
-                _messageBuilderThread = new Thread(MessageBuilderRef);
-                _messageBuilderThread.IsBackground = true;
-                _messageBuilderThread.Start();
-
-                ThreadStart SendingHandlerRef = new ThreadStart(SendingHandler);
-                _sendingHandlerThread = new Thread(SendingHandlerRef);
-                _sendingHandlerThread.IsBackground = true;
-                _sendingHandlerThread.Start();
-
-                ThreadStart MessageDistributorRef = new ThreadStart(MessageDistributor);
-                _messageDistributorThread = new Thread(MessageDistributorRef);
-                _messageDistributorThread.IsBackground = true;
-                _messageDistributorThread.Start();
-            }
-            catch (Exception ex)
-            {
-                _logger.Error("Unexpected exception : {0}", ex.ToString());
-                if (_listener != null)
+                try
                 {
-                    _listener.onError(ex);
+                    // Establish the remote endpoint for the socket.
+                    IPHostEntry ipHostInfo = Dns.GetHostEntry(hostname);
+                    IPAddress ipAddress = ipHostInfo.AddressList[0];
+                    IPEndPoint remoteEP = new IPEndPoint(ipAddress, port);
+
+                    // Create a TCP/IP  socket.
+                    _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
+                    // connect to server
+                    _socket.Connect(remoteEP);
+
+                    _connected = true;
+                    _logger.Info("[TVHclient] HTSConnectionAsync.open: socket connected.");
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error("[TVHclient] HTSConnectionAsync.open: caught exception : {0}", ex.Message);
+
+                    Thread.Sleep(2000);
                 }
             }
-            finally
-            {
-                Monitor.Exit(_lock);
-            }
+
+            ThreadStart ReceiveHandlerRef = new ThreadStart(ReceiveHandler);
+            _receiveHandlerThread = new Thread(ReceiveHandlerRef);
+            _receiveHandlerThread.IsBackground = true;
+            _receiveHandlerThread.Start();
+
+            ThreadStart MessageBuilderRef = new ThreadStart(MessageBuilder);
+            _messageBuilderThread = new Thread(MessageBuilderRef);
+            _messageBuilderThread.IsBackground = true;
+            _messageBuilderThread.Start();
+
+            ThreadStart SendingHandlerRef = new ThreadStart(SendingHandler);
+            _sendingHandlerThread = new Thread(SendingHandlerRef);
+            _sendingHandlerThread.IsBackground = true;
+            _sendingHandlerThread.Start();
+
+            ThreadStart MessageDistributorRef = new ThreadStart(MessageDistributor);
+            _messageDistributorThread = new Thread(MessageDistributorRef);
+            _messageDistributorThread.IsBackground = true;
+            _messageDistributorThread.Start();
+
+            Monitor.Exit(_lock);
         }
 
         public Boolean authenticate(String username, String password)
         {
-           HTSMessage helloMessage = new HTSMessage();
+            _logger.Info("[TVHclient] HTSConnectionAsync.authenticate: start");
+
+            HTSMessage helloMessage = new HTSMessage();
             helloMessage.Method = "hello";
             helloMessage.putField("clientname", _clientName);
             helloMessage.putField("clientversion", _clientVersion);
@@ -176,16 +187,20 @@ namespace TVHeadEnd.HTSP
                         HTSMessage diskSpaceResponse = loopBackResponseHandler.getResponse();
                         if (diskSpaceResponse != null)
                         {
-                            _diskSpace = diskSpaceResponse.getLong("freediskspace") + " / " + diskSpaceResponse.getLong("totaldiskspace");
+                            _diskSpace = (diskSpaceResponse.getLong("freediskspace") / BytesPerGiga) + "GB / "
+                                + (diskSpaceResponse.getLong("totaldiskspace") / BytesPerGiga) + "GB";
                         }
 
                         HTSMessage enableAsyncMetadataMessage = new HTSMessage();
                         enableAsyncMetadataMessage.Method = "enableAsyncMetadata";
                         sendMessage(enableAsyncMetadataMessage, null);
                     }
+
+                    _logger.Info("[TVHclient] HTSConnectionAsync.authenticate: authenticated = " + auth);
                     return auth;
                 }
             }
+            _logger.Error("[TVHclient] HTSConnectionAsync.authenticate: no hello response");
             return false;
         }
 
@@ -234,7 +249,8 @@ namespace TVHeadEnd.HTSP
 
         private void SendingHandler()
         {
-            while (_connected)
+            Boolean threadOk = true;
+            while (_connected && threadOk)
             {
                 try
                 {
@@ -243,16 +259,25 @@ namespace TVHeadEnd.HTSP
                     int bytesSent = _socket.Send(data2send);
                     if (bytesSent != data2send.Length)
                     {
-                        _logger.Error("Sending not complete! \nBytes sent: " + bytesSent + "\nMessage bytes: " + data2send.Length + "\nMessage: " +
-                        message.ToString());
+                        _logger.Error("[TVHclient] SendingHandler: Sending not complete! \nBytes sent: " + bytesSent + "\nMessage bytes: " +
+                            data2send.Length + "\nMessage: " + message.ToString());
                     }
+                }
+                catch (ThreadAbortException)
+                {
+                    threadOk = false;
+                    Thread.ResetAbort();
                 }
                 catch (Exception ex)
                 {
-                    _logger.Error("Unexpected exception : {0}", ex.ToString());
+                    _logger.Error("[TVHclient] SendingHandler caught exception : {0}", ex.ToString());
                     if (_listener != null)
                     {
                         _listener.onError(ex);
+                    }
+                    else
+                    {
+                        _logger.ErrorException("[TVHclient] SendingHandler caught exception : {0} but no error listener is configured!!!", ex, ex.ToString());
                     }
                 }
             }
@@ -260,20 +285,30 @@ namespace TVHeadEnd.HTSP
 
         private void ReceiveHandler()
         {
+            Boolean threadOk = true;
             byte[] readBuffer = new byte[1024];
-            while (_connected)
+            while (_connected && threadOk)
             {
                 try
                 {
                     int bytesReveived = _socket.Receive(readBuffer);
                     _buffer.appendCount(readBuffer, bytesReveived);
                 }
+                catch (ThreadAbortException)
+                {
+                    threadOk = false;
+                    Thread.ResetAbort();
+                }
                 catch (Exception ex)
                 {
-                    _logger.Error("Unexpected exception : {0}", ex.ToString());
+                    threadOk = false;
                     if (_listener != null)
                     {
-                        _listener.onError(ex);
+                        Task.Factory.StartNew(() => _listener.onError(ex));
+                    }
+                    else
+                    {
+                        _logger.ErrorException("[TVHclient] ReceiveHandler caught exception : {0} but no error listener is configured!!!", ex, ex.ToString());
                     }
                 }
             }
@@ -281,44 +316,85 @@ namespace TVHeadEnd.HTSP
 
         private void MessageBuilder()
         {
-            while (_connected)
+            Boolean threadOk = true;
+            while (_connected && threadOk)
             {
-                byte[] lengthInformation = _buffer.getFromStart(4);
-                long messageDataLength = HTSMessage.uIntToLong(lengthInformation[0], lengthInformation[1], lengthInformation[2], lengthInformation[3]);
-                byte[] messageData = _buffer.extractFromStart((int)messageDataLength + 4); // should be long !!!
-                HTSMessage response = HTSMessage.parse(messageData, _logger);
-                _receivedMessagesQueue.Enqueue(response);
+                try
+                {
+                    byte[] lengthInformation = _buffer.getFromStart(4);
+                    long messageDataLength = HTSMessage.uIntToLong(lengthInformation[0], lengthInformation[1], lengthInformation[2], lengthInformation[3]);
+                    byte[] messageData = _buffer.extractFromStart((int)messageDataLength + 4); // should be long !!!
+                    HTSMessage response = HTSMessage.parse(messageData, _logger);
+                    _receivedMessagesQueue.Enqueue(response);
+                }
+                catch (ThreadAbortException)
+                {
+                    threadOk = false;
+                    Thread.ResetAbort();
+                }
+                catch (Exception ex)
+                {
+                    if (_listener != null)
+                    {
+                        _listener.onError(ex);
+                    }
+                    else
+                    {
+                        _logger.ErrorException("[TVHclient] MessageBuilder caught exception : {0} but no error listener is configured!!!", ex, ex.ToString());
+                    }
+                }
             }
         }
 
         private void MessageDistributor()
         {
-            while (_connected)
+            Boolean threadOk = true;
+            while (_connected && threadOk)
             {
-                HTSMessage response = _receivedMessagesQueue.Dequeue();
-                if (response.containsField("seq"))
+                try
                 {
-                    int seqNo = response.getInt("seq");
-                    if (_responseHandlers.ContainsKey(seqNo))
+                    HTSMessage response = _receivedMessagesQueue.Dequeue();
+                    if (response.containsField("seq"))
                     {
-                        HTSResponseHandler currHTSResponseHandler = _responseHandlers[seqNo];
-                        if (currHTSResponseHandler != null)
+                        int seqNo = response.getInt("seq");
+                        if (_responseHandlers.ContainsKey(seqNo))
                         {
-                            _responseHandlers.Remove(seqNo);
-                            currHTSResponseHandler.handleResponse(response);
+                            HTSResponseHandler currHTSResponseHandler = _responseHandlers[seqNo];
+                            if (currHTSResponseHandler != null)
+                            {
+                                _responseHandlers.Remove(seqNo);
+                                currHTSResponseHandler.handleResponse(response);
+                            }
+                        }
+                        else
+                        {
+                            _logger.Fatal("[TVHclient] MessageDistributor: HTSResponseHandler for seq = '" + seqNo + "' not found!");
                         }
                     }
                     else
                     {
-                        _logger.Fatal("[TVHclient] MessageDistributor: HTSResponseHandler for seq = '" + seqNo + "' not found!");
+                        // auto update messages
+                        if (_listener != null)
+                        {
+                            _listener.onMessage(response);
+                        }
                     }
+
                 }
-                else
+                catch (ThreadAbortException)
                 {
-                    // auto update messages
+                    threadOk = false;
+                    Thread.ResetAbort();
+                }
+                catch (Exception ex)
+                {
                     if (_listener != null)
                     {
-                        _listener.onMessage(response);
+                        _listener.onError(ex);
+                    }
+                    else
+                    {
+                        _logger.ErrorException("[TVHclient] MessageBuilder caught exception : {0} but no error listener is configured!!!", ex, ex.ToString());
                     }
                 }
             }
