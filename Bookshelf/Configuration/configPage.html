@@ -1,0 +1,44 @@
+﻿<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>MB Bookshelf Configuration</title>
+    </head>
+    <body>
+        
+        <div id="mbBookshelfConfigurationPage" data-role="page" class="page type-interior pluginConfigurationPage">
+            <div data-role="content">
+                <div class="content-primary">
+                    
+                    <form id="addBookshelfForm">
+                        
+                        <p>Before MB Bookshelf can recognize your books, a collection needs to be added to either the <em>Default Media Library</em> or a users <em>media library</em> with the collection type set to <strong>Books</strong>. MB Bookshelf will do the rest </p>
+                        
+                        <h4>Supported e-book formats</h4>
+                        <ul>
+                            <li>mobi</li>
+                            <li>epub</li>
+                            <li>pdf</li>
+                            <li>cbr</li>
+                            <li>cbz</li>
+                        </ul>
+                        
+                        <h2>MediaBrowser Clients</h2>
+                        
+                        <h3>MediaBrowser Classic</h3>
+                        <p>In order to view books on MBC you will need to install the client plugin for MB Bookshelf. It is available for download from the MB Classic configurator. Once installed there is no configuration necessary, just click your book and the plugin will pass the request to the operating system. You will need to have an appropriate viewer installed. Users are free to use their favorite programs but I recommend Calibre for epub/mobi & ComicRack for cbz/cbr.</p>
+                        
+                        <h3>MediaBrowser Android</h3>
+                        <p>There is no required setup for this client. As above, the book will be passed to the operating system to open. You will need appropriate viewers on the device. As Android doesn’t natively see Windows shares, the books are downloaded to the devices download folder before being opened.</p>
+                        
+                        <h3>MediaBrowser Theater</h3>
+                        <p>To view books with MBT, you will need to add at least one <em>Custom Player</em>. The player needs to be set to External Player, and the MediaType specified as Book. Select the file extensions this player will open and then provide the path to the executable used to view the books <strong>Note:</strong> as MBT is still in development, these directions may change</p>
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+
+    </body>
+</html>

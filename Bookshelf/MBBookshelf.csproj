@@ -1,14 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{2B05D1F9-79D2-452F-B311-0A603C57BB22}</ProjectGuid>
+    <ProjectGuid>{C4276F0E-10BD-4D9C-8686-B0E6F9FE7B23}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>EmbyTV</RootNamespace>
-    <AssemblyName>EmbyTV</AssemblyName>
+    <RootNamespace>MBBookshelf</RootNamespace>
+    <AssemblyName>MBBookshelf</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
@@ -22,7 +22,6 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -32,20 +31,14 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup>
-    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
-  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="MediaBrowser.Common, Version=3.0.5573.17682, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="MediaBrowser.Common">
       <HintPath>..\packages\MediaBrowser.Common.3.0.616\lib\net45\MediaBrowser.Common.dll</HintPath>
     </Reference>
-    <Reference Include="MediaBrowser.Controller, Version=3.0.5573.17680, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="MediaBrowser.Controller">
       <HintPath>..\packages\MediaBrowser.Server.Core.3.0.616\lib\net45\MediaBrowser.Controller.dll</HintPath>
     </Reference>
-    <Reference Include="MediaBrowser.Model, Version=3.0.5573.17683, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="MediaBrowser.Model">
       <HintPath>..\packages\MediaBrowser.Common.3.0.616\lib\net45\MediaBrowser.Model.dll</HintPath>
     </Reference>
     <Reference Include="System" />
@@ -57,43 +50,30 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\SharedVersion.cs">
-      <Link>Properties\SharedVersion.cs</Link>
-    </Compile>
-    <Compile Include="Configuration\EmbyTVConfigurationPage.cs" />
-    <Compile Include="Configuration\PluginConfiguration.cs" />
-    <Compile Include="DVR\RecordingHelper.cs" />
-    <Compile Include="EntryPoint.cs" />
-    <Compile Include="GeneralHelpers\HttpClientHelper.cs" />
-    <Compile Include="GeneralHelpers\Xml.cs" />
-    <Compile Include="EPGProvider\IEpgProvider.cs" />
-    <Compile Include="EPGProvider\Responses\ScheduleDirect.cs" />
-    <Compile Include="EPGProvider\SchedulesDirect.cs" />
-    <Compile Include="LiveTVService.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="Configuration\MbBookshelfConfigurationPage.cs" />
+    <Compile Include="Extensions\XmlExtensions.cs" />
     <Compile Include="Plugin.cs" />
+    <Compile Include="Configuration\PluginConfiguration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TunerHost\HdHomeRunHost.cs" />
-    <Compile Include="TunerHost\ITunerHost.cs" />
-    <Compile Include="TunerHost\TunerHostFactory.cs" />
+    <Compile Include="Providers\BookProviderFromOpf.cs" />
+    <Compile Include="Providers\ComicProviderFromXml.cs" />
+    <Compile Include="Providers\ComicVine\ComicVineExternalIds.cs" />
+    <Compile Include="Providers\ComicVine\ComicVineImageProvider.cs" />
+    <Compile Include="Providers\ComicVine\ComicVineMetadataProvider.cs" />
+    <Compile Include="Providers\ComicVine\ResponseObjects.cs" />
+    <Compile Include="Providers\GoogleBooks\ApiUrls.cs" />
+    <Compile Include="Providers\GoogleBooks\ResponseObjects.cs" />
+    <Compile Include="Resolvers\BookResolver.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Configuration\configPage.html" />
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadata Include="Service References\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="TunerHost\Settings\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy "$(TargetPath)" "$(SolutionDir)\..\MediaBrowser.Dev\ProgramData-Server\Plugins\" /y
-</PostBuildEvent>
+    <PostBuildEvent>xcopy "$(TargetPath)" "$(SolutionDir)\..\MediaBrowser.Dev\ProgramData-Server\Plugins\" /y</PostBuildEvent>
   </PropertyGroup>
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
