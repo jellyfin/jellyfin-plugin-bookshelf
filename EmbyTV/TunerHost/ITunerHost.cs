@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using EmbyTV.Configuration;
+using MediaBrowser.Model.Dto;
 
 namespace EmbyTV.TunerHost
 {
@@ -17,6 +18,7 @@ namespace EmbyTV.TunerHost
         Task GetDeviceInfo(CancellationToken cancellationToken);
 
         string model { get; set; }
+        string deviceID { get; set; }
 
         Task<IEnumerable<ChannelInfo>> GetChannels(CancellationToken cancellationToken);
 
@@ -26,7 +28,7 @@ namespace EmbyTV.TunerHost
 
         string getWebUrl();
 
-        string getChannelStreamInfo(string channelId);
+        MediaSourceInfo GetChannelStreamInfo(string channelId);
     }
 
     public enum TunerServerType 

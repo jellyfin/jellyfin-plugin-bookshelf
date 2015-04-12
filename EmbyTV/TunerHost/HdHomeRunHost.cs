@@ -6,6 +6,7 @@ using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -13,6 +14,9 @@ using System.Threading.Tasks;
 using EmbyTV.Configuration;
 using  System.Reflection;
 using System.Runtime.CompilerServices;
+using MediaBrowser.Model.Dto;
+using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.MediaInfo;
 
 namespace EmbyTV.TunerHost
 {
@@ -87,42 +91,31 @@ namespace EmbyTV.TunerHost
             };
             using (var stream = await _httpClient.Get(httpOptions))
             {
-                CreateTuners(stream);
+                tuners = new List<LiveTvTunerInfo>();
+                using (var sr = new StreamReader(stream, System.Text.Encoding.UTF8))
+                {
+                    while (!sr.EndOfStream)
+                    {
+                        string line = Xml.StripXML(sr.ReadLine());
+                        if (line.Contains("Channel"))
+                        {
+                            LiveTvTunerStatus status;
+                            var index = line.IndexOf("Channel");
+                            var name = line.Substring(0, index - 1);
+                            var currentChannel = line.Substring(index + 7);
+                            if (currentChannel != "none") { status = LiveTvTunerStatus.LiveTv; } else { status = LiveTvTunerStatus.Available; }
+                            tuners.Add(new LiveTvTunerInfo() { Name = name, SourceType = model, ProgramName = currentChannel, Status = status });
+                        }
+                    }
+                    if (String.IsNullOrWhiteSpace(model))
+                    {
+                        _logger.Error("Failed to load tuner info");
+                    }
+                }
                 return tuners;
             }
         }
-        private void CreateTuners(Stream tunersXML)
-        {
-            int numberOfTuners = 3;
-            while (tuners.Count() < numberOfTuners)
-            {
-                tuners.Add(new LiveTvTunerInfo() { Name = "Tunner " + tuners.Count, SourceType = model });
-            }
-            using (var sr = new StreamReader(tunersXML, System.Text.Encoding.UTF8))
-            {
-                while (!sr.EndOfStream)
-                {
-                    string line = Xml.StripXML(sr.ReadLine());
-                    if (line.StartsWith("Tuner 0 Channel")) { CheckTuner(0, line); }
-                    if (line.StartsWith("Tuner 1 Channel")) { CheckTuner(1, line); }
-                    if (line.StartsWith("Tuner 2 Channel")) { CheckTuner(2, line); }
-                }
-                if (String.IsNullOrWhiteSpace(model))
-                {
-                    _logger.Error("Failed to load tuner info");
-                    throw new ApplicationException("Failed to load tuner info.");
-                }
-            }
-        }
-        private void CheckTuner(int tunerPos, string tunerInfo)
-        {
-            string currentChannel;
-            LiveTvTunerStatus status;
-            currentChannel = tunerInfo.Replace("Tuner " + tunerPos + " Channel", "");
-            if (currentChannel != "none") { status = LiveTvTunerStatus.LiveTv; } else { status = LiveTvTunerStatus.Available; }
-            tuners[tunerPos].ProgramName = currentChannel;
-            tuners[tunerPos].Status = status;
-        }
+
 
         public async Task<IEnumerable<ChannelInfo>> GetChannels(CancellationToken cancellationToken)
         {
@@ -144,8 +137,7 @@ namespace EmbyTV.TunerHost
                     {
                         Name = i.GuideName,
                         Number = i.GuideNumber.ToString(),
-                        Id = i.GuideNumber.ToString()
-
+                        Id = i.GuideNumber.ToString(),
                     }).ToList();
 
                 }
@@ -157,9 +149,36 @@ namespace EmbyTV.TunerHost
             }
         }
 
-        public string getChannelStreamInfo(string ChannelNumber)
+        public MediaSourceInfo GetChannelStreamInfo(string ChannelNumber)
         {
-            return getApiUrl() + "/auto/v" + ChannelNumber;
+            var tunerInfo = GetTunersInfo(CancellationToken.None);
+            tunerInfo.Wait();
+            if (tuners.FindIndex(t => t.Status == LiveTvTunerStatus.Available) >= 0)
+            {
+                return new MediaSourceInfo
+                    {
+                        Path = getApiUrl() + "/auto/v" + ChannelNumber,
+                        Protocol = MediaProtocol.Http,
+                        MediaStreams = new List<MediaStream>
+                        {
+                            new MediaStream
+                            {
+                                Type = MediaStreamType.Video,
+                                // Set the index to -1 because we don't know the exact index of the video stream within the container
+                                Index = -1,
+                                IsInterlaced = true
+                            },
+                            new MediaStream
+                            {
+                                Type = MediaStreamType.Audio,
+                                // Set the index to -1 because we don't know the exact index of the audio stream within the container
+                                Index = -1
+
+                            }
+                        }
+                    };
+            }
+            throw new ApplicationException("Host: " + deviceID + " has no tuners avaliable.");
         }
         public class Channels
         {
