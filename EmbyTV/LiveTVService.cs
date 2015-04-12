@@ -44,6 +44,7 @@ namespace EmbyTV
         private Dictionary<int, MediaSourceInfo> streams;
         private readonly IApplicationPaths _appPaths;
 
+
         public LiveTvService(IHttpClient httpClient, IJsonSerializer jsonSerializer, ILogManager logManager, IXmlSerializer xmlSerializer, IApplicationPaths appPaths)
         {
             _logger = logManager.GetLogger(Name);
@@ -75,7 +76,7 @@ namespace EmbyTV
                 }
 
                 return Path.Combine(_appPaths.TempDirectory, "embytv", "recordings");
-            }
+	    }
         }
 
         private void InitializeTimer(List<SingleTimer> timers)
@@ -181,7 +182,6 @@ namespace EmbyTV
                     host.Enabled = false;
                 }
             }
-
         }
 
         /// <summary>
@@ -258,7 +258,7 @@ namespace EmbyTV
             {
                 seriesTimers = GetSeriesTimerData(DataPath, _xmlSerializer);
                 InitializeTimer(GetTimerData(DataPath, _xmlSerializer));
-            }
+           }
             FirstRun = false;
             _tvGuide = new EPGProvider.SchedulesDirect(config.username, config.hashPassword, config.lineup, _logger, _jsonSerializer, _httpClient);
             config.avaliableLineups = await _tvGuide.getLineups(cancellationToken);
@@ -281,7 +281,6 @@ namespace EmbyTV
         public Task<IEnumerable<RecordingInfo>> GetRecordingsAsync(CancellationToken cancellationToken)
         {
             IEnumerable<RecordingInfo> result = new List<RecordingInfo>();
-
             return Task.FromResult(result);
         }
 
@@ -297,7 +296,6 @@ namespace EmbyTV
             //Version Check
             bool upgradeAvailable;
             string serverVersion;
-
             upgradeAvailable = false;
             serverVersion = Plugin.Instance.Version.ToString();
             //Tuner information
@@ -306,7 +304,6 @@ namespace EmbyTV
             {
                 tvTunerInfos.AddRange(await host.GetTunersInfo(cancellationToken));
             }
-
             return new LiveTvServiceStatusInfo
             {
                 HasUpdateAvailable = upgradeAvailable,
