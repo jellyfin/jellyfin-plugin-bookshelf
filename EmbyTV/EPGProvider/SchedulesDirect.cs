@@ -112,7 +112,7 @@ namespace EmbyTV.EPGProvider
                         foreach (ScheduleDirect.Map map in root.map)
                         {
                             var channel = map.channel ?? (map.atscMajor + "." + map.atscMinor); 
-                            _logger.Info("Found channel: "+channel+" in Schedules Direct");
+                            //_logger.Info("Found channel: "+channel+" in Schedules Direct");
                             if (!channelPair.ContainsKey(channel) && channel != "0.0")
                             {
                                 channelPair.Add(channel.TrimStart('0'),
