@@ -121,8 +121,8 @@ namespace TVHeadEnd.DataHelper
                                 {
                                     case "Radio":
                                         ci.ChannelType = ChannelType.Radio;
-                                        continue;
-                                        //break;
+                                        //continue;
+                                        break;
                                     case "SDTV":
                                     case "HDTV":
                                         ci.ChannelType = ChannelType.TV;

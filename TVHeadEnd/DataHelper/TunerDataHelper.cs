@@ -3,6 +3,8 @@ using MediaBrowser.Model.LiveTv;
 using MediaBrowser.Model.Logging;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using TVHeadEnd.HTSP;
@@ -110,7 +112,28 @@ namespace TVHeadEnd.DataHelper
                                 string name = "";
                                 if (currService.containsField("name"))
                                 {
-                                    name = currService.getString("name");
+                                    string tmpName = currService.getString("name");
+                                    int count = tmpName.Count(f => f == '/');
+                                    string[] parts = tmpName.Split('/');
+                                    StringBuilder sb = new StringBuilder();
+                                    for (int ii = 0; ii < count - 1; ii++)
+                                    {
+                                        sb.Append(parts[ii]);
+                                        if (count > 2 && ii < count - 2)
+                                        {
+                                            sb.Append("/");
+                                        }
+                                    }
+                                    name = sb.ToString();
+                                    if(string.IsNullOrEmpty(name))
+                                    {
+                                        _logger.Error("[TVHclient] TunerDataHelper.buildTunerInfos: Can' build tuner name from '" + tmpName + "'");
+                                        continue;
+                                    }
+                                }
+                                else
+                                {
+                                    continue;
                                 }
                                 string type = "";
                                 if (currService.containsField("type"))
@@ -125,6 +148,10 @@ namespace TVHeadEnd.DataHelper
                                 ltti.SourceType = type;
                                 ltti.ChannelId = channelId;
                                 ltti.Status = LiveTvTunerStatus.Available;
+                                
+                                //ltti.Clients // not available from TVheadend
+                                //ltti.RecordingId // not available from TVheadend
+
                                 result.Add(ltti);
                             }
                         }
