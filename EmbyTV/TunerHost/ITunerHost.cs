@@ -19,6 +19,7 @@ namespace EmbyTV.TunerHost
 
         string model { get; set; }
         string deviceID { get; set; }
+        string HostId { get; set; }
 
         Task<IEnumerable<ChannelInfo>> GetChannels(CancellationToken cancellationToken);
 
