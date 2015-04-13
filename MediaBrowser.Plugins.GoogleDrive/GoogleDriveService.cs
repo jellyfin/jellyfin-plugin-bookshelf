@@ -112,7 +112,7 @@ namespace MediaBrowser.Plugins.GoogleDrive
             var driveService = fullDriveService.Item1;
 
             var parentId = await FindOrCreateParent(driveService, true, pathParts, folderId, cancellationToken);
-            await TryDeleteFile(name, parentId, driveService, cancellationToken);
+            await TryDeleteFile(parentId, name, driveService, cancellationToken);
 
             var googleDriveFile = CreateGoogleDriveFile(pathParts, name, folderId);
             googleDriveFile.GoogleDriveFolderId = parentId;
@@ -202,6 +202,14 @@ namespace MediaBrowser.Plugins.GoogleDrive
 
         public async Task<File> FindFileId(string name, string parentFolderId, DriveService driveService, CancellationToken cancellationToken)
         {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                throw new ArgumentNullException("name");
+            }
+            if (string.IsNullOrWhiteSpace(parentFolderId))
+            {
+                throw new ArgumentNullException("parentFolderId");
+            }
             var queryName = name.Replace("'", "\\'");
             var query = string.Format("title = '{0}'", queryName);
 
