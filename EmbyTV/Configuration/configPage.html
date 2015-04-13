@@ -287,6 +287,7 @@
             return false;
         }
 
+<<<<<<< HEAD
 
         function createField(field, position, size) {
 
@@ -396,10 +397,9 @@
                     window.setTimeout(function () { location.reload(true); }, 3000);
                 }
             });
-        }
+        } 
 
         function editFolder(page, id) {
-
             ApiClient.getPluginConfiguration(EmbyTVConfigurationPage.pluginUniqueId).done(function (config) {
                 editFolderObject(page, getObjectByProperty(config.TunerHostsConfiguration, "ServerId", id));
             });
@@ -492,6 +492,7 @@
             window.setTimeout(function () { location.reload(true); }, 3000);
             return false;
         });
+
         $('#addTunerHostForm').off('submit.plugin').on('submit.plugin', function (e) {
 
             Dashboard.showLoadingMsg();
@@ -540,3 +541,4 @@
 </div>
 </body>
 </html>
+
