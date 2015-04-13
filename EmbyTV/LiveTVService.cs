@@ -153,6 +153,16 @@ namespace EmbyTV
             await RecordingHelper.DownloadVideo(_httpClient, options, _logger, Path.Combine(RecordingPath, mediaSourceInfo.Name), cancellationToken);
             _logger.Info("Recording was a success");
         }
+        public async Task RecordStream(MediaSourceInfo mediaSourceInfo,CancellationToken cancellationToken)
+        {
+           
+            HttpRequestOptions options = new HttpRequestOptionsMod()
+            {
+                Url = mediaSourceInfo.Path
+            };
+            await RecordingHelper.DownloadVideo(_httpClient, options, _logger, recordingPath + @"\" + mediaSourceInfo.Name, cancellationToken);
+            _logger.Info("Recording was a success");
+        }
 
 
         /// <summary>
@@ -336,10 +346,10 @@ namespace EmbyTV
                 EndDate = DateTime.UtcNow.AddHours(5),
                 PostPaddingSeconds = 0,
                 PrePaddingSeconds = 0,
-
             };
 
             // RecordStream(timer);
+
             return Task.FromResult(0);
         }
 
