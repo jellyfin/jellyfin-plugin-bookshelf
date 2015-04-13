@@ -33,7 +33,10 @@ namespace EmbyTV.TunerHost
         public string Url { get; set; }
         private bool _onlyFavorites { get; set; }
         public string OnlyFavorites { get { return this._onlyFavorites.ToString(); }set { this._onlyFavorites = Convert.ToBoolean(value); } }
-        public List<LiveTvTunerInfo> tuners;       
+        public List<LiveTvTunerInfo> tuners;
+        public string HostId {get { return model +"-"+ deviceID; }
+            set {  } 
+        }
 
         public HdHomeRunHost(ILogger logger, IJsonSerializer jsonSerializer, IHttpClient httpClient)
         {
@@ -193,5 +196,8 @@ namespace EmbyTV.TunerHost
         {
             throw new NotImplementedException();
         }
-    }
+    
+
+
+}
 }
