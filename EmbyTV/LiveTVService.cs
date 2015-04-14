@@ -21,7 +21,7 @@ using System.Threading.Tasks;
 ﻿using EmbyTV.DVR;
 ﻿using EmbyTV.GeneralHelpers;
 ﻿using MediaBrowser.Model.Connect;
-
+﻿using MediaBrowser.Model.Net;
 
 
 namespace EmbyTV
@@ -146,12 +146,25 @@ namespace EmbyTV
         {
             foreach (var host in _tunerServer)
             {
-                if (string.IsNullOrEmpty(host.getWebUrl()))
+                try
                 {
-                    throw new ApplicationException("Tunner hostname/ip missing.");
+                    if (string.IsNullOrEmpty(host.getWebUrl()))
+                    {
+                        throw new ApplicationException("Tunner hostname/ip missing.");
+                    }
+                    await host.GetDeviceInfo(cancellationToken);
+                    host.Enabled = true;
                 }
-                await host.GetDeviceInfo(cancellationToken);
+                catch (HttpException)
+                {
+                    host.Enabled = false;
+                }
+                catch (ApplicationException)
+                {
+                    host.Enabled = false;
+                }
             }
+            
         }
 
         /// <summary>
@@ -165,7 +178,7 @@ namespace EmbyTV
             await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
             foreach (var host in _tunerServer)
             {
-                _logger.Info("Start GetChannels Async, retrieve all channels for " + host.deviceID);
+                _logger.Info("Start GetChannels Async, retrieve all channels for " + host.HostId);
                 channels.AddRange(await host.GetChannels(cancellationToken));
             }
             channels = channels.GroupBy(x => x.Id).Select(x => x.First()).ToList();
@@ -177,6 +190,7 @@ namespace EmbyTV
         public Task CloseLiveStream(string id, CancellationToken cancellationToken)
         {
             _logger.Info("Closing " + id);
+            streams.Remove(Convert.ToInt16(id));
             return Task.FromResult(0);
         }
 
