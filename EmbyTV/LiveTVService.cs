@@ -192,6 +192,7 @@ namespace EmbyTV
                     host.Enabled = false;
                 }
             }
+            
         }
 
         /// <summary>
