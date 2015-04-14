@@ -4,84 +4,81 @@
     <title>EmbyTV</title>
 </head>
 <body>
-<div data-role="page" class="page type-interior pluginConfigurationPage EmbyVConfigurationPage">
+<div data-role="page" class="page type-interior pluginConfigurationPage EmbyTvConfigurationPage">
 
-    <div data-role="content">
-        <div class="content-primary">
-            <div class="readOnlyContent">
+<div data-role="content">
+    <div class="content-primary">
+        <div class="readOnlyContent">
 
-                <p>Add one or more tuner hosts.</p>
+            <p>Add one or more tuner hosts.</p>
 
-                <div class="folderSyncTargets">
+            <div class="folderSyncTargets" id="hostsTable">
 
+            </div>
+        </div>
+
+        <div data-role="popup" id="popupAddHost" class="popup" style="min-width: 300px;">
+            <form class="addTunerHostForm"  id="addTunerHostForm">
+                <div class="ui-bar-a" style="text-align: center; padding: 0 20px;">
+                    <h3 class="popupHeader"></h3>
                 </div>
-            </div>
-
-            <div data-role="popup" id="popupAddFolder" class="popup" style="min-width: 300px;">
-                <form class="folderSyncConfigurationForm">
-                    <div class="ui-bar-a" style="text-align: center; padding: 0 20px;">
-                        <h3 class="popupHeader"></h3>
-                    </div>
-                    <div data-role="content">
-                        <ul class="ulForm" data-role="listview" id="hostSettings" style="margin-top: 0;"></ul>
-                        <ul class="ulForm" data-role="listview" style="margin-top: .5em;">
-                            <li>
-                                <input type="hidden" id="fldFolderId"/>
-                                <button type="submit" data-theme="b">Save</button>
-                                <button type="button" data-icon="delete" onclick=" $(this).parents('.popup').popup('close'); ">
-                                    Cancel
-                                </button>
-                            </li>
-                        </ul>
-                    </div>
-                </form>
-            </div>
-            <form class="EmbyTVConfigurationForm">
-                <fieldset>
-                    <legend>TV Guide</legend>
-                    <ul class="ulForm" data-role="listview">
+                <div data-role="content">
+                    <ul class="ulForm" data-role="listview" id="hostSettings" style="margin-top: 0;"></ul>
+                    <ul class="ulForm" data-role="listview" style="margin-top: .5em;">
                         <li>
-                            <label for="txtGuideUsername">
-                                Schedules Direct Username:
-                            </label>
-                            <input type="text" id="txtGuideUsername" name="txtGuideUsername"/>
-                        </li>
-                        <li>
-                            <label for="txtGuidePassword">
-                                Schedules Direct Password:
-                            </label>
-                            <input type="password" id="txtGuidePassword" name="txtGuidePassword"/>
-                        </li>
-                        <li>
-                            <label for="txtTvLineUp">
-                                Schedules Direct Tv LineUp:
-                            </label>
-                            <select name="tvLineups" id="tvLineups">
-                                <option value="">Select Lineup</option>
-                            </select>
-                        </li>
-                        <li>
-                            <label for="zipCode">
-                                ZipCode:
-                            </label>
-                            <input type="text" id="zipCode" name="zipCode"/>
+                            <input type="hidden" id="ServerId"/>
+                            <button type="submit" data-theme="b">Save</button>
+                            <button type="button" data-icon="delete" onclick=" $(this).parents('.popup').popup('close'); ">
+                                Cancel
+                            </button>
                         </li>
                     </ul>
-                </fieldset>
-                <ul class="ulForm" data-role="listview">
-                    <li>
-                        <button type="submit" data-theme="b">Save</button>
-                        <button type="button" onclick=" history.back(); ">Cancel</button>
-                    </li>
-                </ul>
-
+                </div>
             </form>
         </div>
+        <form class="EmbyTVConfigurationForm">
+            <fieldset>
+                <legend>TV Guide</legend>
+                <ul class="ulForm" data-role="listview">
+                    <li>
+                        <label for="txtGuideUsername">
+                            Schedules Direct Username:
+                        </label>
+                        <input type="text" id="txtGuideUsername" name="txtGuideUsername"/>
+                    </li>
+                    <li>
+                        <label for="txtGuidePassword">
+                            Schedules Direct Password:
+                        </label>
+                        <input type="password" id="txtGuidePassword" name="txtGuidePassword"/>
+                    </li>
+                    <li>
+                        <label for="txtTvLineUp">
+                            Schedules Direct Tv LineUp:
+                        </label>
+                        <select name="tvLineups" id="tvLineups">
+                            <option value="">Select Lineup</option>
+                        </select>
+                    </li>
+                    <li>
+                        <label for="zipCode">
+                            ZipCode:
+                        </label>
+                        <input type="text" id="zipCode" name="zipCode"/>
+                    </li>
+                </ul>
+            </fieldset>
+            <ul class="ulForm" data-role="listview">
+                <li>
+                    <button type="submit" data-theme="b">Save</button>
+                    <button type="button" onclick=" history.back(); ">Cancel</button>
+                </li>
+            </ul>
+
+        </form>
     </div>
 </div>
-</body>
-
-<script type="text/javascript">
+    <script type="text/javascript">
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
     /*  SHA-1 implementation in JavaScript                  (c) Chris Veness 2002-2014 / MIT Licence  */
@@ -108,7 +105,7 @@
              * @param   {string} msg - (Unicode) string to be hashed.
              * @returns {string} Hash of msg as hex character string.
              */
-    Sha1.hash = function(msg) {
+    Sha1.hash = function (msg) {
         // convert string to UTF-8, as SHA only deals with byte-streams
         msg = msg.utf8Encode();
 
@@ -190,16 +187,16 @@
              * Function 'f' [Â§4.1.1].
              * @private
              */
-    Sha1.f = function(s, x, y, z) {
+    Sha1.f = function (s, x, y, z) {
         switch (s) {
-        case 0:
-            return (x & y) ^ (~x & z); // Ch()
-        case 1:
-            return x ^ y ^ z; // Parity()
-        case 2:
-            return (x & y) ^ (x & z) ^ (y & z); // Maj()
-        case 3:
-            return x ^ y ^ z; // Parity()
+            case 0:
+                return (x & y) ^ (~x & z); // Ch()
+            case 1:
+                return x ^ y ^ z; // Parity()
+            case 2:
+                return (x & y) ^ (x & z) ^ (y & z); // Maj()
+            case 3:
+                return x ^ y ^ z; // Parity()
         }
     };
 
@@ -207,7 +204,7 @@
              * Rotates left (circular left shift) value x by n positions [Â§3.2.5].
              * @private
              */
-    Sha1.ROTL = function(x, n) {
+    Sha1.ROTL = function (x, n) {
         return (x << n) | (x >>> (32 - n));
     };
 
@@ -216,7 +213,7 @@
              * Hexadecimal representation of a number.
              * @private
              */
-    Sha1.toHexStr = function(n) {
+    Sha1.toHexStr = function (n) {
         // note can't use toString(16) as it is implementation-dependant,
         // and in IE returns signed numbers when used on full words
         var s = "", v;
@@ -234,14 +231,14 @@
     /** Extend String object with method to encode multi-byte string to utf8
              *  - monsur.hossa.in/2012/07/20/utf-8-in-javascript.html */
     if (typeof String.prototype.utf8Encode == 'undefined') {
-        String.prototype.utf8Encode = function() {
+        String.prototype.utf8Encode = function () {
             return unescape(encodeURIComponent(this));
         };
     }
 
     /** Extend String object with method to decode utf8 string to multi-byte */
     if (typeof String.prototype.utf8Decode == 'undefined') {
-        String.prototype.utf8Decode = function() {
+        String.prototype.utf8Decode = function () {
             try {
                 return decodeURIComponent(escape(this));
             } catch (e) {
@@ -253,281 +250,293 @@
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
     if (typeof module != 'undefined' && module.exports) module.exports = Sha1; // CommonJs export
-    if (typeof define == 'function' && define.amd) define([], function() { return Sha1; }); // AMD
-    var EmbyTVConfigurationPage = { pluginUniqueId: "b0067c00-62cf-476c-9e63-d53ae7247aa9" };
+    if (typeof define == 'function' && define.amd) define([], function () { return Sha1; }); // AMD
 
-    function createLineupsDropdown(lineups, currentLineup, headends) {
+    </script>
 
-        var dropdown = document.getElementById("tvLineups");
-        if (headends[0]) {
-            for (var i = 0; i < headends.length; i++) {
-                dropdown[i + 1] = new Option(headends[i].Name, headends[i].Id);
-                if (contains(lineups, headends[i].Id)) {
-                    dropdown[i + 1].style.backgroundColor = 'Aquamarine';
+    <script type="text/javascript">
+        var EmbyTVConfigurationPage = { pluginUniqueId: "b0067c00-62cf-476c-9e63-d53ae7247aa9" };
+
+        function createLineupsDropdown(lineups, currentLineup, headends) {
+            var dropdown = document.getElementById("tvLineups");
+            if (headends[0]) {
+                for (var i = 0; i < headends.length; i++) {
+                    dropdown[i + 1] = new Option(headends[i].Name, headends[i].Id);
+                    if (contains(lineups, headends[i].Id)) {
+                        dropdown[i + 1].style.backgroundColor = 'Aquamarine';
+                    }
+                }
+            } else {
+                dropdown[0] = new Option("No lineups Avaliable", "");
+            }
+            if (currentLineup) {
+                var option = new Option(currentLineup.Name, currentLineup.Id);
+                $(option).html(currentLineup.Name);
+                dropdown[0] = option;
+                dropdown[0].setAttribute("selected", "selected");
+            }
+        }
+
+        /*http://stackoverflow.com/questions/237104/array-containsobj-in-javascript*/
+        function contains(a, obj) {
+            for (var i = 0; i < a.length; i++) {
+                if (a[i] === obj) {
+                    return true;
                 }
             }
-        } else {
-            dropdown[0] = new Option("No lineups Avaliable", "");
+            return false;
         }
-        if (currentLineup) {
-            var option = new Option(currentLineup.Name, currentLineup.Id);
-            $(option).html(currentLineup.Name);
-            dropdown[0] = option;
-            dropdown[0].setAttribute("selected", "selected");
+
+
+        function createField(field, position, size) {
+
+            var ul = document.getElementById("hostSettings");
+            var li = document.createElement("li");
+            var input = document.createElement("input");;
+            var label = document.createElement("label");
+            var description = document.createElement("div");
+            description.setAttribute("class", "fieldDescription");
+            description.innerText = field.Description;
+            label.setAttribute("for", field.Name);
+            label.innerText = field.Label;
+
+            if (field.Type == "Text") {
+                input.setAttribute("type", "text");
+                input.value = field.defaultValue;
+            }
+            if (field.Type == "Checkbox") {
+                input.setAttribute("type", "checkbox");
+                input.setAttribute("data-mini", "true");
+                input.checked = field.defaultValue;
+            }
+
+            input.setAttribute("id", field.Name);
+            var liClass = "ui-li-static ui-body-inherit";
+            li.setAttribute("class", liClass);
+            li.appendChild(label);
+            li.appendChild(input);
+            li.appendChild(description);
+
+            ul.appendChild(li);
 
         }
-    }
 
-/*http://stackoverflow.com/questions/237104/array-containsobj-in-javascript*/
-    function contains(a, obj) {
-        for (var i = 0; i < a.length; i++) {
-            if (a[i] === obj) {
-                return true;
+        function createAllFields(settings) {
+            if (settings[0]) {
+                for (var i = 0; i < settings.length; i++) {
+                    createField(settings[i], i, settings.length - 1);
+                }
             }
         }
-        return false;
-    }
 
-
-    function createField(field, position, size) {
-
-        var ul = document.getElementById("hostSettings");
-        var li = document.createElement("li");
-        var input = document.createElement("input");;
-        var label = document.createElement("label");
-        var description = document.createElement("div");
-        description.setAttribute("class", "fieldDescription");
-        description.innerText = field.Description;
-        label.setAttribute("for", field.Name);
-        label.innerText = field.Label;
-
-        if (field.Type == "Text") {
-            input.setAttribute("type", "text");
-            input.value = field.defaultValue;
-        }
-        if (field.Type == "Checkbox") {
-            input.setAttribute("type", "checkbox");
-            input.setAttribute("data-mini", "true");
-            input.checked = field.defaultValue;
-        }
-
-        input.setAttribute("id", field.Name);
-        var liClass = "ui-li-static ui-body-inherit";
-        li.setAttribute("class", liClass);
-        li.appendChild(label);
-        li.appendChild(input);
-        li.appendChild(description);
-
-        ul.appendChild(li);
-
-    }
-
-    function createAllFields(settings) {
-        if (settings[0]) {
-            for (var i = 0; i < settings.length; i++) {
-                createField(settings[i], i, settings.length - 1);
+        function getByName(fields, name) {
+            for (var i = 0; i < fields.length; i++) {
+                if (fields[i].Name == name) return fields[i].Value;
             }
         }
-    }
 
-    function getByName(fields, name) {
-        for (var i = 0; i < fields.length; i++) {
-            if (fields[i].Name == name) return fields[i].Value;
+        function getObjectByProperty(objects, propertyName, propertyValue) {
+            for (var i = 0; i < objects.length; i++) {
+                if (objects[i][propertyName] == propertyValue) return objects[i];
+            }
         }
-    }
 
-    function getObjectByProperty(objects, propertyName, propertyValue) {
-        for (var i = 0; i < objects.length; i++) {
-            if (objects[i][propertyName] == propertyValue) return objects[i];
+        function getDefaultByName(fields, name) {
+            for (var i = 0; i < fields.length; i++) {
+                if (fields[i].Name == name) return fields[i].defaultValue;
+            }
         }
-    }
-
-    function getDefaultByName(fields, name) {
-        for (var i = 0; i < fields.length; i++) {
-            if (fields[i].Name == name) return fields[i].defaultValue;
-        }
-    }
 
 
-    function getTargetListHtml(targets) {
+        function getTargetListHtml(targets) {
 
-        var html = '';
+            var html = '';
 
-        html += '<ul data-inset="true" data-role="listview" data-split-icon="minus">';
+            html += '<ul data-inset="true" data-role="listview" data-split-icon="minus">';
 
-        html += '<li data-role="list-divider">Tuner Hosts';
-        html += '<button type="button" data-icon="plus" data-mini="true" data-iconpos="notext" data-inline="true" class="btnAddFolder" style="margin: 0 0 0 1em;">Add</button>';
-        html += '</li>';
-
-        for (var i = 0, length = targets.length; i < length; i++) {
-
-            var target = targets[i];
-            html += '<li>';
-            html += '<a href="#" data-id="' + target.ServerId + '" class="btnEditFolder">';
-            html += '<h3>';
-            html += target.ServerId;
-            html += '</h3>';
-            html += '<p>';
-            html += target.ServerType;
-            html += '</p>';
-            html += '</a>';
-            html += '<a href="#" data-id="' + target.ServerId + '" class="btnDeleteFolder"></a>';
+            html += '<li data-role="list-divider">Tuner Hosts';
+            html += '<button type="button" data-icon="plus" data-mini="true" data-iconpos="notext" data-inline="true" class="btnAddFolder" style="margin: 0 0 0 1em;">Add</button>';
             html += '</li>';
+            if (targets != null) {
+                for (var i = 0, length = targets.length; i < length; i++) {
+                    var target = targets[i];
+                    html += '<li>';
+                    html += '<a href="#" data-id="' + target.ServerId + '" class="btnEditFolder">';
+                    html += '<h3>';
+                    html += target.ServerId;
+                    html += '</h3>';
+                    html += '<p>';
+                    html += target.ServerType;
+                    html += '</p>';
+                    html += '</a>';
+                    html += '<a href="#" data-id="' + target.ServerId + '" class="btnDeleteFolder"></a>';
+                    html += '</li>';
+                }
+            }
+            html += '</ul>';
+            return html;
+            
         }
-        html += '</ul>';
 
-        return html;
-    }
+        function deleteFolder(page, id) {
+            Dashboard.confirm("Are you sure you wish to remove this device?", "Confirm Deletion", function (result) {
+                if (result) {
+                    ApiClient.getPluginConfiguration(EmbyTVConfigurationPage.pluginUniqueId).done(function (config) {
+                        var index = -1;
+                        for (var i = 0; i < config.TunerHostsConfiguration.length; i++) {
+                            if (config.TunerHostsConfiguration[i].ServerId == id) {
+                                index = i;
+                            }
+                        }
+                        if (index > -1) {
+                            config.TunerHostsConfiguration.splice(index, 1);
+                        }
+                        ApiClient.updatePluginConfiguration(EmbyTVConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
+                    });
+                    window.setTimeout(function () { location.reload(true); }, 3000);
+                }
+            });
+        }
 
-    function deleteFolder(page, id) {
-        Dashboard.confirm("Are you sure you wish to remove this device?", "Confirm Deletion", function(result) {
-            if (result) {
-                ApiClient.getPluginConfiguration(EmbyTVConfigurationPage.pluginUniqueId).done(function(config) {
-                    var index = -1;
+        function editFolder(page, id) {
+
+            ApiClient.getPluginConfiguration(EmbyTVConfigurationPage.pluginUniqueId).done(function (config) {
+                editFolderObject(page, getObjectByProperty(config.TunerHostsConfiguration, "ServerId", id));
+            });
+        }
+
+        function setFormValues(userFields) {
+            for (var i = 0; i < userFields.length; i++) {
+                if ($("#" + userFields[i].Name).length && userFields[i].Value) {
+                    if ($("#" + userFields[i].Name).attr("type") == "text") {
+                        $("#" + userFields[i].Name).val(userFields[i].Value);
+                    }
+                    if ($("#" + userFields[i].Name).attr("type") == "checkbox") {
+                        $("#" + userFields[i].Name).checked(userFields[i].Value === "true").checkboxradio("refresh");
+                    }
+                }
+            }
+        }
+
+        function editFolderObject(page, folder) {
+            $('#popupAddHost').trigger("create");
+            if (folder != null) {
+                $('.popupHeader',page).html('Edit Tuner Host');
+                setFormValues(folder.UserFields);
+                $('#ServerId').val(folder.ServerId);
+            } else {
+                $('.popupHeader',page).html('Add Tuner Host');
+                $('#ServerId').val("new");
+            }
+            $('#popupAddHost').popup('open');
+        }
+
+
+        function loadPageData(page, config) {
+
+            var elem = $('#hostsTable').html(getTargetListHtml(config.TunerHostsConfiguration)).trigger('create');
+            $('.btnDeleteFolder').on('click', function () {
+                deleteFolder(page, this.getAttribute('data-id'));
+            });
+            $('.btnEditFolder').on('click', function () {
+                $('#hostSettings').empty();
+                createAllFields(config.TunerDefaultConfigurationsFields[0].DefaultConfigurationFields);
+                editFolder(page, this.getAttribute('data-id'));
+            });
+            $('.btnAddFolder').on('click', function () {
+                $('#hostSettings').empty();
+                createAllFields(config.TunerDefaultConfigurationsFields[0].DefaultConfigurationFields);
+                editFolderObject(page, null);
+            });
+ 
+        }
+
+
+        function fillFormData(page) {
+            Dashboard.showLoadingMsg();
+            ApiClient.getPluginConfiguration(EmbyTVConfigurationPage.pluginUniqueId).done(function (config) {
+                loadPageData(page, config);
+                $('#txtGuideUsername').val(config.username || "");
+                $('#txtGuidePassword').val("");
+                $('#zipCode').val(config.zipCode || "");
+                createLineupsDropdown(config.avaliableLineups, config.lineup, config.headends);
+                Dashboard.hideLoadingMsg();
+            });
+        }
+        $('.EmbyTvConfigurationPage').on('pageshow', function (event) { fillFormData(this); });
+
+
+        $(".EmbyTVConfigurationForm").on('submit', function (e) {
+            Dashboard.showLoadingMsg();
+            var form = this;
+            var pass = "";
+            if ($('#txtGuidePassword', form).val() != "") {
+                pass = Sha1.hash($('#txtGuidePassword', form).val());
+            }
+            ApiClient.getPluginConfiguration(EmbyTVConfigurationPage.pluginUniqueId).done(function (config) {
+
+                config.username = $('#txtGuideUsername', form).val();
+                config.zipCode = $('#zipCode', form).val();
+                if (pass != "") {
+                    config.hashPassword = pass;
+                }
+                var lineup = {
+                    Name: document.getElementById("tvLineups").options[document.getElementById("tvLineups").selectedIndex].innerHTML,
+                    Id: document.getElementById("tvLineups").options[document.getElementById("tvLineups").selectedIndex].value
+                }
+                config.lineup = lineup;
+                ApiClient.updatePluginConfiguration(EmbyTVConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
+
+            });
+            // Disable default form submission
+            window.setTimeout(function () { location.reload(true); }, 3000);
+            return false;
+        });
+        $('#addTunerHostForm').off('submit.plugin').on('submit.plugin', function (e) {
+
+            Dashboard.showLoadingMsg();
+
+            var form = this;
+            //var page = $(form).parents('.page');
+            ApiClient.getPluginConfiguration(EmbyTVConfigurationPage.pluginUniqueId).done(function (config) {
+                var userConfig = {
+                    ServerId: $('#ServerId').val(),
+                    ServerType: "",
+                    UserFields: []
+                }
+                userConfig.ServerType = "HdHomerun";
+                var url = {
+                    Name: "Url",
+                    Value: $('#Url').val()
+                }
+                var favs = {
+                    Name: "OnlyFavorites",
+                    Value: $('#OnlyFavorites').checked()
+                }
+                userConfig.UserFields[0] = url;
+                userConfig.UserFields[1] = favs;
+                var index = -1;
+                if (config.TunerHostsConfiguration != null) {
                     for (var i = 0; i < config.TunerHostsConfiguration.length; i++) {
-                        if (config.TunerHostsConfiguration[i].ServerId == id) {
+                        if (config.TunerHostsConfiguration[i].ServerId == userConfig.ServerId) {
                             index = i;
                         }
                     }
+
                     if (index > -1) {
-                        config.TunerHostsConfiguration.splice(index, 1);
+                        config.TunerHostsConfiguration[index] = userConfig;
+                    } else {
+                        config.TunerHostsConfiguration[config.TunerHostsConfiguration.length] = userConfig;
                     }
-                    ApiClient.updatePluginConfiguration(EmbyTVConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
-                });
-            }
-        });
-    }
-
-    function editFolder(page, id) {
-
-        ApiClient.getPluginConfiguration(EmbyTVConfigurationPage.pluginUniqueId).done(function(config) {
-            editFolderObject(page, getObjectByProperty(config.TunerHostsConfiguration, "ServerId", id));
-        });
-    }
-
-    function setFormValues(userFields) {
-        for (var i = 0; i < userFields.length; i++) {
-            if ($("#" + userFields[i].Name).length && userFields[i].Value) {
-                if ($("#" + userFields[i].Name).attr("type") == "text") {
-                    $("#" + userFields[i].Name).val(userFields[i].Value);
+                } else {
+                    config.TunerHostsConfiguration = [userConfig];
                 }
-                if ($("#" + userFields[i].Name).attr("type") == "checkbox") {
-                    $("#" + userFields[i].Name).checked(userFields[i].Value === "true").checkboxradio("refresh");
-                }
-            }
-        }
-    }
-
-    function editFolderObject(page, folder) {
-        $('#popupAddFolder', page).trigger("create");
-        if (folder != null) {
-            $('.popupHeader', page).html('Edit Tuner Host');
-            setFormValues(folder.UserFields);
-        } else {
-            $('.popupHeader', page).html('Add Tuner Host');
-        }
-        $('#popupAddFolder', page).popup('open');
-    }
-
-
-    function loadPageData(page, config) {
-
-        var elem = $('.folderSyncTargets', page).html(getTargetListHtml(config.TunerHostsConfiguration)).trigger('create');
-
-        $('.btnDeleteFolder', elem).on('click', function() {
-            deleteFolder(page, this.getAttribute('data-id'));
+                ApiClient.updatePluginConfiguration(EmbyTVConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
+            });
+            window.setTimeout(function () { location.reload(true); }, 3000);
+            return false;
         });
-        $('.btnEditFolder', elem).on('click', function() {
-            createAllFields(config.TunerDefaultConfigurationsFields[0].DefaultConfigurationFields);
-            editFolder(page, this.getAttribute('data-id'));
-        });
-        $('.btnAddFolder', elem).on('click', function() {
-            $('#hostSettings').empty();
-            createAllFields(config.TunerDefaultConfigurationsFields[0].DefaultConfigurationFields);
-            editFolderObject(page, null);
-        });
-    }
-
-
-    function fillFormData() {
-        Dashboard.showLoadingMsg();
-        var page = this;
-        ApiClient.getPluginConfiguration(EmbyTVConfigurationPage.pluginUniqueId).done(function(config) {
-            $('#txtGuideUsername', page).val(config.username || "");
-            $('#txtGuidePassword', page).val("");
-            $('#zipCode', page).val(config.zipCode || "");
-            createLineupsDropdown(config.avaliableLineups, config.lineup, config.headends);
-            loadPageData(page, config);
-            Dashboard.hideLoadingMsg();
-        });
-    }
-
-    fillFormData();
-
-    $(".EmbyTVConfigurationForm").on('submit', function(e) {
-        Dashboard.showLoadingMsg();
-        var form = this;
-        var pass = "";
-        if ($('#txtGuidePassword', form).val() != "") {
-            pass = Sha1.hash($('#txtGuidePassword', form).val());
-        }
-        ApiClient.getPluginConfiguration(EmbyTVConfigurationPage.pluginUniqueId).done(function(config) {
-
-            config.username = $('#txtGuideUsername', form).val();
-            config.zipCode = $('#zipCode', form).val();
-            if (pass != "") {
-                config.hashPassword = pass;
-            }
-            var lineup = {
-                Name: document.getElementById("tvLineups").options[document.getElementById("tvLineups").selectedIndex].innerHTML,
-                Id: document.getElementById("tvLineups").options[document.getElementById("tvLineups").selectedIndex].value
-            }
-            config.lineup = lineup;
-            ApiClient.updatePluginConfiguration(EmbyTVConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
-
-        });
-        // Disable default form submission
-        window.setTimeout(function() { location.reload(true); }, 3000);
-        return false;
-    });
-    $('.folderSyncConfigurationForm').off('submit.plugin').on('submit.plugin', function(e) {
-
-        Dashboard.showLoadingMsg();
-
-        var form = this;
-        //var page = $(form).parents('.page');
-        ApiClient.getPluginConfiguration(EmbyTVConfigurationPage.pluginUniqueId).done(function(config) {
-            var userConfig = {
-                ServerId: $('#ServerId').val(),
-                ServerType: "",
-                UserFields: []
-            }
-            userConfig.ServerType = "HdHomerun";
-            var url = {
-                Name: "Url",
-                Value: $('#Url', form).val()
-            }
-            var favs = {
-                Name: "OnlyFavorites",
-                Value: $('#OnlyFavorites', form).checked()
-            }
-            userConfig.UserFields[0] = url;
-            userConfig.UserFields[1] = favs;
-
-            config.TunerHostsConfiguration = [userConfig];
-
-            ApiClient.updatePluginConfiguration(EmbyTVConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
-        });
-        window.setTimeout(function () { location.reload(true); }, 3000);
-        return false;
-    });
-
-
-</script>
-
+    </script>
+</div>
+</body>
 </html>
-<meta http-equiv="cache-control" content="max-age=0"/>
-<meta http-equiv="cache-control" content="no-cache"/>
-<meta http-equiv="expires" content="0"/>
-<meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT"/>
-<meta http-equiv="pragma" content="no-cache"/>

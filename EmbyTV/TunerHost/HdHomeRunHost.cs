@@ -34,7 +34,15 @@ namespace EmbyTV.TunerHost
         private bool _onlyFavorites { get; set; }
         public string OnlyFavorites { get { return this._onlyFavorites.ToString(); }set { this._onlyFavorites = Convert.ToBoolean(value); } }
         public List<LiveTvTunerInfo> tuners;
-        public string HostId {get { return model +"-"+ deviceID; }
+        public bool Enabled { get; set; }
+        public string HostId {get
+        {
+            var hostId= model + "-" + deviceID;
+            if (hostId == "-")
+            {
+                hostId = "";
+            }
+            return hostId; }
             set {  } 
         }
 
