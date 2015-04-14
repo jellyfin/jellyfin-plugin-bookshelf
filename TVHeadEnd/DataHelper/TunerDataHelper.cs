@@ -78,85 +78,85 @@ namespace TVHeadEnd.DataHelper
             return Task.Factory.StartNew<List<LiveTvTunerInfo>>(() =>
             {
                 List<LiveTvTunerInfo> result = new List<LiveTvTunerInfo>();
-                lock (_data)
-                {
-                    foreach(HTSMessage currMessage in _data.Values)
-                    {
-                        if(cancellationToken.IsCancellationRequested)
-                        {
-                            _logger.Info("[TVHclient] TunerDataHelper.buildTunerInfos: cancel requst received. Returning only partly results");
-                            return result;
-                        }
+                //lock (_data)
+                //{
+                //    foreach(HTSMessage currMessage in _data.Values)
+                //    {
+                //        if(cancellationToken.IsCancellationRequested)
+                //        {
+                //            _logger.Info("[TVHclient] TunerDataHelper.buildTunerInfos: cancel requst received. Returning only partly results");
+                //            return result;
+                //        }
 
-                        string channelId = "";
-                        if(currMessage.containsField("channelId"))
-                        {
-                            channelId = "" + currMessage.getInt("channelId");
-                        }
+                //        string channelId = "";
+                //        if(currMessage.containsField("channelId"))
+                //        {
+                //            channelId = "" + currMessage.getInt("channelId");
+                //        }
 
-                        string programName = "";
-                        if (currMessage.containsField("channelName"))
-                        {
-                            programName = currMessage.getString("channelName");
-                        }
+                //        string programName = "";
+                //        if (currMessage.containsField("channelName"))
+                //        {
+                //            programName = currMessage.getString("channelName");
+                //        }
 
-                        IList services = null;
-                        if (currMessage.containsField("services"))
-                        {
-                            services = currMessage.getList("services");
-                        }
-                        if(services != null)
-                        {
-                            foreach(HTSMessage currService in services)
-                            {
-                                string name = "";
-                                if (currService.containsField("name"))
-                                {
-                                    string tmpName = currService.getString("name");
-                                    int count = tmpName.Count(f => f == '/');
-                                    string[] parts = tmpName.Split('/');
-                                    StringBuilder sb = new StringBuilder();
-                                    for (int ii = 0; ii < count - 1; ii++)
-                                    {
-                                        sb.Append(parts[ii]);
-                                        if (count > 2 && ii < count - 2)
-                                        {
-                                            sb.Append("/");
-                                        }
-                                    }
-                                    name = sb.ToString();
-                                    if(string.IsNullOrEmpty(name))
-                                    {
-                                        _logger.Error("[TVHclient] TunerDataHelper.buildTunerInfos: Can' build tuner name from '" + tmpName + "'");
-                                        continue;
-                                    }
-                                }
-                                else
-                                {
-                                    continue;
-                                }
-                                string type = "";
-                                if (currService.containsField("type"))
-                                {
-                                    type = currService.getString("type");
-                                }
+                //        IList services = null;
+                //        if (currMessage.containsField("services"))
+                //        {
+                //            services = currMessage.getList("services");
+                //        }
+                //        if(services != null)
+                //        {
+                //            foreach(HTSMessage currService in services)
+                //            {
+                //                string name = "";
+                //                if (currService.containsField("name"))
+                //                {
+                //                    string tmpName = currService.getString("name");
+                //                    int count = tmpName.Count(f => f == '/');
+                //                    string[] parts = tmpName.Split('/');
+                //                    StringBuilder sb = new StringBuilder();
+                //                    for (int ii = 0; ii < count - 1; ii++)
+                //                    {
+                //                        sb.Append(parts[ii]);
+                //                        if (count > 2 && ii < count - 2)
+                //                        {
+                //                            sb.Append("/");
+                //                        }
+                //                    }
+                //                    name = sb.ToString();
+                //                    if(string.IsNullOrEmpty(name))
+                //                    {
+                //                        //_logger.Error("[TVHclient] TunerDataHelper.buildTunerInfos: Can' build tuner name from '" + tmpName + "'");
+                //                        continue;
+                //                    }
+                //                }
+                //                else
+                //                {
+                //                    continue;
+                //                }
+                //                string type = "";
+                //                if (currService.containsField("type"))
+                //                {
+                //                    type = currService.getString("type");
+                //                }
 
-                                LiveTvTunerInfo ltti = new LiveTvTunerInfo();
-                                ltti.Id = name;
-                                ltti.Name = name;
-                                ltti.ProgramName = programName;
-                                ltti.SourceType = type;
-                                ltti.ChannelId = channelId;
-                                ltti.Status = LiveTvTunerStatus.Available;
+                //                LiveTvTunerInfo ltti = new LiveTvTunerInfo();
+                //                ltti.Id = name;
+                //                ltti.Name = name;
+                //                ltti.ProgramName = programName;
+                //                ltti.SourceType = type;
+                //                ltti.ChannelId = channelId;
+                //                ltti.Status = LiveTvTunerStatus.Available;
                                 
-                                //ltti.Clients // not available from TVheadend
-                                //ltti.RecordingId // not available from TVheadend
+                //                //ltti.Clients // not available from TVheadend
+                //                //ltti.RecordingId // not available from TVheadend
 
-                                result.Add(ltti);
-                            }
-                        }
-                    } 
-                }
+                //                result.Add(ltti);
+                //            }
+                //        }
+                //    } 
+                //}
                 return result;
             });
         }
