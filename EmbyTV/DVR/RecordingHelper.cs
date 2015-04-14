@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Common.IO;
 using MediaBrowser.Common.Net;
@@ -14,24 +15,24 @@ using MediaBrowser.Model.LiveTv;
 using MediaBrowser.Model.Logging;
 using System.Timers;
 using System.Xml;
+using Timer = System.Timers.Timer;
 
 namespace EmbyTV.DVR
 {
     internal class RecordingHelper
     {
-        public static async Task DownloadVideo(IHttpClient httpClient, HttpRequestOptions httpRequestOptions, ILogger logger,string filePath )
+        public static async Task  DownloadVideo(IHttpClient httpClient, HttpRequestOptions httpRequestOptions, ILogger logger,string filePath,CancellationToken cancellationToken )
         {
             
             //string filePath = Path.GetTempPath()+"/test.ts";
             httpRequestOptions.BufferContent = false;
-          
-           
+            httpRequestOptions.CancellationToken = cancellationToken;
             logger.Info("Writing file to path: "+filePath);
             using (var request = httpClient.SendAsync(httpRequestOptions,"GET"))
             {
                 using (var output = File.Open(filePath, FileMode.Create,FileAccess.Write,FileShare.Read))
                 {
-                    await request.Result.Content.CopyToAsync(output);
+                    await request.Result.Content.CopyToAsync(output,4096,cancellationToken);
                     output.Dispose();
                 }
             }
@@ -42,10 +43,12 @@ namespace EmbyTV.DVR
     {
         private Timer countDown;
         public event EventHandler StartRecording;
+        public CancellationTokenSource Cts = new CancellationTokenSource();
+        
 
         public SingleTimer() 
         {
-            
+        
         }
         public SingleTimer(TimerInfo parent)
         {

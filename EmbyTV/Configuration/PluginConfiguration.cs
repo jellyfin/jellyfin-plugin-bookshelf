@@ -12,6 +12,8 @@ namespace EmbyTV.Configuration
 {
     public class PluginConfiguration : BasePluginConfiguration
     {
+        public List<TunerUserConfiguration> TunerHostsConfiguration { get; set; }
+        public string RecordingPath { get; set; }
         public string hashPassword { get; set; }
         public string username { get; set; }
         public Headend lineup { get; set; }
@@ -19,8 +21,7 @@ namespace EmbyTV.Configuration
         public List<Headend> headends{ get; set; }
         public string zipCode { get; set; }
         public List<FieldBuilder> TunerDefaultConfigurationsFields { get; set; }
-        public List<TunerUserConfiguration> TunerHostsConfiguration { get; set; }
-        public string RecordingPath { get; set; }
+       
        
 
         public PluginConfiguration()
@@ -74,6 +75,7 @@ namespace EmbyTV.Configuration
     public class TunerUserConfiguration
     {
         public string ServerId { get; set; }
+        public string ServerName { get; set; }
         public TunerServerType ServerType { get; set; }
         public List<UserField> UserFields { get; set; }
 

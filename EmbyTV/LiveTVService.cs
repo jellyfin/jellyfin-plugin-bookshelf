@@ -21,7 +21,7 @@ using System.Threading.Tasks;
 ﻿using EmbyTV.DVR;
 ﻿using EmbyTV.GeneralHelpers;
 ﻿using MediaBrowser.Model.Connect;
-
+﻿using MediaBrowser.Model.Net;
 
 
 namespace EmbyTV
@@ -44,6 +44,8 @@ namespace EmbyTV
         private string dataPath;
         private readonly IXmlSerializer _xmlSerializer;
         private string recordingPath;
+        private Dictionary<int, MediaSourceInfo> streams;
+       
         
 
        public LiveTvService(IHttpClient httpClient, IJsonSerializer jsonSerializer, ILogManager logManager, IXmlSerializer xmlSerializer)
@@ -53,28 +55,24 @@ namespace EmbyTV
             _httpClient = httpClient;
             _jsonSerializer = jsonSerializer;
             FirstRun = true;
+            streams = new Dictionary<int, MediaSourceInfo>();
            _xmlSerializer = xmlSerializer;
             dataPath = Plugin.Instance.DataFolderPath;
             recordingPath = Plugin.Instance.Configuration.RecordingPath;
            _logger.Info("Directory is: "+dataPath);
             Directory.CreateDirectory(dataPath);
+            timers = new List<SingleTimer>();
             RefreshConfigData(CancellationToken.None);
             Plugin.Instance.Configuration.TunerDefaultConfigurationsFields = TunerHostConfig.BuildDefaultForTunerHostsBuilders();
             Plugin.Instance.ConfigurationUpdated += (sender, args) => { RefreshConfigData(CancellationToken.None); };
    
         }
 
-        private void InitializeTimer()
+        private void InitializeTimer(List<SingleTimer> timers )
         {
-            timers.RemoveAll(t => t.Duration()<0);
-            for(var i = 0;i<timers.Count(); i++)
+            foreach (var timer in timers)
             {
-                    var fileName = timers[i].GetRecordingName();
-                    var recordUrl = _tunerServer[0].getChannelStreamInfo(timers[i].ChannelId) + "?duration=" +
-                                    timers[i].Duration();
-                    timers[i].StartRecording += (sender, args) => { RecordStream(recordUrl, fileName); };
-                    timers[i].GenerateEvent();
-                    _logger.Info("Added timer for: " + recordUrl);
+                CreateTimerAsync(timer, CancellationToken.None);
             }
         }
 
@@ -117,13 +115,24 @@ namespace EmbyTV
             }
         }
 
-        public async Task RecordStream(string url,string fileName)
+        public async Task RecordStream(SingleTimer timer)
         {
+            var mediaStreamInfo = await GetChannelStream(timer.ChannelId,"none",CancellationToken.None);
             HttpRequestOptions options = new HttpRequestOptionsMod()
             {
-                Url = url
+                Url = mediaStreamInfo.Path + "?duration=" + timer.Duration()
             };
-            await RecordingHelper.DownloadVideo(_httpClient,options, _logger, recordingPath+@"\"+fileName);
+            await RecordingHelper.DownloadVideo(_httpClient, options, _logger, recordingPath + @"\" + timer.GetRecordingName(),timer.Cts.Token);
+            _logger.Info("Recording was a success");
+        }
+        public async Task RecordStream(MediaSourceInfo mediaSourceInfo,CancellationToken cancellationToken)
+        {
+           
+            HttpRequestOptions options = new HttpRequestOptionsMod()
+            {
+                Url = mediaSourceInfo.Path
+            };
+            await RecordingHelper.DownloadVideo(_httpClient, options, _logger, recordingPath + @"\" + mediaSourceInfo.Name, cancellationToken);
             _logger.Info("Recording was a success");
         }
 
@@ -135,15 +144,27 @@ namespace EmbyTV
         /// <returns></returns>
         private async Task EnsureConnectionAsync(CancellationToken cancellationToken)
         {
-            if (string.IsNullOrEmpty(_tunerServer[0].getWebUrl()))
+            foreach (var host in _tunerServer)
             {
-                throw new ApplicationException("Tunner hostname/ip missing.");
+                try
+                {
+                    if (string.IsNullOrEmpty(host.getWebUrl()))
+                    {
+                        throw new ApplicationException("Tunner hostname/ip missing.");
+                    }
+                    await host.GetDeviceInfo(cancellationToken);
+                    host.Enabled = true;
+                }
+                catch (HttpException)
+                {
+                    host.Enabled = false;
+                }
+                catch (ApplicationException)
+                {
+                    host.Enabled = false;
+                }
             }
-            await _tunerServer[0].GetDeviceInfo(cancellationToken);
-            if (_tunerServer[0].model == "")
-            {
-                throw new ApplicationException("No tuner found at address.");
-            }
+            
         }
 
         /// <summary>
@@ -153,10 +174,15 @@ namespace EmbyTV
         /// <returns>Task{IEnumerable{ChannelInfo}}.</returns>
         public async Task<IEnumerable<ChannelInfo>> GetChannelsAsync(CancellationToken cancellationToken)
         {
-            _logger.Info("Start GetChannels Async, retrieve all channels for " + _tunerServer[0].model);
+            List<ChannelInfo> channels = new List<ChannelInfo>();
             await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
-            var response = await _tunerServer[0].GetChannels(cancellationToken);
-            return await _tvGuide.getChannelInfo(response, cancellationToken);
+            foreach (var host in _tunerServer)
+            {
+                _logger.Info("Start GetChannels Async, retrieve all channels for " + host.HostId);
+                channels.AddRange(await host.GetChannels(cancellationToken));
+            }
+            channels = channels.GroupBy(x => x.Id).Select(x => x.First()).ToList();
+            return await _tvGuide.getChannelInfo(channels, cancellationToken);
         }
 
   
@@ -164,6 +190,7 @@ namespace EmbyTV
         public Task CloseLiveStream(string id, CancellationToken cancellationToken)
         {
             _logger.Info("Closing " + id);
+            streams.Remove(Convert.ToInt16(id));
             return Task.FromResult(0);
         }
 
@@ -176,11 +203,9 @@ namespace EmbyTV
             {
                 timers.Add(lastTimer);
                 UpdateTimerData();
-                var fileName = lastTimer.GetRecordingName();
-                var recordUrl = _tunerServer[0].getChannelStreamInfo(info.ChannelId) + "?duration=" + lastTimer.Duration();
-                timers.Last().StartRecording += (sender, args) => { RecordStream(recordUrl, fileName); };
+                timers.Last().StartRecording += (sender, args) => { RecordStream(lastTimer); };
                 timers.Last().GenerateEvent();
-                _logger.Info("Added timer for: " + recordUrl);
+                _logger.Info("Added timer for: " + info.ProgramId);
             }
             else
             {
@@ -206,12 +231,16 @@ namespace EmbyTV
             if (config.TunerHostsConfiguration != null)
             {
                 _tunerServer = TunerHostFactory.CreateTunerHosts(config.TunerHostsConfiguration, _logger,_jsonSerializer, _httpClient);
+                for (var i = 0; i < _tunerServer.Count(); i++)
+                {
+                    await _tunerServer[i].GetDeviceInfo(cancellationToken);
+                    config.TunerHostsConfiguration[i].ServerId = _tunerServer[i].HostId;
+                }
             }
             if (FirstRun)
             {
-                timers = GetTimerData(dataPath, _xmlSerializer);
                 seriesTimers = GetSeriesTimerData(dataPath, _xmlSerializer);
-                InitializeTimer();
+                InitializeTimer(GetTimerData(dataPath, _xmlSerializer));
             }
             FirstRun = false;
             _tvGuide = new EPGProvider.SchedulesDirect(config.username,config.hashPassword,config.lineup, _logger, _jsonSerializer, _httpClient);
@@ -236,6 +265,7 @@ namespace EmbyTV
         public Task<IEnumerable<RecordingInfo>> GetRecordingsAsync(CancellationToken cancellationToken)
         {
             IEnumerable<RecordingInfo> result = new List<RecordingInfo>();
+            
             return Task.FromResult(result);
         }
 
@@ -251,10 +281,16 @@ namespace EmbyTV
             //Version Check
             bool upgradeAvailable;
             string serverVersion;
+            
             upgradeAvailable = false;
-            serverVersion = _tunerServer[0].firmware;
+            serverVersion = Plugin.Instance.Version.ToString(); 
             //Tuner information
-            List<LiveTvTunerInfo> tvTunerInfos = await _tunerServer[0].GetTunersInfo(cancellationToken);
+            List<LiveTvTunerInfo> tvTunerInfos = new List<LiveTvTunerInfo>();
+            foreach (var host in _tunerServer)
+            {
+                tvTunerInfos.AddRange(await host.GetTunersInfo(cancellationToken));
+            }
+           
             return new LiveTvServiceStatusInfo
             {
                 HasUpdateAvailable = upgradeAvailable,
@@ -270,7 +306,7 @@ namespace EmbyTV
 
         public string HomePageUrl
         {
-            get { return _tunerServer[0].getWebUrl(); }
+            get { return "http://localhost:8096/web/ConfigurationPage?name=EmbyTV"; }
         }
 
         public string Name
@@ -280,13 +316,17 @@ namespace EmbyTV
 
         public Task RecordLiveStream(string id, CancellationToken cancellationToken)
         {
-            HttpRequestOptions options = new HttpRequestOptions()
+            var timer = new SingleTimer()
             {
-                Url = "http://192.168.2.238:5004/auto/v508?duration=10",
-                CancellationToken = cancellationToken
+                Name = DateTime.UtcNow.ToString(),
+                StartDate = DateTime.UtcNow,
+                EndDate = DateTime.UtcNow.AddHours(5),
+                PostPaddingSeconds = 0,
+                PrePaddingSeconds = 0,
+
             };
-            string filePath = Path.GetTempPath() + "/test.ts";
-            DVR.RecordingHelper.DownloadVideo(_httpClient, options, _logger,filePath).Start();
+
+           // RecordStream(timer);
             return Task.FromResult(0);
         }
 
@@ -294,12 +334,6 @@ namespace EmbyTV
 
         public Task ResetTuner(string id, CancellationToken cancellationToken)
         {
-            HttpRequestOptions options = new HttpRequestOptions()
-            {
-                Url = "http://192.168.2.238:5004/auto/v508?duration=10"
-            };
-
-            //DVR.RecordingHelper.DownloadVideo(_httpClient, options, _logger).Start();
             return Task.FromResult(0);
         }
 
@@ -311,31 +345,23 @@ namespace EmbyTV
         {
             _liveStreams++;
             _logger.Info("Streaming Channel");
-            string streamUrl = _tunerServer[0].getChannelStreamInfo(channelId);
-            _logger.Info("Streaming Channel" + channelId + "from: " + streamUrl);
-            return Task.FromResult(new MediaSourceInfo
+            MediaSourceInfo mediaSourceInfo = null;
+            foreach (var host in _tunerServer)
             {
-                Id = _liveStreams.ToString(CultureInfo.InvariantCulture),
-                Path = streamUrl,
-                Protocol = MediaProtocol.Http,
-                MediaStreams = new List<MediaStream>
-                        {
-                            new MediaStream
-                            {
-                                Type = MediaStreamType.Video,
-                                // Set the index to -1 because we don't know the exact index of the video stream within the container
-                                Index = -1,
-                                IsInterlaced = true
-                            },
-                            new MediaStream
-                            {
-                                Type = MediaStreamType.Audio,
-                                // Set the index to -1 because we don't know the exact index of the audio stream within the container
-                                Index = -1
-                               
-                            }
-                        }
-            });
+                try
+                {
+                    mediaSourceInfo = host.GetChannelStreamInfo(channelId);
+                    break;
+                }
+                catch (ApplicationException e)
+                {
+                    _logger.Info(e.Message);
+                }
+            }
+            if ((mediaSourceInfo == null)) { throw new ApplicationException("No tuners Avaliable");}
+            mediaSourceInfo.Id = _liveStreams.ToString();
+            streams.Add(_liveStreams,mediaSourceInfo);
+            return Task.FromResult(mediaSourceInfo);
         }
 
         public Task CancelSeriesTimerAsync(string timerId, CancellationToken cancellationToken)
@@ -348,8 +374,12 @@ namespace EmbyTV
 
         public Task CancelTimerAsync(string timerId, CancellationToken cancellationToken)
         {
-            var remove = timers.SingleOrDefault(r => r.Id == timerId);
-            if (remove != null) { timers.Remove(remove); }
+            int index = timers.FindIndex(r => r.Id == timerId);
+            if (index >= 0)
+            {
+                timers[index].Cts.Cancel();
+                timers.RemoveAt(index);
+            }
             UpdateTimerData();
             return Task.FromResult(true);
         }
@@ -414,8 +444,11 @@ namespace EmbyTV
 
         public Task UpdateTimerAsync(TimerInfo info, CancellationToken cancellationToken)
         {
-            var recording = timers.FindIndex(r => r.Id == info.Id);
-            if (recording >= 0) { timers[recording] = new SingleTimer(info); }
+            int index = timers.FindIndex(r => r.Id == info.Id);
+            if (index >= 0)
+            {
+                timers[index] = new SingleTimer(info); 
+            }
             UpdateTimerData();
             return Task.FromResult(true);
         }
