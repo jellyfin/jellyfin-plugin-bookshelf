@@ -32,11 +32,9 @@ namespace EmbyTV
     /// </summary>
     public class LiveTvService : ILiveTvService
     {
-        private int _liveStreams;
         private List<ITunerHost> _tunerServer;
         private EPGProvider.SchedulesDirect _tvGuide;
         private readonly ILogger _logger;
-        private DateTime _configLastModified;
         private readonly IJsonSerializer _jsonSerializer;
         private readonly IHttpClient _httpClient;
         private bool FirstRun;
@@ -48,7 +46,6 @@ namespace EmbyTV
 
         public LiveTvService(IHttpClient httpClient, IJsonSerializer jsonSerializer, ILogManager logManager, IXmlSerializer xmlSerializer, IApplicationPaths appPaths)
         {
-            _liveStreams = 0;
             _logger = logManager.GetLogger(Name);
             _httpClient = httpClient;
             _jsonSerializer = jsonSerializer;
@@ -271,7 +268,6 @@ namespace EmbyTV
             }
             config.headends = await _tvGuide.getHeadends(config.zipCode, cancellationToken);
             Plugin.Instance.SaveConfiguration();
-            _configLastModified = Plugin.Instance.ConfigurationDateLastModified;
         }
 
 
@@ -363,7 +359,6 @@ namespace EmbyTV
 
         public Task<MediaSourceInfo> GetChannelStream(string channelId, string streamId, CancellationToken cancellationToken)
         {
-            _liveStreams++;
             _logger.Info("Streaming Channel");
             MediaSourceInfo mediaSourceInfo = null;
             foreach (var host in _tunerServer)
@@ -379,8 +374,7 @@ namespace EmbyTV
                 }
             }
             if ((mediaSourceInfo == null)) { throw new ApplicationException("No tuners Avaliable"); }
-            mediaSourceInfo.Id = _liveStreams.ToString();
-            streams.Add(_liveStreams, mediaSourceInfo);
+            mediaSourceInfo.Id = Guid.NewGuid().ToString("N");
             return Task.FromResult(mediaSourceInfo);
         }
 
