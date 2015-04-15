@@ -72,7 +72,7 @@ namespace TVHeadEnd.DataHelper
     method : channelAdd
   </dump>
 */
-    
+
         public Task<List<LiveTvTunerInfo>> buildTunerInfos(CancellationToken cancellationToken)
         {
             return Task.Factory.StartNew<List<LiveTvTunerInfo>>(() =>
