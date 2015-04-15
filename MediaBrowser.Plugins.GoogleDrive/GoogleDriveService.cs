@@ -10,8 +10,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Interfaces.IO;
 using MediaBrowser.Model.Querying;
-using Patterns.IO;
 using File = Google.Apis.Drive.v2.Data.File;
 
 namespace MediaBrowser.Plugins.GoogleDrive

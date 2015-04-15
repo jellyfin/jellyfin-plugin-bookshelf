@@ -1,11 +1,11 @@
-﻿using MediaBrowser.Common.Net;
+﻿using Interfaces.IO;
+using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Sync;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.MediaInfo;
 using MediaBrowser.Model.Querying;
 using MediaBrowser.Model.Sync;
 using MediaBrowser.Plugins.GoogleDrive.Configuration;
-using Patterns.IO;
 using System;
 using System.Collections.Generic;
 using System.IO;

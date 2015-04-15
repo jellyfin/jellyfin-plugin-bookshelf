@@ -1,5 +1,5 @@
 ﻿using MediaBrowser.Model.Querying;
-using Patterns.IO;
+using Interfaces.IO;
 using System;
 using System.IO;
 using System.Threading;

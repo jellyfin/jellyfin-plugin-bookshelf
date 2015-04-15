@@ -5,7 +5,7 @@ using MediaBrowser.Model.MediaInfo;
 using MediaBrowser.Model.Net;
 using MediaBrowser.Model.Querying;
 using MediaBrowser.Model.Sync;
-using Patterns.IO;
+using Interfaces.IO;
 using System;
 using System.Collections.Generic;
 using System.IO;
