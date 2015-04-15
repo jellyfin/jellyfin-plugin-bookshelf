@@ -42,13 +42,12 @@ namespace EmbyTV
         public static Plugin Instance { get; private set; }
 
         public event EventHandler ConfigurationUpdated;
-        public EventArgs e = null;
         //public delegate void EventHandler(Plugin plugin, EventArgs e);
 
         public override void UpdateConfiguration(BasePluginConfiguration configuration)
         {
             base.UpdateConfiguration(configuration);
-            if (ConfigurationUpdated != null) {ConfigurationUpdated(this,e);}
+            if (ConfigurationUpdated != null) {ConfigurationUpdated(this,EventArgs.Empty);}
         }
     }
 }

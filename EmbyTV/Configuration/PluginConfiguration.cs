@@ -26,7 +26,6 @@ namespace EmbyTV.Configuration
 
         public PluginConfiguration()
         {
-            RecordingPath = @"C:\Temp";
             lineup = new Headend() {Name = "", Id = ""};
             username = "";
             hashPassword = "";
