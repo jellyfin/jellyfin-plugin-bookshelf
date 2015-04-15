@@ -58,7 +58,6 @@ namespace EmbyTV
             streams = new Dictionary<int, MediaSourceInfo>();
            _xmlSerializer = xmlSerializer;
             dataPath = Plugin.Instance.DataFolderPath;
-            recordingPath = Plugin.Instance.Configuration.RecordingPath;
            _logger.Info("Directory is: "+dataPath);
             Directory.CreateDirectory(dataPath);
             timers = new List<SingleTimer>();
@@ -114,7 +113,38 @@ namespace EmbyTV
                 _xmlSerializer.SerializeToFile(timers, timerPath);
             }
         }
+        private void SaveEpgDataForChannel(string channelId, IEnumerable<ProgramInfo> epgData)
+        {
+            Directory.CreateDirectory(dataPath+ @"\EPG");
+            var epgPath = dataPath + @"\EPG\"+channelId+".xml";
+            if (epgData != null)
+            {
+                _xmlSerializer.SerializeToFile(epgData, epgPath);
+            }
+        }
+        private IEnumerable<ProgramInfo> GetEpgDataForChannel(string channelId)
+        {
+            List<ProgramInfo> dummy = new List<ProgramInfo>();
+            var epgPath = dataPath + @"\EPG\" + channelId + ".xml";
+            if (File.Exists(epgPath))
+            {
+                return (List<ProgramInfo>)_xmlSerializer.DeserializeFromFile(dummy.GetType(), epgPath);
+            }
+            else
+            {
+                return dummy;
+            }
+        }
 
+        private ProgramInfo GetProgramInfoFromCache(string channelId, string programId)
+        {
+            var epgData = GetEpgDataForChannel(channelId);
+            if (epgData.Any())
+            {
+                return epgData.FirstOrDefault(p => p.Id == programId);
+            }
+            return null;
+        } 
         public async Task RecordStream(SingleTimer timer)
         {
             var mediaStreamInfo = await GetChannelStream(timer.ChannelId,"none",CancellationToken.None);
@@ -122,7 +152,18 @@ namespace EmbyTV
             {
                 Url = mediaStreamInfo.Path + "?duration=" + timer.Duration()
             };
-            await RecordingHelper.DownloadVideo(_httpClient, options, _logger, recordingPath + @"\" + timer.GetRecordingName(),timer.Cts.Token);
+            var info = GetProgramInfoFromCache(timer.ChannelId, timer.ProgramId);
+            var recordFolder = recordingPath;
+            if (info.IsMovie)
+            {
+                recordFolder += @"\Movies";
+            }
+            else
+            {
+                recordFolder += @"\TV";
+            }
+            Directory.CreateDirectory(recordFolder);
+            await RecordingHelper.DownloadVideo(_httpClient, options, _logger, recordFolder + @"\" + timer.GetRecordingName(info),timer.Cts.Token);
             _logger.Info("Recording was a success");
         }
         public async Task RecordStream(MediaSourceInfo mediaSourceInfo,CancellationToken cancellationToken)
@@ -228,6 +269,7 @@ namespace EmbyTV
         public async void RefreshConfigData(CancellationToken cancellationToken)
         {
             var config = Plugin.Instance.Configuration;
+            recordingPath = Plugin.Instance.Configuration.RecordingPath;
             if (config.TunerHostsConfiguration != null)
             {
                 _tunerServer = TunerHostFactory.CreateTunerHosts(config.TunerHostsConfiguration, _logger,_jsonSerializer, _httpClient);
@@ -258,7 +300,16 @@ namespace EmbyTV
 
         public async Task<IEnumerable<ProgramInfo>> GetProgramsAsync(string channelId, DateTime startDateUtc, DateTime endDateUtc, CancellationToken cancellationToken)
         {
-            return await _tvGuide.getTvGuideForChannel(channelId, startDateUtc, endDateUtc, cancellationToken);
+            var epgData = await _tvGuide.getTvGuideForChannel(channelId, startDateUtc, endDateUtc, cancellationToken);
+            if (!epgData.Any())
+            {
+                epgData = GetEpgDataForChannel(channelId);
+            }
+            else
+            {
+                SaveEpgDataForChannel(channelId,epgData);
+            }
+            return epgData;
         }
 
 

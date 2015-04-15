@@ -22,6 +22,9 @@ namespace EmbyTV.TunerHost
                 case (TunerServerType.HdHomerun):
                     tunerHost = new HdHomeRunHost(logger,jsonSerializer,httpClient);
                     break;
+                case (TunerServerType.M3UPlaylist):
+                    tunerHost = new M3UHost(logger, jsonSerializer, httpClient);
+                    break;
                 default:
                     throw new ApplicationException("Not a valid host");
             }

@@ -316,6 +316,7 @@ namespace EmbyTV.EPGProvider
             return (IEnumerable<ProgramInfo>) new List<ProgramInfo>();
         }
 
+
         private ProgramInfo GetProgram(string channel, ScheduleDirect.Program programInfo,
             ScheduleDirect.ProgramDetails details)
         {

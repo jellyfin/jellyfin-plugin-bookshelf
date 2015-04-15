@@ -1,5 +1,4 @@
-﻿using EmbyTV.General_Helper;
-using MediaBrowser.Common.Net;
+﻿using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.LiveTv;
 using MediaBrowser.Model.Logging;
@@ -11,9 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using EmbyTV.Configuration;
-using  System.Reflection;
-using System.Runtime.CompilerServices;
+using EmbyTV.GeneralHelpers;
 using MediaBrowser.Model.Dto;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.MediaInfo;
@@ -35,6 +32,7 @@ namespace EmbyTV.TunerHost
         public string OnlyFavorites { get { return this._onlyFavorites.ToString(); }set { this._onlyFavorites = Convert.ToBoolean(value); } }
         public List<LiveTvTunerInfo> tuners;
         public bool Enabled { get; set; }
+        List<ChannelInfo> ChannelList;
         public string HostId {get
         {
             var hostId= model + "-" + deviceID;
@@ -81,7 +79,7 @@ namespace EmbyTV.TunerHost
                 {
                     while (!sr.EndOfStream)
                     {
-                        string line = Xml.StripXML(sr.ReadLine());
+                        string line = StringHelper.StripXML(sr.ReadLine());
                         if (line.StartsWith("Model:")) { model = line.Replace("Model: ", ""); }
                         if (line.StartsWith("Device ID:")) { deviceID = line.Replace("Device ID: ", ""); }
                         if (line.StartsWith("Firmware:")) { firmware = line.Replace("Firmware: ", ""); }
@@ -107,7 +105,7 @@ namespace EmbyTV.TunerHost
                 {
                     while (!sr.EndOfStream)
                     {
-                        string line = Xml.StripXML(sr.ReadLine());
+                        string line = StringHelper.StripXML(sr.ReadLine());
                         if (line.Contains("Channel"))
                         {
                             LiveTvTunerStatus status;
@@ -130,7 +128,7 @@ namespace EmbyTV.TunerHost
 
         public async Task<IEnumerable<ChannelInfo>> GetChannels(CancellationToken cancellationToken)
         {
-            List<ChannelInfo> ChannelList;
+            ChannelList= new List<ChannelInfo>();
             var options = new HttpRequestOptions
             {
                 Url = string.Format("{0}/lineup.json", getWebUrl()),
@@ -164,9 +162,12 @@ namespace EmbyTV.TunerHost
         {
             var tunerInfo = GetTunersInfo(CancellationToken.None);
             tunerInfo.Wait();
-            if (tuners.FindIndex(t => t.Status == LiveTvTunerStatus.Available) >= 0)
+            var channel = ChannelList.FirstOrDefault(c => c.Id == ChannelNumber);
+            if (channel != null)
             {
-                return new MediaSourceInfo
+                if (tuners.FindIndex(t => t.Status == LiveTvTunerStatus.Available) >= 0)
+                {
+                    return new MediaSourceInfo
                     {
                         Path = getApiUrl() + "/auto/v" + ChannelNumber,
                         Protocol = MediaProtocol.Http,
@@ -188,8 +189,9 @@ namespace EmbyTV.TunerHost
                             }
                         }
                     };
-            }
-            throw new ApplicationException("Host: " + deviceID + " has no tuners avaliable.");
+                }
+                throw new ApplicationException("Host: " + deviceID + " has no tuners avaliable.");
+            }throw new ApplicationException("Host: " + deviceID + " doesnt provide this channel");
         }
         public class Channels
         {

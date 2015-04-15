@@ -20,9 +20,6 @@ namespace EmbyTV.TunerHost
         bool Enabled { get; set; }
 
         Task<IEnumerable<ChannelInfo>> GetChannels(CancellationToken cancellationToken);
-
-        string firmware { get; set; }
-
         Task<List<LiveTvTunerInfo>> GetTunersInfo(CancellationToken cancellationToken);
 
         string getWebUrl();
@@ -32,7 +29,8 @@ namespace EmbyTV.TunerHost
 
     public enum TunerServerType 
     {
-        HdHomerun = 1
+        HdHomerun = 1,
+        M3UPlaylist = 2
     }
 
     public static class TunerHostConfig

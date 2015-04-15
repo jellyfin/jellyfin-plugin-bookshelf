@@ -68,6 +68,17 @@
                     </li>
                 </ul>
             </fieldset>
+            <fieldset>
+                <legend>Other</legend>
+                <ul class="ulForm" data-role="listview">
+                    <li>
+                        <label for="txtGuideUsername">
+                            Recording Path:
+                        </label>
+                        <input type="text" id="txtRecordingPath" />
+                    </li>
+               </ul>
+            </fieldset>
             <ul class="ulForm" data-role="listview">
                 <li>
                     <button type="submit" data-theme="b">Save</button>
@@ -459,6 +470,7 @@
                 $('#txtGuideUsername').val(config.username || "");
                 $('#txtGuidePassword').val("");
                 $('#zipCode').val(config.zipCode || "");
+                $('#txtRecordingPath').val(config.RecordingPath || "");
                 createLineupsDropdown(config.avaliableLineups, config.lineup, config.headends);
                 Dashboard.hideLoadingMsg();
             });
@@ -477,6 +489,7 @@
 
                 config.username = $('#txtGuideUsername', form).val();
                 config.zipCode = $('#zipCode', form).val();
+                config.RecordingPath = $('#txtRecordingPath').val();
                 if (pass != "") {
                     config.hashPassword = pass;
                 }

@@ -16,6 +16,7 @@ using MediaBrowser.Model.Logging;
 using System.Timers;
 using System.Xml;
 using Timer = System.Timers.Timer;
+using EmbyTV.GeneralHelpers;
 
 namespace EmbyTV.DVR
 {
@@ -96,9 +97,31 @@ namespace EmbyTV.DVR
             return (EndDate - StartTime()).TotalSeconds + PrePaddingSeconds;
         }
 
-        public string GetRecordingName()
+        public string GetRecordingName(ProgramInfo info)
         {
-            return (ProgramId + ".ts");
+            if (info == null)
+            {
+                return (ProgramId + ".ts");
+            }
+            var fancyName = info.Name;
+            if (info.ProductionYear!= null)
+            {
+                fancyName += "_(" + info.ProductionYear + ")";
+            }
+            if (info.IsSeries)
+            {
+                fancyName += "_"+info.EpisodeTitle.Replace("Season: ","S").Replace(" Episode: ","E");
+            }
+            if (info.IsHD ?? false)
+            {
+                fancyName += "_HD";
+            }
+            if (info.OriginalAirDate != null)
+            {
+                fancyName += "_" + info.OriginalAirDate.Value.ToString("yyyy-MM-dd");
+            }
+
+            return StringHelper.RemoveSpecialCharacters(fancyName)+".ts";
         }
 
     }
