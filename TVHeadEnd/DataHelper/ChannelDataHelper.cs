@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using TVHeadEnd.HTSP;
 
-
 namespace TVHeadEnd.DataHelper
 {
     public class ChannelDataHelper
@@ -102,7 +101,7 @@ namespace TVHeadEnd.DataHelper
                             }
                             else
                             {
-                                _logger.Error("[TVHclient] ChannelDataHelper.buildChannelInfos: channelIcon '" + channelIcon + "' is not a valid HTTP URL!");
+                                _logger.Info("[TVHclient] ChannelDataHelper.buildChannelInfos: channelIcon '" + channelIcon + "' is not a valid HTTP URL!");
                             }
                         }
                         if (m.containsField("channelName"))
