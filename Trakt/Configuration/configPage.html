@@ -35,7 +35,7 @@
                             </div>
                         </li>
                         <li>
-                            <input type="checkbox" id="chkSkipUnwatchedImportFromTrakt" name="chkSkipUnwatchedImportFromTrakt" />
+                            <input type="checkbox" id="chkSkipUnwatchedImportFromTrakt" />
                             <label for="chkSkipUnwatchedImportFromTrakt">Skip unwatched import from trakt</label>
                             <div class="fieldDescription">
                                 By default, Import from Trakt task will overwrite any watched status if item is marked
@@ -78,7 +78,8 @@
                                 // You don't have to put every property in here, just the ones the UI is expecting (below)
                                 currentUserConfig = {
                                     UserName: "",
-                                    Password: ""
+                                    Password: "",
+                                    SkipUnwatchedImportFromTrakt: false
                                 };
                             }
                             // Default this to an empty array so the rendering code doesn't have to worry about it
