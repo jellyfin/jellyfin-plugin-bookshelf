@@ -1,12 +1,12 @@
 ﻿using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.LiveTv;
 using MediaBrowser.Model.Logging;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using TVHeadEnd.HTSP;
-
 
 namespace TVHeadEnd.DataHelper
 {
@@ -91,8 +91,19 @@ namespace TVHeadEnd.DataHelper
                         ci.ImagePath = "";
 
                         if (m.containsField("channelIcon"))
-                            ci.ImageUrl = m.getString("channelIcon");
-
+                        {
+                            string channelIcon = m.getString("channelIcon");
+                            Uri uriResult;
+                            bool uriCheckResult = Uri.TryCreate(channelIcon, UriKind.Absolute, out uriResult) && uriResult.Scheme == Uri.UriSchemeHttp;
+                            if (uriCheckResult)
+                            {
+                                ci.ImageUrl = channelIcon;
+                            }
+                            else
+                            {
+                                _logger.Info("[TVHclient] ChannelDataHelper.buildChannelInfos: channelIcon '" + channelIcon + "' is not a valid HTTP URL!");
+                            }
+                        }
                         if (m.containsField("channelName"))
                         {
                             string name = m.getString("channelName");
