@@ -108,6 +108,7 @@ namespace EmbyTV.TunerHost
 
         public Task<List<LiveTvTunerInfo>> GetTunersInfo(CancellationToken cancellationToken)
         {
+            tuners = new List<LiveTvTunerInfo>();
             tuners.Add(new LiveTvTunerInfo()
             {
                 Name = "VirtualTuner",
