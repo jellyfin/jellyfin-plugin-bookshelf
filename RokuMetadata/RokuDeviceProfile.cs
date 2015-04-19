@@ -204,7 +204,7 @@ namespace RokuMetadata
                         {
                             Condition = ProfileConditionType.LessThanEqual,
                             Property = ProfileConditionValue.AudioChannels,
-                            Value = "5",
+                            Value = "6",
                             IsRequired = false
                         },
                         new ProfileCondition
