@@ -15,6 +15,7 @@ using System;
 using System.Globalization;
 ﻿using System.IO;
 ﻿using System.Linq;
+﻿using System.Runtime.Remoting.Messaging;
 ﻿using System.Threading;
 using System.Threading.Tasks;
 ﻿using System.Timers;
@@ -22,6 +23,7 @@ using System.Threading.Tasks;
 ﻿using EmbyTV.DVR;
 ﻿using EmbyTV.GeneralHelpers;
 ﻿using MediaBrowser.Model.Connect;
+﻿using MediaBrowser.Model.LiveTv;
 ﻿using MediaBrowser.Model.Net;
 
 
@@ -43,6 +45,8 @@ namespace EmbyTV
         private readonly IXmlSerializer _xmlSerializer;
         private Dictionary<int, MediaSourceInfo> streams;
         private readonly IApplicationPaths _appPaths;
+        private List<RecordingInfo> recordings;        
+
 
 
         public LiveTvService(IHttpClient httpClient, IJsonSerializer jsonSerializer, ILogManager logManager, IXmlSerializer xmlSerializer, IApplicationPaths appPaths)
@@ -55,7 +59,7 @@ namespace EmbyTV
             _xmlSerializer = xmlSerializer;
             _appPaths = appPaths;
             _logger.Info("Directory is: " + DataPath);
-            timers = new List<SingleTimer>();
+
             RefreshConfigData(CancellationToken.None);
             Plugin.Instance.Configuration.TunerDefaultConfigurationsFields = TunerHostConfig.BuildDefaultForTunerHostsBuilders();
             Plugin.Instance.ConfigurationUpdated += (sender, args) => RefreshConfigData(CancellationToken.None);
@@ -76,18 +80,68 @@ namespace EmbyTV
                 }
 
                 return Path.Combine(_appPaths.TempDirectory, "embytv", "recordings");
-	    }
+			}
         }
-
-        private void InitializeTimer(List<SingleTimer> timers)
+   
+        private void InitializeTimer()
         {
-            foreach (var timer in timers)
+            var timersClone = new List<SingleTimer>(timers);
+            foreach (var timer in timersClone)
             {
                 CreateTimerAsync(timer, CancellationToken.None);
             }
         }
 
-        private static List<SeriesTimer> GetSeriesTimerData(string dataPath, IXmlSerializer xmlSerializer)
+       private void GetSeriesTimerData()
+       {
+           GetFileCopy<List<SeriesTimer>>(ref seriesTimers, "seriesTimers.xml");
+       }
+
+        private void GetTimerData()
+        {
+            GetFileCopy<List<SingleTimer>>(ref timers,"timers.xml");
+            InitializeTimer();
+        }
+
+       public void GetFileCopy<T>(ref T obj, string filename)
+        {
+            var path = DataPath + @"\"+filename;
+            if (File.Exists(path))
+            {
+                obj = (T) _xmlSerializer.DeserializeFromFile(typeof(T), path);
+            }
+            else
+            {
+                
+                obj = (T)Activator.CreateInstance<T>();
+            }
+        }
+
+        private void UpdateSeriesTimerData() { CreateFileCopy(seriesTimers, @"seriesTimers.xml"); }
+        private void UpdateTimerData() { CreateFileCopy(timers, @"timers.xml"); }
+        private void UpdateRecordingsData(){ CreateFileCopy(recordings, @"recordings.xml"); }
+
+        public void CreateFileCopy(object obj, string file)
+        {
+            var path = DataPath + @"\"+file;
+            if (obj != null)
+            {
+                _xmlSerializer.SerializeToFile(obj, path);
+            }
+        }
+
+        public void DeleteFile(string path)
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+        private void GetRecordingData(){
+            GetFileCopy(ref recordings, "recordings.xml");
+            recordings = recordings.GroupBy(x => x.Id).Select(g => g.First()).ToList();
+        }
+        private void SaveEpgDataForChannel(string channelId, IEnumerable<ProgramInfo> epgData)
         {
             List<SeriesTimer> dummy = new List<SeriesTimer>();
             var timerPath = Path.Combine(dataPath, "seriesTimers.xml");
@@ -100,7 +154,7 @@ namespace EmbyTV
                 return dummy;
             }
         }
-        private static List<SingleTimer> GetTimerData(string dataPath, IXmlSerializer xmlSerializer)
+        private List<ProgramInfo> GetEpgDataForChannel(string channelId)
         {
             List<SingleTimer> dummy = new List<SingleTimer>();
             var timerPath = Path.Combine(dataPath, "timers.xml");
@@ -113,25 +167,7 @@ namespace EmbyTV
             {
                 return dummy;
             }
-        }
-
-        private void UpdateSeriesTimerData()
-        {
-            var timerPath = Path.Combine(DataPath, "seriesTimers.xml");
-            Directory.CreateDirectory(Path.GetDirectoryName(timerPath));
-
-            _xmlSerializer.SerializeToFile(seriesTimers, timerPath);
-        }
-        private void UpdateTimerData()
-        {
-            var timerPath = Path.Combine(DataPath, "timers.xml");
-
-            if (timers != null)
-            {
-                Directory.CreateDirectory(Path.GetDirectoryName(timerPath));
-                _xmlSerializer.SerializeToFile(timers, timerPath);
-            }
-        }
+        }      
 
         public async Task RecordStream(SingleTimer timer)
         {
@@ -140,31 +176,71 @@ namespace EmbyTV
             {
                 Url = mediaStreamInfo.Path + "?duration=" + timer.Duration()
             };
-            await RecordingHelper.DownloadVideo(_httpClient, options, _logger, Path.Combine(RecordingPath, timer.GetRecordingName()), timer.Cts.Token);
-            _logger.Info("Recording was a success");
-        }
-        public async Task RecordStream(MediaSourceInfo mediaSourceInfo, CancellationToken cancellationToken)
-        {
-
-            HttpRequestOptions options = new HttpRequestOptionsMod()
+            var info = GetProgramInfoFromCache(timer.ChannelId, timer.ProgramId);
+            var recordPath = RecordingPath;
+            if (info.IsMovie)
             {
-                Url = mediaSourceInfo.Path
-            };
-            await RecordingHelper.DownloadVideo(_httpClient, options, _logger, Path.Combine(RecordingPath, mediaSourceInfo.Name), cancellationToken);
-            _logger.Info("Recording was a success");
-        }
-        public async Task RecordStream(MediaSourceInfo mediaSourceInfo,CancellationToken cancellationToken)
-        {
-           
-            HttpRequestOptions options = new HttpRequestOptionsMod()
+                recordPath += @"\Movies";
+            }
+            else
             {
-                Url = mediaSourceInfo.Path
-            };
-            await RecordingHelper.DownloadVideo(_httpClient, options, _logger, recordingPath + @"\" + mediaSourceInfo.Name, cancellationToken);
+                recordPath += @"\TV";
+            }
+            Directory.CreateDirectory(recordPath);
+            recordPath +=  @"\" + timer.GetRecordingName(info);
+            recordings.First(x => x.Id == info.Id).Path = recordPath;
+            recordings.First(x => x.Id == info.Id).Status = RecordingStatus.InProgress;
+            UpdateRecordingsData();
+            try
+            {
+                await RecordingHelper.DownloadVideo(_httpClient, options, _logger, recordPath, timer.Cts.Token);
+                recordings.First(x => x.Id == info.Id).Status = RecordingStatus.Completed;
+            }
+            catch 
+            {
+                recordings.First(x => x.Id == info.Id).Status = RecordingStatus.Error;
+            }
+            UpdateRecordingsData();
+            timers.RemoveAll(x => x.Id == timer.Id);
+            UpdateTimerData();
             _logger.Info("Recording was a success");
         }
 
 
+        private void ScheduleRecording(TimerInfo timer)
+        {
+            var info = GetProgramInfoFromCache(timer.ChannelId, timer.ProgramId);
+            if (recordings.FindIndex(x => x.Id == timer.ProgramId) == -1)
+            {
+                recordings.Add(new RecordingInfo()
+                {
+                    ChannelId = info.ChannelId,
+                    Id = info.Id,
+                    StartDate = info.StartDate,
+                    EndDate = info.EndDate,
+                    Genres = info.Genres ?? null,
+                    IsKids = info.IsKids,
+                    IsLive = info.IsLive,
+                    IsMovie = info.IsMovie,
+                    IsHD = info.IsHD,
+                    IsNews = info.IsNews,
+                    IsPremiere = info.IsPremiere,
+                    IsSeries = info.IsSeries,
+                    IsSports = info.IsSports,
+                    IsRepeat = !info.IsPremiere,
+                    Name = info.Name,
+                    EpisodeTitle = info.EpisodeTitle ?? "",
+                    ProgramId = info.Id,
+                    HasImage = info.HasImage ?? false,
+                    ImagePath = info.ImagePath ?? null,
+                    ImageUrl = info.ImageUrl,
+                    OriginalAirDate = info.OriginalAirDate,
+                    Status = RecordingStatus.Completed,
+                    Overview = info.Overview
+                });
+            }
+            UpdateRecordingsData();
+        }
         /// <summary>
         /// Ensure that we are connected to the HomeRunTV server
         /// </summary>
@@ -234,10 +310,11 @@ namespace EmbyTV
                 timers.Last().StartRecording += (sender, args) => { RecordStream(lastTimer); };
                 timers.Last().GenerateEvent();
                 _logger.Info("Added timer for: " + info.ProgramId);
+                ScheduleRecording(info);
             }
             else
             {
-                _logger.Error("Timer not created the show is about to end or has already ended");
+                _logger.Info("Timer not created the show is about to end or has already ended");
             }
             return Task.FromResult(0);
         }
@@ -246,8 +323,12 @@ namespace EmbyTV
 
         public Task DeleteRecordingAsync(string recordingId, CancellationToken cancellationToken)
         {
-            var remove = timers.SingleOrDefault(r => r.Id == recordingId);
-            if (remove != null) { timers.Remove(remove); }
+            var remove = recordings.FindIndex(r => r.Id == recordingId);
+            if(remove != -1)
+            {
+                DeleteFile(recordings[remove].Path);
+                recordings.RemoveAt(remove);
+            }
             return Task.FromResult(true);
         }
 
@@ -267,9 +348,10 @@ namespace EmbyTV
             }
             if (FirstRun)
             {
-                seriesTimers = GetSeriesTimerData(DataPath, _xmlSerializer);
-                InitializeTimer(GetTimerData(DataPath, _xmlSerializer));
-           }
+                GetRecordingData();
+                GetSeriesTimerData();
+                GetTimerData();               
+            }
             FirstRun = false;
             _tvGuide = new EPGProvider.SchedulesDirect(config.username, config.hashPassword, config.lineup, _logger, _jsonSerializer, _httpClient);
             config.avaliableLineups = await _tvGuide.getLineups(cancellationToken);
@@ -291,13 +373,11 @@ namespace EmbyTV
 
         public Task<IEnumerable<RecordingInfo>> GetRecordingsAsync(CancellationToken cancellationToken)
         {
-            IEnumerable<RecordingInfo> result = new List<RecordingInfo>();
-            return Task.FromResult(result);
+            return Task.FromResult((IEnumerable<RecordingInfo>)recordings);
         }
 
         public Task<IEnumerable<SeriesTimerInfo>> GetSeriesTimersAsync(CancellationToken cancellationToken)
         {
-
             return Task.FromResult((IEnumerable<SeriesTimerInfo>)seriesTimers);
         }
 

@@ -68,6 +68,7 @@
     <Compile Include="Configuration\PluginConfiguration.cs" />
     <Compile Include="DVR\RecordingHelper.cs" />
     <Compile Include="EntryPoint.cs" />
+    <Compile Include="EPGProvider\Responses\XMLTV.cs" />
     <Compile Include="GeneralHelpers\HttpClientHelper.cs" />
     <Compile Include="GeneralHelpers\Xml.cs" />
     <Compile Include="EPGProvider\IEpgProvider.cs" />
