@@ -26,6 +26,7 @@ namespace EmbyTV.TunerHost
         private ILogger logger;
         public bool Enabled { get; set; }
         private List<M3UChannel> channels;
+        private string _id; 
 
 
         public M3UHost(ILogger logger, IJsonSerializer jsonSerializer, IHttpClient httpClient)
@@ -34,17 +35,19 @@ namespace EmbyTV.TunerHost
             this.logger = logger;
             this.jsonSerializer = jsonSerializer;
             this.httpClient = httpClient;
+            _id = "none";
             channels = new List<M3UChannel>();
         }
 
         public Task GetDeviceInfo(CancellationToken cancellationToken)
         {
+            GetChannels(cancellationToken);
             return Task.FromResult(0);
         }
 
         public string HostId
         {
-            get { return "test"; }
+            get { return _id; }
             set { }
         }
 
@@ -71,6 +74,22 @@ namespace EmbyTV.TunerHost
                         if (position != 0)
                         {
                             channels.Last().Path = line;
+                        }
+                        else
+                        {
+                            line = line.Replace("#EXTM3U", "");
+                            line = line.Trim();
+                            var vars = line.Split(' ').ToList();
+                            foreach (var variable in vars)
+                            {
+                                var list = variable.Replace('"', ' ').Split('=');
+                                switch (list[0])
+                                {
+                                    case ("id"):
+                                        _id = list[1];
+                                        break;
+                                }
+                            }
                         }
                     }
                     else

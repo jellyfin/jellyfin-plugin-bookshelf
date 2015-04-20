@@ -27,6 +27,7 @@
                     <ul class="ulForm" data-role="listview" style="margin-top: .5em;">
                         <li>
                             <input type="hidden" id="ServerId"/>
+                            <input type="hidden" id="HostType" />
                             <button type="submit" data-theme="b">Save</button>
                             <button type="button" data-icon="delete" onclick=" $(this).parents('.popup').popup('close'); ">
                                 Cancel
@@ -319,6 +320,7 @@
                 input.setAttribute("data-mini", "true");
                 input.checked = field.defaultValue;
             }
+            input.setAttribute("class", "HostUserField");
 
             input.setAttribute("id", field.Name);
             var liClass = "ui-li-static ui-body-inherit";
@@ -332,11 +334,12 @@
         }
 
         function createAllFields(settings) {
-            if (settings[0]) {
-                for (var i = 0; i < settings.length; i++) {
-                    createField(settings[i], i, settings.length - 1);
+            if (settings.DefaultConfigurationFields[0]) {
+                for (var i = 0; i < settings.DefaultConfigurationFields.length; i++) {
+                    createField(settings.DefaultConfigurationFields[i], i, settings.DefaultConfigurationFields.length - 1);
                 }
             }
+            $('#HostType').val(settings.Type);
         }
 
         function getByName(fields, name) {
@@ -356,20 +359,28 @@
                 if (fields[i].Name == name) return fields[i].defaultValue;
             }
         }
+        function buildOptionsFor(config) {
+            var targets = config.TunerDefaultConfigurationsFields;
+            var options = "";
+            for (var i = 0, length = targets.length; i < length; i++) {
+                options += '<li>' + targets[i].Type + '</li>';
+            }
+            return options;
+        }
 
-        function getTargetListHtml(targets) {
+        function getTargetListHtml(config) {
 
             var html = '';
-
-            html += '<ul data-inset="true" data-role="listview" data-split-icon="minus">';
+            html += '<ul id="tunerHostList" data-inset="true" data-role="listview" data-split-icon="minus">';
             html += '<li data-role="list-divider">Tuner Hosts';
-            html += '<button type="button" data-icon="plus" data-mini="true" data-iconpos="notext" data-inline="true" class="btnAddFolder" style="margin: 0 0 0 1em;">Add</button>';
+            html += '<button data-icon="plus" data-mini="true" data-iconpos="notext" data-inline="true" class="btnAddFolder">Add</button> <ul class="selectBox" style="list-style-type: none; margin: 0; display:none;">' + buildOptionsFor(config) + '</ul>';
             html += '</li>';
+            var targets = config.TunerHostsConfiguration;
             if (targets != null) {
                 for (var i = 0, length = targets.length; i < length; i++) {
                     var target = targets[i];
                     html += '<li>';
-                    html += '<a href="#" data-id="' + target.ServerId + '" class="btnEditFolder">';
+                    html += '<a href="#" data-id="' + target.ServerId + '"'+'data-HostType="' + target.ServerType +'" class="btnEditFolder">';
                     html += '<h3>';
                     html += target.ServerId;
                     html += '</h3>';
@@ -427,6 +438,7 @@
 
         function editFolderObject(page, folder) {
             $('#popupAddHost').trigger("create");
+           
             if (folder != null) {
                 $('.popupHeader',page).html('Edit Tuner Host');
                 setFormValues(folder.UserFields);
@@ -441,19 +453,26 @@
 
         function loadPageData(page, config) {
 
-            var elem = $('#hostsTable').html(getTargetListHtml(config.TunerHostsConfiguration)).trigger('create');
+            var elem = $('#hostsTable').html(getTargetListHtml(config)).trigger('create');
             $('.btnDeleteFolder').on('click', function () {
                 deleteFolder(page, this.getAttribute('data-id'));
             });
             $('.btnEditFolder').on('click', function () {
                 $('#hostSettings').empty();
-                createAllFields(config.TunerDefaultConfigurationsFields[0].DefaultConfigurationFields);
+                var defaults = getObjectByProperty(config.TunerDefaultConfigurationsFields, "Type", this.getAttribute('data-hosttype'));
+                createAllFields(defaults);
                 editFolder(page, this.getAttribute('data-id'));
             });
             $('.btnAddFolder').on('click', function () {
-                $('#hostSettings').empty();
-                createAllFields(config.TunerDefaultConfigurationsFields[0].DefaultConfigurationFields);
-                editFolderObject(page, null);
+                $('.selectBox').slideToggle(200).css('borderTop', 'none');
+                $('.selectBox li').click(function () {
+                    $('#hostSettings').empty();
+                    var defaults = getObjectByProperty(config.TunerDefaultConfigurationsFields, "Type", $(this).text());
+                    $('.selectBox').slideUp(200);
+                    createAllFields(defaults);
+                    editFolderObject(page, null);
+                   
+                });
             });
  
         }
@@ -468,6 +487,9 @@
                 $('#zipCode').val(config.zipCode || "");
                 $('#txtRecordingPath').val(config.RecordingPath || "");
                 createLineupsDropdown(config.avaliableLineups, config.lineup, config.headends);
+                $('#tvLineups').trigger("create");
+               // $('#tvLineups-button > span').html($('#tvLineups').children(':selected'));
+                $("#tvLineups").trigger("change");
                 Dashboard.hideLoadingMsg();
             });
         }
@@ -511,20 +533,17 @@
             ApiClient.getPluginConfiguration(EmbyTVConfigurationPage.pluginUniqueId).done(function (config) {
                 var userConfig = {
                     ServerId: $('#ServerId').val(),
-                    ServerType: "",
+                    ServerType: $('#HostType').val(),
                     UserFields: []
                 }
-                userConfig.ServerType = "HdHomerun";
-                var url = {
-                    Name: "Url",
-                    Value: $('#Url').val()
-                }
-                var favs = {
-                    Name: "OnlyFavorites",
-                    Value: $('#OnlyFavorites').checked()
-                }
-                userConfig.UserFields[0] = url;
-                userConfig.UserFields[1] = favs;
+                
+                $('.HostUserField').each(function () {
+                    userConfig.UserFields[userConfig.UserFields.length] = {
+                        Name: $(this).attr('id'),
+                        Value: $(this).val()
+                    };
+                });
+
                 var index = -1;
                 if (config.TunerHostsConfiguration != null) {
                     for (var i = 0; i < config.TunerHostsConfiguration.length; i++) {
@@ -546,6 +565,7 @@
             window.setTimeout(function () { location.reload(true); }, 3000);
             return false;
         });
+
     </script>
 </div>
 </body>

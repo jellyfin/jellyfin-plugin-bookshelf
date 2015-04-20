@@ -39,26 +39,48 @@ namespace EmbyTV.TunerHost
         {
             FieldBuilder fieldBuilder = new FieldBuilder();
             fieldBuilder.Type = tunerServerType;
-            List<ConfigurationField> userFields = new List<ConfigurationField>()
+            List<ConfigurationField> userFields;
+             switch (tunerServerType)
             {
-                new ConfigurationField()
-                {
-                    Name = "Url",
-                    Type = FieldType.Text,
-                    defaultValue = "localhost",
-                    Description = "Hostname or IP address of the HDHomerun",
-                    Label = "Hostname/IP"
-                }
-                ,
-                new ConfigurationField()
-                {
-                    Name = "OnlyFavorites",
-                    Type = FieldType.Checkbox,
-                    defaultValue = "true",
-                    Description = "Only import starred channels on the HDHomerun",
-                    Label = "Import Only Favorites"
-                }
-            };
+                case (TunerServerType.HdHomerun):
+                    userFields = new List<ConfigurationField>()
+                        {
+                            new ConfigurationField()
+                            {
+                                Name = "Url",
+                                Type = FieldType.Text,
+                                defaultValue = "localhost",
+                                Description = "Hostname or IP address of the HDHomerun",
+                                Label = "Hostname/IP"
+                            }
+                            ,
+                            new ConfigurationField()
+                            {
+                                Name = "OnlyFavorites",
+                                Type = FieldType.Checkbox,
+                                defaultValue = "true",
+                                Description = "Only import starred channels on the HDHomerun",
+                                Label = "Import Only Favorites"
+                            }
+                        };
+                    break;
+                case (TunerServerType.M3UPlaylist):
+                    userFields = new List<ConfigurationField>()
+                        {
+                            new ConfigurationField()
+                            {
+                                Name = "PlaylistPath",
+                                Type = FieldType.Text,
+                                defaultValue = "",
+                                Description = "File Path for M3U file",
+                                Label = "Filepath"
+                            }
+                        };
+                    break;
+                default:
+                    throw new ApplicationException("Not a valid host");
+            }
+            
             fieldBuilder.DefaultConfigurationFields = userFields;
             return fieldBuilder;
         }

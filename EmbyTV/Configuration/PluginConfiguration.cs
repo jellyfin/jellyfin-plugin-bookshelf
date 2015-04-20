@@ -20,7 +20,7 @@ namespace EmbyTV.Configuration
         public List<string> avaliableLineups { get; set; }
         public List<Headend> headends{ get; set; }
         public string zipCode { get; set; }
-        public List<FieldBuilder> TunerDefaultConfigurationsFields { get; set; }
+        public List<FieldBuilder> TunerDefaultConfigurationsFields { get{return TunerHostConfig.BuildDefaultForTunerHostsBuilders(); }  }
        
        
 
@@ -31,7 +31,6 @@ namespace EmbyTV.Configuration
             hashPassword = "";
             zipCode = "";
             headends = new List<Headend>();
-            TunerDefaultConfigurationsFields = TunerHostConfig.BuildDefaultForTunerHostsBuilders();
         }
     }
 

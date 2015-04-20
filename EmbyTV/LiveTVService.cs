@@ -62,7 +62,6 @@ namespace EmbyTV
             _logger.Info("Directory is: " + DataPath);
 
             RefreshConfigData(CancellationToken.None);
-            Plugin.Instance.Configuration.TunerDefaultConfigurationsFields = TunerHostConfig.BuildDefaultForTunerHostsBuilders();
             Plugin.Instance.ConfigurationUpdated += (sender, args) => RefreshConfigData(CancellationToken.None);
         }
 
