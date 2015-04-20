@@ -331,7 +331,6 @@ namespace EmbyTV
         public async void RefreshConfigData(CancellationToken cancellationToken)
         {
             var config = Plugin.Instance.Configuration;
-            recordingPath = Plugin.Instance.Configuration.RecordingPath;
             if (config.TunerHostsConfiguration != null)
             {
                 _tunerServer = TunerHostFactory.CreateTunerHosts(config.TunerHostsConfiguration, _logger, _jsonSerializer, _httpClient);
