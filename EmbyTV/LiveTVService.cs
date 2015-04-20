@@ -45,7 +45,8 @@ namespace EmbyTV
         private readonly IXmlSerializer _xmlSerializer;
         private Dictionary<string, MediaSourceInfo> streams;
         private readonly IApplicationPaths _appPaths;
-        private List<RecordingInfo> recordings;        
+        private List<RecordingInfo> recordings;      
+
 
 
 
@@ -69,6 +70,7 @@ namespace EmbyTV
         {
             get { return Plugin.Instance.DataFolderPath; }
         }
+
 
         public string RecordingPath
         {
@@ -329,6 +331,7 @@ namespace EmbyTV
         public async void RefreshConfigData(CancellationToken cancellationToken)
         {
             var config = Plugin.Instance.Configuration;
+            recordingPath = Plugin.Instance.Configuration.RecordingPath;
             if (config.TunerHostsConfiguration != null)
             {
                 _tunerServer = TunerHostFactory.CreateTunerHosts(config.TunerHostsConfiguration, _logger, _jsonSerializer, _httpClient);

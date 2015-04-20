@@ -177,7 +177,7 @@ namespace EmbyTV.TunerHost
 
         public M3UChannel()
         {
-
         }
     }
 }
+

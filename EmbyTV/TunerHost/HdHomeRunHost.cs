@@ -33,6 +33,7 @@ namespace EmbyTV.TunerHost
         public List<LiveTvTunerInfo> tuners;
         public bool Enabled { get; set; }
         List<ChannelInfo> ChannelList;
+
         public string HostId
         {
             get
@@ -209,8 +210,5 @@ namespace EmbyTV.TunerHost
         {
             throw new NotImplementedException();
         }
-
-
-
     }
 }

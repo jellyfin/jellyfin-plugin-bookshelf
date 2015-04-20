@@ -10,7 +10,6 @@ using System.Timers;
 using Timer = System.Timers.Timer;
 using EmbyTV.GeneralHelpers;
 
-
 namespace EmbyTV.DVR
 {
     internal class RecordingHelper
@@ -113,7 +112,6 @@ namespace EmbyTV.DVR
             {
                 fancyName += "_" + info.OriginalAirDate.Value.ToString("yyyy-MM-dd");
             }
-
             return StringHelper.RemoveSpecialCharacters(fancyName) + ".ts";
         }
 
