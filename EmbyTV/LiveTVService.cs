@@ -43,7 +43,7 @@ namespace EmbyTV
         private List<SingleTimer> timers;
         private List<SeriesTimer> seriesTimers;
         private readonly IXmlSerializer _xmlSerializer;
-        private Dictionary<int, MediaSourceInfo> streams;
+        private Dictionary<string, MediaSourceInfo> streams;
         private readonly IApplicationPaths _appPaths;
         private List<RecordingInfo> recordings;        
 
@@ -55,7 +55,7 @@ namespace EmbyTV
             _httpClient = httpClient;
             _jsonSerializer = jsonSerializer;
             FirstRun = true;
-            streams = new Dictionary<int, MediaSourceInfo>();
+            streams = new Dictionary<string, MediaSourceInfo>();
             _xmlSerializer = xmlSerializer;
             _appPaths = appPaths;
             _logger.Info("Directory is: " + DataPath);
@@ -143,31 +143,23 @@ namespace EmbyTV
         }
         private void SaveEpgDataForChannel(string channelId, IEnumerable<ProgramInfo> epgData)
         {
-            List<SeriesTimer> dummy = new List<SeriesTimer>();
-            var timerPath = Path.Combine(dataPath, "seriesTimers.xml");
-            try
-            {
-                return (List<SeriesTimer>)xmlSerializer.DeserializeFromFile(dummy.GetType(), timerPath);
-            }
-            catch (FileNotFoundException)
-            {
-                return dummy;
-            }
+            CreateFileCopy(epgData, @"EPG\" + channelId + ".xml");
         }
         private List<ProgramInfo> GetEpgDataForChannel(string channelId)
         {
-            List<SingleTimer> dummy = new List<SingleTimer>();
-            var timerPath = Path.Combine(dataPath, "timers.xml");
-
-            try
+            List<ProgramInfo> channelEpg = new List<ProgramInfo>();
+            GetFileCopy<List<ProgramInfo>>(ref channelEpg, @"EPG\" + channelId + ".xml");
+            return channelEpg;
+        }
+        private ProgramInfo GetProgramInfoFromCache(string channelId, string programId)
+        {
+            var epgData = GetEpgDataForChannel(channelId);
+            if (epgData.Any())
             {
-                return (List<SingleTimer>)xmlSerializer.DeserializeFromFile(dummy.GetType(), timerPath);
+                return epgData.FirstOrDefault(p => p.Id == programId);
             }
-            catch (FileNotFoundException)
-            {
-                return dummy;
-            }
-        }      
+            return null;
+        }
 
         public async Task RecordStream(SingleTimer timer)
         {
@@ -294,7 +286,7 @@ namespace EmbyTV
         public Task CloseLiveStream(string id, CancellationToken cancellationToken)
         {
             _logger.Info("Closing " + id);
-            streams.Remove(Convert.ToInt16(id));
+            streams.Remove(id);
             return Task.FromResult(0);
         }
 
@@ -367,7 +359,16 @@ namespace EmbyTV
 
         public async Task<IEnumerable<ProgramInfo>> GetProgramsAsync(string channelId, DateTime startDateUtc, DateTime endDateUtc, CancellationToken cancellationToken)
         {
-            return await _tvGuide.getTvGuideForChannel(channelId, startDateUtc, endDateUtc, cancellationToken);
+            var epgData = await _tvGuide.getTvGuideForChannel(channelId, startDateUtc, endDateUtc, cancellationToken);
+            if (!epgData.Any())
+            {
+                epgData = GetEpgDataForChannel(channelId);
+            }
+            else
+            {
+                SaveEpgDataForChannel(channelId, epgData);
+            }
+            return epgData;
         }
 
 
@@ -463,6 +464,7 @@ namespace EmbyTV
             }
             if ((mediaSourceInfo == null)) { throw new ApplicationException("No tuners Avaliable"); }
             mediaSourceInfo.Id = Guid.NewGuid().ToString("N");
+            streams.Add(mediaSourceInfo.Id,mediaSourceInfo);
             return Task.FromResult(mediaSourceInfo);
         }
 

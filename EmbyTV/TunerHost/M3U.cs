@@ -17,7 +17,7 @@ using MediaBrowser.Model.MediaInfo;
 
 namespace EmbyTV.TunerHost
 {
-    public class M3UHost:ITunerHost
+    public class M3UHost : ITunerHost
     {
         public string PlaylistPath { get; set; }
         private IJsonSerializer jsonSerializer;
@@ -36,7 +36,7 @@ namespace EmbyTV.TunerHost
             this.httpClient = httpClient;
             channels = new List<M3UChannel>();
         }
-        
+
         public Task GetDeviceInfo(CancellationToken cancellationToken)
         {
             return Task.FromResult(0);
@@ -66,7 +66,7 @@ namespace EmbyTV.TunerHost
                     {
                         throw new ApplicationException("wrong file");
                     }
-                    if (position%2 == 0)
+                    if (position % 2 == 0)
                     {
                         if (position != 0)
                         {
@@ -130,19 +130,20 @@ namespace EmbyTV.TunerHost
             if (channel != null)
             {
                 var path = channel.Path;
-                MediaProtocol protocol =MediaProtocol.File;
+                MediaProtocol protocol = MediaProtocol.File;
                 if (path.StartsWith("http"))
                 {
                     protocol = MediaProtocol.Http;
-                }else if(path.StartsWith("rtmp"))
+                }
+                else if (path.StartsWith("rtmp"))
                 {
                     protocol = MediaProtocol.Rtmp;
                 }
-                else if(path.StartsWith("rtsp"))
+                else if (path.StartsWith("rtsp"))
                 {
                     protocol = MediaProtocol.Rtsp;
                 }
-                
+
                 return new MediaSourceInfo
                 {
                     Path = channel.Path,
@@ -176,7 +177,7 @@ namespace EmbyTV.TunerHost
 
         public M3UChannel()
         {
-           
+
         }
     }
 }

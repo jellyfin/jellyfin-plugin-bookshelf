@@ -70,7 +70,7 @@
     <Compile Include="EntryPoint.cs" />
     <Compile Include="EPGProvider\Responses\XMLTV.cs" />
     <Compile Include="GeneralHelpers\HttpClientHelper.cs" />
-    <Compile Include="GeneralHelpers\Xml.cs" />
+    <Compile Include="GeneralHelpers\stringHelper.cs" />
     <Compile Include="EPGProvider\IEpgProvider.cs" />
     <Compile Include="EPGProvider\Responses\ScheduleDirect.cs" />
     <Compile Include="EPGProvider\SchedulesDirect.cs" />
@@ -81,6 +81,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TunerHost\HdHomeRunHost.cs" />
     <Compile Include="TunerHost\ITunerHost.cs" />
+    <Compile Include="TunerHost\M3U.cs" />
     <Compile Include="TunerHost\TunerHostFactory.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -89,9 +90,7 @@
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="TunerHost\Settings\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>

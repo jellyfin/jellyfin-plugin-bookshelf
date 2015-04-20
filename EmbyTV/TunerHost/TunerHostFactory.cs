@@ -13,21 +13,24 @@ namespace EmbyTV.TunerHost
 {
     static class TunerHostFactory
     {
-        public static ITunerHost CreateTunerHost(TunerUserConfiguration tunerUserConfiguration,ILogger logger, IJsonSerializer jsonSerializer, IHttpClient httpClient )
+        public static ITunerHost CreateTunerHost(TunerUserConfiguration tunerUserConfiguration, ILogger logger, IJsonSerializer jsonSerializer, IHttpClient httpClient)
         {
             ITunerHost tunerHost;
-            logger.Info("Creating a TunerHost of type: "+ tunerUserConfiguration.ServerType.ToString());
+            logger.Info("Creating a TunerHost of type: " + tunerUserConfiguration.ServerType.ToString());
             switch (tunerUserConfiguration.ServerType)
             {
                 case (TunerServerType.HdHomerun):
-                    tunerHost = new HdHomeRunHost(logger,jsonSerializer,httpClient);
+                    tunerHost = new HdHomeRunHost(logger, jsonSerializer, httpClient);
+                    break;
+                case (TunerServerType.M3UPlaylist):
+                    tunerHost = new M3UHost(logger, jsonSerializer, httpClient);
                     break;
                 default:
                     throw new ApplicationException("Not a valid host");
             }
             foreach (var field in tunerUserConfiguration.UserFields)
             {
-                logger.Info("Adding variable: "+field.Name+" with value of "+field.Value);
+                logger.Info("Adding variable: " + field.Name + " with value of " + field.Value);
                 tunerHost.GetType().GetProperty(field.Name).SetValue(tunerHost, field.Value, null);
             }
             logger.Info("Done Creating Tuner");
@@ -41,7 +44,7 @@ namespace EmbyTV.TunerHost
             {
                 tunerHosts.Add(CreateTunerHost(config, logger, jsonSerializer, httpClient));
             }
- 
+
             return tunerHosts;
         }
     }
