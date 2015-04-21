@@ -177,10 +177,6 @@ namespace EmbyTV.EPGProvider
                     dates.Add(lastEntry.ToString("yyyy-MM-dd"));
                     numberOfDay++;
                 }
-                _logger.Info("Schedules dates is null?" +
-                             (dates != null || dates.All(x => string.IsNullOrWhiteSpace(x))));
-                _logger.Info("Date count?" + dates[0]);
-
                 string stationID = channelPair[channelNumber].stationID;
                 _logger.Info("Channel ?" + stationID);
                 List<ScheduleDirect.RequestScheduleForChannel> requestList =
@@ -193,15 +189,13 @@ namespace EmbyTV.EPGProvider
                         }
                     };
 
-                _logger.Info("Schedules 3");
+
                 _logger.Info("Request string for schedules is: " + _jsonSerializer.SerializeToString(requestList));
                 httpOptions.RequestContent = _jsonSerializer.SerializeToString(requestList);
-                _logger.Info("Schedules 5");
                 using (var response = await _httpClient.Post(httpOptions))
                 {
                     StreamReader reader = new StreamReader(response.Content);
                     string responseString = reader.ReadToEnd();
-                    _logger.Info("Schedules 6");
                     responseString = "{ \"days\":" + responseString + "}";
                     var root = _jsonSerializer.DeserializeFromString<ScheduleDirect.Schedules>(responseString);
                     // Helper.logger.Info("Found " + root.Count() + " programs on "+channelNumber +" ScheduleDirect");
@@ -250,7 +244,7 @@ namespace EmbyTV.EPGProvider
                                 }
                             }
                             Dictionary<string, string> imageUrls = new Dictionary<string, string>();
-                            foreach (var image in imageID)
+                            /* foreach (var image in imageID)
                             {
                                 var imageIdString = "[\"" + image + "\"]";
                                 string programs = String.Join(" ",
@@ -277,7 +271,7 @@ namespace EmbyTV.EPGProvider
                                         imageUrls.Add(image, images[0].uri);
                                     }
                                 }
-                            }
+                            }*/
                             foreach (ScheduleDirect.Day day in root.days)
                             {
                                 foreach (ScheduleDirect.Program schedule in day.programs)

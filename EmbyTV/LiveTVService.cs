@@ -361,13 +361,14 @@ namespace EmbyTV
         public async Task<IEnumerable<ProgramInfo>> GetProgramsAsync(string channelId, DateTime startDateUtc, DateTime endDateUtc, CancellationToken cancellationToken)
         {
             var epgData = await _tvGuide.getTvGuideForChannel(channelId, startDateUtc, endDateUtc, cancellationToken);
-            if (!epgData.Any())
+            var programInfos = epgData as IList<ProgramInfo> ?? epgData.ToList();
+            if (!programInfos.Any())
             {
                 epgData = GetEpgDataForChannel(channelId);
             }
             else
             {
-                SaveEpgDataForChannel(channelId, epgData);
+                SaveEpgDataForChannel(channelId, programInfos);
             }
             return epgData;
         }
@@ -449,8 +450,9 @@ namespace EmbyTV
 
         public Task<MediaSourceInfo> GetChannelStream(string channelId, string streamId, CancellationToken cancellationToken)
         {
-            _logger.Info("Streaming Channel");
+            _logger.Info("Streaming Channel "+channelId);
             MediaSourceInfo mediaSourceInfo = null;
+
             foreach (var host in _tunerServer)
             {
                 try

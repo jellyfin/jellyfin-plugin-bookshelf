@@ -363,17 +363,18 @@
             var targets = config.TunerDefaultConfigurationsFields;
             var options = "";
             for (var i = 0, length = targets.length; i < length; i++) {
-                options += '<li>' + targets[i].Type + '</li>';
+                options += '<li  data-icon="plus" style="text-align: left;" >' + targets[i].Type + '</li>';
             }
-            return options;
+            return options;
+
         }
 
         function getTargetListHtml(config) {
 
             var html = '';
             html += '<ul id="tunerHostList" data-inset="true" data-role="listview" data-split-icon="minus">';
-            html += '<li data-role="list-divider">Tuner Hosts';
-            html += '<button data-icon="plus" data-mini="true" data-iconpos="notext" data-inline="true" class="btnAddFolder">Add</button> <ul class="selectBox" style="list-style-type: none; margin: 0; display:none;">' + buildOptionsFor(config) + '</ul>';
+            html += '<li data-role="list-divider">Tuner Hosts ';
+            html += '<button data-icon="plus" data-mini="true" data-iconpos="notext" data-inline="true" class="btnAddFolder"></button> <ul class="selectBox" style="ext-align: left;list-style-type: none; margin: 0; display:none;">' + buildOptionsFor(config) + '</ul>';
             html += '</li>';
             var targets = config.TunerHostsConfiguration;
             if (targets != null) {
@@ -464,7 +465,7 @@
                 editFolder(page, this.getAttribute('data-id'));
             });
             $('.btnAddFolder').on('click', function () {
-                $('.selectBox').slideToggle(200).css('borderTop', 'none');
+                $('.selectBox').slideToggle(200).css('borderTop', 'none').css("display","inline-block");
                 $('.selectBox li').click(function () {
                     $('#hostSettings').empty();
                     var defaults = getObjectByProperty(config.TunerDefaultConfigurationsFields, "Type", $(this).text());

@@ -10,14 +10,15 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using EmbyTV.Configuration;
 using EmbyTV.GeneralHelpers;
 using MediaBrowser.Model.Dto;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.MediaInfo;
 
-namespace EmbyTV.TunerHost
+namespace EmbyTV.TunerHost.HostDefinitions
 {
-    public class HdHomeRunHost : ITunerHost
+    public class HdHomeRun : ITunerHost
     {
         private readonly ILogger _logger;
         private readonly IJsonSerializer _jsonSerializer;
@@ -29,7 +30,7 @@ namespace EmbyTV.TunerHost
         public string port { get; set; }
         public string Url { get; set; }
         private bool _onlyFavorites { get; set; }
-        public string OnlyFavorites { get { return this._onlyFavorites.ToString(); } set { this._onlyFavorites = Convert.ToBoolean(value); } }
+        public string OnlyFavorites { get { return this._onlyFavorites.ToString(); } set { this._onlyFavorites = ((value == "true") || (value == "on")); } }
         public List<LiveTvTunerInfo> tuners;
         public bool Enabled { get; set; }
         List<ChannelInfo> ChannelList;
@@ -48,7 +49,11 @@ namespace EmbyTV.TunerHost
             set { }
         }
 
-        public HdHomeRunHost(ILogger logger, IJsonSerializer jsonSerializer, IHttpClient httpClient)
+        public HdHomeRun()
+        {
+            
+        }
+        public HdHomeRun(ILogger logger, IJsonSerializer jsonSerializer, IHttpClient httpClient)
         {
             model = "";
             deviceID = "";
@@ -197,7 +202,7 @@ namespace EmbyTV.TunerHost
                 throw new ApplicationException("Host: " + deviceID + " has no tuners avaliable.");
             } throw new ApplicationException("Host: " + deviceID + " doesnt provide this channel");
         }
-        public class Channels
+        private class Channels
         {
             public string GuideNumber { get; set; }
             public string GuideName { get; set; }
@@ -209,6 +214,31 @@ namespace EmbyTV.TunerHost
         public void RefreshConfiguration()
         {
             throw new NotImplementedException();
+        }
+
+        public  IEnumerable<ConfigurationField> GetFieldBuilder()
+        {
+            List<ConfigurationField> userFields= new List<ConfigurationField>()
+            {
+                new ConfigurationField()
+                {
+                    Name = "Url",
+                    Type = FieldType.Text,
+                    defaultValue = "localhost",
+                    Description = "Hostname or IP address of the HDHomerun",
+                    Label = "Hostname/IP"
+                }
+                ,
+                new ConfigurationField()
+                {
+                    Name = "OnlyFavorites",
+                    Type = FieldType.Checkbox,
+                    defaultValue = "true",
+                    Description = "Only import starred channels on the HDHomerun",
+                    Label = "Import Only Favorites"
+                }
+            };
+           return userFields;
         }
     }
 }

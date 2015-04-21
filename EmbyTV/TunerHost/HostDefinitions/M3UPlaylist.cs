@@ -10,14 +10,15 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using EmbyTV.Configuration;
 using EmbyTV.GeneralHelpers;
 using MediaBrowser.Model.Dto;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.MediaInfo;
 
-namespace EmbyTV.TunerHost
+namespace EmbyTV.TunerHost.HostDefinitions
 {
-    public class M3UHost : ITunerHost
+    public class M3UPlaylist : ITunerHost
     {
         public string PlaylistPath { get; set; }
         private IJsonSerializer jsonSerializer;
@@ -29,7 +30,7 @@ namespace EmbyTV.TunerHost
         private string _id; 
 
 
-        public M3UHost(ILogger logger, IJsonSerializer jsonSerializer, IHttpClient httpClient)
+        public M3UPlaylist(ILogger logger, IJsonSerializer jsonSerializer, IHttpClient httpClient)
         {
             tuners = new List<LiveTvTunerInfo>();
             this.logger = logger;
@@ -39,6 +40,10 @@ namespace EmbyTV.TunerHost
             channels = new List<M3UChannel>();
         }
 
+        public M3UPlaylist()
+        {
+            
+        }
         public Task GetDeviceInfo(CancellationToken cancellationToken)
         {
             GetChannels(cancellationToken);
@@ -188,6 +193,21 @@ namespace EmbyTV.TunerHost
             }
             throw new ApplicationException("Host doesnt provide this channel");
         }
+        public IEnumerable<ConfigurationField> GetFieldBuilder()
+        {
+            List<ConfigurationField> userFields = new List<ConfigurationField>()
+            {
+                new ConfigurationField()
+                {
+                    Name = "PlaylistPath",
+                    Type = FieldType.Text,
+                    defaultValue = "",
+                    Description = "File Path for M3U file",
+                    Label = "Filepath"
+                }
+            };
+          return userFields;
+        }
     }
 
     class M3UChannel : ChannelInfo
@@ -198,5 +218,6 @@ namespace EmbyTV.TunerHost
         {
         }
     }
+
 }
 

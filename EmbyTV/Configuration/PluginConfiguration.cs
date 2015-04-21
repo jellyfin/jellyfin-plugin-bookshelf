@@ -20,7 +20,7 @@ namespace EmbyTV.Configuration
         public List<string> avaliableLineups { get; set; }
         public List<Headend> headends{ get; set; }
         public string zipCode { get; set; }
-        public List<FieldBuilder> TunerDefaultConfigurationsFields { get{return TunerHostConfig.BuildDefaultForTunerHostsBuilders(); }  }
+        public List<FieldBuilder> TunerDefaultConfigurationsFields { get { return TunerHostStatics.BuildDefaultForTunerHostsBuilders(); } }
        
        
 
@@ -74,15 +74,15 @@ namespace EmbyTV.Configuration
     {
         public string ServerId { get; set; }
         public string ServerName { get; set; }
-        public TunerServerType ServerType { get; set; }
+        public string ServerType { get; set; }
         public List<UserField> UserFields { get; set; }
 
     }
 
     public class FieldBuilder
     {
-        public TunerServerType Type { get; set; }
-        public List<ConfigurationField> DefaultConfigurationFields { get; set; }
+        public String Type { get; set; }
+        public ConfigurationField[] DefaultConfigurationFields { get; set; }
 
     }
 
