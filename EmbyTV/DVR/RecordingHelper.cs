@@ -1,54 +1,47 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.IO.IsolatedStorage;
-using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Common.IO;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.LiveTv;
-using MediaBrowser.Model.LiveTv;
 using MediaBrowser.Model.Logging;
 using System.Timers;
-using System.Xml;
 using Timer = System.Timers.Timer;
+using EmbyTV.GeneralHelpers;
 
 namespace EmbyTV.DVR
 {
     internal class RecordingHelper
     {
-        public static async Task  DownloadVideo(IHttpClient httpClient, HttpRequestOptions httpRequestOptions, ILogger logger,string filePath,CancellationToken cancellationToken )
+        public static async Task DownloadVideo(IHttpClient httpClient, HttpRequestOptions httpRequestOptions, ILogger logger, string filePath, CancellationToken cancellationToken)
         {
-            
+
             //string filePath = Path.GetTempPath()+"/test.ts";
             httpRequestOptions.BufferContent = false;
             httpRequestOptions.CancellationToken = cancellationToken;
-            logger.Info("Writing file to path: "+filePath);
-            using (var request = httpClient.SendAsync(httpRequestOptions,"GET"))
+            logger.Info("Writing file to path: " + filePath);
+            using (var request = httpClient.SendAsync(httpRequestOptions, "GET"))
             {
-                using (var output = File.Open(filePath, FileMode.Create,FileAccess.Write,FileShare.Read))
+                using (var output = File.Open(filePath, FileMode.Create, FileAccess.Write, FileShare.Read))
                 {
-                    await request.Result.Content.CopyToAsync(output,4096,cancellationToken);
+                    await request.Result.Content.CopyToAsync(output, 4096, cancellationToken);
                     output.Dispose();
                 }
             }
         }
     }
 
-    public class SingleTimer:TimerInfo
+    public class SingleTimer : TimerInfo
     {
         private Timer countDown;
         public event EventHandler StartRecording;
         public CancellationTokenSource Cts = new CancellationTokenSource();
-        
 
-        public SingleTimer() 
+
+        public SingleTimer()
         {
-        
+
         }
         public SingleTimer(TimerInfo parent)
         {
@@ -84,11 +77,11 @@ namespace EmbyTV.DVR
 
         public DateTime StartTime()
         {
-            if (StartDate.AddSeconds(-PrePaddingSeconds+1) < DateTime.UtcNow)
+            if (StartDate.AddSeconds(-PrePaddingSeconds + 1) < DateTime.UtcNow)
             {
                 return DateTime.UtcNow.AddSeconds(1);
             }
-            return  StartDate.AddSeconds(-PrePaddingSeconds);
+            return StartDate.AddSeconds(-PrePaddingSeconds);
         }
 
         public double Duration()
@@ -96,9 +89,30 @@ namespace EmbyTV.DVR
             return (EndDate - StartTime()).TotalSeconds + PrePaddingSeconds;
         }
 
-        public string GetRecordingName()
+        public string GetRecordingName(ProgramInfo info)
         {
-            return (ProgramId + ".ts");
+            if (info == null)
+            {
+                return (ProgramId + ".ts");
+            }
+            var fancyName = info.Name;
+            if (info.ProductionYear != null)
+            {
+                fancyName += "_(" + info.ProductionYear + ")";
+            }
+            if (info.IsSeries)
+            {
+                fancyName += "_" + info.EpisodeTitle.Replace("Season: ", "S").Replace(" Episode: ", "E");
+            }
+            if (info.IsHD ?? false)
+            {
+                fancyName += "_HD";
+            }
+            if (info.OriginalAirDate != null)
+            {
+                fancyName += "_" + info.OriginalAirDate.Value.ToString("yyyy-MM-dd");
+            }
+            return StringHelper.RemoveSpecialCharacters(fancyName) + ".ts";
         }
 
     }
@@ -122,10 +136,10 @@ namespace EmbyTV.DVR
                 GetType().GetProperty(prop.Name).SetValue(this, prop.GetValue(parent, null), null);
             }
         }
-        
 
 
-    
+
+
     }
 
     public enum RecordingMethod

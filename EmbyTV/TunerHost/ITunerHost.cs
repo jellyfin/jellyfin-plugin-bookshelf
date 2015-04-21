@@ -2,75 +2,48 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using EmbyTV.Configuration;
+using EmbyTV.GeneralHelpers;
 using MediaBrowser.Model.Dto;
 
 namespace EmbyTV.TunerHost
 {
-    interface ITunerHost
+    public interface ITunerHost
     {
-
-
         Task GetDeviceInfo(CancellationToken cancellationToken);
         string HostId { get; set; }
         bool Enabled { get; set; }
-
         Task<IEnumerable<ChannelInfo>> GetChannels(CancellationToken cancellationToken);
-
-        string firmware { get; set; }
-
         Task<List<LiveTvTunerInfo>> GetTunersInfo(CancellationToken cancellationToken);
-
+        IEnumerable<ConfigurationField> GetFieldBuilder();
         string getWebUrl();
-
         MediaSourceInfo GetChannelStreamInfo(string channelId);
     }
 
-    public enum TunerServerType 
+    
+    public static class TunerHostStatics
     {
-        HdHomerun = 1
-    }
-
-    public static class TunerHostConfig
-    {
-        public static FieldBuilder GetDefaultConfigurationFields(TunerServerType tunerServerType)
+        public static IEnumerable<Type> GetAllTunerHostTypes()
         {
-            FieldBuilder fieldBuilder = new FieldBuilder();
-            fieldBuilder.Type = tunerServerType;
-            List<ConfigurationField> userFields = new List<ConfigurationField>()
-            {
-                new ConfigurationField()
-                {
-                    Name = "Url",
-                    Type = FieldType.Text,
-                    defaultValue = "localhost",
-                    Description = "Hostname or IP address of the HDHomerun",
-                    Label = "Hostname/IP"
-                }
-                ,
-                new ConfigurationField()
-                {
-                    Name = "OnlyFavorites",
-                    Type = FieldType.Checkbox,
-                    defaultValue = "true",
-                    Description = "Only import starred channels on the HDHomerun",
-                    Label = "Import Only Favorites"
-                }
-            };
-            fieldBuilder.DefaultConfigurationFields = userFields;
-            return fieldBuilder;
+            return Helpers.GetTypesInNamespace(Assembly.GetExecutingAssembly(), "EmbyTV.TunerHost.HostDefinitions");
         }
-
         public static List<FieldBuilder> BuildDefaultForTunerHostsBuilders()
         {
             List<FieldBuilder> defaultTunerHostsConfigFields = new List<FieldBuilder>();
-            foreach (TunerServerType serverType in Enum.GetValues(typeof(TunerServerType)))
+            foreach (Type tunerHostType in GetAllTunerHostTypes())
             {
-                defaultTunerHostsConfigFields.Add(GetDefaultConfigurationFields(serverType));
+                var tunerHost = TunerHostFactory.CreateTunerHost(tunerHostType);
+                FieldBuilder fieldBuilder = new FieldBuilder()
+                {
+                    Type = tunerHostType.Name,
+                    DefaultConfigurationFields = tunerHost.GetFieldBuilder().ToArray()
+                };
+                defaultTunerHostsConfigFields.Add(fieldBuilder);
             }
             return defaultTunerHostsConfigFields;
         }
