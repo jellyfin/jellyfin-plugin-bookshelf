@@ -7,7 +7,7 @@ using MediaBrowser.Model.Serialization;
 
 namespace EmbyTV.EPGProvider.Responses
 {
-    class ScheduleDirect
+    public class ScheduleDirect
     {
         public class Token
         {
@@ -148,23 +148,7 @@ namespace EmbyTV.EPGProvider.Responses
             public MetadataSchedule metadata { get; set; }
         }
 
-
-        public class Schedules
-        {
-            public List<Day> days { get; set; }
-        }
-
-
-
-
-
-
-
-
-
-
-
-
+        //
         public class Title
         {
             public string title120 { get; set; }
@@ -272,11 +256,6 @@ namespace EmbyTV.EPGProvider.Responses
             public List<string> contentAdvisory { get; set; }
             public Movie movie { get; set; }
             public List<Recommendation> recommendations { get; set; }
-        }
-
-        public class ProgramDetailsResilt
-        {
-            public List<ProgramDetails> result { get; set; }
         }
 
         public class Caption

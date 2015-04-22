@@ -66,6 +66,7 @@ namespace EmbyTV
         private void InitializeTimer()
         {
             var timersClone = new List<SingleTimer>(timers);
+            timers = new List<SingleTimer>();
             foreach (var timer in timersClone)
             {
                 CreateTimerAsync(timer, CancellationToken.None);
@@ -74,12 +75,12 @@ namespace EmbyTV
 
        private void GetSeriesTimerData()
        {
-           GetFileCopy<List<SeriesTimer>>(ref seriesTimers, "seriesTimers.xml");
+           GetFileCopy(ref seriesTimers, "seriesTimers.xml");
        }
 
         private void GetTimerData()
         {
-            GetFileCopy<List<SingleTimer>>(ref timers,"timers.xml");
+            GetFileCopy(ref timers,"timers.xml");
             InitializeTimer();
         }
 
@@ -208,7 +209,7 @@ namespace EmbyTV
                     ImagePath = info.ImagePath ?? null,
                     ImageUrl = info.ImageUrl,
                     OriginalAirDate = info.OriginalAirDate,
-                    Status = RecordingStatus.Completed,
+                    Status = RecordingStatus.Scheduled,
                     Overview = info.Overview
                 });
             }
