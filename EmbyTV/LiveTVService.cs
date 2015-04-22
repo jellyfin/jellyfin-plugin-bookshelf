@@ -413,7 +413,7 @@ namespace EmbyTV
 
         public string HomePageUrl
         {
-            get { return "http://localhost:8096/web/ConfigurationPage?name=EmbyTV"; }
+            get { return "http://emby.media"; }
         }
 
         public string Name
