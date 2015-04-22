@@ -61,22 +61,12 @@ namespace EmbyTV
         }
 
 
-        public string RecordingPath
-        {
-            get
-            {
-                if (!string.IsNullOrWhiteSpace(Plugin.Instance.Configuration.RecordingPath))
-                {
-                    return Plugin.Instance.Configuration.RecordingPath;
-                }
-
-                return Path.Combine(_appPaths.TempDirectory, "embytv", "recordings");
-			}
-        }
+        public string RecordingPath{get{return Plugin.Instance.Configuration.RecordingPath;}}
    
         private void InitializeTimer()
         {
             var timersClone = new List<SingleTimer>(timers);
+            timers = new List<SingleTimer>();
             foreach (var timer in timersClone)
             {
                 CreateTimerAsync(timer, CancellationToken.None);
@@ -85,12 +75,12 @@ namespace EmbyTV
 
        private void GetSeriesTimerData()
        {
-           GetFileCopy<List<SeriesTimer>>(ref seriesTimers, "seriesTimers.xml");
+           GetFileCopy(ref seriesTimers, "seriesTimers.xml");
        }
 
         private void GetTimerData()
         {
-            GetFileCopy<List<SingleTimer>>(ref timers,"timers.xml");
+            GetFileCopy(ref timers,"timers.xml");
             InitializeTimer();
         }
 
@@ -114,6 +104,7 @@ namespace EmbyTV
 
         public void CreateFileCopy(object obj, string file)
         {
+            Directory.CreateDirectory(DataPath);
             var path = DataPath + @"\"+file;
             if (obj != null)
             {
@@ -218,7 +209,7 @@ namespace EmbyTV
                     ImagePath = info.ImagePath ?? null,
                     ImageUrl = info.ImageUrl,
                     OriginalAirDate = info.OriginalAirDate,
-                    Status = RecordingStatus.Completed,
+                    Status = RecordingStatus.Scheduled,
                     Overview = info.Overview
                 });
             }
@@ -334,9 +325,12 @@ namespace EmbyTV
                 GetTimerData();               
             }
             FirstRun = false;
-
+			
+            if (string.IsNullOrWhiteSpace(Plugin.Instance.Configuration.RecordingPath))
+            {
+                Plugin.Instance.Configuration.RecordingPath = Path.Combine(_appPaths.TempDirectory, "embytv", "recordings");
+            }
             Plugin.Instance.SaveConfiguration();
-
             if (isConfigChange)
             {
                 await AddLineupIfNeeded(config, cancellationToken).ConfigureAwait(false);

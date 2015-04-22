@@ -233,7 +233,7 @@ namespace EmbyTV.TunerHost.HostDefinitions
                 {
                     Name = "OnlyFavorites",
                     Type = FieldType.Checkbox,
-                    defaultValue = "true",
+                    defaultValue = "false",
                     Description = "Only import starred channels on the HDHomerun",
                     Label = "Import Only Favorites"
                 }
