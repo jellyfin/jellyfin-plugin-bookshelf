@@ -285,26 +285,26 @@ namespace EmbyTV.EPGProvider.Responses
             public string lang { get; set; }
         }
 
-        public class Image
+        public class ImageData
         {
-            public string uri { get; set; }
-            public string height { get; set; }
             public string width { get; set; }
-            public string primary { get; set; }
+            public string height { get; set; }
+            public string uri { get; set; }
+            public string size { get; set; }
+            public string aspect { get; set; }
             public string category { get; set; }
+            public string text { get; set; }
+            public string primary { get; set; }
             public string tier { get; set; }
-            public string md5 { get; set; }
             public Caption caption { get; set; }
-        }
-        public class Result
-        {
-            public List<Image> images { get; set; }
         }
 
         public class ShowImages
         {
-            public List<Result> results { get; set; }
+            public string programID { get; set; }
+            public List<ImageData> data { get; set; }
         }
+
     }
 }
 

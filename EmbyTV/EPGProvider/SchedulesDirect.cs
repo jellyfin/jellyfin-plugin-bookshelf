@@ -53,6 +53,7 @@ namespace EmbyTV.EPGProvider
 
                 // Reset the token if there's no username
                 if (string.IsNullOrWhiteSpace(username))
+
                 {
                     _token = null;
                     return null;
@@ -273,6 +274,7 @@ namespace EmbyTV.EPGProvider
                                 ;
                             _logger.Info("Json for show images = " + imageIdString + " used on prgrams " +
                                          programs);
+
                             httpOptions = new HttpRequestOptionsMod()
                             {
                                 Url = "https://json.schedulesdirect.org/20141201/metadata/programs/",
@@ -280,7 +282,6 @@ namespace EmbyTV.EPGProvider
                                 CancellationToken = cancellationToken
                             };
                             httpOptions.RequestContent = imageIdString;
-
                             using (var innerResponse2 = await _httpClient.Post(httpOptions))
                             {
                                 List<ScheduleDirect.Image> images;
