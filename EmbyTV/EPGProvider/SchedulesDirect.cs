@@ -25,7 +25,7 @@ namespace EmbyTV.EPGProvider
         private readonly IJsonSerializer _jsonSerializer;
         private readonly IHttpClient _httpClient;
         private readonly SemaphoreSlim _tokenSemaphore = new SemaphoreSlim(1, 1);
-        private const string userAgent = "EmbyTV";
+        private const string _userAgent = "EmbyTV";
         public static SchedulesDirect Current;
 
         public SchedulesDirect(ILogger logger, IJsonSerializer jsonSerializer, IHttpClient httpClient)
@@ -53,7 +53,7 @@ namespace EmbyTV.EPGProvider
 
                 // Reset the token if there's no username
                 if (string.IsNullOrWhiteSpace(username))
-               {
+                {
                     _token = null;
                     return null;
                 }
@@ -76,12 +76,13 @@ namespace EmbyTV.EPGProvider
             }
         }
 
-        private async Task<string> GetTokenInternal(string username, string password, CancellationToken cancellationToken)
+        private async Task<string> GetTokenInternal(string username, string password,
+            CancellationToken cancellationToken)
         {
             var httpOptions = new HttpRequestOptions()
             {
                 Url = _apiUrl + "/token",
-                UserAgent = userAgent,
+                UserAgent = _userAgent,
                 RequestContent = "{\"username\":\"" + username + "\",\"password\":\"" + password + "\"}",
                 CancellationToken = cancellationToken
             };
@@ -115,7 +116,7 @@ namespace EmbyTV.EPGProvider
                     var httpOptions = new HttpRequestOptionsMod()
                     {
                         Url = _apiUrl + "/lineups/" + lineup.Id,
-                        UserAgent = userAgent,
+                        UserAgent = _userAgent,
                         Token = token,
                         CancellationToken = cancellationToken
                     };
@@ -128,8 +129,8 @@ namespace EmbyTV.EPGProvider
                         foreach (ScheduleDirect.Map map in root.map)
                         {
                             var channel = map.channel ?? (map.atscMajor + "." + map.atscMinor);
-                            _logger.Debug("Found channel: "+channel+" in Schedules Direct");
-                            if (!channelPair.ContainsKey(channel) && channel != "0.0")
+                            _logger.Debug("Found channel: " + channel + " in Schedules Direct");
+                            if (!_channelPair.ContainsKey(channel) && channel != "0.0")
                             {
                                 _channelPair.Add(channel.TrimStart('0'),
                                     root.stations.FirstOrDefault(item => item.stationID == map.stationID));
@@ -168,17 +169,26 @@ namespace EmbyTV.EPGProvider
             }
             return channelsInfo;
         }
-        public async Task<List<ScheduleDirect.ShowImages>> GetImageForPrograms(List<string> programIds, CancellationToken cancellationToken)
+
+        public async Task<List<ScheduleDirect.ShowImages>> GetImageForPrograms(List<string> programIds,
+            CancellationToken cancellationToken)
         {
             var imageIdString = "[";
-            
-            programIds.ForEach(i => {if (!imageIdString.Contains(i.Substring(0, 10))){imageIdString+="\""+i.Substring(0, 10)+"\",";};});
+
+            programIds.ForEach(i =>
+            {
+                if (!imageIdString.Contains(i.Substring(0, 10)))
+                {
+                    imageIdString += "\"" + i.Substring(0, 10) + "\",";
+                }
+                ;
+            });
             imageIdString = imageIdString.TrimEnd(',') + "]";
             _logger.Debug("Json for show images = " + imageIdString);
             var httpOptions = new HttpRequestOptionsMod()
             {
-                Url = apiUrl+"/metadata/programs",
-                UserAgent = userAgent,
+                Url = _apiUrl + "/metadata/programs",
+                UserAgent = _userAgent,
                 CancellationToken = cancellationToken,
                 RequestContent = imageIdString
             };
@@ -191,39 +201,40 @@ namespace EmbyTV.EPGProvider
 
             return images;
         }
+
         public async Task<IEnumerable<ProgramInfo>> getTvGuideForChannel(string channelNumber, DateTime start,
             DateTime end, CancellationToken cancellationToken)
         {
-            var token = await GetToken(cancellationToken);
-
             List<ProgramInfo> programsInfo = new List<ProgramInfo>();
+            if (_channelPair.ContainsKey(channelNumber))
+            {
+                var token = await GetToken(cancellationToken);
 
-            if (string.IsNullOrWhiteSpace(token))
-            {
-                return programsInfo;
-            }
-            
-            HttpRequestOptionsMod httpOptions = new HttpRequestOptionsMod()
-            {
-                Url = _apiUrl + "/schedules",
-                UserAgent = userAgent,
-                Token = token,
-                CancellationToken = cancellationToken
-            };
-            _logger.Info("Schedules 1");
-            List<string> dates = new List<string>();
-            int numberOfDay = 0;
-            DateTime lastEntry = start;
-            while (lastEntry != end)
-            {
-                lastEntry = start.AddDays(numberOfDay);
-                dates.Add(lastEntry.ToString("yyyy-MM-dd"));
-                numberOfDay++;
-            }
-            string stationID = _channelPair[channelNumber].stationID;
-            _logger.Info("Channel ?" + stationID);
-            List<ScheduleDirect.RequestScheduleForChannel> requestList =
-                new List<ScheduleDirect.RequestScheduleForChannel>()
+                if (string.IsNullOrWhiteSpace(token))
+                {
+                    return programsInfo;
+                }
+
+                HttpRequestOptionsMod httpOptions = new HttpRequestOptionsMod()
+                {
+                    Url = _apiUrl + "/schedules",
+                    UserAgent = _userAgent,
+                    Token = token,
+                    CancellationToken = cancellationToken
+                };
+                List<string> dates = new List<string>();
+                int numberOfDay = 0;
+                DateTime lastEntry = start;
+                while (lastEntry != end)
+                {
+                    lastEntry = start.AddDays(numberOfDay);
+                    dates.Add(lastEntry.ToString("yyyy-MM-dd"));
+                    numberOfDay++;
+                }
+                string stationID = _channelPair[channelNumber].stationID;
+                _logger.Info("Channel Station ID is: " + stationID);
+                List<ScheduleDirect.RequestScheduleForChannel> requestList =
+                    new List<ScheduleDirect.RequestScheduleForChannel>()
                     {
                         new ScheduleDirect.RequestScheduleForChannel()
                         {
@@ -240,50 +251,55 @@ namespace EmbyTV.EPGProvider
                     StreamReader reader = new StreamReader(response.Content);
                     string responseString = reader.ReadToEnd();
                     var dailySchedules = _jsonSerializer.DeserializeFromString<List<ScheduleDirect.Day>>(responseString);
-                    _logger.Debug("Found " + dailySchedules.Count() + " programs on " + channelNumber + " ScheduleDirect");
-                    List<ProgramInfo> programsInfo = new List<ProgramInfo>();
+                    _logger.Debug("Found " + dailySchedules.Count() + " programs on " + channelNumber +
+                                  " ScheduleDirect");
                     httpOptions = new HttpRequestOptionsMod()
                     {
-                        Url = apiUrl + "/programs",
-                        UserAgent = userAgent,
+                        Url = _apiUrl + "/programs",
+                        UserAgent = _userAgent,
                         Token = token,
                         CancellationToken = cancellationToken
                     };
                     httpOptions.EnableHttpCompression = true;
                     List<string> programsID = new List<string>();
-                    dailySchedules.ForEach(d => d.programs.ForEach(s=>programsID.Add(s.programID)));
-                    programsID = programsID.Distinct().ToList();
-
+                    programsID = dailySchedules.SelectMany(d => d.programs.Select(s => s.programID)).Distinct().ToList();
                     var requestBody = "[\"" + string.Join("\", \"", programsID) + "\"]";
                     httpOptions.RequestContent = requestBody;
-                   
+
                     using (var innerResponse = await _httpClient.Post(httpOptions))
                     {
+                        StreamReader innerReader = new StreamReader(innerResponse.Content);
                         responseString = innerReader.ReadToEnd();
-						var programDetails =
-							_jsonSerializer.DeserializeFromString<List<ScheduleDirect.ProgramDetails>>(
-								responseString);
-						Dictionary<string, ScheduleDirect.ProgramDetails> programDict =
-							programDetails.ToDictionary(p => p.programID, y => y);
-						List<string> haveImage = new List<string>();
-
-						var images = await GetImageForPrograms( programDetails.Where(p => p.hasImageArtwork).Select(p=>p.programID).ToList(),cancellationToken);
-					   
-						foreach (ScheduleDirect.Day day in dailySchedules)
-						{
-							_logger.Debug("Proccesing Schedule for statio ID " + stationID +" which corresponds to channel " + channelNumber + " and program id " + schedule.programID + " which says it has images? " + programDict[schedule.programID].hasImageArtwork);
-							var imageIndex = images.FindIndex(i => i.programID == schedule.programID.Substring(0, 10));
-							if (imageIndex > -1)
-							{
-								programDict[schedule.programID].images = GetProgramLogo(images[imageIndex]);
-							}
-							programsInfo.Add(GetProgram(channelNumber, schedule, programDict[schedule.programID]));
-						}
-                            _logger.Info("Finished with EPGData");
-                            return programsInfo;
-
+                        var programDetails =
+                            _jsonSerializer.DeserializeFromString<List<ScheduleDirect.ProgramDetails>>(
+                                responseString);
+                        Dictionary<string, ScheduleDirect.ProgramDetails> programDict =
+                            programDetails.ToDictionary(p => p.programID, y => y);
+                        var images =
+                            await
+                                GetImageForPrograms(
+                                    programDetails.Where(p => p.hasImageArtwork).Select(p => p.programID).ToList(),
+                                    cancellationToken);
+                        var schedules = dailySchedules.SelectMany(d => d.programs);
+                        foreach (ScheduleDirect.Program schedule in schedules)
+                        {
+                            _logger.Debug("Proccesing Schedule for statio ID " + stationID +
+                                          " which corresponds to channel " + channelNumber + " and program id " +
+                                          schedule.programID + " which says it has images? " +
+                                          programDict[schedule.programID].hasImageArtwork);
+                            var imageIndex =
+                                images.FindIndex(i => i.programID == schedule.programID.Substring(0, 10));
+                            if (imageIndex > -1)
+                            {
+                                programDict[schedule.programID].images = GetProgramLogo(images[imageIndex]);
+                            }
+                            programsInfo.Add(GetProgram(channelNumber, schedule, programDict[schedule.programID]));
+                        }
+                        _logger.Info("Finished with EPGData");
+                    }
                 }
             }
+            return programsInfo;
         }
 
 
@@ -346,7 +362,10 @@ namespace EmbyTV.EPGProvider
             bool hasImage = false;
             var imageLink = "";
 
-            if (details.hasImageArtwork){imageLink = details.images;}
+            if (details.hasImageArtwork)
+            {
+                imageLink = details.images;
+            }
 
 
             var info = new ProgramInfo
@@ -356,7 +375,7 @@ namespace EmbyTV.EPGProvider
                 Overview = desc,
                 StartDate = startAt,
                 EndDate = endAt,
-                Genres = new List<string>() { "N/A" },
+                Genres = new List<string>() {"N/A"},
                 Name = details.titles[0].title120 ?? "Unkown",
                 OfficialRating = "0",
                 CommunityRating = null,
@@ -364,7 +383,7 @@ namespace EmbyTV.EPGProvider
                 Audio = audioType,
                 IsHD = hdtv,
                 IsRepeat = repeat,
-                IsSeries = 
+                IsSeries =
                     ((details.showType ?? "No ShowType") == "Series") ||
                     (details.showType ?? "No ShowType") == "Miniseries",
                 ImageUrl = imageLink,
@@ -417,7 +436,7 @@ namespace EmbyTV.EPGProvider
                 var httpOptions = new HttpRequestOptionsMod()
                 {
                     Url = _apiUrl + "/lineups",
-                    UserAgent = userAgent,
+                    UserAgent = _userAgent,
                     Token = token,
                     CancellationToken = cancellationToken
                 };
@@ -454,11 +473,14 @@ namespace EmbyTV.EPGProvider
 
         public string GetProgramLogo(ScheduleDirect.ShowImages images)
         {
-            string url="";
+            string url = "";
             if (images.data != null)
-            {   
+            {
                 var smallImages = images.data.Where(i => i.size == "Sm").ToList();
-                if (smallImages.Any()) { images.data = smallImages; }
+                if (smallImages.Any())
+                {
+                    images.data = smallImages;
+                }
                 var logoIndex = images.data.FindIndex(i => i.category == "Logo");
                 if (logoIndex == -1)
                 {
@@ -470,12 +492,13 @@ namespace EmbyTV.EPGProvider
                 }
                 else
                 {
-                    url = apiUrl+"/image/" +images.data[logoIndex].uri;
+                    url = _apiUrl + "/image/" + images.data[logoIndex].uri;
                 }
                 _logger.Debug("URL for image is : " + url);
             }
             return url;
         }
+
         public async Task<List<Headend>> GetHeadends(string zipcode, CancellationToken cancellationToken)
         {
             var token = await GetToken(cancellationToken);
@@ -491,7 +514,7 @@ namespace EmbyTV.EPGProvider
             var httpOptions = new HttpRequestOptionsMod()
             {
                 Url = _apiUrl + "/headends?country=USA&postalcode=" + zipcode,
-                UserAgent = userAgent,
+                UserAgent = _userAgent,
                 Token = token,
                 CancellationToken = cancellationToken,
             };
@@ -512,7 +535,7 @@ namespace EmbyTV.EPGProvider
                                 if (!String.IsNullOrWhiteSpace(lineup.name))
                                 {
                                     _logger.Info("Headend: " + lineup.uri.Substring(18));
-                                    lineups.Add(new Headend() { Name = lineup.name, Id = lineup.uri.Substring(18) });
+                                    lineups.Add(new Headend() {Name = lineup.name, Id = lineup.uri.Substring(18)});
                                 }
                             }
                         }
@@ -540,20 +563,19 @@ namespace EmbyTV.EPGProvider
             {
                 throw new ArgumentException("Authentication required.");
             }
-            
+
             _logger.Info("Adding new LineUp ");
 
             var httpOptions = new HttpRequestOptionsMod()
             {
                 Url = _apiUrl + "/lineups/" + id,
-                UserAgent = userAgent,
+                UserAgent = _userAgent,
                 Token = token,
                 CancellationToken = cancellationToken
             };
 
             using (var response = await _httpClient.SendAsync(httpOptions, "PUT"))
             {
-
             }
         }
     }

@@ -16,7 +16,7 @@ namespace EmbyTV.Api
     {
         public async Task<object> Get(GetSchedulesDirectHeadends request)
         {
-            var headends = await SchedulesDirect.Current.getHeadends(Plugin.Instance.Configuration.zipCode, CancellationToken.None).ConfigureAwait(false);
+            var headends = await SchedulesDirect.Current.GetHeadends(Plugin.Instance.Configuration.zipCode, CancellationToken.None).ConfigureAwait(false);
             var availableLineups = await SchedulesDirect.Current.getLineups(CancellationToken.None).ConfigureAwait(false);
 
             return new HeadendsResult
