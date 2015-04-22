@@ -513,7 +513,7 @@
                 }
                 $('.EmbyTvConfigurationPage').on('pageshow', function (event) { fillFormData(this); });
 
-                $(".EmbyTVConfigurationForm").on('submit', function (e) {
+                $(".schedulesDirectLoginForm").off('submit').on('submit', function (e) {
 
                     Dashboard.showLoadingMsg();
 
@@ -527,11 +527,33 @@
                     ApiClient.getPluginConfiguration(EmbyTVConfigurationPage.pluginUniqueId).done(function (config) {
 
                         config.username = $('#txtGuideUsername', form).val();
-                        config.zipCode = $('#zipCode', form).val();
-                        config.RecordingPath = $('#txtRecordingPath').val();
                         if (pass != "") {
                             config.hashPassword = pass;
                         }
+
+                        ApiClient.updatePluginConfiguration(EmbyTVConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult).done(function () {
+
+                            fillFormData(page);
+
+                        });
+
+                    });
+
+                    // Disable default form submission
+                    return false;
+                });
+
+                $(".EmbyTVConfigurationForm").off('submit').on('submit', function (e) {
+
+                    Dashboard.showLoadingMsg();
+
+                    var form = this;
+                    var page = $(form).parents('.page');
+
+                    ApiClient.getPluginConfiguration(EmbyTVConfigurationPage.pluginUniqueId).done(function (config) {
+
+                        config.zipCode = $('#zipCode', form).val();
+                        config.RecordingPath = $('#txtRecordingPath').val();
                         var lineup = {
                             Name: document.getElementById("tvLineups").options[document.getElementById("tvLineups").selectedIndex].innerHTML,
                             Id: document.getElementById("tvLineups").options[document.getElementById("tvLineups").selectedIndex].value
