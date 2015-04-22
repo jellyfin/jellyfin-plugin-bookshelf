@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Security.Policy;
-using EmbyTV.EPGProvider;
-using MediaBrowser.Model.Dto;
-using MediaBrowser.Model.Plugins;
+﻿using EmbyTV.EPGProvider;
 using EmbyTV.TunerHost;
+using MediaBrowser.Model.Plugins;
+using System;
+using System.Collections.Generic;
 
 namespace EmbyTV.Configuration
 {
@@ -17,8 +13,6 @@ namespace EmbyTV.Configuration
         public string hashPassword { get; set; }
         public string username { get; set; }
         public Headend lineup { get; set; }
-        public List<string> avaliableLineups { get; set; }
-        public List<Headend> headends{ get; set; }
         public string zipCode { get; set; }
         public List<FieldBuilder> TunerDefaultConfigurationsFields { get { return TunerHostStatics.BuildDefaultForTunerHostsBuilders(); } }
        
@@ -30,7 +24,6 @@ namespace EmbyTV.Configuration
             username = "";
             hashPassword = "";
             zipCode = "";
-            headends = new List<Headend>();
         }
     }
 

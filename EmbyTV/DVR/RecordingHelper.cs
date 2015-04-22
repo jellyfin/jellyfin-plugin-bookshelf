@@ -21,12 +21,11 @@ namespace EmbyTV.DVR
             httpRequestOptions.BufferContent = false;
             httpRequestOptions.CancellationToken = cancellationToken;
             logger.Info("Writing file to path: " + filePath);
-            using (var request = httpClient.SendAsync(httpRequestOptions, "GET"))
+            using (var response = await httpClient.SendAsync(httpRequestOptions, "GET"))
             {
                 using (var output = File.Open(filePath, FileMode.Create, FileAccess.Write, FileShare.Read))
                 {
-                    await request.Result.Content.CopyToAsync(output, 4096, cancellationToken);
-                    output.Dispose();
+                    await response.Content.CopyToAsync(output, 4096, cancellationToken);
                 }
             }
         }

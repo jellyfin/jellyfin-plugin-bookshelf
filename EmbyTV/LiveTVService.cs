@@ -1,31 +1,22 @@
-﻿﻿using EmbyTV.TunerHost;
-﻿using MediaBrowser.Common.Configuration;
-﻿using MediaBrowser.Common.Net;
-using MediaBrowser.Controller.Channels;
+﻿﻿using EmbyTV.Configuration;
+﻿using EmbyTV.DVR;
+using EmbyTV.GeneralHelpers;
+using EmbyTV.TunerHost;
+using MediaBrowser.Common.Configuration;
+using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Drawing;
 using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.Dto;
-using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.LiveTv;
 using MediaBrowser.Model.Logging;
-using MediaBrowser.Model.MediaInfo;
+using MediaBrowser.Model.Net;
 using MediaBrowser.Model.Serialization;
 using System;
-﻿using System.CodeDom;
-﻿using System.Collections.Generic;
-using System.Globalization;
-﻿using System.IO;
-﻿using System.Linq;
-﻿using System.Runtime.Remoting.Messaging;
-﻿using System.Threading;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-﻿using System.Timers;
-﻿using EmbyTV.Configuration;
-﻿using EmbyTV.DVR;
-﻿using EmbyTV.GeneralHelpers;
-﻿using MediaBrowser.Model.Connect;
-﻿using MediaBrowser.Model.LiveTv;
-﻿using MediaBrowser.Model.Net;
-
 
 namespace EmbyTV
 {
@@ -35,7 +26,7 @@ namespace EmbyTV
     public class LiveTvService : ILiveTvService
     {
         private List<ITunerHost> _tunerServer;
-        private EPGProvider.SchedulesDirect _tvGuide;
+        private readonly EPGProvider.SchedulesDirect _tvGuide;
         private readonly ILogger _logger;
         private readonly IJsonSerializer _jsonSerializer;
         private readonly IHttpClient _httpClient;
@@ -46,9 +37,6 @@ namespace EmbyTV
         private Dictionary<string, MediaSourceInfo> streams;
         private readonly IApplicationPaths _appPaths;
         private List<RecordingInfo> recordings;      
-
-
-
 
         public LiveTvService(IHttpClient httpClient, IJsonSerializer jsonSerializer, ILogManager logManager, IXmlSerializer xmlSerializer, IApplicationPaths appPaths)
         {
@@ -61,8 +49,10 @@ namespace EmbyTV
             _appPaths = appPaths;
             _logger.Info("Directory is: " + DataPath);
 
-            RefreshConfigData(CancellationToken.None);
-            Plugin.Instance.ConfigurationUpdated += (sender, args) => RefreshConfigData(CancellationToken.None);
+            _tvGuide = new EPGProvider.SchedulesDirect(_logger, _jsonSerializer, _httpClient);
+            
+            RefreshConfigData(false, CancellationToken.None);
+            Plugin.Instance.ConfigurationUpdated += (sender, args) => RefreshConfigData(true, CancellationToken.None);
         }
 
         public string DataPath
@@ -325,9 +315,7 @@ namespace EmbyTV
             return Task.FromResult(true);
         }
 
-
-
-        public async void RefreshConfigData(CancellationToken cancellationToken)
+        public async void RefreshConfigData(bool isConfigChange, CancellationToken cancellationToken)
         {
             var config = Plugin.Instance.Configuration;
             if (config.TunerHostsConfiguration != null)
@@ -346,17 +334,29 @@ namespace EmbyTV
                 GetTimerData();               
             }
             FirstRun = false;
-            _tvGuide = new EPGProvider.SchedulesDirect(config.username, config.hashPassword, config.lineup, _logger, _jsonSerializer, _httpClient);
-            config.avaliableLineups = await _tvGuide.getLineups(cancellationToken);
-            if (_tvGuide.badPassword)
-            {
-                config.hashPassword = "";
-            }
-            config.headends = await _tvGuide.getHeadends(config.zipCode, cancellationToken);
+
             Plugin.Instance.SaveConfiguration();
+
+            if (isConfigChange)
+            {
+                await AddLineupIfNeeded(config, cancellationToken).ConfigureAwait(false);
+            }
         }
 
+        private async Task AddLineupIfNeeded(PluginConfiguration config, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(config.lineup.Id))
+            {
+                return;
+            }
 
+            var lineups = await _tvGuide.getLineups(cancellationToken).ConfigureAwait(false);
+
+            if (!lineups.Any(i => string.Equals(i, config.lineup.Id, StringComparison.OrdinalIgnoreCase)))
+            {
+                await _tvGuide.addHeadEnd(config.lineup.Id, cancellationToken).ConfigureAwait(false);
+            }
+        }
 
         public async Task<IEnumerable<ProgramInfo>> GetProgramsAsync(string channelId, DateTime startDateUtc, DateTime endDateUtc, CancellationToken cancellationToken)
         {
@@ -443,10 +443,6 @@ namespace EmbyTV
         {
             return Task.FromResult(0);
         }
-
-
-
-
 
         public Task<MediaSourceInfo> GetChannelStream(string channelId, string streamId, CancellationToken cancellationToken)
         {
