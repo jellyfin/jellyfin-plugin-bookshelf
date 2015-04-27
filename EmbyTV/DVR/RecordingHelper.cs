@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,6 +50,22 @@ namespace EmbyTV.DVR
             {
                 GetType().GetProperty(prop.Name).SetValue(this, prop.GetValue(parent, null), null);
             }
+            this.Id = parent.ProgramId;
+        }
+        public SingleTimer(ProgramInfo parent, SeriesTimerInfo series)
+        {
+            ChannelId = parent.ChannelId;
+            Id = parent.Id;
+            StartDate = parent.StartDate;
+            EndDate = parent.EndDate;
+            ProgramId = parent.Id;
+            PrePaddingSeconds = series.PrePaddingSeconds;
+            PostPaddingSeconds = series.PostPaddingSeconds;
+            IsPostPaddingRequired = series.IsPostPaddingRequired;
+            IsPrePaddingRequired = series.IsPrePaddingRequired;
+            Priority = series.Priority;
+            Name = parent.Name;
+            Overview = parent.Overview;
         }
 
         public void CopyTimer(TimerInfo parent)
@@ -56,6 +74,7 @@ namespace EmbyTV.DVR
             {
                 GetType().GetProperty(prop.Name).SetValue(this, prop.GetValue(parent, null), null);
             }
+            this.Id = parent.ProgramId;
         }
 
         public void GenerateEvent()
@@ -127,6 +146,7 @@ namespace EmbyTV.DVR
             {
                 GetType().GetProperty(prop.Name).SetValue(this, prop.GetValue(parent, null), null);
             }
+            Id = parent.ProgramId.Substring(0, 10);
         }
         public void CopyTimer(SeriesTimerInfo parent)
         {
@@ -134,6 +154,16 @@ namespace EmbyTV.DVR
             {
                 GetType().GetProperty(prop.Name).SetValue(this, prop.GetValue(parent, null), null);
             }
+        }
+
+        public List<SingleTimer> GetTimersForSeries(IEnumerable<ProgramInfo> epgData, List<RecordingInfo> currentRecordings )
+        {
+            List<SingleTimer> timers = new List<SingleTimer>();
+            var filteredEpg = epgData.ToList().Where(epg => epg.Id.Substring(0, 10) == this.Id).ToList();
+            filteredEpg = filteredEpg.Where(epg => (!currentRecordings.Any(r => r.Id.Substring(0, 14) == epg.Id.Substring(0, 14))) && (epg.ChannelId == this.ChannelId || this.RecordAnyChannel) && (this.RecordAnyTime || this.StartDate.TimeOfDay == epg.StartDate.TimeOfDay) && (!this.RecordNewOnly || !epg.IsRepeat) && (this.Days.Contains(epg.StartDate.DayOfWeek))).ToList();
+            filteredEpg = filteredEpg.GroupBy(epg => epg.Id.Substring(0,14)).Select(g => g.First()).ToList();
+            filteredEpg.ForEach(epg => timers.Add(new SingleTimer(epg,this)));
+            return timers;
         }
 
 

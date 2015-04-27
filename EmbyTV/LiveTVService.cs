@@ -98,39 +98,40 @@ namespace EmbyTV
             }
         }
 
-        private void UpdateSeriesTimerData() { CreateFileCopy(seriesTimers, @"seriesTimers.xml"); }
-        private void UpdateTimerData() { CreateFileCopy(timers, @"timers.xml"); }
-        private void UpdateRecordingsData(){ CreateFileCopy(recordings, @"recordings.xml"); }
+        private void UpdateSeriesTimerData() { CreateFileCopy(seriesTimers,DataPath+ @"\seriesTimers.xml"); }
+        private void UpdateTimerData() { CreateFileCopy(timers,DataPath+ @"\timers.xml"); }
+        private void UpdateRecordingsData(){ CreateFileCopy(recordings,DataPath+ @"\recordings.xml"); }
 
-        public void CreateFileCopy(object obj, string file)
+        public void CreateFileCopy(object obj, string filePath)
         {
-            Directory.CreateDirectory(DataPath);
-            var path = DataPath + @"\"+file;
-            if (obj != null)
-            {
-                _xmlSerializer.SerializeToFile(obj, path);
-            }
+                Helpers.CreateFileCopy(obj,filePath,_xmlSerializer);
         }
 
-        public void DeleteFile(string path)
-        {
-            if (File.Exists(path))
-            {
-                File.Delete(path);
-            }
-        }
+
         private void GetRecordingData(){
             GetFileCopy(ref recordings, "recordings.xml");
             recordings = recordings.GroupBy(x => x.Id).Select(g => g.First()).ToList();
         }
         private void SaveEpgDataForChannel(string channelId, IEnumerable<ProgramInfo> epgData)
         {
-            CreateFileCopy(epgData, @"EPG\" + channelId + ".xml");
+            CreateFileCopy(epgData, DataPath+@"\EPG\" + channelId + ".xml");
         }
         private List<ProgramInfo> GetEpgDataForChannel(string channelId)
         {
             List<ProgramInfo> channelEpg = new List<ProgramInfo>();
             GetFileCopy<List<ProgramInfo>>(ref channelEpg, @"EPG\" + channelId + ".xml");
+            return channelEpg;
+        }
+        private List<ProgramInfo> GetEpgDataForAllChannels()
+        {
+            List<ProgramInfo> channelEpg = new List<ProgramInfo>();
+            DirectoryInfo dir = new DirectoryInfo(DataPath + @"\EPG\");
+            List<FileInfo> Files = dir.GetFiles("*.xml").ToList();
+            List<string> channels = Files.Select(f => f.Name).ToList();
+            foreach (var channel in channels)
+            {
+                channelEpg.AddRange(GetEpgDataForChannel(channel));
+            }
             return channelEpg;
         }
         private ProgramInfo GetProgramInfoFromCache(string channelId, string programId)
@@ -300,7 +301,7 @@ namespace EmbyTV
             var remove = recordings.FindIndex(r => r.Id == recordingId);
             if(remove != -1)
             {
-                DeleteFile(recordings[remove].Path);
+                Helpers.DeleteFile(recordings[remove].Path);
                 recordings.RemoveAt(remove);
             }
             return Task.FromResult(true);
@@ -348,7 +349,14 @@ namespace EmbyTV
 
             if (!lineups.Any(i => string.Equals(i, config.lineup.Id, StringComparison.OrdinalIgnoreCase)))
             {
-                await _tvGuide.addHeadEnd(config.lineup.Id, cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    await _tvGuide.addHeadEnd(config.lineup.Id, cancellationToken).ConfigureAwait(false);
+                }
+                catch (ArgumentException e)
+                {
+                    _logger.Debug("Cant authenticate with Schedules Direct/ user may not have filled the login information.");
+                }
             }
         }
 
@@ -358,15 +366,34 @@ namespace EmbyTV
             var programInfos = epgData as IList<ProgramInfo> ?? epgData.ToList();
             if (!programInfos.Any())
             {
+                _logger.Debug("Couldnt find any data on the epg provider looking through the local cache");
                 epgData = GetEpgDataForChannel(channelId);
             }
             else
             {
+                _logger.Debug("Found data on the epg provider saving it to the local cache");
                 SaveEpgDataForChannel(channelId, programInfos);
+            }
+            foreach (var seriesTimer in seriesTimers)
+            {
+                if (seriesTimer.ChannelId == channelId || seriesTimer.RecordAnyChannel)
+                {
+                    _logger.Info("Proccesing series timers for show" + seriesTimer.Id + " on channel " + channelId);
+                    UpdateTimersForSeriesTimer(epgData, seriesTimer);
+                }
             }
             return epgData;
         }
 
+        private void UpdateTimersForSeriesTimer(IEnumerable<ProgramInfo> epgData,SeriesTimer seriesTimer)
+        {
+                var tempTimers = seriesTimer.GetTimersForSeries(epgData, recordings);
+                _logger.Info("Creating " + tempTimers.Count + " timers for series timer " + seriesTimer.Id);
+                foreach (var timer in tempTimers)
+                {
+                    CreateTimerAsync(timer, CancellationToken.None);
+                }   
+        }
 
         public Task<IEnumerable<RecordingInfo>> GetRecordingsAsync(CancellationToken cancellationToken)
         {
@@ -483,7 +510,18 @@ namespace EmbyTV
 
         public Task CreateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
         {
-            seriesTimers.Add(new SeriesTimer(info));
+            var seriesTimer = new SeriesTimer(info);
+            List<ProgramInfo> pInfo;
+            if (seriesTimer.RecordAnyChannel)
+            {
+                pInfo = GetEpgDataForAllChannels();
+            }
+            else
+            {
+                pInfo = GetEpgDataForChannel(info.ChannelId);
+            }
+            UpdateTimersForSeriesTimer(pInfo,seriesTimer);
+            seriesTimers.Add(seriesTimer);
             UpdateSeriesTimerData();
             return Task.FromResult(true);
         }
