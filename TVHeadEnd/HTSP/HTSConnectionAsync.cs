@@ -108,7 +108,7 @@ namespace TVHeadEnd.HTSP
                     IPEndPoint remoteEP = new IPEndPoint(ipAddress, port);
 
                     // Create a TCP/IP  socket.
-                    _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                    _socket = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
                     // connect to server
                     _socket.Connect(remoteEP);
