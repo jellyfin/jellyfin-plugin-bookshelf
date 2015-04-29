@@ -1132,7 +1132,7 @@ namespace TVHeadEnd
 
         public void onError(Exception ex)
         {
-            _logger.Error("[TVHclient] HTSP error: " + ex.Message);
+            _logger.ErrorException("[TVHclient] HTSP error: " + ex.Message, ex);
             _htsConnection.stop();
             _connected = false;
 
