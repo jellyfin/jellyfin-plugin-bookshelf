@@ -972,8 +972,21 @@ namespace TVHeadEnd
 
         public Task<ImageStream> GetChannelImageAsync(string channelId, CancellationToken cancellationToken)
         {
-            // Leave as is. This is handled by supplying image url to ChannelInfo
+            string piconData = _channelDataHelper.getPiconData(channelId);
+            if(piconData == null)
+            {
+                // Leave as is. This is handled by supplying image url to ChannelInfo
+                throw new NotImplementedException();
+            }
+
+            
+
+            _logger.Info("[TVHclient] LiveTvService.GetChannelImageAsync called for channelID '" + channelId + "'  piconData '" + piconData + "'");
+
+
+
             throw new NotImplementedException();
+
         }
 
         public Task<ImageStream> GetProgramImageAsync(string programId, string channelId, CancellationToken cancellationToken)
@@ -1119,11 +1132,15 @@ namespace TVHeadEnd
 
         public void onError(Exception ex)
         {
-            _logger.Error("[TVHclient] HTSP error: " + ex.Message);
+            _logger.ErrorException("[TVHclient] HTSP error: " + ex.Message, ex);
             _htsConnection.stop();
             _connected = false;
 
             sendDataSourceChanged();
+
+            ensureConnection();
+
+            throw ex;
         }
     }
 }

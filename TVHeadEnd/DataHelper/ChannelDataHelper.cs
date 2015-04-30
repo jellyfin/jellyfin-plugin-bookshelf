@@ -15,12 +15,14 @@ namespace TVHeadEnd.DataHelper
         private readonly ILogger _logger;
         private readonly TunerDataHelper _tunerDataHelper;
         private readonly Dictionary<int, HTSMessage> _data;
+        private readonly Dictionary<string, string> _piconData;
 
         public ChannelDataHelper(ILogger logger, TunerDataHelper tunerDataHelper)
         {
             _logger = logger;
             _tunerDataHelper = tunerDataHelper;
             _data = new Dictionary<int, HTSMessage>();
+            _piconData = new Dictionary<string, string>();
         }
 
         public void clean()
@@ -68,6 +70,18 @@ namespace TVHeadEnd.DataHelper
             }
         }
 
+        public string getPiconData(string channelID)
+        {
+            if (_piconData.ContainsKey(channelID))
+            {
+                return _piconData[channelID];
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         public Task<IEnumerable<ChannelInfo>> buildChannelInfos(CancellationToken cancellationToken)
         {
             return Task.Factory.StartNew<IEnumerable<ChannelInfo>>(() =>
@@ -99,9 +113,15 @@ namespace TVHeadEnd.DataHelper
                             {
                                 ci.ImageUrl = channelIcon;
                             }
+                            else if(channelIcon.ToLower().StartsWith("picon://"))
+                            {
+                                ci.HasImage = true;
+                                _piconData.Add(ci.Id, channelIcon);
+                            } 
                             else
                             {
-                                _logger.Info("[TVHclient] ChannelDataHelper.buildChannelInfos: channelIcon '" + channelIcon + "' is not a valid HTTP URL!");
+                                _logger.Info("[TVHclient] ChannelDataHelper.buildChannelInfos: channelIcon '" + channelIcon + 
+                                    "' can not be handled properly for channelID '" + ci.Id + "'!");   
                             }
                         }
                         if (m.containsField("channelName"))
