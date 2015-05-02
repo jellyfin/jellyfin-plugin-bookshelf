@@ -107,6 +107,10 @@ namespace TVHeadEnd.HTSP
                     IPAddress ipAddress = ipHostInfo.AddressList[0];
                     IPEndPoint remoteEP = new IPEndPoint(ipAddress, port);
 
+                    _logger.Info("[TVHclient] HTSConnectionAsync.open: " + 
+                        "IPEndPoint = '" + remoteEP.ToString() + "'; " + 
+                        "AddressFamily = '" + ipAddress.AddressFamily + "'");
+
                     // Create a TCP/IP  socket.
                     _socket = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
