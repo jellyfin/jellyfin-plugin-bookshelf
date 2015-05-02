@@ -106,7 +106,7 @@ namespace TVHeadEnd
                     }
 
                     _priority = config.Priority;
-                    _profile = config.Profile;
+                    _profile = config.Profile.Trim();
 
                     if (_priority < 0 || _priority > 4)
                     {
@@ -114,10 +114,23 @@ namespace TVHeadEnd
                         _logger.Info("[TVHclient] LiveTvService.ensureConnection: Priority was out of range [0-4] - set to 2");
                     }
 
-                    _httpBaseUrl = "http://" + config.TVH_ServerName + ":" + config.HTTP_Port;
+                    string tvhServerName = config.TVH_ServerName.Trim();
+                    int httpPort = config.HTTP_Port;
+                    int htspPort = config.HTSP_Port;
+                    string userName = config.Username.Trim();
+                    string password = config.Password.Trim();
 
-                    _htsConnection.open(config.TVH_ServerName, config.HTSP_Port);
-                    _connected = _htsConnection.authenticate(config.Username, config.Password);
+                    _httpBaseUrl = "http://" + tvhServerName + ":" + httpPort;
+
+                    _logger.Info("[TVHclient] LiveTvService.ensureConnection: Used connection parameters: " +
+                        "TVH Server = '" + tvhServerName + "'; " +
+                        "HTTP Port = '" + httpPort + "'; " +
+                        "HTSP Port = '" + htspPort + "'; " +
+                        "User = '" + userName + "'; " +
+                        "Password set = '" + (password.Length > 0) + "'");
+
+                    _htsConnection.open(tvhServerName, htspPort);
+                    _connected = _htsConnection.authenticate(userName, password);
 
                     _logger.Info("[TVHclient] LiveTvService.ensureConnection: connection established " + _connected);
 
@@ -149,7 +162,7 @@ namespace TVHeadEnd
             //return data;
 
             TaskWithTimeoutRunner<IEnumerable<ChannelInfo>> twtr = new TaskWithTimeoutRunner<IEnumerable<ChannelInfo>>(TIMEOUT);
-            TaskWithTimeoutResult<IEnumerable<ChannelInfo>> twtRes = await 
+            TaskWithTimeoutResult<IEnumerable<ChannelInfo>> twtRes = await
                 twtr.RunWithTimeout(_channelDataHelper.buildChannelInfos(cancellationToken));
 
             if (twtRes.HasTimeout)
@@ -202,7 +215,7 @@ namespace TVHeadEnd
             //return data;
 
             TaskWithTimeoutRunner<IEnumerable<RecordingInfo>> twtr = new TaskWithTimeoutRunner<IEnumerable<RecordingInfo>>(TIMEOUT);
-            TaskWithTimeoutResult<IEnumerable<RecordingInfo>> twtRes = await 
+            TaskWithTimeoutResult<IEnumerable<RecordingInfo>> twtRes = await
                 twtr.RunWithTimeout(_dvrDataHelper.buildDvrInfos(cancellationToken));
 
             if (twtRes.HasTimeout)
@@ -302,7 +315,7 @@ namespace TVHeadEnd
             //});
 
             TaskWithTimeoutRunner<HTSMessage> twtr = new TaskWithTimeoutRunner<HTSMessage>(TIMEOUT);
-            TaskWithTimeoutResult<HTSMessage> twtRes = await twtr.RunWithTimeout(Task.Factory.StartNew<HTSMessage > (() =>
+            TaskWithTimeoutResult<HTSMessage> twtRes = await twtr.RunWithTimeout(Task.Factory.StartNew<HTSMessage>(() =>
             {
                 LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
                 _htsConnection.sendMessage(cancelTimerMessage, lbrh);
@@ -459,7 +472,7 @@ namespace TVHeadEnd
             //return data;
 
             TaskWithTimeoutRunner<IEnumerable<TimerInfo>> twtr = new TaskWithTimeoutRunner<IEnumerable<TimerInfo>>(TIMEOUT);
-            TaskWithTimeoutResult<IEnumerable<TimerInfo>> twtRes = await 
+            TaskWithTimeoutResult<IEnumerable<TimerInfo>> twtRes = await
                 twtr.RunWithTimeout(_dvrDataHelper.buildPendingTimersInfos(cancellationToken));
 
             if (twtRes.HasTimeout)
@@ -490,7 +503,7 @@ namespace TVHeadEnd
             //return data;
 
             TaskWithTimeoutRunner<IEnumerable<SeriesTimerInfo>> twtr = new TaskWithTimeoutRunner<IEnumerable<SeriesTimerInfo>>(TIMEOUT);
-            TaskWithTimeoutResult<IEnumerable<SeriesTimerInfo>> twtRes = await 
+            TaskWithTimeoutResult<IEnumerable<SeriesTimerInfo>> twtRes = await
                 twtr.RunWithTimeout(_autorecDataHelper.buildAutorecInfos(cancellationToken));
 
             if (twtRes.HasTimeout)
@@ -790,7 +803,7 @@ namespace TVHeadEnd
             //});
 
             TaskWithTimeoutRunner<HTSMessage> twtr = new TaskWithTimeoutRunner<HTSMessage>(TIMEOUT);
-            TaskWithTimeoutResult<HTSMessage> twtRes = await  twtr.RunWithTimeout(Task.Factory.StartNew<HTSMessage>(() =>
+            TaskWithTimeoutResult<HTSMessage> twtRes = await twtr.RunWithTimeout(Task.Factory.StartNew<HTSMessage>(() =>
                 {
                     LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
                     _htsConnection.sendMessage(getTicketMessage, lbrh);
@@ -895,7 +908,7 @@ namespace TVHeadEnd
             //return pi;
 
             TaskWithTimeoutRunner<IEnumerable<ProgramInfo>> twtr = new TaskWithTimeoutRunner<IEnumerable<ProgramInfo>>(TIMEOUT);
-            TaskWithTimeoutResult<IEnumerable<ProgramInfo>> twtRes = await 
+            TaskWithTimeoutResult<IEnumerable<ProgramInfo>> twtRes = await
                 twtr.RunWithTimeout(currGetEventsResponseHandler.GetEvents(cancellationToken));
 
             if (twtRes.HasTimeout)
@@ -939,7 +952,7 @@ namespace TVHeadEnd
             //List<LiveTvTunerInfo> tvTunerInfos = await _tunerDataHelper.buildTunerInfos(cancellationToken);
 
             TaskWithTimeoutRunner<List<LiveTvTunerInfo>> twtr = new TaskWithTimeoutRunner<List<LiveTvTunerInfo>>(TIMEOUT);
-            TaskWithTimeoutResult<List<LiveTvTunerInfo>> twtRes = await 
+            TaskWithTimeoutResult<List<LiveTvTunerInfo>> twtRes = await
                 twtr.RunWithTimeout(_tunerDataHelper.buildTunerInfos(cancellationToken));
 
             List<LiveTvTunerInfo> tvTunerInfos;
@@ -973,13 +986,13 @@ namespace TVHeadEnd
         public Task<ImageStream> GetChannelImageAsync(string channelId, CancellationToken cancellationToken)
         {
             string piconData = _channelDataHelper.getPiconData(channelId);
-            if(piconData == null)
+            if (piconData == null)
             {
                 // Leave as is. This is handled by supplying image url to ChannelInfo
                 throw new NotImplementedException();
             }
 
-            
+
 
             _logger.Info("[TVHclient] LiveTvService.GetChannelImageAsync called for channelID '" + channelId + "'  piconData '" + piconData + "'");
 
