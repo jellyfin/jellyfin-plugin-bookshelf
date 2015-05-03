@@ -9,6 +9,9 @@ using TVHeadEnd.Helper;
 using TVHeadEnd.HTSP_Responses;
 
 
+using System.Text.RegularExpressions;
+
+
 namespace TVHeadEnd.HTSP
 {
     public class HTSConnectionAsync
@@ -103,8 +106,15 @@ namespace TVHeadEnd.HTSP
                 try
                 {
                     // Establish the remote endpoint for the socket.
-                    IPHostEntry ipHostInfo = Dns.GetHostEntry(hostname);
-                    IPAddress ipAddress = ipHostInfo.AddressList[0];
+
+                    IPAddress ipAddress;
+                    if (!IPAddress.TryParse(hostname, out ipAddress))
+                    {
+                        // no IP --> ask DNS
+                        IPHostEntry ipHostInfo = Dns.GetHostEntry(hostname);
+                        ipAddress = ipHostInfo.AddressList[0];
+                    }
+                    
                     IPEndPoint remoteEP = new IPEndPoint(ipAddress, port);
 
                     _logger.Info("[TVHclient] HTSConnectionAsync.open: " + 
