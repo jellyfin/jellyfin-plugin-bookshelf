@@ -211,7 +211,8 @@ namespace EmbyTV
                     ImageUrl = info.ImageUrl,
                     OriginalAirDate = info.OriginalAirDate,
                     Status = RecordingStatus.Scheduled,
-                    Overview = info.Overview
+                    Overview = info.Overview,
+                    SeriesTimerId = info.Id.Substring(0,10)
                 });
             }
             UpdateRecordingsData();
@@ -304,6 +305,7 @@ namespace EmbyTV
                 Helpers.DeleteFile(recordings[remove].Path);
                 recordings.RemoveAt(remove);
             }
+            UpdateRecordingsData();
             return Task.FromResult(true);
         }
 
@@ -387,7 +389,7 @@ namespace EmbyTV
 
         private void UpdateTimersForSeriesTimer(IEnumerable<ProgramInfo> epgData,SeriesTimer seriesTimer)
         {
-                var tempTimers = seriesTimer.GetTimersForSeries(epgData, recordings);
+                var tempTimers = seriesTimer.GetTimersForSeries(epgData, recordings,_logger);
                 _logger.Info("Creating " + tempTimers.Count + " timers for series timer " + seriesTimer.Id);
                 foreach (var timer in tempTimers)
                 {
@@ -572,7 +574,18 @@ namespace EmbyTV
         public Task UpdateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
         {
             var recording = seriesTimers.FindIndex(r => r.Id == info.Id);
+            var seriesTimer = new SeriesTimer(info);
             if (recording >= 0) { seriesTimers[recording] = new SeriesTimer(info); }
+            List<ProgramInfo> pInfo;
+            if (seriesTimer.RecordAnyChannel)
+            {
+                pInfo = GetEpgDataForAllChannels();
+            }
+            else
+            {
+                pInfo = GetEpgDataForChannel(info.ChannelId);
+            }
+            UpdateTimersForSeriesTimer(pInfo, seriesTimer);
             UpdateSeriesTimerData();
             return Task.FromResult(true);
         }
