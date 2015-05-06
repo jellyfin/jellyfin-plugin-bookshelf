@@ -8,10 +8,6 @@ using System.Threading.Tasks;
 using TVHeadEnd.Helper;
 using TVHeadEnd.HTSP_Responses;
 
-
-using System.Text.RegularExpressions;
-
-
 namespace TVHeadEnd.HTSP
 {
     public class HTSConnectionAsync
