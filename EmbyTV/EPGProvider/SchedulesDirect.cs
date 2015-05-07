@@ -25,7 +25,7 @@ namespace EmbyTV.EPGProvider
         private readonly IJsonSerializer _jsonSerializer;
         private readonly IHttpClient _httpClient;
         private readonly SemaphoreSlim _tokenSemaphore = new SemaphoreSlim(1, 1);
-        private const string _userAgent = "EmbyTV";
+        private const string UserAgent = "EmbyTV";
         public static SchedulesDirect Current;
 
         public SchedulesDirect(ILogger logger, IJsonSerializer jsonSerializer, IHttpClient httpClient)
@@ -35,22 +35,16 @@ namespace EmbyTV.EPGProvider
             _httpClient = httpClient;
             _apiUrl = "https://json.schedulesdirect.org/20141201";
             Current = this;
+            
         }
 
         private async Task<string> GetToken(CancellationToken cancellationToken)
         {
             await _tokenSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
-
             try
             {
-                var username = Plugin.Instance.Configuration.username;
-
-                // Reset the token if the username has changed
-                if (!string.Equals(username, _tokenUsername, StringComparison.OrdinalIgnoreCase))
-                {
-                    _token = null;
-                }
-
+                var username = Plugin.Instance.Configuration.username ?? "";
+               
                 // Reset the token if there's no username
                 if (string.IsNullOrWhiteSpace(username))
                 {
@@ -58,12 +52,26 @@ namespace EmbyTV.EPGProvider
                     return null;
                 }
 
+                // Reset the token if the username has changed
+                if (!string.Equals(username, _tokenUsername, StringComparison.OrdinalIgnoreCase))
+                {
+                    _token = null;
+                }
+
+
+                /* Token can change if another application makes a request have to check if token is still good, so just get a new token.
                 if (!string.IsNullOrWhiteSpace(_token))
                 {
                     return _token;
                 }
+                */
+                var password = Plugin.Instance.Configuration.hashPassword ?? "";
+                if (string.IsNullOrWhiteSpace(password))
+                {
+                    _token = null;
+                    return null;
+                }
 
-                var password = Plugin.Instance.Configuration.hashPassword;
 
                 var result = await GetTokenInternal(username, password, cancellationToken).ConfigureAwait(false);
                 _token = result;
@@ -82,7 +90,7 @@ namespace EmbyTV.EPGProvider
             var httpOptions = new HttpRequestOptions()
             {
                 Url = _apiUrl + "/token",
-                UserAgent = _userAgent,
+                UserAgent = UserAgent,
                 RequestContent = "{\"username\":\"" + username + "\",\"password\":\"" + password + "\"}",
                 CancellationToken = cancellationToken
             };
@@ -108,19 +116,17 @@ namespace EmbyTV.EPGProvider
             var token = await GetToken(cancellationToken);
 
             var lineup = Plugin.Instance.Configuration.lineup;
-
-            if (!String.IsNullOrWhiteSpace(token))
+            _channelPair = new Dictionary<string, ScheduleDirect.Station>();
+            if (!String.IsNullOrWhiteSpace(token) && !String.IsNullOrWhiteSpace(lineup.Id))
             {
-                if (!String.IsNullOrWhiteSpace(lineup.Id))
-                {
                     var httpOptions = new HttpRequestOptionsMod()
                     {
                         Url = _apiUrl + "/lineups/" + lineup.Id,
-                        UserAgent = _userAgent,
+                        UserAgent = UserAgent,
                         Token = token,
                         CancellationToken = cancellationToken
                     };
-                    _channelPair = new Dictionary<string, ScheduleDirect.Station>();
+                   
                     using (var response = await _httpClient.Get(httpOptions))
                     {
                         var root = _jsonSerializer.DeserializeFromStream<ScheduleDirect.Channel>(response);
@@ -128,21 +134,22 @@ namespace EmbyTV.EPGProvider
                         _logger.Info("Mapping Stations to Channel");
                         foreach (ScheduleDirect.Map map in root.map)
                         {
-                            var channel = map.channel ?? (map.atscMajor + "." + map.atscMinor);
+                            var channel = (map.channel ?? (map.atscMajor + "." + map.atscMinor)).TrimStart('0');
                             _logger.Debug("Found channel: " + channel + " in Schedules Direct");
                             if (!_channelPair.ContainsKey(channel) && channel != "0.0")
                             {
-                                _channelPair.Add(channel.TrimStart('0'),
+                                _channelPair.Add(channel,
                                     root.stations.FirstOrDefault(item => item.stationID == map.stationID));
                             }
                         }
                         _logger.Info("Added " + _channelPair.Count() + " channels to the dictionary");
-                        string channelName;
+                        
                         foreach (ChannelInfo channel in channelsInfo)
                         {
                             //  Helper.logger.Info("Modifyin channel " + channel.Number);
                             if (_channelPair.ContainsKey(channel.Number))
                             {
+                                string channelName;
                                 if (_channelPair[channel.Number].logo != null)
                                 {
                                     channel.ImageUrl = _channelPair[channel.Number].logo.URL;
@@ -166,7 +173,6 @@ namespace EmbyTV.EPGProvider
                         }
                     }
                 }
-            }
             return channelsInfo;
         }
 
@@ -188,7 +194,7 @@ namespace EmbyTV.EPGProvider
             var httpOptions = new HttpRequestOptionsMod()
             {
                 Url = _apiUrl + "/metadata/programs",
-                UserAgent = _userAgent,
+                UserAgent = UserAgent,
                 CancellationToken = cancellationToken,
                 RequestContent = imageIdString
             };
@@ -218,7 +224,7 @@ namespace EmbyTV.EPGProvider
                 HttpRequestOptionsMod httpOptions = new HttpRequestOptionsMod()
                 {
                     Url = _apiUrl + "/schedules",
-                    UserAgent = _userAgent,
+                    UserAgent = UserAgent,
                     Token = token,
                     CancellationToken = cancellationToken
                 };
@@ -256,7 +262,7 @@ namespace EmbyTV.EPGProvider
                     httpOptions = new HttpRequestOptionsMod()
                     {
                         Url = _apiUrl + "/programs",
-                        UserAgent = _userAgent,
+                        UserAgent = UserAgent,
                         Token = token,
                         CancellationToken = cancellationToken
                     };
@@ -436,7 +442,7 @@ namespace EmbyTV.EPGProvider
                 var httpOptions = new HttpRequestOptionsMod()
                 {
                     Url = _apiUrl + "/lineups",
-                    UserAgent = _userAgent,
+                    UserAgent = UserAgent,
                     Token = token,
                     CancellationToken = cancellationToken
                 };
@@ -514,7 +520,7 @@ namespace EmbyTV.EPGProvider
             var httpOptions = new HttpRequestOptionsMod()
             {
                 Url = _apiUrl + "/headends?country=USA&postalcode=" + zipcode,
-                UserAgent = _userAgent,
+                UserAgent = UserAgent,
                 Token = token,
                 CancellationToken = cancellationToken,
             };
@@ -569,7 +575,7 @@ namespace EmbyTV.EPGProvider
             var httpOptions = new HttpRequestOptionsMod()
             {
                 Url = _apiUrl + "/lineups/" + id,
-                UserAgent = _userAgent,
+                UserAgent = UserAgent,
                 Token = token,
                 CancellationToken = cancellationToken
             };

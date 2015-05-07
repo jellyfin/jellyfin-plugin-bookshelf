@@ -4,11 +4,17 @@ using ServiceStack;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using EmbyTV.Configuration;
+using EmbyTV.TunerHost;
 
 namespace EmbyTV.Api
 {
     [Route("/EmbyTv/SchedulesDirect/Headends", "GET")]
     public class GetSchedulesDirectHeadends : IReturn<HeadendsResult>
+    {
+    }
+    [Route("/EmbyTv/Tuner/ConfigurationFields", "GET")]
+    public class GetTunerConfigurationFields : IReturn<ConfigurationFieldsDefaults>
     {
     }
     
@@ -25,11 +31,20 @@ namespace EmbyTV.Api
                 AvaliableLineups = availableLineups
             };
         }
+        public async Task<object> Get(GetTunerConfigurationFields request)
+        {
+            return new ConfigurationFieldsDefaults {DefaultsBuilders = TunerHostStatics.BuildDefaultForTunerHostsBuilders()};
+        }
     }
 
     public class HeadendsResult
     {
         public List<Headend> Headends { get; set; }
         public List<string> AvaliableLineups { get; set; }
+    }
+
+    public class ConfigurationFieldsDefaults
+    {
+        public List<FieldBuilder> DefaultsBuilders { get; set; } 
     }
 }

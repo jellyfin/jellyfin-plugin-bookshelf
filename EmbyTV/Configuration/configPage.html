@@ -330,7 +330,9 @@
                     if (field.Type == "Checkbox") {
                         input.setAttribute("type", "checkbox");
                         input.setAttribute("data-mini", "true");
-                        input.checked = field.defaultValue;
+                        if (field.defaultValue == "true" || field.defaultValue == "on") {
+                            input.checked = field.defaultValue;
+                        }
                     }
                     input.setAttribute("class", "HostUserField");
 
@@ -342,7 +344,6 @@
                     li.appendChild(description);
 
                     ul.appendChild(li);
-
                 }
 
                 function createAllFields(settings) {
@@ -354,39 +355,26 @@
                     $('#HostType').val(settings.Type);
                 }
 
-                function getByName(fields, name) {
-                    for (var i = 0; i < fields.length; i++) {
-                        if (fields[i].Name == name) return fields[i].Value;
-                    }
-                }
-
                 function getObjectByProperty(objects, propertyName, propertyValue) {
                     for (var i = 0; i < objects.length; i++) {
                         if (objects[i][propertyName] == propertyValue) return objects[i];
                     }
                 }
 
-                function getDefaultByName(fields, name) {
-                    for (var i = 0; i < fields.length; i++) {
-                        if (fields[i].Name == name) return fields[i].defaultValue;
-                    }
-                }
-                function buildOptionsFor(config) {
-                    var targets = config.TunerDefaultConfigurationsFields;
+                function buildOptionsFor(targets) {
                     var options = "";
                     for (var i = 0, length = targets.length; i < length; i++) {
                         options += '<li  data-icon="plus" style="text-align: left;" >' + targets[i].Type + '</li>';
                     }
                     return options;
-
                 }
 
-                function getTargetListHtml(config) {
+                function getTargetListHtml(config,defaults) {
 
                     var html = '';
                     html += '<ul id="tunerHostList" data-inset="true" data-role="listview" data-split-icon="minus">';
                     html += '<li data-role="list-divider">Tuner Hosts ';
-                    html += '<button data-icon="plus" data-mini="true" data-iconpos="notext" data-inline="true" class="btnAddFolder"></button> <ul class="selectBox" style="ext-align: left;list-style-type: none; margin: 0; display:none;">' + buildOptionsFor(config) + '</ul>';
+                    html += '<button data-icon="plus" data-mini="true" data-iconpos="notext" data-inline="true" class="btnAddFolder"></button> <ul class="selectBox" style="ext-align: left;list-style-type: none; margin: 0; display:none;">' + buildOptionsFor(defaults) + '</ul>';
                     html += '</li>';
                     var targets = config.TunerHostsConfiguration;
                     if (targets != null) {
@@ -445,7 +433,7 @@
                                 $("#" + userFields[i].Name).val(userFields[i].Value);
                             }
                             if ($("#" + userFields[i].Name).attr("type") == "checkbox") {
-                                $("#" + userFields[i].Name).checked(userFields[i].Value === "true").checkboxradio("refresh");
+                                $("#" + userFields[i].Name).checked((userFields[i].Value === "true" ) || (userFields[i].Value === "on")).checkboxradio("refresh");
                             }
                         }
                     }
@@ -453,7 +441,6 @@
 
                 function editFolderObject(page, folder) {
                     $('#popupAddHost').trigger("create");
-
                     if (folder != null) {
                         $('.popupHeader', page).html('Edit Tuner Host');
                         setFormValues(folder.UserFields);
@@ -466,15 +453,14 @@
                 }
 
 
-                function loadPageData(page, config) {
-
-                    var elem = $('#hostsTable').html(getTargetListHtml(config)).trigger('create');
+                function loadPageData(page, config,tunerDefaults) {
+                    var elem = $('#hostsTable').html(getTargetListHtml(config,tunerDefaults)).trigger('create');
                     $('.btnDeleteFolder').on('click', function () {
                         deleteFolder(page, this.getAttribute('data-id'));
                     });
                     $('.btnEditFolder').on('click', function () {
                         $('#hostSettings').empty();
-                        var defaults = getObjectByProperty(config.TunerDefaultConfigurationsFields, "Type", this.getAttribute('data-hosttype'));
+                        var defaults = getObjectByProperty(tunerDefaults, "Type", this.getAttribute('data-hosttype'));
                         createAllFields(defaults);
                         editFolder(page, this.getAttribute('data-id'));
                     });
@@ -482,7 +468,7 @@
                         $('.selectBox').slideToggle(200).css('borderTop', 'none').css("display", "inline-block");
                         $('.selectBox li').click(function () {
                             $('#hostSettings').empty();
-                            var defaults = getObjectByProperty(config.TunerDefaultConfigurationsFields, "Type", $(this).text());
+                            var defaults = getObjectByProperty(tunerDefaults, "Type", $(this).text());
                             $('.selectBox').slideUp(200);
                             createAllFields(defaults);
                             editFolderObject(page, null);
@@ -496,19 +482,19 @@
                 function fillFormData(page) {
                     Dashboard.showLoadingMsg();
                     ApiClient.getPluginConfiguration(EmbyTVConfigurationPage.pluginUniqueId).done(function (config) {
-                        loadPageData(page, config);
-                        $('#txtGuideUsername').val(config.username || "");
-                        $('#txtGuidePassword').val("");
-                        $('#zipCode').val(config.zipCode || "");
-                        $('#txtRecordingPath').val(config.RecordingPath || "");
-
-                        ApiClient.getJSON(ApiClient.getUrl('EmbyTv/SchedulesDirect/Headends')).done(function (headendsResult) {
-
-                            createLineupsDropdown(headendsResult.AvaliableLineups, config.lineup, headendsResult.Headends);
-                            $('#tvLineups', page).selectmenu('refresh').trigger('change');
+                  
+                        ApiClient.getJSON(ApiClient.getUrl('/EmbyTv/Tuner/ConfigurationFields')).done(function(response) {
+                            loadPageData(page, config, response.DefaultsBuilders);
+                            $('#txtGuideUsername').val(config.username || "");
+                            $('#txtGuidePassword').val("");
+                            $('#zipCode').val(config.zipCode || "");
+                            $('#txtRecordingPath').val(config.RecordingPath || "");
+                            ApiClient.getJSON(ApiClient.getUrl('EmbyTv/SchedulesDirect/Headends')).done(function(headendsResult) {
+                                createLineupsDropdown(headendsResult.AvaliableLineups, config.lineup, headendsResult.Headends);
+                                $('#tvLineups', page).selectmenu('refresh').trigger('change');
+                            });
+                            Dashboard.hideLoadingMsg();
                         });
-
-                        Dashboard.hideLoadingMsg();
                     });
                 }
                 $('.EmbyTvConfigurationPage').on('pageshow', function (event) { fillFormData(this); });
@@ -529,6 +515,9 @@
                         config.username = $('#txtGuideUsername', form).val();
                         if (pass != "") {
                             config.hashPassword = pass;
+                        }
+                        if (config.username == "") {
+                            config.hashPassword = "";
                         }
 
                         ApiClient.updatePluginConfiguration(EmbyTVConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult).done(function () {
@@ -571,6 +560,13 @@
                     return false;
                 });
 
+                function GetVal(element) {
+                    if ($(element).is(':checkbox')) {
+                        return $(element).is(':checked');
+                    }
+                    return $(element).val();
+                }
+
                 $('#addTunerHostForm').off('submit.plugin').on('submit.plugin', function (e) {
 
                     Dashboard.showLoadingMsg();
@@ -588,8 +584,8 @@
                         $('.HostUserField').each(function () {
                             userConfig.UserFields[userConfig.UserFields.length] = {
                                 Name: $(this).attr('id'),
-                                Value: $(this).val()
-                            };
+                                Value: GetVal(this)
+                        };
                         });
 
                         var index = -1;

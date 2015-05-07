@@ -9,13 +9,16 @@ using EmbyTV.Configuration;
 using EmbyTV.GeneralHelpers;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.LiveTv;
+using MediaBrowser.Model.Dto;
+using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.LiveTv;
 using MediaBrowser.Model.Logging;
+using MediaBrowser.Model.MediaInfo;
 using MediaBrowser.Model.Serialization;
 
 namespace EmbyTV.TunerHost.HostDefinitions
 {
-    class Emby:ITunerHost
+    public class Emby:ITunerHost
     {
         private List<LiveTvTunerInfo> tuners;
         private ILogger _logger;
@@ -24,6 +27,7 @@ namespace EmbyTV.TunerHost.HostDefinitions
         private List<ChannelInfoDto> channels;
         public string Url { get; set; }
         public string ApiKey { get; set; }
+        public List<ChannelInfo> ChannelList;
 
          public Emby(ILogger logger, IJsonSerializer jsonSerializer, IHttpClient httpClient)
         {
@@ -40,14 +44,14 @@ namespace EmbyTV.TunerHost.HostDefinitions
         {
             
         }
-        public Task GetDeviceInfo(System.Threading.CancellationToken cancellationToken)
+        public  Task GetDeviceInfo(System.Threading.CancellationToken cancellationToken)
         {
-           return Task.FromResult(0);
+            return Task.FromResult(0);
         }
 
         public string HostId
         {
-            get { return "Emby Server"; }
+            get { return Url; }
             set
             {
                
@@ -56,12 +60,13 @@ namespace EmbyTV.TunerHost.HostDefinitions
 
         public bool Enabled{get;set ;}
 
-        public async Task<IEnumerable<MediaBrowser.Controller.LiveTv.ChannelInfo>> GetChannels(System.Threading.CancellationToken cancellationToken)
+        public async Task<IEnumerable<ChannelInfo>> GetChannels(CancellationToken cancellationToken)
         {
-            var ChannelList = new List<ChannelInfo>();
+            ChannelList = new List<ChannelInfo>();
+           
             var options = new HttpRequestOptions()
             {
-                Url = string.Format("http://{0}:8096/LiveTv/Channels?api_key={1}", Url,ApiKey),
+                Url = string.Format("http://{0}/LiveTv/Channels?api_key={1}", Url,ApiKey),
                 CancellationToken = cancellationToken,
                 AcceptHeader = "application/json"
             };
@@ -86,9 +91,41 @@ namespace EmbyTV.TunerHost.HostDefinitions
             }
         }
 
-        public Task<List<LiveTvTunerInfo>> GetTunersInfo(System.Threading.CancellationToken cancellationToken)
+        public async Task<List<LiveTvTunerInfo>> GetTunersInfo(System.Threading.CancellationToken cancellationToken)
         {
-            return Task.FromResult(tuners);
+            tuners = new List<LiveTvTunerInfo>();
+            var httpOptions = new HttpRequestOptions()
+            {
+                Url = string.Format("http://{0}/LiveTv/Info?api_key={1}", Url, ApiKey),
+                CancellationToken = cancellationToken,
+                AcceptHeader = "application/json"
+            };
+            using (var stream = await _httpClient.Get(httpOptions))
+            {
+
+                var root = _jsonSerializer.DeserializeFromStream<DeviceInfoResponse>(stream);
+                var services = root.Services;
+                var allTuners = services.SelectMany(s => s.Tuners);
+                _logger.Info("Found " + services.Count() + " services on host: ");
+                _logger.Info("Found " + allTuners.Count() + " tuners on host: ");
+                if (allTuners.Any())
+                {
+                    tuners = allTuners.Select(i => new LiveTvTunerInfo()
+                    {
+                        Name = i.Name,
+                        SourceType = HostId,
+                        Id = i.Id,
+                        Clients = i.Clients,
+                        ChannelId = i.ChannelId,
+                        ProgramName = i.ProgramName,
+                        Status = i.Status,
+                        
+                    }).ToList();
+
+                }
+            }
+           return tuners;
+           
         }
 
         public IEnumerable<Configuration.ConfigurationField> GetFieldBuilder()
@@ -120,14 +157,51 @@ namespace EmbyTV.TunerHost.HostDefinitions
             return Url;
         }
 
-        public MediaBrowser.Model.Dto.MediaSourceInfo GetChannelStreamInfo(string channelId)
+        public MediaSourceInfo GetChannelStreamInfo(string channelId)
         {
-            throw new NotImplementedException();
+            var tunerInfo = GetTunersInfo(CancellationToken.None);
+            tunerInfo.Wait();
+            var channel = channels.FirstOrDefault(c => c.Number == channelId);
+          
+            if (channel != null)
+            {
+                if (tuners.FindIndex(t => t.Status == LiveTvTunerStatus.Available) >= 0)
+                {
+                    var Key = channel.Id;
+                    return new MediaSourceInfo
+                    {
+                        Path = string.Format("http://{0}/Videos/{2}/stream.mkv?api_key={1}&MediaSourceId={2}", Url, ApiKey,Key),
+                        Protocol = MediaProtocol.Http,
+                        MediaStreams = new List<MediaStream>
+                        {
+                            new MediaStream
+                            {
+                                Type = MediaStreamType.Video,
+                                // Set the index to -1 because we don't know the exact index of the video stream within the container
+                                Index = -1,
+                                IsInterlaced = true
+                            },
+                            new MediaStream
+                            {
+                                Type = MediaStreamType.Audio,
+                                // Set the index to -1 because we don't know the exact index of the audio stream within the container
+                                Index = -1
+
+                            }
+                        }
+                    };
+                }
+                throw new ApplicationException("Host: " +HostId + " has no tuners avaliable.");
+            } throw new ApplicationException("Host: " + HostId + " doesnt provide this channel");
         }
     }
 
     public class ChannelResponse
     {
         public List<ChannelInfoDto>  Items { get; set; }
+    }
+    public class DeviceInfoResponse
+    {
+        public List<LiveTvServiceInfo> Services { get; set; }
     }
 }

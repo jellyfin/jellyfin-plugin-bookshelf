@@ -14,9 +14,6 @@ namespace EmbyTV.Configuration
         public string username { get; set; }
         public Headend lineup { get; set; }
         public string zipCode { get; set; }
-        public List<FieldBuilder> TunerDefaultConfigurationsFields { get { return TunerHostStatics.BuildDefaultForTunerHostsBuilders(); } }
-       
-       
 
         public PluginConfiguration()
         {
