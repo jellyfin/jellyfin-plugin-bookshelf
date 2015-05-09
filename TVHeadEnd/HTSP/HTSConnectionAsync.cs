@@ -110,11 +110,11 @@ namespace TVHeadEnd.HTSP
                         IPHostEntry ipHostInfo = Dns.GetHostEntry(hostname);
                         ipAddress = ipHostInfo.AddressList[0];
                     }
-                    
+
                     IPEndPoint remoteEP = new IPEndPoint(ipAddress, port);
 
-                    _logger.Info("[TVHclient] HTSConnectionAsync.open: " + 
-                        "IPEndPoint = '" + remoteEP.ToString() + "'; " + 
+                    _logger.Info("[TVHclient] HTSConnectionAsync.open: " +
+                        "IPEndPoint = '" + remoteEP.ToString() + "'; " +
                         "AddressFamily = '" + ipAddress.AddressFamily + "'");
 
                     // Create a TCP/IP  socket.
@@ -173,13 +173,48 @@ namespace TVHeadEnd.HTSP
             HTSMessage helloResponse = loopBackResponseHandler.getResponse();
             if (helloResponse != null)
             {
-                _serverProtocolVersion = helloResponse.getInt("htspversion");
-                _servername = helloResponse.getString("servername");
-                _serverversion = helloResponse.getString("serverversion");
+                if (helloResponse.containsField("htspversion"))
+                {
+                    _serverProtocolVersion = helloResponse.getInt("htspversion");
+                }
+                else
+                {
+                    _serverProtocolVersion = -1;
+                    _logger.Info("[TVHclient] HTSConnectionAsync.authenticate: hello don't deliver required field 'htspversion' - htsp wrong implemented on tvheadend side.");
+                }
 
-                byte[] salt = helloResponse.getByteArray("challenge");
+                if (helloResponse.containsField("servername"))
+                {
+                    _servername = helloResponse.getString("servername");
+                }
+                else
+                {
+                    _servername = "n/a";
+                    _logger.Info("[TVHclient] HTSConnectionAsync.authenticate: hello don't deliver required field 'servername' - htsp wrong implemented on tvheadend side.");
+                }
+                
+                if (helloResponse.containsField("serverversion"))
+                {
+                    _serverversion = helloResponse.getString("serverversion");
+                }
+                else
+                {
+                    _serverversion = "n/a";
+                    _logger.Info("[TVHclient] HTSConnectionAsync.authenticate: hello don't deliver required field 'serverversion' - htsp wrong implemented on tvheadend side.");
+                }
+                
+                byte[] salt = null;
+                if (helloResponse.containsField("challenge"))
+                {
+                    salt = helloResponse.getByteArray("challenge");
+                }
+                else
+                {
+                    salt = new byte[0];
+                    _logger.Info("[TVHclient] HTSConnectionAsync.authenticate: hello don't deliver required field 'challenge' - htsp wrong implemented on tvheadend side.");
+                }
+
                 byte[] digest = SHA1helper.GenerateSaltedSHA1(password, salt);
-
                 HTSMessage authMessage = new HTSMessage();
                 authMessage.Method = "authenticate";
                 authMessage.putField("username", username);
@@ -197,8 +232,26 @@ namespace TVHeadEnd.HTSP
                         HTSMessage diskSpaceResponse = loopBackResponseHandler.getResponse();
                         if (diskSpaceResponse != null)
                         {
-                            _diskSpace = (diskSpaceResponse.getLong("freediskspace") / BytesPerGiga) + "GB / "
-                                + (diskSpaceResponse.getLong("totaldiskspace") / BytesPerGiga) + "GB";
+                            long freeDiskSpace = -1;
+                            long totalDiskSpace = -1;
+                            if (diskSpaceResponse.containsField("freediskspace"))
+                            {
+                                freeDiskSpace = diskSpaceResponse.getLong("freediskspace") / BytesPerGiga;
+                            }
+                            else
+                            {
+                                _logger.Info("[TVHclient] HTSConnectionAsync.authenticate: getDiskSpace don't deliver required field 'freediskspace' - htsp wrong implemented on tvheadend side.");
+                            }
+                            if (diskSpaceResponse.containsField("totaldiskspace"))
+                            {
+                                totalDiskSpace = diskSpaceResponse.getLong("totaldiskspace") / BytesPerGiga;
+                            }
+                             else
+                            {
+                                _logger.Info("[TVHclient] HTSConnectionAsync.authenticate: getDiskSpace don't deliver required field 'totaldiskspace' - htsp wrong implemented on tvheadend side.");
+                            }
+
+                            _diskSpace = freeDiskSpace  + "GB / "  + totalDiskSpace + "GB";
                         }
 
                         HTSMessage enableAsyncMetadataMessage = new HTSMessage();

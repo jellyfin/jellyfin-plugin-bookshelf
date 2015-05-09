@@ -61,7 +61,7 @@ namespace TVHeadEnd
         {
             _logger.Info("[TVHclient] LiveTvService.createHTSConnection()");
             Version version = Assembly.GetEntryAssembly().GetName().Version;
-            _htsConnection = new HTSConnectionAsync(this, "TVHclient", version.ToString(), _logger);
+            _htsConnection = new HTSConnectionAsync(this, "TVHclient4Emby", version.ToString(), _logger);
             _connected = false;
         }
 
