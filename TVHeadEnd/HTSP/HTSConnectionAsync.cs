@@ -110,11 +110,11 @@ namespace TVHeadEnd.HTSP
                         IPHostEntry ipHostInfo = Dns.GetHostEntry(hostname);
                         ipAddress = ipHostInfo.AddressList[0];
                     }
-                    
+
                     IPEndPoint remoteEP = new IPEndPoint(ipAddress, port);
 
-                    _logger.Info("[TVHclient] HTSConnectionAsync.open: " + 
-                        "IPEndPoint = '" + remoteEP.ToString() + "'; " + 
+                    _logger.Info("[TVHclient] HTSConnectionAsync.open: " +
+                        "IPEndPoint = '" + remoteEP.ToString() + "'; " +
                         "AddressFamily = '" + ipAddress.AddressFamily + "'");
 
                     // Create a TCP/IP  socket.
@@ -197,8 +197,26 @@ namespace TVHeadEnd.HTSP
                         HTSMessage diskSpaceResponse = loopBackResponseHandler.getResponse();
                         if (diskSpaceResponse != null)
                         {
-                            _diskSpace = (diskSpaceResponse.getLong("freediskspace") / BytesPerGiga) + "GB / "
-                                + (diskSpaceResponse.getLong("totaldiskspace") / BytesPerGiga) + "GB";
+                            long freeDiskSpace = -1;
+                            long totalDiskSpace = -1;
+                            if (diskSpaceResponse.containsField("freediskspace"))
+                            {
+                                freeDiskSpace = diskSpaceResponse.getLong("freediskspace") / BytesPerGiga;
+                            }
+                            else
+                            {
+                                _logger.Info("[TVHclient] HTSConnectionAsync.authenticate: getDiskSpace don't deliver required field 'freediskspace'");
+                            }
+                            if (diskSpaceResponse.containsField("totaldiskspace"))
+                            {
+                                totalDiskSpace = diskSpaceResponse.getLong("totaldiskspace") / BytesPerGiga;
+                            }
+                             else
+                            {
+                                _logger.Info("[TVHclient] HTSConnectionAsync.authenticate: getDiskSpace don't deliver required field 'totaldiskspace'");
+                            }
+
+                            _diskSpace = (freeDiskSpace  + "GB / "  + totalDiskSpace + "GB";
                         }
 
                         HTSMessage enableAsyncMetadataMessage = new HTSMessage();
