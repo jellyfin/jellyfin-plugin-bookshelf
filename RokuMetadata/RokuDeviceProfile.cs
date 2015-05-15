@@ -109,7 +109,7 @@ namespace RokuMetadata
                         {
                             Condition = ProfileConditionType.LessThanEqual,
                             Property = ProfileConditionValue.RefFrames,
-                            Value = "4",
+                            Value = "12",
                             IsRequired = false
                         },
                         new ProfileCondition
@@ -117,13 +117,6 @@ namespace RokuMetadata
                             Condition = ProfileConditionType.LessThanEqual,
                             Property = ProfileConditionValue.VideoFramerate,
                             Value = "30",
-                            IsRequired = false
-                        },
-                        new ProfileCondition
-                        {
-                            Condition = ProfileConditionType.Equals,
-                            Property = ProfileConditionValue.IsAnamorphic,
-                            Value = "false",
                             IsRequired = false
                         },
                         new ProfileCondition
