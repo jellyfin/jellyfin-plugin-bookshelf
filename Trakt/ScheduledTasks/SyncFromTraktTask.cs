@@ -180,7 +180,7 @@ namespace Trakt.ScheduledTasks
                 if (matchedShow != null)
                 {
                     var matchedSeason = matchedShow.Seasons
-                        .FirstOrDefault(tSeason => tSeason.Number == (episode.ParentIndexNumber ?? -1));
+                        .FirstOrDefault(tSeason => tSeason.Number == (episode.ParentIndexNumber == 0? 0 : ((episode.ParentIndexNumber ?? 1) + (episode.Series.AnimeSeriesIndex ?? 1) - 1)));
 
                     // if it's not a match then it means trakt doesn't know about the season, leave the watched state alone and move on
                     if (matchedSeason != null)

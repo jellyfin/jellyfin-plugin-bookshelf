@@ -71,6 +71,7 @@ namespace Trakt
                 case "truehd":
                     return TraktAudio.dolby_truehd.ToString();
                 case "dts":
+                case "dca":
                     return TraktAudio.dts.ToString();
                 case "dtshd":
                     return TraktAudio.dts_ma.ToString();
@@ -89,7 +90,7 @@ namespace Trakt
                 case "flac":
                     return TraktAudio.flac.ToString();
                 default:
-                    return audio;
+                    return null;
             }
         }
 
@@ -197,9 +198,9 @@ namespace Trakt
             var chunks = new List<IEnumerable<T>>();
             while (itemsReturned < count)
             {
-                var currentChunkSize = Math.Min(chunkSize, count - itemsReturned);
-                chunks.Add(list.GetRange(itemsReturned, currentChunkSize));
-                itemsReturned += currentChunkSize;
+                chunks.Add(list.Take(chunkSize).ToList());
+                list = list.Skip(chunkSize).ToList();
+                itemsReturned += chunkSize;
             }
             return chunks;
         }

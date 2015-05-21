@@ -216,6 +216,7 @@ namespace Trakt
 
             try
             {
+                _logger.Info("Playback Stopped");
                 var traktUser = UserHelper.GetTraktUser(e.Users.FirstOrDefault());
 
                 if (traktUser == null)
