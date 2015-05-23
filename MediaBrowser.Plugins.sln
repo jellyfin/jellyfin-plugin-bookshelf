@@ -50,6 +50,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmbyTV", "EmbyTV\EmbyTV.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MBBookshelf", "Bookshelf\MBBookshelf.csproj", "{C4276F0E-10BD-4D9C-8686-B0E6F9FE7B23}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dropbox", "Dropbox\Dropbox.csproj", "{42C6C52F-0A48-43D2-90C8-553B4B3E3333}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -184,6 +186,12 @@ Global
 		{C4276F0E-10BD-4D9C-8686-B0E6F9FE7B23}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C4276F0E-10BD-4D9C-8686-B0E6F9FE7B23}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C4276F0E-10BD-4D9C-8686-B0E6F9FE7B23}.Release|x86.ActiveCfg = Release|Any CPU
+		{42C6C52F-0A48-43D2-90C8-553B4B3E3333}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42C6C52F-0A48-43D2-90C8-553B4B3E3333}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42C6C52F-0A48-43D2-90C8-553B4B3E3333}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{42C6C52F-0A48-43D2-90C8-553B4B3E3333}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42C6C52F-0A48-43D2-90C8-553B4B3E3333}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42C6C52F-0A48-43D2-90C8-553B4B3E3333}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
