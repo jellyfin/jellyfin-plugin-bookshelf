@@ -9,12 +9,12 @@ using MediaBrowser.Controller.Net;
 namespace Dropbox.RestServices
 {
     [Authenticated]
-    public class DropboxRestfulService2 : IRestfulService
+    public class DropboxRestfulService : IRestfulService
     {
         private readonly IConfigurationRetriever _configurationRetriever;
         private readonly IDropboxApi _dropboxApi;
 
-        public DropboxRestfulService2(IConfigurationRetriever configurationRetriever, IDropboxApi dropboxApi)
+        public DropboxRestfulService(IConfigurationRetriever configurationRetriever, IDropboxApi dropboxApi)
         {
             _configurationRetriever = configurationRetriever;
             _dropboxApi = dropboxApi;
