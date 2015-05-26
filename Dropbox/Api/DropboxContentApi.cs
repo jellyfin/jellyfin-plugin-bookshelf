@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Common;
@@ -20,14 +21,19 @@ namespace Dropbox.Api
 
         public async Task<ChunkedUploadResult> ChunkedUpload(string uploadId, byte[] content, int offset, string accessToken, CancellationToken cancellationToken)
         {
-            var url = string.Format("/chunked_upload?upload_id={0}&offset={1}", uploadId, offset);
+            var url = "/chunked_upload?offset=" + offset;
+
+            if (!string.IsNullOrEmpty(uploadId))
+            {
+                url += "&upload_id=" + uploadId;
+            }
 
             return await PutRequest<ChunkedUploadResult>(url, accessToken, content, cancellationToken);
         }
 
         public async Task CommitChunkedUpload(string path, string uploadId, string accessToken, CancellationToken cancellationToken)
         {
-            var url = "/commit_chunked_upload/auto/" + path;
+            var url = "/commit_chunked_upload/auto" + path;
             var data = new Dictionary<string, string>
             {
                 { "overwrite", "true" },
@@ -35,6 +41,13 @@ namespace Dropbox.Api
             };
 
             await PostRequest<object>(url, accessToken, data, cancellationToken);
+        }
+
+        public async Task<Stream> Files(string path, string accessToken, CancellationToken cancellationToken)
+        {
+            var url = "/files/auto" + path;
+
+            return await GetRawRequest(url, accessToken, cancellationToken);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Common;
@@ -9,6 +10,9 @@ namespace Dropbox.Api
 {
     public abstract class ApiService
     {
+        // 20 minutes
+        private const int TimeoutInMilliseconds = 20 * 60 * 1000;
+
         private readonly IHttpClient _httpClient;
         private readonly IJsonSerializer _jsonSerializer;
         private readonly IApplicationHost _applicationHost;
@@ -38,6 +42,12 @@ namespace Dropbox.Api
             return _jsonSerializer.DeserializeFromStream<T>(resultStream);
         }
 
+        protected async Task<Stream> GetRawRequest(string url, string accessToken, CancellationToken cancellationToken)
+        {
+            var httpRequest = PrepareHttpRequestOptions(url, accessToken, cancellationToken);
+            return await _httpClient.Get(httpRequest);
+        }
+
         protected async Task<T> PostRequest<T>(string url, string accessToken, IDictionary<string, string> data, CancellationToken cancellationToken)
         {
             var httpRequest = PrepareHttpRequestOptions(url, accessToken, cancellationToken);
@@ -49,6 +59,8 @@ namespace Dropbox.Api
         protected async Task<T> PutRequest<T>(string url, string accessToken, byte[] content, CancellationToken cancellationToken)
         {
             var httpRequest = PrepareHttpRequestOptions(url, accessToken, cancellationToken);
+            httpRequest.TimeoutMs = TimeoutInMilliseconds;
+            httpRequest.RequestContentType = "text/plain";
             httpRequest.RequestContentBytes = content;
             var result = await _httpClient.SendAsync(httpRequest, "PUT");
             return _jsonSerializer.DeserializeFromStream<T>(result.Content);

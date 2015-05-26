@@ -3,7 +3,7 @@ using Dropbox.Configuration;
 using MediaBrowser.Common;
 using MediaBrowser.Common.Plugins;
 
-namespace Dropbox
+namespace Dropbox.Dependencies
 {
     public class DependencyModule : IDependencyModule
     {

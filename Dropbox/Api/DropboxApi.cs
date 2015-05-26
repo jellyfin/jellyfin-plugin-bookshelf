@@ -31,6 +31,13 @@ namespace Dropbox.Api
             return await PostRequest<AuthorizationToken>("/oauth2/token", null, data, cancellationToken);
         }
 
+        public async Task<MetadataResult> Metadata(string path, string accessToken, CancellationToken cancellationToken)
+        {
+            var url = string.Format("/metadata/auto{0}?file_limit=25000&include_deleted=false", path);
+
+            return await GetRequest<MetadataResult>(url, accessToken, cancellationToken);
+        }
+
         public async Task Delete(string path, string accessToken, CancellationToken cancellationToken)
         {
             var data = new Dictionary<string, string>
@@ -42,15 +49,24 @@ namespace Dropbox.Api
             await PostRequest<object>("/fileops/delete", accessToken, data, cancellationToken);
         }
 
-        public async Task<ShareResult> Shares(string path, string accessToken, CancellationToken cancellationToken)
+        public async Task<MediaResult> Media(string path, string accessToken, CancellationToken cancellationToken)
         {
-            var url = "/shares/auto/" + path;
-            var data = new Dictionary<string, string>
-            {
-                { "short_url", "false" }
-            };
+            var url = "/media/auto" + path;
+            var data = new Dictionary<string,string>();
 
-            return await PostRequest<ShareResult>(url, accessToken, data, cancellationToken);
+            return await PostRequest<MediaResult>(url, accessToken, data, cancellationToken);
+        }
+
+        public async Task<DeltaResult> Delta(string cursor, string accessToken, CancellationToken cancellationToken)
+        {
+            var data = new Dictionary<string, string>();
+
+            if (!string.IsNullOrEmpty(cursor))
+            {
+                data["cursor"] = cursor;
+            }
+
+            return await PostRequest<DeltaResult>("/delta", accessToken, data, cancellationToken);
         }
     }
 }
