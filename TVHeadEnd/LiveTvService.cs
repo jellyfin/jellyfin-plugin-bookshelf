@@ -107,6 +107,8 @@ namespace TVHeadEnd
                     _priority = config.Priority;
                     _profile = config.Profile.Trim();
 
+                    _channelDataHelper.setChannelType4Other(config.ChannelType.Trim());
+
                     if (_priority < 0 || _priority > 4)
                     {
                         _priority = 2;

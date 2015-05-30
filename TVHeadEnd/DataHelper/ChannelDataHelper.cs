@@ -16,13 +16,20 @@ namespace TVHeadEnd.DataHelper
         private readonly TunerDataHelper _tunerDataHelper;
         private readonly Dictionary<int, HTSMessage> _data;
         private readonly Dictionary<string, string> _piconData;
+        private string _channelType4Other = "Ignore";
 
         public ChannelDataHelper(ILogger logger, TunerDataHelper tunerDataHelper)
         {
             _logger = logger;
             _tunerDataHelper = tunerDataHelper;
+
             _data = new Dictionary<int, HTSMessage>();
             _piconData = new Dictionary<string, string>();
+        }
+
+        public void setChannelType4Other(string channelType4Other)
+        {
+            _channelType4Other = channelType4Other;
         }
 
         public void clean()
@@ -113,15 +120,15 @@ namespace TVHeadEnd.DataHelper
                             {
                                 ci.ImageUrl = channelIcon;
                             }
-                            else if(channelIcon.ToLower().StartsWith("picon://"))
+                            else if (channelIcon.ToLower().StartsWith("picon://"))
                             {
                                 ci.HasImage = true;
                                 _piconData.Add(ci.Id, channelIcon);
-                            } 
+                            }
                             else
                             {
-                                _logger.Info("[TVHclient] ChannelDataHelper.buildChannelInfos: channelIcon '" + channelIcon + 
-                                    "' can not be handled properly for channelID '" + ci.Id + "'!");   
+                                _logger.Info("[TVHclient] ChannelDataHelper.buildChannelInfos: channelIcon '" + channelIcon +
+                                    "' can not be handled properly for channelID '" + ci.Id + "'!");
                             }
                         }
                         if (m.containsField("channelName"))
@@ -140,31 +147,53 @@ namespace TVHeadEnd.DataHelper
                             ci.Number = "" + chNo;
                         }
 
+                        Boolean serviceFound = false;
                         if (m.containsField("services"))
                         {
                             IList tunerInfoList = m.getList("services");
-                            HTSMessage firstServiceInList = (HTSMessage)tunerInfoList[0];
-                            if (firstServiceInList.containsField("type"))
+                            if (tunerInfoList != null && tunerInfoList.Count > 0)
                             {
-                                string type = firstServiceInList.getString("type");
-
-                                switch (type)
+                                HTSMessage firstServiceInList = (HTSMessage)tunerInfoList[0];
+                                if (firstServiceInList.containsField("type"))
                                 {
-                                    case "Radio":
-                                        ci.ChannelType = ChannelType.Radio;
-                                        //continue;
-                                        break;
-                                    case "SDTV":
-                                    case "HDTV":
-                                        ci.ChannelType = ChannelType.TV;
-                                        break;
-                                    default:
-                                        _logger.Error("[TVHclient] ChannelDataHelper: unkown service type '" + type + "'.");
-                                        break;
+                                    string type = firstServiceInList.getString("type").ToLower();
+                                    switch (type)
+                                    {
+                                        case "radio":
+                                            ci.ChannelType = ChannelType.Radio;
+                                            serviceFound = true;
+                                            break;
+                                        case "sdtv":
+                                        case "hdtv":
+                                            ci.ChannelType = ChannelType.TV;
+                                            serviceFound = true;
+                                            break;
+                                        case "other":
+                                            switch (_channelType4Other.ToLower())
+                                            {
+                                                case "tv":
+                                                    _logger.Info("[TVHclient] ChannelDataHelper: map service type 'Other' to 'TV'.");
+                                                    ci.ChannelType = ChannelType.TV;
+                                                    serviceFound = true;
+                                                    break;
+                                                case "radio":
+                                                    _logger.Info("[TVHclient] ChannelDataHelper: map service type 'Other' to 'Radio'.");
+                                                    ci.ChannelType = ChannelType.Radio;
+                                                    serviceFound = true;
+                                                    break;
+                                                default:
+                                                    _logger.Error("[TVHclient] ChannelDataHelper: don't map service type 'Other' - will be ignored.");
+                                                    break;
+                                            }
+                                            break;
+                                        default:
+                                            _logger.Error("[TVHclient] ChannelDataHelper: unkown service type '" + type + "' - will be ignored.");
+                                            break;
+                                    }
                                 }
                             }
                         }
-                        else
+                        if (!serviceFound)
                         {
                             _logger.Error("[TVHclient] ChannelDataHelper: unable to detect service-type from service list:" + m.ToString());
                             continue;
