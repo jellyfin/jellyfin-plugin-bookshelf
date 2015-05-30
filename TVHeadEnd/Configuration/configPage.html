@@ -55,18 +55,16 @@
                             </label>
                             <input type="text" id="txtProfile" name="txtProfile" />
                         </li>
-                        <!--<li>
-                            <label for="txtConnectionTimeout">
-                                Connection Timeout:
-                            </label>
-                            <input type="text" id="txtConnectionTimeout" name="txtConnectionTimeout" />
-                        </li>
                         <li>
-                            <label for="txtResponseTimeout">
-                                Response Timeout:
+                            <label for="selChannelType">
+                                Use this channel type for channels taged with 'Other':
                             </label>
-                            <input type="text" id="txtResponseTimeout" name="txtResponseTimeout" />
-                        </li>-->
+                            <select id="selChannelType">
+                                <option>TV</option>
+                                <option>Radio</option>
+                                <option>Ignore</option>
+                            </select>
+                        </li>
                         <li>
                             <button type="submit" data-theme="b">Save</button>
                             <button type="button" onclick="history.back();">Cancel</button>
@@ -102,8 +100,7 @@
                     $('#txtPassword', page).val(config.Password || "");
                     $('#txtPriority', page).val(config.Priority || "5");
                     $('#txtProfile', page).val(config.Profile || "");
-                    //$('#txtConnectionTimeout', page).val(config.ConnectionTimeout || "30");
-                    //$('#txtResponseTimeout', page).val(config.ResponseTimeout || "15");
+                    $('#selChannelType', page).val(config.ChannelType || "Ignore");
 
                     Dashboard.hideLoadingMsg();
                 });
@@ -114,14 +111,13 @@
                 var form = this;
                 ApiClient.getPluginConfiguration(TVHclientConfigurationPageVar.pluginUniqueId).done(function (config) {
                     config.TVH_ServerName = $('#txtTVH_ServerName', form).val();
-                    //config.HTTP_Port = $('#txtHTTP_Port', form).val();
+                    config.HTTP_Port = $('#txtHTTP_Port', form).val();
                     config.HTSP_Port = $('#txtHTSP_Port', form).val();
                     config.Username = $('#txtUserName', form).val();
                     config.Password = $('#txtPassword', form).val();
                     config.Priority = $('#txtPriority', form).val();
                     config.Profile = $('#txtProfile', form).val();
-                    //config.ConnectionTimeout = $('#txtConnectionTimeout', form).val();
-                    //config.ResponseTimeout = $('#txtResponseTimeout', form).val();
+                    config.ChannelType = $('#selChannelType', form).val();
                     ApiClient.updatePluginConfiguration(TVHclientConfigurationPageVar.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
                 });
                 // Disable default form submission

@@ -13,10 +13,9 @@ namespace TVHeadEnd.Configuration
 		public int HTSP_Port { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
-        //public int ConnectionTimeout { get; set; }
-        //public int ResponseTimeout { get; set; }
         public int Priority { get; set; }
         public string Profile { get; set; }
+        public string ChannelType { get; set; }
 
         public PluginConfiguration()
         {
@@ -27,8 +26,7 @@ namespace TVHeadEnd.Configuration
             Password = "";
             Priority = 5;
             Profile = "";
-            //ConnectionTimeout = 30;
-            //ResponseTimeout = 15;
+            ChannelType = "Ignore";
         }
     }
 }
