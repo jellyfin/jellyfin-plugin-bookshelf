@@ -10,8 +10,8 @@ namespace Dropbox.Api
 {
     public abstract class ApiService
     {
-        // 20 minutes
-        private const int TimeoutInMilliseconds = 20 * 60 * 1000;
+        // 1 hour
+        private const int TimeoutInMilliseconds = 60 * 60 * 1000;
 
         private readonly IHttpClient _httpClient;
         private readonly IJsonSerializer _jsonSerializer;

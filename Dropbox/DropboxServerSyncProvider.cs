@@ -19,8 +19,8 @@ namespace Dropbox
 {
     public class DropboxServerSyncProvider : IServerSyncProvider, IHasDynamicAccess, IRemoteSyncProvider
     {
-        // 100mb
-        private const int StreamBufferSize = 100 * 1024 * 1024;
+        // 10mb
+        private const int StreamBufferSize = 10 * 1024 * 1024;
 
         private readonly IConfigurationRetriever _configurationRetriever;
         private readonly IDropboxApi _dropboxApi;
