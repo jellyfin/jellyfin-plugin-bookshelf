@@ -19,8 +19,8 @@ namespace Dropbox
 {
     public class DropboxServerSyncProvider : IServerSyncProvider, IHasDynamicAccess, IRemoteSyncProvider
     {
-        // 100mb
-        private const int StreamBufferSize = 100 * 1024 * 1024;
+        // 10mb
+        private const int StreamBufferSize = 10 * 1024 * 1024;
 
         private readonly IConfigurationRetriever _configurationRetriever;
         private readonly IDropboxApi _dropboxApi;
@@ -157,28 +157,28 @@ namespace Dropbox
         {
             string uploadId = null;
             var offset = 0;
-            var buffer = await FillBuffer(stream, 0, cancellationToken);
+            var buffer = await FillBuffer(stream, cancellationToken);
 
             while (buffer.Count > 0)
             {
                 var result = await _dropboxContentApi.ChunkedUpload(uploadId, buffer.Array, offset, accessToken, cancellationToken);
                 uploadId = result.upload_id;
                 offset = result.offset;
-                buffer = await FillBuffer(stream, offset, cancellationToken);
+                buffer = await FillBuffer(stream, cancellationToken);
             }
 
             await _dropboxContentApi.CommitChunkedUpload(path, uploadId, accessToken, cancellationToken);
         }
 
-        private static async Task<BufferArray> FillBuffer(Stream stream, int offset, CancellationToken cancellationToken)
+        private static async Task<BufferArray> FillBuffer(Stream stream, CancellationToken cancellationToken)
         {
-            if (offset >= stream.Length)
+            if (stream.Position >= stream.Length)
             {
                 return new BufferArray();
             }
 
             var buffer = new byte[StreamBufferSize];
-            var numberOfBytesRead = await stream.ReadAsync(buffer, offset, StreamBufferSize, cancellationToken);
+            var numberOfBytesRead = await stream.ReadAsync(buffer, 0, StreamBufferSize, cancellationToken);
             return new BufferArray(buffer, numberOfBytesRead);
         }
 
