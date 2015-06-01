@@ -21,7 +21,7 @@ namespace OneDrive
     public class OneDriveServerSyncProvider : IServerSyncProvider, IHasDynamicAccess, IRemoteSyncProvider
     {
         // 10mb
-        private const int StreamBufferSize = 10 * 1024 * 1024;
+        private const long StreamBufferSize = 10 * 1024 * 1024;
 
         private readonly IConfigurationRetriever _configurationRetriever;
         private readonly IOneDriveApi _oneDriveApi;
@@ -207,10 +207,10 @@ namespace OneDrive
         private static async Task<byte[]> FillBuffer(Stream stream, CancellationToken cancellationToken)
         {
             var count = stream.Length - stream.Position;
-            var bufferSize = Math.Min(StreamBufferSize, (int)count);
+            var bufferSize = Math.Min(StreamBufferSize, count);
 
             var buffer = new byte[bufferSize];
-            await stream.ReadAsync(buffer, 0, bufferSize, cancellationToken);
+            await stream.ReadAsync(buffer, 0, (int)bufferSize, cancellationToken);
 
             return buffer;
         }
