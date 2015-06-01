@@ -215,7 +215,7 @@ namespace GameBrowser.Resolvers
                     return new[] { ".gbdos", ".disc" };
 
                 case "Windows":
-                    return new[] { ".gbwin", ".disc", ".lnk" };
+                    return new[] { ".gbwin", ".disc" };
 
                 case "Sega 32X":
                     return new[] { ".iso", ".bin", ".img", ".zip", ".32x" };
