@@ -155,11 +155,11 @@ namespace EmbyTV
             var recordPath = RecordingPath;
             if (info.IsMovie)
             {
-                recordPath += @"\Movies";
+                recordPath += @"\Movies"+StringHelper.RemoveSpecialCharacters(info.Name);
             }
             else
             {
-                recordPath += @"\TV";
+                recordPath += @"\TV\"+StringHelper.RemoveSpecialCharacters(info.Name);
             }
             Directory.CreateDirectory(recordPath);
             recordPath +=  @"\" + timer.GetRecordingName(info);
