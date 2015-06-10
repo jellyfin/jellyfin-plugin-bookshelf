@@ -355,9 +355,9 @@ namespace EmbyTV
                 {
                     await _tvGuide.addHeadEnd(config.lineup.Id, cancellationToken).ConfigureAwait(false);
                 }
-                catch (ArgumentException e)
+                catch (Exception e)
                 {
-                    _logger.Debug("Cant authenticate with Schedules Direct/ user may not have filled the login information.");
+                    _logger.Debug("Error adding headend", e);
                 }
             }
         }
