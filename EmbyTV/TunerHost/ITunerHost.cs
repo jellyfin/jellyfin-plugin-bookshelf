@@ -1,15 +1,13 @@
-﻿using MediaBrowser.Controller.LiveTv;
+﻿using EmbyTV.Configuration;
+using EmbyTV.GeneralHelpers;
+using MediaBrowser.Controller.LiveTv;
+using MediaBrowser.Model.Dto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using EmbyTV.Configuration;
-using EmbyTV.GeneralHelpers;
-using MediaBrowser.Model.Dto;
 
 namespace EmbyTV.TunerHost
 {

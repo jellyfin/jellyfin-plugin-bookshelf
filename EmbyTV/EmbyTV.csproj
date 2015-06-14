@@ -71,7 +71,6 @@
     <Compile Include="Configuration\EmbyTVConfigurationPage.cs" />
     <Compile Include="Configuration\PluginConfiguration.cs" />
     <Compile Include="DVR\RecordingHelper.cs" />
-    <Compile Include="EntryPoint.cs" />
     <Compile Include="EPGProvider\Responses\XMLTV.cs" />
     <Compile Include="GeneralHelpers\Helpers.cs" />
     <Compile Include="GeneralHelpers\HttpClientHelper.cs" />
@@ -79,12 +78,14 @@
     <Compile Include="EPGProvider\IEpgProvider.cs" />
     <Compile Include="EPGProvider\Responses\ScheduleDirect.cs" />
     <Compile Include="EPGProvider\SchedulesDirect.cs" />
+    <Compile Include="ItemDataProvider.cs" />
     <Compile Include="LiveTVService.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TunerHost\HostDefinitions\Emby.cs" />
+    <Compile Include="SeriesTimerManager.cs" />
+    <Compile Include="TimerManager.cs" />
     <Compile Include="TunerHost\HostDefinitions\HdHomeRun.cs" />
     <Compile Include="TunerHost\ITunerHost.cs" />
     <Compile Include="TunerHost\HostDefinitions\M3UPlaylist.cs" />
@@ -92,9 +93,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Configuration\configPage.html" />
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

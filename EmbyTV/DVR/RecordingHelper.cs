@@ -1,118 +1,73 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
-using MediaBrowser.Common.Net;
+﻿using EmbyTV.GeneralHelpers;
 using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.Logging;
-using System.Timers;
-using Timer = System.Timers.Timer;
-using EmbyTV.GeneralHelpers;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace EmbyTV.DVR
 {
     internal class RecordingHelper
     {
-        public static async Task DownloadVideo(IHttpClient httpClient, HttpRequestOptions httpRequestOptions, ILogger logger, string filePath, CancellationToken cancellationToken)
+        public static List<TimerInfo> GetTimersForSeries(SeriesTimerInfo seriesTimer, IEnumerable<ProgramInfo> epgData, IReadOnlyList<RecordingInfo> currentRecordings, ILogger logger)
         {
-
-            //string filePath = Path.GetTempPath()+"/test.ts";
-            httpRequestOptions.BufferContent = false;
-            httpRequestOptions.CancellationToken = cancellationToken;
-            logger.Info("Writing file to path: " + filePath);
-            using (var response = await httpClient.SendAsync(httpRequestOptions, "GET"))
-            {
-                using (var output = File.Open(filePath, FileMode.Create, FileAccess.Write, FileShare.Read))
-                {
-                    await response.Content.CopyToAsync(output, 4096, cancellationToken);
-                }
-            }
-        }
-    }
-
-    public class SingleTimer : TimerInfo
-    {
-        private Timer countDown;
-        public event EventHandler StartRecording;
-        public CancellationTokenSource Cts = new CancellationTokenSource();
-
-
-        public SingleTimer()
-        {
-
-        }
-        public SingleTimer(TimerInfo parent)
-        {
-            foreach (PropertyInfo prop in parent.GetType().GetProperties())
-            {
-                GetType().GetProperty(prop.Name).SetValue(this, prop.GetValue(parent, null), null);
-            }
-            this.Id = parent.ProgramId;
-        }
-        public SingleTimer(ProgramInfo parent, SeriesTimerInfo series)
-        {
-            ChannelId = parent.ChannelId;
-            Id = parent.Id;
-            StartDate = parent.StartDate;
-            EndDate = parent.EndDate;
-            ProgramId = parent.Id;
-            PrePaddingSeconds = series.PrePaddingSeconds;
-            PostPaddingSeconds = series.PostPaddingSeconds;
-            IsPostPaddingRequired = series.IsPostPaddingRequired;
-            IsPrePaddingRequired = series.IsPrePaddingRequired;
-            Priority = series.Priority;
-            Name = parent.Name;
-            Overview = parent.Overview;
-            SeriesTimerId = series.Id;
+            List<TimerInfo> timers = new List<TimerInfo>();
+            var filteredEpg = epgData.Where(epg => epg.Id.Substring(0, 10) == seriesTimer.Id); //Filtered Per Show
+            logger.Debug(String.Format("Found {0} episode for show {1}", filteredEpg.Count(), seriesTimer.Id));
+            filteredEpg = filteredEpg.Where(epg => seriesTimer.RecordAnyTime || (seriesTimer.StartDate.TimeOfDay == epg.StartDate.TimeOfDay)); //Filtered by Hour
+            logger.Debug(String.Format("Found {0} episode for show {1} that meet timer constraint", filteredEpg.Count(), seriesTimer.Id));
+            filteredEpg = filteredEpg.Where(epg => !seriesTimer.RecordNewOnly || !epg.IsRepeat); //Filtered by New only
+            logger.Debug(String.Format("Found {0} episode for show {1} that meet is new constraint", filteredEpg.Count(), seriesTimer.Id));
+            filteredEpg.ToList().ForEach(epg => logger.Debug(String.Format("Day {0} is avaliable", epg.StartDate.DayOfWeek)));
+            filteredEpg = filteredEpg.Where(epg => seriesTimer.Days.Contains(epg.StartDate.DayOfWeek)); //Filtered by day of week
+            seriesTimer.Days.ForEach(d => logger.Debug(String.Format("Day {0} is included", d)));
+            //logger.Debug(String.Format("Day {0} is included", d)
+            logger.Debug(String.Format("Found {0} episode for show {1} that meet day constraint", filteredEpg.Count(), seriesTimer.Id));
+            filteredEpg = filteredEpg.Where(epg => epg.ChannelId == seriesTimer.ChannelId || seriesTimer.RecordAnyChannel); //Filtered by Channel
+            logger.Debug(String.Format("Found {0} episode for show {1} that meet channel constraint", filteredEpg.Count(), seriesTimer.Id));
+            filteredEpg = filteredEpg.Where(epg => !currentRecordings.Any(r => r.Id.Substring(0, 14) == epg.Id.Substring(0, 14))); //filtered recordings already running
+            logger.Debug(String.Format("Found {0} episode for show {1} that are not already scheduled", filteredEpg.Count(), seriesTimer.Id));
+            filteredEpg = filteredEpg.GroupBy(epg => epg.Id.Substring(0, 14)).Select(g => g.First()).ToList();
+            logger.Debug(String.Format("Found {0} episode for show {1} that are not duplicates", filteredEpg.Count(), seriesTimer.Id));
+            filteredEpg.ToList().ForEach(epg => timers.Add(CreateTimer(epg, seriesTimer)));
+            return timers;
         }
 
-        public void CopyTimer(TimerInfo parent)
+        public static DateTime GetStartTime(TimerInfo timer)
         {
-            foreach (PropertyInfo prop in parent.GetType().GetProperties())
-            {
-                GetType().GetProperty(prop.Name).SetValue(this, prop.GetValue(parent, null), null);
-            }
-            this.Id = parent.ProgramId;
-        }
-
-        public void GenerateEvent()
-        {
-            if (StartRecording != null)
-            {
-                countDown = new Timer((StartTime() - DateTime.UtcNow).TotalMilliseconds);
-                countDown.Elapsed += sendSignal;
-                countDown.AutoReset = false;
-                countDown.Start();
-            }
-        }
-
-        private void sendSignal(object obj, ElapsedEventArgs arg)
-        {
-            StartRecording(this, null);
-        }
-
-        public DateTime StartTime()
-        {
-            if (StartDate.AddSeconds(-PrePaddingSeconds + 1) < DateTime.UtcNow)
+            if (timer.StartDate.AddSeconds(-timer.PrePaddingSeconds + 1) < DateTime.UtcNow)
             {
                 return DateTime.UtcNow.AddSeconds(1);
             }
-            return StartDate.AddSeconds(-PrePaddingSeconds);
+            return timer.StartDate.AddSeconds(-timer.PrePaddingSeconds);
         }
 
-        public double Duration()
+        public static TimerInfo CreateTimer(ProgramInfo parent, SeriesTimerInfo series)
         {
-            return (EndDate - StartTime()).TotalSeconds + PrePaddingSeconds;
+            var timer = new TimerInfo();
+
+            timer.ChannelId = parent.ChannelId;
+            timer.Id = parent.Id;
+            timer.StartDate = parent.StartDate;
+            timer.EndDate = parent.EndDate;
+            timer.ProgramId = parent.Id;
+            timer.PrePaddingSeconds = series.PrePaddingSeconds;
+            timer.PostPaddingSeconds = series.PostPaddingSeconds;
+            timer.IsPostPaddingRequired = series.IsPostPaddingRequired;
+            timer.IsPrePaddingRequired = series.IsPrePaddingRequired;
+            timer.Priority = series.Priority;
+            timer.Name = parent.Name;
+            timer.Overview = parent.Overview;
+            timer.SeriesTimerId = series.Id;
+
+            return timer;
         }
 
-        public string GetRecordingName(ProgramInfo info)
+        public static string GetRecordingName(TimerInfo timer, ProgramInfo info)
         {
             if (info == null)
             {
-                return (ProgramId + ".ts");
+                return (timer.ProgramId + ".ts");
             }
             var fancyName = info.Name;
             if (info.ProductionYear != null)
@@ -133,61 +88,5 @@ namespace EmbyTV.DVR
             }
             return StringHelper.RemoveSpecialCharacters(fancyName) + ".ts";
         }
-
-    }
-
-    public class SeriesTimer : SeriesTimerInfo
-    {
-        public SeriesTimer()
-        {
-        }
-        public SeriesTimer(SeriesTimerInfo parent)
-        {
-            foreach (PropertyInfo prop in parent.GetType().GetProperties())
-            {
-                GetType().GetProperty(prop.Name).SetValue(this, prop.GetValue(parent, null), null);
-            }
-            Id = parent.ProgramId.Substring(0, 10);
-        }
-        public void CopyTimer(SeriesTimerInfo parent)
-        {
-            foreach (PropertyInfo prop in parent.GetType().GetProperties())
-            {
-                GetType().GetProperty(prop.Name).SetValue(this, prop.GetValue(parent, null), null);
-            }
-        }
-
-        public List<SingleTimer> GetTimersForSeries(IEnumerable<ProgramInfo> epgData, List<RecordingInfo> currentRecordings, ILogger logger )
-        {
-            List<SingleTimer> timers = new List<SingleTimer>();
-            var filteredEpg = epgData.Where(epg => epg.Id.Substring(0, 10) == Id); //Filtered Per Show
-            logger.Debug(String.Format("Found {0} episode for show {1}",filteredEpg.Count(),Id));
-            filteredEpg = filteredEpg.Where(epg => RecordAnyTime || (StartDate.TimeOfDay == epg.StartDate.TimeOfDay)); //Filtered by Hour
-            logger.Debug(String.Format("Found {0} episode for show {1} that meet timer constraint",filteredEpg.Count(),Id));
-            filteredEpg = filteredEpg.Where(epg => !RecordNewOnly || !epg.IsRepeat); //Filtered by New only
-            logger.Debug(String.Format("Found {0} episode for show {1} that meet is new constraint",filteredEpg.Count(),Id));
-            filteredEpg.ToList().ForEach(epg => logger.Debug(String.Format("Day {0} is avaliable", epg.StartDate.DayOfWeek)));
-            filteredEpg = filteredEpg.Where(epg => Days.Contains(epg.StartDate.DayOfWeek)); //Filtered by day of week
-            Days.ForEach(d => logger.Debug(String.Format("Day {0} is included", d)));
-            //logger.Debug(String.Format("Day {0} is included", d)
-            logger.Debug(String.Format("Found {0} episode for show {1} that meet day constraint",filteredEpg.Count(),Id));
-            filteredEpg = filteredEpg.Where(epg => epg.ChannelId == ChannelId ||RecordAnyChannel); //Filtered by Channel
-            logger.Debug(String.Format("Found {0} episode for show {1} that meet channel constraint",filteredEpg.Count(),Id));
-            filteredEpg = filteredEpg.Where(epg => !currentRecordings.Any(r => r.Id.Substring(0, 14) == epg.Id.Substring(0, 14))); //filtered recordings already running
-            logger.Debug(String.Format("Found {0} episode for show {1} that are not already scheduled",filteredEpg.Count(),Id));
-            filteredEpg = filteredEpg.GroupBy(epg => epg.Id.Substring(0,14)).Select(g => g.First()).ToList();
-            logger.Debug(String.Format("Found {0} episode for show {1} that are not duplicates",filteredEpg.Count(),Id));
-            filteredEpg.ToList().ForEach(epg => timers.Add(new SingleTimer(epg,this)));
-            return timers;
-        }
-
-
-
-
-    }
-
-    public enum RecordingMethod
-    {
-        HttpStream = 1
     }
 }

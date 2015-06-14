@@ -63,7 +63,6 @@ namespace EmbyTV.Configuration
     public class TunerUserConfiguration
     {
         public string ServerId { get; set; }
-        public string ServerName { get; set; }
         public string ServerType { get; set; }
         public List<UserField> UserFields { get; set; }
 
