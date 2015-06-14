@@ -41,6 +41,9 @@ namespace EmbyTV
         private readonly ConcurrentDictionary<string, CancellationTokenSource> _activeRecordings =
             new ConcurrentDictionary<string, CancellationTokenSource>(StringComparer.OrdinalIgnoreCase);
 
+
+        private Timer _updateSeriesTimers;
+
         public LiveTvService(IHttpClient httpClient, IJsonSerializer jsonSerializer, ILogManager logManager, IXmlSerializer xmlSerializer, IApplicationPaths appPaths)
         {
             _logger = logManager.GetLogger(Name);
@@ -52,9 +55,9 @@ namespace EmbyTV
 
             _tvGuide = new EPGProvider.SchedulesDirect(_logger, _jsonSerializer, _httpClient);
 
-            _recordingProvider = new ItemDataProvider<RecordingInfo>(xmlSerializer, _logger, Path.Combine(DataPath, "recordings.xml"), (r1, r2) => string.Equals(r1.Id, r2.Id, StringComparison.OrdinalIgnoreCase));
-            _seriesTimerProvider = new SeriesTimerManager(xmlSerializer, _logger, Path.Combine(DataPath, "seriestimers.xml"));
-            _timerProvider = new TimerManager(xmlSerializer, _logger, Path.Combine(DataPath, "timers.xml"));
+            _recordingProvider = new ItemDataProvider<RecordingInfo>(xmlSerializer, _jsonSerializer, _logger, Path.Combine(DataPath, "recordings"), (r1, r2) => string.Equals(r1.Id, r2.Id, StringComparison.OrdinalIgnoreCase));
+            _seriesTimerProvider = new SeriesTimerManager(xmlSerializer, _jsonSerializer, _logger, Path.Combine(DataPath, "seriestimers"));
+            _timerProvider = new TimerManager(xmlSerializer, _jsonSerializer, _logger, Path.Combine(DataPath, "timers"));
             _timerProvider.TimerFired += _timerProvider_TimerFired;
 
             Initialize();
@@ -65,6 +68,7 @@ namespace EmbyTV
             RefreshConfigData(false, CancellationToken.None);
             Plugin.Instance.ConfigurationUpdated += (sender, args) => RefreshConfigData(true, CancellationToken.None);
             _timerProvider.RestartTimers();
+            _updateSeriesTimers = new Timer(UpdateSeriesTimersCallback, null, TimeSpan.FromHours(3), TimeSpan.FromHours(3));
         }
 
         public string DataPath
@@ -261,6 +265,7 @@ namespace EmbyTV
 
         public Task CreateTimerAsync(TimerInfo info, CancellationToken cancellationToken)
         {
+            info.Id = Guid.NewGuid().ToString("N");
             _timerProvider.Add(info);
             return Task.FromResult(0);
         }
@@ -357,24 +362,48 @@ namespace EmbyTV
                 _logger.Debug("Found data on the epg provider saving it to the local cache");
                 SaveEpgDataForChannel(channelId, programInfos);
             }
-            foreach (var seriesTimer in _seriesTimerProvider.GetAll())
-            {
-                if (seriesTimer.ChannelId == channelId || seriesTimer.RecordAnyChannel)
-                {
-                    _logger.Info("Proccesing series timers for show" + seriesTimer.Id + " on channel " + channelId);
-                    UpdateTimersForSeriesTimer(programInfos, seriesTimer);
-                }
-            }
             return programInfos;
         }
 
-        private void UpdateTimersForSeriesTimer(IEnumerable<ProgramInfo> epgData, SeriesTimerInfo seriesTimer)
+        private void UpdateTimersForSeriesTimer(SeriesTimerInfo seriesTimer)
         {
-            var tempTimers = RecordingHelper.GetTimersForSeries(seriesTimer, epgData, _recordingProvider.GetAll(), _logger);
-            _logger.Info("Creating " + tempTimers.Count + " timers for series timer " + seriesTimer.Id);
-            foreach (var timer in tempTimers)
+            List<ProgramInfo> epgData;
+            if (seriesTimer.RecordAnyChannel)
+            {
+                epgData = GetEpgDataForAllChannels();
+            }
+            else
+            {
+                epgData = GetEpgDataForChannel(seriesTimer.ChannelId);
+            }
+            
+            var newTimers = RecordingHelper.GetTimersForSeries(seriesTimer, epgData, _recordingProvider.GetAll(), _logger);
+
+            var existingTimers = _timerProvider.GetAll()
+                .Where(i => string.Equals(i.SeriesTimerId, seriesTimer.Id, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            foreach (var timer in newTimers)
             {
                 _timerProvider.AddOrUpdate(timer);
+            }
+
+            var newTimerIds = newTimers.Select(i => i.Id).ToList();
+
+            foreach (var timer in existingTimers)
+            {
+                if (!newTimerIds.Contains(timer.Id, StringComparer.OrdinalIgnoreCase))
+                {
+                    CancelTimerInternal(timer.Id);
+                }
+            }
+        }
+
+        private void UpdateSeriesTimersCallback(object state)
+        {
+            foreach (var seriesTimer in _seriesTimerProvider.GetAll())
+            {
+                UpdateTimersForSeriesTimer(seriesTimer);
             }
         }
 
@@ -473,7 +502,7 @@ namespace EmbyTV
             return Task.FromResult(true);
         }
 
-        public Task CancelTimerAsync(string timerId, CancellationToken cancellationToken)
+        private void CancelTimerInternal(string timerId)
         {
             var remove = _timerProvider.GetAll().SingleOrDefault(r => r.Id == timerId);
             if (remove != null)
@@ -486,22 +515,19 @@ namespace EmbyTV
             {
                 cancellationTokenSource.Cancel();
             }
+        }
 
+        public Task CancelTimerAsync(string timerId, CancellationToken cancellationToken)
+        {
+            CancelTimerInternal(timerId);
             return Task.FromResult(true);
         }
 
         public Task CreateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
         {
-            List<ProgramInfo> pInfo;
-            if (info.RecordAnyChannel)
-            {
-                pInfo = GetEpgDataForAllChannels();
-            }
-            else
-            {
-                pInfo = GetEpgDataForChannel(info.ChannelId);
-            }
-            UpdateTimersForSeriesTimer(pInfo, info);
+            info.Id = Guid.NewGuid().ToString("N");
+
+            UpdateTimersForSeriesTimer(info);
             _seriesTimerProvider.Add(info);
             return Task.FromResult(true);
         }
@@ -551,16 +577,7 @@ namespace EmbyTV
 
         public Task UpdateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
         {
-            List<ProgramInfo> pInfo;
-            if (info.RecordAnyChannel)
-            {
-                pInfo = GetEpgDataForAllChannels();
-            }
-            else
-            {
-                pInfo = GetEpgDataForChannel(info.ChannelId);
-            }
-            UpdateTimersForSeriesTimer(pInfo, info);
+            UpdateTimersForSeriesTimer(info);
             _seriesTimerProvider.Update(info);
             return Task.FromResult(true);
         }

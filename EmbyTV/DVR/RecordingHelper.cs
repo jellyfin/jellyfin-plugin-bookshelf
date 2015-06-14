@@ -1,4 +1,5 @@
 ﻿using EmbyTV.GeneralHelpers;
+using MediaBrowser.Common.Extensions;
 using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.Logging;
 using System;
@@ -12,24 +13,36 @@ namespace EmbyTV.DVR
         public static List<TimerInfo> GetTimersForSeries(SeriesTimerInfo seriesTimer, IEnumerable<ProgramInfo> epgData, IReadOnlyList<RecordingInfo> currentRecordings, ILogger logger)
         {
             List<TimerInfo> timers = new List<TimerInfo>();
-            var filteredEpg = epgData.Where(epg => epg.Id.Substring(0, 10) == seriesTimer.Id); //Filtered Per Show
-            logger.Debug(String.Format("Found {0} episode for show {1}", filteredEpg.Count(), seriesTimer.Id));
-            filteredEpg = filteredEpg.Where(epg => seriesTimer.RecordAnyTime || (seriesTimer.StartDate.TimeOfDay == epg.StartDate.TimeOfDay)); //Filtered by Hour
-            logger.Debug(String.Format("Found {0} episode for show {1} that meet timer constraint", filteredEpg.Count(), seriesTimer.Id));
-            filteredEpg = filteredEpg.Where(epg => !seriesTimer.RecordNewOnly || !epg.IsRepeat); //Filtered by New only
-            logger.Debug(String.Format("Found {0} episode for show {1} that meet is new constraint", filteredEpg.Count(), seriesTimer.Id));
-            filteredEpg.ToList().ForEach(epg => logger.Debug(String.Format("Day {0} is avaliable", epg.StartDate.DayOfWeek)));
-            filteredEpg = filteredEpg.Where(epg => seriesTimer.Days.Contains(epg.StartDate.DayOfWeek)); //Filtered by day of week
-            seriesTimer.Days.ForEach(d => logger.Debug(String.Format("Day {0} is included", d)));
-            //logger.Debug(String.Format("Day {0} is included", d)
-            logger.Debug(String.Format("Found {0} episode for show {1} that meet day constraint", filteredEpg.Count(), seriesTimer.Id));
-            filteredEpg = filteredEpg.Where(epg => epg.ChannelId == seriesTimer.ChannelId || seriesTimer.RecordAnyChannel); //Filtered by Channel
-            logger.Debug(String.Format("Found {0} episode for show {1} that meet channel constraint", filteredEpg.Count(), seriesTimer.Id));
-            filteredEpg = filteredEpg.Where(epg => !currentRecordings.Any(r => r.Id.Substring(0, 14) == epg.Id.Substring(0, 14))); //filtered recordings already running
-            logger.Debug(String.Format("Found {0} episode for show {1} that are not already scheduled", filteredEpg.Count(), seriesTimer.Id));
+
+            // Filtered Per Show
+            var filteredEpg = epgData.Where(epg => epg.Id.Substring(0, 10) == seriesTimer.Id); 
+
+            if (!seriesTimer.RecordAnyTime)
+            {
+                filteredEpg = filteredEpg.Where(epg => (seriesTimer.StartDate.TimeOfDay == epg.StartDate.TimeOfDay));
+            }
+
+            if (seriesTimer.RecordNewOnly)
+            {
+                filteredEpg = filteredEpg.Where(epg => !epg.IsRepeat); //Filtered by New only
+            }
+
+            if (!seriesTimer.RecordAnyChannel)
+            {
+                filteredEpg = filteredEpg.Where(epg => string.Equals(epg.ChannelId, seriesTimer.ChannelId, StringComparison.OrdinalIgnoreCase));
+            }
+
+            filteredEpg = filteredEpg.Where(epg => seriesTimer.Days.Contains(epg.StartDate.DayOfWeek)); 
+         
+            filteredEpg = filteredEpg.Where(epg => currentRecordings.All(r => r.Id.Substring(0, 14) != epg.Id.Substring(0, 14))); //filtered recordings already running
+            
             filteredEpg = filteredEpg.GroupBy(epg => epg.Id.Substring(0, 14)).Select(g => g.First()).ToList();
-            logger.Debug(String.Format("Found {0} episode for show {1} that are not duplicates", filteredEpg.Count(), seriesTimer.Id));
-            filteredEpg.ToList().ForEach(epg => timers.Add(CreateTimer(epg, seriesTimer)));
+
+            foreach (var epg in filteredEpg)
+            {
+                timers.Add(CreateTimer(epg, seriesTimer));
+            }
+
             return timers;
         }
 
@@ -47,7 +60,7 @@ namespace EmbyTV.DVR
             var timer = new TimerInfo();
 
             timer.ChannelId = parent.ChannelId;
-            timer.Id = parent.Id;
+            timer.Id = (series.Id + parent.Id).GetMD5().ToString("N");
             timer.StartDate = parent.StartDate;
             timer.EndDate = parent.EndDate;
             timer.ProgramId = parent.Id;

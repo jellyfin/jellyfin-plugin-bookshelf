@@ -18,8 +18,8 @@ namespace EmbyTV
 
         public event EventHandler<GenericEventArgs<TimerInfo>> TimerFired;
 
-        public TimerManager(IXmlSerializer xmlSerializer, ILogger logger, string dataPath)
-            : base(xmlSerializer, logger, dataPath, (r1, r2) => string.Equals(r1.Id, r2.Id, StringComparison.OrdinalIgnoreCase))
+        public TimerManager(IXmlSerializer xmlSerializer, IJsonSerializer jsonSerializer, ILogger logger, string dataPath)
+            : base(xmlSerializer, jsonSerializer, logger, dataPath, (r1, r2) => string.Equals(r1.Id, r2.Id, StringComparison.OrdinalIgnoreCase))
         {
         }
 
@@ -67,6 +67,11 @@ namespace EmbyTV
 
         public override void Add(TimerInfo item)
         {
+            if (string.IsNullOrWhiteSpace(item.Id))
+            {
+                throw new ArgumentException("TimerInfo.Id cannot be null or empty.");
+            }
+
             base.Add(item);
             AddTimer(item);
         }

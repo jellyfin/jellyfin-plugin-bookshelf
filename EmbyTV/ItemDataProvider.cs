@@ -14,16 +14,18 @@ namespace EmbyTV
         private readonly object _fileDataLock = new object();
         private List<T> _items;
         private readonly IXmlSerializer _serializer;
+        private readonly IJsonSerializer _jsonSerializer;
         protected readonly ILogger Logger;
         private readonly string _dataPath;
         protected readonly Func<T, T, bool> EqualityComparer;
 
-        public ItemDataProvider(IXmlSerializer xmlSerializer, ILogger logger, string dataPath, Func<T, T, bool> equalityComparer)
+        public ItemDataProvider(IXmlSerializer xmlSerializer, IJsonSerializer jsonSerializer, ILogger logger, string dataPath, Func<T, T, bool> equalityComparer)
         {
             _serializer = xmlSerializer;
             Logger = logger;
             _dataPath = dataPath;
             EqualityComparer = equalityComparer;
+            _jsonSerializer = jsonSerializer;
         }
 
         public IReadOnlyList<T> GetAll()
@@ -34,35 +36,65 @@ namespace EmbyTV
                 {
                     if (_items == null)
                     {
-                        try
-                        {
-                            var xml = ModifyInputXml(File.ReadAllText(_dataPath));
-                            var bytes = Encoding.UTF8.GetBytes(xml);
-
-                            _items = (List<T>)_serializer.DeserializeFromBytes(typeof(List<T>), bytes);
-                        }
-                        catch (FileNotFoundException)
-                        {
-                            _items = new List<T>();
-                        }
-                        catch (DirectoryNotFoundException ex)
-                        {
-                            _items = new List<T>();
-                        }
-                        catch (IOException ex)
-                        {
-                            Logger.ErrorException("Error deserializing {0}", ex, _dataPath);
-                            throw;
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.ErrorException("Error deserializing {0}", ex, _dataPath);
-                            _items = new List<T>();
-                        }
+                        _items = GetItemsFromFile(_dataPath);
                     }
                 }
             }
             return _items;
+        }
+
+        private List<T> GetItemsFromFile(string path)
+        {
+            var jsonFile = path + ".json";
+
+            try
+            {
+                return _jsonSerializer.DeserializeFromFile<List<T>>(jsonFile);
+            }
+            catch (FileNotFoundException)
+            {
+            }
+            catch (DirectoryNotFoundException ex)
+            {
+            }
+            catch (IOException ex)
+            {
+                Logger.ErrorException("Error deserializing {0}", ex, jsonFile);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Logger.ErrorException("Error deserializing {0}", ex, jsonFile);
+                return new List<T>();
+            }
+
+            var xmlFile = path + ".xml";
+            
+            try
+            {
+                var xml = ModifyInputXml(File.ReadAllText(xmlFile));
+                var bytes = Encoding.UTF8.GetBytes(xml);
+
+                return (List<T>)_serializer.DeserializeFromBytes(typeof(List<T>), bytes);
+            }
+            catch (FileNotFoundException)
+            {
+                return new List<T>();
+            }
+            catch (DirectoryNotFoundException ex)
+            {
+                return new List<T>();
+            }
+            catch (IOException ex)
+            {
+                Logger.ErrorException("Error deserializing {0}", ex, xmlFile);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Logger.ErrorException("Error deserializing {0}", ex, xmlFile);
+                return new List<T>();
+            }
         }
 
         protected virtual string ModifyInputXml(string xml)
@@ -74,7 +106,7 @@ namespace EmbyTV
         {
             lock (_fileDataLock)
             {
-                _serializer.SerializeToFile(newList, _dataPath);
+                _jsonSerializer.SerializeToFile(newList, _dataPath + ".json");
                 _items = newList;
             }
         }
