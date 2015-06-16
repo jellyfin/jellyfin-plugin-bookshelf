@@ -131,7 +131,7 @@ namespace EmbyTV
         {
             var list = GetAll().ToList();
 
-            if (list.Any(i => !EqualityComparer(i, item)))
+            if (list.Any(i => EqualityComparer(i, item)))
             {
                 throw new ArgumentException("item already exists");
             }

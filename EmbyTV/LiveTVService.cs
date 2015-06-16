@@ -525,7 +525,7 @@ namespace EmbyTV
 
         public Task CreateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
         {
-            info.Id = Guid.NewGuid().ToString("N");
+            info.Id = info.ProgramId.Substring(0, 10);
 
             UpdateTimersForSeriesTimer(info);
             _seriesTimerProvider.Add(info);
