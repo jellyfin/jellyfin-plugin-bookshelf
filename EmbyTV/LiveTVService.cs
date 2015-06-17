@@ -171,7 +171,39 @@ namespace EmbyTV
             recordPath = Path.Combine(recordPath, RecordingHelper.GetRecordingName(timer, info));
             Directory.CreateDirectory(recordPath);
 
-            var recording = _recordingProvider.GetAll().First(x => x.Id == info.Id);
+            var recording = _recordingProvider.GetAll().FirstOrDefault(x => x.Id == info.Id);
+
+            if (recording == null)
+            {
+                recording = new RecordingInfo()
+                {
+                    ChannelId = info.ChannelId,
+                    Id = info.Id,
+                    StartDate = info.StartDate,
+                    EndDate = info.EndDate,
+                    Genres = info.Genres ?? null,
+                    IsKids = info.IsKids,
+                    IsLive = info.IsLive,
+                    IsMovie = info.IsMovie,
+                    IsHD = info.IsHD,
+                    IsNews = info.IsNews,
+                    IsPremiere = info.IsPremiere,
+                    IsSeries = info.IsSeries,
+                    IsSports = info.IsSports,
+                    IsRepeat = !info.IsPremiere,
+                    Name = info.Name,
+                    EpisodeTitle = info.EpisodeTitle ?? "",
+                    ProgramId = info.Id,
+                    HasImage = info.HasImage ?? false,
+                    ImagePath = info.ImagePath ?? null,
+                    ImageUrl = info.ImageUrl,
+                    OriginalAirDate = info.OriginalAirDate,
+                    Status = RecordingStatus.Scheduled,
+                    Overview = info.Overview,
+                    SeriesTimerId = info.Id.Substring(0, 10)
+                };
+                _recordingProvider.Add(recording);
+            }
 
             recording.Path = recordPath;
             recording.Status = RecordingStatus.InProgress;
