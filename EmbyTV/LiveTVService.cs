@@ -169,9 +169,9 @@ namespace EmbyTV
             }
 
             recordPath = Path.Combine(recordPath, RecordingHelper.GetRecordingName(timer, info));
-            Directory.CreateDirectory(recordPath);
+            Directory.CreateDirectory(Path.GetDirectoryName(recordPath));
 
-            var recording = _recordingProvider.GetAll().FirstOrDefault(x => x.Id == info.Id);
+            var recording = _recordingProvider.GetAll().FirstOrDefault(x => string.Equals(x.Id, info.Id, StringComparison.OrdinalIgnoreCase));
 
             if (recording == null)
             {

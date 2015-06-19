@@ -115,7 +115,7 @@ namespace EmbyTV
         {
             var list = GetAll().ToList();
 
-            var index = list.FindIndex(i => !EqualityComparer(i, item));
+            var index = list.FindIndex(i => EqualityComparer(i, item));
 
             if (index == -1)
             {
