@@ -493,7 +493,7 @@
                         });
                     });
                 }
-                $('.EmbyTvConfigurationPage').on('pageshow', function (event) { fillFormData(this); });
+                $('.EmbyTvConfigurationPage').on('pageshowready', function (event) { fillFormData(this); });
 
                 $(".schedulesDirectLoginForm").off('submit').on('submit', function (e) {
 

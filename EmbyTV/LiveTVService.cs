@@ -256,12 +256,9 @@ namespace EmbyTV
                     await host.GetDeviceInfo(cancellationToken);
                     host.Enabled = true;
                 }
-                catch (HttpException)
+                catch (Exception exception)
                 {
-                    host.Enabled = false;
-                }
-                catch (ApplicationException)
-                {
+                    _logger.ErrorException("Error ensuring connection", exception);
                     host.Enabled = false;
                 }
             }
@@ -334,8 +331,15 @@ namespace EmbyTV
                 _tunerServer = TunerHostFactory.CreateTunerHosts(config.TunerHostsConfiguration, _logger, _jsonSerializer, _httpClient);
                 for (var i = 0; i < _tunerServer.Count(); i++)
                 {
-                    await _tunerServer[i].GetDeviceInfo(cancellationToken);
-                    config.TunerHostsConfiguration[i].ServerId = _tunerServer[i].HostId;
+                    try
+                    {
+                        await _tunerServer[i].GetDeviceInfo(cancellationToken);
+                        config.TunerHostsConfiguration[i].ServerId = _tunerServer[i].HostId;
+                    }
+                    catch (Exception exception)
+                    {
+                        _logger.ErrorException("Error getting device info", exception);
+                    }
                 }
             }
 
@@ -609,8 +613,8 @@ namespace EmbyTV
 
         public Task UpdateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
         {
-            UpdateTimersForSeriesTimer(info);
             _seriesTimerProvider.Update(info);
+            UpdateTimersForSeriesTimer(info);
             return Task.FromResult(true);
         }
 
