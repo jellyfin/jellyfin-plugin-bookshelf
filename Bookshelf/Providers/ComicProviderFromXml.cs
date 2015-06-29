@@ -26,13 +26,15 @@ namespace MBBookshelf.Providers
         }
 
         /// <summary>
-        /// 
+        /// Reads the XML data.
         /// </summary>
-        /// <param name="book"></param>
-        /// <param name="metaFile"></param>
-        /// <param name="cancellationToken"></param>
-        private void ReadXmlData(Book book, string metaFile, CancellationToken cancellationToken)
+        /// <param name="bookResult">The book result.</param>
+        /// <param name="metaFile">The meta file.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        private void ReadXmlData(MetadataResult<Book> bookResult, string metaFile, CancellationToken cancellationToken)
         {
+            var book = bookResult.Item;
+
             cancellationToken.ThrowIfCancellationRequested();
 
             var doc = new XmlDocument();
@@ -64,8 +66,7 @@ namespace MBBookshelf.Providers
 
                 var person = new PersonInfo { Name = author, Type = "Author" };
 
-                if (!book.People.Contains(person))
-                    book.People.Add(person);
+                bookResult.People.Add(person);
             }
 
         }
@@ -106,10 +107,9 @@ namespace MBBookshelf.Providers
             try
             {
                 var item = new Book();
-
-                ReadXmlData(item, path, cancellationToken);
                 result.HasMetadata = true;
                 result.Item = item;
+                ReadXmlData(result, path, cancellationToken);
             }
             catch (FileNotFoundException)
             {

@@ -73,10 +73,9 @@ namespace MBBookshelf.Providers
             try
             {
                 var item = new Book();
-
-                ReadOpfData(item, path, cancellationToken);
                 result.HasMetadata = true;
                 result.Item = item;
+                ReadOpfData(result, path, cancellationToken);
             }
             catch (FileNotFoundException)
             {
@@ -97,13 +96,15 @@ namespace MBBookshelf.Providers
         }
 
         /// <summary>
-        /// Read the contents of the .opf file and update the book entity 
+        /// Read the contents of the .opf file and update the book entity
         /// </summary>
-        /// <param name="book"></param>
-        /// <param name="metaFile"></param>
-        /// <param name="cancellationToken"></param>
-        private void ReadOpfData(Book book, string metaFile, CancellationToken cancellationToken)
+        /// <param name="bookResult">The book result.</param>
+        /// <param name="metaFile">The meta file.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        private void ReadOpfData(MetadataResult<Book> bookResult, string metaFile, CancellationToken cancellationToken)
         {
+            var book = bookResult.Item;
+
             cancellationToken.ThrowIfCancellationRequested();
 
             var doc = new XmlDocument();
@@ -156,11 +157,7 @@ namespace MBBookshelf.Providers
             {
                 var person = new PersonInfo { Name = authorNode.InnerText, Type = "Author" };
                 
-                // TODO remove this
-                book.People = new List<PersonInfo>();
-
-                if (!book.People.Contains(person))
-                    book.People.Add(person);
+                bookResult.People.Add(person);
             }
 
             var seriesIndexNode = doc.SelectSingleNode("//opf:meta[@name='calibre:series_index']", namespaceManager);
