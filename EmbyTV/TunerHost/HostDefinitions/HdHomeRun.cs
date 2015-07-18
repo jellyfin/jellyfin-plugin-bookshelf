@@ -118,7 +118,7 @@ namespace EmbyTV.TunerHost.HostDefinitions
                         if (line.Contains("Channel"))
                         {
                             LiveTvTunerStatus status;
-                            var index = line.IndexOf("Channel");
+                            var index = line.IndexOf("Channel", StringComparison.OrdinalIgnoreCase);
                             var name = line.Substring(0, index - 1);
                             var currentChannel = line.Substring(index + 7);
                             if (currentChannel != "none") { status = LiveTvTunerStatus.LiveTv; } else { status = LiveTvTunerStatus.Available; }
@@ -149,13 +149,15 @@ namespace EmbyTV.TunerHost.HostDefinitions
                 _logger.Info("Found " + root.Count() + "channels on host: " + Url);
                 _logger.Info("Only Favorites?" + OnlyFavorites);
                 if (Convert.ToBoolean(_onlyFavorites)) { root.RemoveAll(x => x.Favorite == false); }
+                //root.RemoveAll(i => i.DRM);
                 if (root != null)
                 {
                     ChannelList = root.Select(i => new ChannelInfo
                     {
                         Name = i.GuideName,
-                        Number = i.GuideNumber.ToString(),
-                        Id = i.GuideNumber.ToString(),
+                        Number = i.GuideNumber.ToString(CultureInfo.InvariantCulture),
+                        Id = i.GuideNumber.ToString(CultureInfo.InvariantCulture),
+
                     }).ToList();
 
                 }

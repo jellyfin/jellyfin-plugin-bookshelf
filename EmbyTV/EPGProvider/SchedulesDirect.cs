@@ -538,11 +538,12 @@ namespace EmbyTV.EPGProvider
                             _logger.Info("Headend: " + headend.headend);
                             foreach (ScheduleDirect.Lineup lineup in headend.lineups)
                             {
-                                if (!String.IsNullOrWhiteSpace(lineup.name))
+                                _logger.Info("Headend: " + lineup.uri.Substring(18));
+                                lineups.Add(new Headend()
                                 {
-                                    _logger.Info("Headend: " + lineup.uri.Substring(18));
-                                    lineups.Add(new Headend() {Name = lineup.name, Id = lineup.uri.Substring(18)});
-                                }
+                                    Name = string.IsNullOrWhiteSpace(lineup.name) ? lineup.lineup : lineup.name,
+                                    Id = lineup.uri.Substring(18)
+                                });
                             }
                         }
                     }

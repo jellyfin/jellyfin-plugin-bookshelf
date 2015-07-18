@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Common.IO;
+﻿using System.Globalization;
+using MediaBrowser.Common.IO;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Common.ScheduledTasks;
 using MediaBrowser.Controller;
@@ -273,7 +274,7 @@ namespace Trakt.ScheduledTasks
 
             var tmdb = item.GetProviderId(MetadataProviders.Tmdb);
 
-            if (!string.IsNullOrEmpty(tmdb) && int.Parse(tmdb) == movie.Ids.Tmdb)
+            if (movie.Ids.Tmdb.HasValue && string.Equals(tmdb, movie.Ids.Tmdb.Value.ToString(CultureInfo.InvariantCulture), StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }

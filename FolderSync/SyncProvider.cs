@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace FolderSync
 {
-    public class SyncProvider : IServerSyncProvider
+    public class SyncProvider : IServerSyncProvider, ISupportsDirectCopy
     {
         private readonly IFileSystem _fileSystem;
 
@@ -137,7 +137,7 @@ namespace FolderSync
             {
                 throw new ArgumentException("Invalid SyncTarget supplied.");
             }
-            
+
             var result = new QueryResult<FileMetadata>();
 
             if (!string.IsNullOrWhiteSpace(query.Id))
@@ -184,6 +184,23 @@ namespace FolderSync
                 Name = Path.GetFileName(file.FullName),
                 MimeType = MimeTypes.GetMimeType(file.FullName)
             };
+        }
+
+        public Task<SyncedFileInfo> SendFile(string path, string[] pathParts, SyncTarget target, IProgress<double> progress, CancellationToken cancellationToken)
+        {
+            var fullPath = GetFullPath(pathParts, target);
+
+            Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
+
+            File.Copy(path, fullPath, true);
+
+            return Task.FromResult(new SyncedFileInfo
+            {
+                Path = fullPath,
+                Protocol = MediaProtocol.File,
+                Id = fullPath
+            });
+
         }
     }
 }
