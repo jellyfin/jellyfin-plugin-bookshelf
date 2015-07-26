@@ -159,9 +159,6 @@ namespace TVHeadEnd
                 return new List<ChannelInfo>();
             }
 
-            //IEnumerable<ChannelInfo> data = await _channelDataHelper.buildChannelInfos(cancellationToken);
-            //return data;
-
             TaskWithTimeoutRunner<IEnumerable<ChannelInfo>> twtr = new TaskWithTimeoutRunner<IEnumerable<ChannelInfo>>(TIMEOUT);
             TaskWithTimeoutResult<IEnumerable<ChannelInfo>> twtRes = await
                 twtr.RunWithTimeout(_channelDataHelper.buildChannelInfos(cancellationToken));
@@ -212,9 +209,6 @@ namespace TVHeadEnd
                 return new List<RecordingInfo>();
             }
 
-            //IEnumerable<RecordingInfo> data = await _dvrDataHelper.buildDvrInfos(cancellationToken);
-            //return data;
-
             TaskWithTimeoutRunner<IEnumerable<RecordingInfo>> twtr = new TaskWithTimeoutRunner<IEnumerable<RecordingInfo>>(TIMEOUT);
             TaskWithTimeoutResult<IEnumerable<RecordingInfo>> twtRes = await
                 twtr.RunWithTimeout(_dvrDataHelper.buildDvrInfos(cancellationToken));
@@ -256,13 +250,6 @@ namespace TVHeadEnd
             HTSMessage deleteRecordingMessage = new HTSMessage();
             deleteRecordingMessage.Method = "deleteDvrEntry";
             deleteRecordingMessage.putField("id", recordingId);
-
-            //HTSMessage deleteRecordingResponse = await Task.Factory.StartNew<HTSMessage>(() =>
-            //{
-            //    LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
-            //    _htsConnection.sendMessage(deleteRecordingMessage, lbrh);
-            //    return lbrh.getResponse();
-            //});
 
             TaskWithTimeoutRunner<HTSMessage> twtr = new TaskWithTimeoutRunner<HTSMessage>(TIMEOUT);
             TaskWithTimeoutResult<HTSMessage> twtRes = await twtr.RunWithTimeout(Task.Factory.StartNew<HTSMessage>(() =>
@@ -307,13 +294,6 @@ namespace TVHeadEnd
             HTSMessage cancelTimerMessage = new HTSMessage();
             cancelTimerMessage.Method = "cancelDvrEntry";
             cancelTimerMessage.putField("id", timerId);
-
-            //HTSMessage cancelTimerResponse = await Task.Factory.StartNew<HTSMessage>(() =>
-            //{
-            //    LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
-            //    _htsConnection.sendMessage(cancelTimerMessage, lbrh);
-            //    return lbrh.getResponse();
-            //});
 
             TaskWithTimeoutRunner<HTSMessage> twtr = new TaskWithTimeoutRunner<HTSMessage>(TIMEOUT);
             TaskWithTimeoutResult<HTSMessage> twtRes = await twtr.RunWithTimeout(Task.Factory.StartNew<HTSMessage>(() =>
@@ -368,13 +348,6 @@ namespace TVHeadEnd
             createTimerMessage.putField("title", info.Name);
             createTimerMessage.putField("creator", Plugin.Instance.Configuration.Username);
 
-            //HTSMessage createTimerResponse = await Task.Factory.StartNew<HTSMessage>(() =>
-            //{
-            //    LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
-            //    _htsConnection.sendMessage(createTimerMessage, lbrh);
-            //    return lbrh.getResponse();
-            //});
-
             TaskWithTimeoutRunner<HTSMessage> twtr = new TaskWithTimeoutRunner<HTSMessage>(TIMEOUT);
             TaskWithTimeoutResult<HTSMessage> twtRes = await twtr.RunWithTimeout(Task.Factory.StartNew<HTSMessage>(() =>
             {
@@ -421,13 +394,6 @@ namespace TVHeadEnd
             updateTimerMessage.putField("startExtra", (long)(info.PrePaddingSeconds / 60));
             updateTimerMessage.putField("stopExtra", (long)(info.PostPaddingSeconds / 60));
 
-            //HTSMessage updateTimerResponse = await Task.Factory.StartNew<HTSMessage>(() =>
-            //{
-            //    LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
-            //    _htsConnection.sendMessage(updateTimerMessage, lbrh);
-            //    return lbrh.getResponse();
-            //});
-
             TaskWithTimeoutRunner<HTSMessage> twtr = new TaskWithTimeoutRunner<HTSMessage>(TIMEOUT);
             TaskWithTimeoutResult<HTSMessage> twtRes = await twtr.RunWithTimeout(Task.Factory.StartNew<HTSMessage>(() =>
             {
@@ -469,9 +435,6 @@ namespace TVHeadEnd
                 return new List<TimerInfo>();
             }
 
-            //IEnumerable<TimerInfo> data = await _dvrDataHelper.buildPendingTimersInfos(cancellationToken);
-            //return data;
-
             TaskWithTimeoutRunner<IEnumerable<TimerInfo>> twtr = new TaskWithTimeoutRunner<IEnumerable<TimerInfo>>(TIMEOUT);
             TaskWithTimeoutResult<IEnumerable<TimerInfo>> twtRes = await
                 twtr.RunWithTimeout(_dvrDataHelper.buildPendingTimersInfos(cancellationToken));
@@ -499,9 +462,6 @@ namespace TVHeadEnd
                 _logger.Info("[TVHclient] GetSeriesTimersAsync, call canceled ot timed out - returning empty list.");
                 return new List<SeriesTimerInfo>();
             }
-
-            //IEnumerable<SeriesTimerInfo> data = await _autorecDataHelper.buildAutorecInfos(cancellationToken);
-            //return data;
 
             TaskWithTimeoutRunner<IEnumerable<SeriesTimerInfo>> twtr = new TaskWithTimeoutRunner<IEnumerable<SeriesTimerInfo>>(TIMEOUT);
             TaskWithTimeoutResult<IEnumerable<SeriesTimerInfo>> twtRes = await
@@ -653,13 +613,9 @@ namespace TVHeadEnd
         /// <returns></returns>
         public async Task UpdateSeriesTimerAsync(SeriesTimerInfo info, CancellationToken cancellationToken)
         {
-            // Dummy method to avoid warnings
-            await Task.Factory.StartNew<int>(() => { return 0; });
-
-            throw new NotImplementedException();
-
-            //await CancelSeriesTimerAsync(info.Id, cancellationToken);
-            //await CreateSeriesTimerAsync(info, cancellationToken);
+            await CancelSeriesTimerAsync(info.Id, cancellationToken);
+            // TODO add if method is implemented 
+            // await CreateSeriesTimerAsync(info, cancellationToken);
         }
 
         /// <summary>
@@ -682,13 +638,6 @@ namespace TVHeadEnd
             HTSMessage deleteAutorecMessage = new HTSMessage();
             deleteAutorecMessage.Method = "deleteAutorecEntry";
             deleteAutorecMessage.putField("id", timerId);
-
-            //HTSMessage deleteAutorecResponse = await Task.Factory.StartNew<HTSMessage>(() =>
-            //{
-            //    LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
-            //    _htsConnection.sendMessage(deleteAutorecMessage, lbrh);
-            //    return lbrh.getResponse();
-            //});
 
             TaskWithTimeoutRunner<HTSMessage> twtr = new TaskWithTimeoutRunner<HTSMessage>(TIMEOUT);
             TaskWithTimeoutResult<HTSMessage> twtRes = await twtr.RunWithTimeout(Task.Factory.StartNew<HTSMessage>(() =>
@@ -730,13 +679,6 @@ namespace TVHeadEnd
             HTSMessage getTicketMessage = new HTSMessage();
             getTicketMessage.Method = "getTicket";
             getTicketMessage.putField("channelId", channelId);
-
-            //HTSMessage getTicketResponse = await Task.Factory.StartNew<HTSMessage>(() =>
-            //{
-            //    LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
-            //    _htsConnection.sendMessage(getTicketMessage, lbrh);
-            //    return lbrh.getResponse();
-            //});
 
             TaskWithTimeoutRunner<HTSMessage> twtr = new TaskWithTimeoutRunner<HTSMessage>(TIMEOUT);
             TaskWithTimeoutResult<HTSMessage> twtRes = await twtr.RunWithTimeout(Task.Factory.StartNew<HTSMessage>(() =>
@@ -795,13 +737,6 @@ namespace TVHeadEnd
             HTSMessage getTicketMessage = new HTSMessage();
             getTicketMessage.Method = "getTicket";
             getTicketMessage.putField("dvrId", recordingId);
-
-            //HTSMessage getTicketResponse = await Task.Factory.StartNew<HTSMessage>(() =>
-            //{
-            //    LoopBackResponseHandler lbrh = new LoopBackResponseHandler();
-            //    _htsConnection.sendMessage(getTicketMessage, lbrh);
-            //    return lbrh.getResponse();
-            //});
 
             TaskWithTimeoutRunner<HTSMessage> twtr = new TaskWithTimeoutRunner<HTSMessage>(TIMEOUT);
             TaskWithTimeoutResult<HTSMessage> twtRes = await twtr.RunWithTimeout(Task.Factory.StartNew<HTSMessage>(() =>
@@ -905,9 +840,6 @@ namespace TVHeadEnd
             queryEvents.putField("channelId", Convert.ToInt32(channelId));
             _htsConnection.sendMessage(queryEvents, currGetEventsResponseHandler);
 
-            //IEnumerable<ProgramInfo> pi = await currGetEventsResponseHandler.GetEvents(cancellationToken);
-            //return pi;
-
             TaskWithTimeoutRunner<IEnumerable<ProgramInfo>> twtr = new TaskWithTimeoutRunner<IEnumerable<ProgramInfo>>(TIMEOUT);
             TaskWithTimeoutResult<IEnumerable<ProgramInfo>> twtRes = await
                 twtr.RunWithTimeout(currGetEventsResponseHandler.GetEvents(cancellationToken));
@@ -949,8 +881,6 @@ namespace TVHeadEnd
             string serverVersionMessage = "<p>" + serverName + " " + serverVersion + "</p>"
                 + "<p>HTSP protokoll version: " + serverProtokollVersion + "</p>"
                 + "<p>Free diskspace: " + diskSpace + "</p>";
-
-            //List<LiveTvTunerInfo> tvTunerInfos = await _tunerDataHelper.buildTunerInfos(cancellationToken);
 
             TaskWithTimeoutRunner<List<LiveTvTunerInfo>> twtr = new TaskWithTimeoutRunner<List<LiveTvTunerInfo>>(TIMEOUT);
             TaskWithTimeoutResult<List<LiveTvTunerInfo>> twtRes = await
