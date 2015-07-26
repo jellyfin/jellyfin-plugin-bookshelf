@@ -172,22 +172,22 @@ namespace TVHeadEnd.DataHelper
                                             switch (_channelType4Other.ToLower())
                                             {
                                                 case "tv":
-                                                    _logger.Info("[TVHclient] ChannelDataHelper: map service type 'Other' to 'TV'.");
+                                                    _logger.Info("[TVHclient] ChannelDataHelper: map service tag 'Other' to 'TV'.");
                                                     ci.ChannelType = ChannelType.TV;
                                                     serviceFound = true;
                                                     break;
                                                 case "radio":
-                                                    _logger.Info("[TVHclient] ChannelDataHelper: map service type 'Other' to 'Radio'.");
+                                                    _logger.Info("[TVHclient] ChannelDataHelper: map service tag 'Other' to 'Radio'.");
                                                     ci.ChannelType = ChannelType.Radio;
                                                     serviceFound = true;
                                                     break;
                                                 default:
-                                                    _logger.Error("[TVHclient] ChannelDataHelper: don't map service type 'Other' - will be ignored.");
+                                                    _logger.Error("[TVHclient] ChannelDataHelper: don't map service tag 'Other' - will be ignored.");
                                                     break;
                                             }
                                             break;
                                         default:
-                                            _logger.Error("[TVHclient] ChannelDataHelper: unkown service type '" + type + "' - will be ignored.");
+                                            _logger.Error("[TVHclient] ChannelDataHelper: unkown service tag '" + type + "' - will be ignored.");
                                             break;
                                     }
                                 }
@@ -195,7 +195,7 @@ namespace TVHeadEnd.DataHelper
                         }
                         if (!serviceFound)
                         {
-                            _logger.Error("[TVHclient] ChannelDataHelper: unable to detect service-type from service list:" + m.ToString());
+                            _logger.Error("[TVHclient] ChannelDataHelper: unable to detect service-type (tvheadend tag!!!) from service list:" + m.ToString());
                             continue;
                         }
                         result.Add(ci);
