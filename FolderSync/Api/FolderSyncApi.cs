@@ -59,10 +59,8 @@ namespace FolderSync.Api
             {
                 throw new ArgumentNullException("Path");
             }
-            if (!Directory.Exists(request.Path))
-            {
-                throw new DirectoryNotFoundException();
-            }
+
+            Directory.CreateDirectory(request.Path);
 
             var config = Plugin.Instance.Configuration;
             var list = config.SyncAccounts.ToList();
