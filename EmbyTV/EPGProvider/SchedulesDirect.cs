@@ -421,15 +421,6 @@ namespace EmbyTV.EPGProvider
             return info;
         }
 
-        public bool checkExist(object obj)
-        {
-            if (obj != null)
-            {
-                return true;
-            }
-            return false;
-        }
-
         public async Task<List<string>> getLineups(CancellationToken cancellationToken)
         {
             var token = await GetToken(cancellationToken);

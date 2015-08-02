@@ -98,11 +98,11 @@ namespace MBBookshelf.Providers
             return file.Exists && _fileSystem.GetLastWriteTimeUtc(file) > date;
         }
 
-        public Task<LocalMetadataResult<Book>> GetMetadata(ItemInfo info, IDirectoryService directoryService, CancellationToken cancellationToken)
+        public Task<MetadataResult<Book>> GetMetadata(ItemInfo info, IDirectoryService directoryService, CancellationToken cancellationToken)
         {
             var path = GetXmlFile(info.Path, info.IsInMixedFolder).FullName;
 
-            var result = new LocalMetadataResult<Book>();
+            var result = new MetadataResult<Book>();
 
             try
             {

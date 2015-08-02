@@ -283,8 +283,6 @@ namespace EmbyTV
             return await _tvGuide.getChannelInfo(channels, cancellationToken);
         }
 
-
-
         public Task CloseLiveStream(string id, CancellationToken cancellationToken)
         {
             _logger.Info("Closing " + id);

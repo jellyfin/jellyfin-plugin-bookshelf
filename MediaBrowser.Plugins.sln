@@ -50,6 +50,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dropbox", "Dropbox\Dropbox.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OneDrive", "OneDrive\OneDrive.csproj", "{FABF230B-5782-46FB-8C64-6AC98722C33F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XmlMetadata", "XmlMetadata\XmlMetadata.csproj", "{C9F8C128-32CD-4151-A083-18E03C107D23}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -184,6 +186,12 @@ Global
 		{FABF230B-5782-46FB-8C64-6AC98722C33F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FABF230B-5782-46FB-8C64-6AC98722C33F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FABF230B-5782-46FB-8C64-6AC98722C33F}.Release|x86.ActiveCfg = Release|Any CPU
+		{C9F8C128-32CD-4151-A083-18E03C107D23}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9F8C128-32CD-4151-A083-18E03C107D23}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9F8C128-32CD-4151-A083-18E03C107D23}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C9F8C128-32CD-4151-A083-18E03C107D23}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9F8C128-32CD-4151-A083-18E03C107D23}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C9F8C128-32CD-4151-A083-18E03C107D23}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
