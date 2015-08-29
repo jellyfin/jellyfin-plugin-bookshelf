@@ -36,15 +36,15 @@
       <HintPath>..\packages\Interfaces.IO.1.0.0.5\lib\portable-net45+sl4+wp71+win8+wpa81\Interfaces.IO.dll</HintPath>
     </Reference>
     <Reference Include="MediaBrowser.Common">
-      <HintPath>..\packages\MediaBrowser.Common.3.0.631\lib\net45\MediaBrowser.Common.dll</HintPath>
+      <HintPath>..\packages\MediaBrowser.Common.3.0.633\lib\net45\MediaBrowser.Common.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="MediaBrowser.Controller">
-      <HintPath>..\packages\MediaBrowser.Server.Core.3.0.631\lib\net45\MediaBrowser.Controller.dll</HintPath>
+      <HintPath>..\packages\MediaBrowser.Server.Core.3.0.633\lib\net45\MediaBrowser.Controller.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="MediaBrowser.Model">
-      <HintPath>..\packages\MediaBrowser.Common.3.0.631\lib\net45\MediaBrowser.Model.dll</HintPath>
+      <HintPath>..\packages\MediaBrowser.Common.3.0.633\lib\net45\MediaBrowser.Model.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="ServiceStack.Interfaces">
