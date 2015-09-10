@@ -24,7 +24,7 @@ namespace TVHeadEnd
     /// <summary>
     /// Class LiveTvService
     /// </summary>
-    public class LiveTvService : ILiveTvService, HTSConnectionListener
+    public class LiveTvService : ILiveTvService, ITunerHost, HTSConnectionListener
     {
         private readonly TimeSpan TIMEOUT = TimeSpan.FromMinutes(5);
 
@@ -173,21 +173,23 @@ namespace TVHeadEnd
 
         private Task<int> WaitForInitialLoadTask(CancellationToken cancellationToken)
         {
-            return Task.Factory.StartNew<int>(() =>
+            return Task.Factory.StartNew<int>(() => WaitForInitialLoad(cancellationToken));
+        }
+
+        private int WaitForInitialLoad(CancellationToken cancellationToken)
+        {
+            DateTime start = DateTime.Now;
+            while (!_initialLoadFinished || cancellationToken.IsCancellationRequested)
             {
-                DateTime start = DateTime.Now;
-                while (!_initialLoadFinished || cancellationToken.IsCancellationRequested)
+                Thread.Sleep(500);
+                TimeSpan duration = DateTime.Now - start;
+                long durationInSec = duration.Ticks / TimeSpan.TicksPerSecond;
+                if (durationInSec > 60 * 15) // 15 Min timeout, should be enough to load huge data count
                 {
-                    Thread.Sleep(500);
-                    TimeSpan duration = DateTime.Now - start;
-                    long durationInSec = duration.Ticks / TimeSpan.TicksPerSecond;
-                    if (durationInSec > 60 * 15) // 15 Min timeout, should be enough to load huge data count
-                    {
-                        return -1;
-                    }
+                    return -1;
                 }
-                return 0;
-            });
+            }
+            return 0;
         }
 
         /// <summary>
@@ -228,6 +230,11 @@ namespace TVHeadEnd
         public string Name
         {
             get { return "TVHclient"; }
+        }
+
+        public string Type
+        {
+            get { return "Live-TV"; }
         }
 
         /// <summary>
@@ -1085,6 +1092,49 @@ namespace TVHeadEnd
             ensureConnection();
 
             throw ex;
+        }
+
+        public Task<IEnumerable<ChannelInfo>> GetChannels(CancellationToken cancellationToken)
+        {
+            ensureConnection();
+
+            int timeOut = WaitForInitialLoad(cancellationToken);
+            if (timeOut == -1 || cancellationToken.IsCancellationRequested)
+            {
+                _logger.Info("[TVHclient] GetChannels, call canceled or timed out - returning empty list.");
+                return Task.Factory.StartNew<IEnumerable<ChannelInfo>>(() =>
+                {
+                    return new List<ChannelInfo>();
+                });
+            }
+
+            return _channelDataHelper.buildChannelInfos(cancellationToken);
+        }
+
+        public Task<List<LiveTvTunerInfo>> GetTunerInfos(CancellationToken cancellationToken)
+        {
+            ensureConnection();
+
+            int timeOut = WaitForInitialLoad(cancellationToken);
+            if (timeOut == -1 || cancellationToken.IsCancellationRequested)
+            {
+                _logger.Info("[TVHclient] GetTunerInfos, call canceled or timed out - returning empty list.");
+                return Task.Factory.StartNew<List<LiveTvTunerInfo>>(() =>
+                {
+                    return new List<LiveTvTunerInfo>();
+                });
+            }
+
+            return _tunerDataHelper.buildTunerInfos(cancellationToken);
+        }
+
+        public Task Validate(TunerHostInfo info)
+        {
+            _logger.Info("[TVHclient] Validate TunerHostInfo called: " + info.ToString());
+
+            //throw new NotImplementedException();
+
+            return Task.Factory.StartNew(() => { return; });
         }
     }
 }

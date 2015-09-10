@@ -82,7 +82,6 @@
     <Compile Include="Configuration\TVHclientConfigurationPage .cs" />
     <Compile Include="TimeoutHelper\TaskWithTimeoutResult.cs" />
     <Compile Include="TimeoutHelper\TaskWithTimeoutRunner.cs" />
-    <Compile Include="TunerHost.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Configuration\configPage.html" />
