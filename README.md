@@ -1,7 +1,7 @@
-MediaBrowser.Plugins
+Emby.Plugins
 ====================
 
-This repository contains all of the plugins managed by the Media Browser core team.
+This repository contains many of the plugins that are built and maintained by the Emby community.
 
 Each of the projects has a build event that copies it's output to the programdata/plugins folder. 
 

@@ -18,7 +18,7 @@ namespace RokuMetadata.Configuration
         public PluginConfiguration()
         {
             EnableHdThumbnails = true;
-            MaxBitrate = 20000000;
+            MaxBitrate = 40000000;
             AudioOutputMode = AudioOutputMode.DTS;
         }
     }

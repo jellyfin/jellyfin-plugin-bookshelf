@@ -1,7 +1,9 @@
-﻿using MediaBrowser.Common.Configuration;
+﻿using System;
+using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Serialization;
 using EmbyTV.Configuration;
+using MediaBrowser.Model.Plugins;
 
 namespace EmbyTV
 {
@@ -38,5 +40,14 @@ namespace EmbyTV
         /// </summary>
         /// <value>The instance.</value>
         public static Plugin Instance { get; private set; }
+
+        public event EventHandler ConfigurationUpdated;
+        //public delegate void EventHandler(Plugin plugin, EventArgs e);
+
+        public override void UpdateConfiguration(BasePluginConfiguration configuration)
+        {
+            base.UpdateConfiguration(configuration);
+            if (ConfigurationUpdated != null) {ConfigurationUpdated(this,EventArgs.Empty);}
+        }
     }
 }

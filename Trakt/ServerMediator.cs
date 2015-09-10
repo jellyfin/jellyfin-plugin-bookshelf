@@ -11,7 +11,6 @@ using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Trakt.Api;
 using Trakt.Helpers;
@@ -29,7 +28,6 @@ namespace Trakt
         private TraktApi _traktApi;
         private TraktUriService _service;
         private LibraryManagerEventsHelper _libraryManagerEventsHelper;
-        private List<ProgressEvent> _progressEvents;
         private readonly UserDataManagerEventsHelper _userDataManagerEventsHelper;
 
         public static ServerMediator Instance { get; private set; }
@@ -55,7 +53,6 @@ namespace Trakt
             _traktApi = new TraktApi(jsonSerializer, _logger, httpClient, appHost, userDataManager, fileSystem);
             _service = new TraktUriService(_traktApi, _logger, _libraryManager);
             _libraryManagerEventsHelper = new LibraryManagerEventsHelper(_logger, _traktApi);
-            _progressEvents = new List<ProgressEvent>();
             _userDataManagerEventsHelper = new UserDataManagerEventsHelper(_logger, _traktApi);
 
             userDataManager.UserDataSaved += _userDataManager_UserDataSaved;
@@ -196,8 +193,6 @@ namespace Trakt
                     ItemId = e.Item.Id,
                     LastApiAccess = DateTime.UtcNow
                 };
-
-                _progressEvents.Add(playEvent);
             }
             catch (Exception ex)
             {
@@ -221,6 +216,7 @@ namespace Trakt
 
             try
             {
+                _logger.Info("Playback Stopped");
                 var traktUser = UserHelper.GetTraktUser(e.Users.FirstOrDefault());
 
                 if (traktUser == null)
@@ -282,13 +278,6 @@ namespace Trakt
             {
                 _logger.ErrorException("Error sending scrobble", ex, null);
             }
-
-            // No longer need to track the item
-            var playEvent =
-                _progressEvents.FirstOrDefault(ev => ev.UserId.Equals(e.Users.First().Id) && ev.ItemId.Equals(e.Item.Id));
-
-            if (playEvent != null)
-                _progressEvents.Remove(playEvent);
         }
 
         /// <summary>
@@ -303,8 +292,6 @@ namespace Trakt
             _service = null;
             _traktApi = null;
             _libraryManagerEventsHelper = null;
-            _progressEvents = null;
-
         }
     }
 

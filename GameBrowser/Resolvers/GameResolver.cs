@@ -200,7 +200,7 @@ namespace GameBrowser.Resolvers
                     return new[] { ".gbc", ".zip" };
 
                 case "Gamecube":
-                    return new[] { ".iso", ".bin", ".img", ".gcm" };
+                    return new[] { ".iso", ".bin", ".img", ".gcm", ".gcz" };
 
                 case "Super Nintendo":
                     return new[] { ".smc", ".zip", ".fam", ".rom", ".sfc", ".fig" };

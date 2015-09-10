@@ -261,6 +261,11 @@
                     }).done(function () {
                         $('#popupAddFolder', page).popup('close');
                         loadConfig(page);
+                    }).fail(function () {
+                        Dashboard.alert({
+                            message: 'There was an error adding the path entered. Please ensure the path is valid and can be written to before proceeding.'
+                        });
+                        Dashboard.hideLoadingMsg();
                     });
 
                     return false;

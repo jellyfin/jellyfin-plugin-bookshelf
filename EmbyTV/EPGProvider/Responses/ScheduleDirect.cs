@@ -7,7 +7,7 @@ using MediaBrowser.Model.Serialization;
 
 namespace EmbyTV.EPGProvider.Responses
 {
-    class ScheduleDirect
+    public class ScheduleDirect
     {
         public class Token
         {
@@ -48,6 +48,9 @@ namespace EmbyTV.EPGProvider.Responses
         {
             public string stationID { get; set; }
             public string channel { get; set; }
+            public int uhfVhf { get; set; }
+            public int atscMajor { get; set; }
+            public int atscMinor { get; set; }
         }
 
         public class Broadcaster
@@ -145,23 +148,7 @@ namespace EmbyTV.EPGProvider.Responses
             public MetadataSchedule metadata { get; set; }
         }
 
-
-        public class Schedules
-        {
-            public List<Day> days { get; set; }
-        }
-
-
-
-
-
-
-
-
-
-
-
-
+        //
         public class Title
         {
             public string title120 { get; set; }
@@ -271,37 +258,32 @@ namespace EmbyTV.EPGProvider.Responses
             public List<Recommendation> recommendations { get; set; }
         }
 
-        public class ProgramDetailsResilt
-        {
-            public List<ProgramDetails> result { get; set; }
-        }
-
         public class Caption
         {
             public string content { get; set; }
             public string lang { get; set; }
         }
 
-        public class Image
+        public class ImageData
         {
-            public string uri { get; set; }
-            public string height { get; set; }
             public string width { get; set; }
-            public string primary { get; set; }
+            public string height { get; set; }
+            public string uri { get; set; }
+            public string size { get; set; }
+            public string aspect { get; set; }
             public string category { get; set; }
+            public string text { get; set; }
+            public string primary { get; set; }
             public string tier { get; set; }
-            public string md5 { get; set; }
             public Caption caption { get; set; }
-        }
-        public class Result
-        {
-            public List<Image> images { get; set; }
         }
 
         public class ShowImages
         {
-            public List<Result> results { get; set; }
+            public string programID { get; set; }
+            public List<ImageData> data { get; set; }
         }
+
     }
 }
 

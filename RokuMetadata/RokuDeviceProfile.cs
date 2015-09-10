@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Model.Dlna;
+﻿using System.Collections.Generic;
+using MediaBrowser.Model.Dlna;
 
 namespace RokuMetadata
 {
@@ -6,7 +7,7 @@ namespace RokuMetadata
     {
         public RokuDeviceProfile(bool supportsAc3, bool supportsDca)
         {
-            Name = "Roku";
+            Name = "Roku Thumbnails";
 
             MaxStreamingBitrate = 20000000;
 
@@ -39,16 +40,48 @@ namespace RokuMetadata
                     VideoCodec = "h264,mpeg4",
                     AudioCodec = mp4Audio,
                     Type = DlnaProfileType.Video
+                },
+                new DirectPlayProfile
+                {
+                    Container = "mp3",
+                    Type = DlnaProfileType.Audio
                 }
             };
 
-            ContainerProfiles = new ContainerProfile[] { };
+            ContainerProfiles = new[]
+            {
+                new ContainerProfile
+                { 
+                    Type = DlnaProfileType.Video,
+                    Conditions = new []
+                    {
+                        new ProfileCondition
+                        {
+                            Condition = ProfileConditionType.NotEquals,
+                            Property = ProfileConditionValue.NumAudioStreams,
+                            Value = "0",
+                            IsRequired = false
+                        },
+                        new ProfileCondition
+                        {
+                            Condition = ProfileConditionType.EqualsAny,
+                            Property = ProfileConditionValue.NumVideoStreams,
+                            Value = "1",
+                            IsRequired = false
+                        }
+                    }
+                }
+            };
 
-            CodecProfiles = new[]
+            var videoProfile = "high|main|baseline|constrained baseline";
+            var videoLevel = "41";
+
+            var codecProfiles = new List<CodecProfile>
             {
                 new CodecProfile
                 {
                     Type = CodecType.Video,
+                    Codec = "h264",
                     Conditions = new []
                     {
                         new ProfileCondition
@@ -61,9 +94,16 @@ namespace RokuMetadata
                         new ProfileCondition
                         {
                             Condition = ProfileConditionType.LessThanEqual,
+                            Property = ProfileConditionValue.Width,
+                            Value = "1920",
+                            IsRequired = true
+                        },
+                        new ProfileCondition
+                        {
+                            Condition = ProfileConditionType.LessThanEqual,
                             Property = ProfileConditionValue.Height,
                             Value = "1080",
-                            IsRequired = false
+                            IsRequired = true
                         },
                         new ProfileCondition
                         {
@@ -71,10 +111,128 @@ namespace RokuMetadata
                             Property = ProfileConditionValue.RefFrames,
                             Value = "12",
                             IsRequired = false
+                        },
+                        new ProfileCondition
+                        {
+                            Condition = ProfileConditionType.LessThanEqual,
+                            Property = ProfileConditionValue.VideoFramerate,
+                            Value = "30",
+                            IsRequired = false
+                        },
+                        new ProfileCondition
+                        {
+                            Condition = ProfileConditionType.LessThanEqual,
+                            Property = ProfileConditionValue.VideoLevel,
+                            Value = videoLevel,
+                            IsRequired = false
+                        },
+                        new ProfileCondition
+                        {
+                            Condition = ProfileConditionType.EqualsAny,
+                            Property = ProfileConditionValue.VideoProfile,
+                            Value = videoProfile,
+                            IsRequired = false
+                        }
+                    }
+                },
+                new CodecProfile
+                {
+                    Type = CodecType.Video,
+                    Codec = "mpeg4",
+                    Conditions = new []
+                    {
+                        new ProfileCondition
+                        {
+                            Condition = ProfileConditionType.LessThanEqual,
+                            Property = ProfileConditionValue.VideoBitDepth,
+                            Value = "8",
+                            IsRequired = false
+                        },
+                        new ProfileCondition
+                        {
+                            Condition = ProfileConditionType.LessThanEqual,
+                            Property = ProfileConditionValue.Width,
+                            Value = "1920",
+                            IsRequired = true
+                        },
+                        new ProfileCondition
+                        {
+                            Condition = ProfileConditionType.LessThanEqual,
+                            Property = ProfileConditionValue.Height,
+                            Value = "1080",
+                            IsRequired = true
+                        },
+                        new ProfileCondition
+                        {
+                            Condition = ProfileConditionType.LessThanEqual,
+                            Property = ProfileConditionValue.RefFrames,
+                            Value = "4",
+                            IsRequired = false
+                        },
+                        new ProfileCondition
+                        {
+                            Condition = ProfileConditionType.LessThanEqual,
+                            Property = ProfileConditionValue.VideoFramerate,
+                            Value = "30",
+                            IsRequired = false
+                        },
+                        new ProfileCondition
+                        {
+                            Condition = ProfileConditionType.Equals,
+                            Property = ProfileConditionValue.IsAnamorphic,
+                            Value = "false",
+                            IsRequired = false
                         }
                     }
                 }
             };
+
+            codecProfiles.Add(new CodecProfile
+            {
+                Type = CodecType.VideoAudio,
+                Codec = "ac3",
+                Conditions = new[]
+                    {
+                        new ProfileCondition
+                        {
+                            Condition = ProfileConditionType.LessThanEqual,
+                            Property = ProfileConditionValue.AudioChannels,
+                            Value = "6",
+                            IsRequired = false
+                        },
+                        new ProfileCondition
+                        {
+                            Condition = ProfileConditionType.Equals,
+                            Property = ProfileConditionValue.IsSecondaryAudio,
+                            Value = "false",
+                            IsRequired = false
+                        }
+                    }
+            });
+            codecProfiles.Add(new CodecProfile
+            {
+                Type = CodecType.VideoAudio,
+                Codec = "aac,mp3",
+                Conditions = new[]
+                    {
+                        new ProfileCondition
+                        {
+                            Condition = ProfileConditionType.LessThanEqual,
+                            Property = ProfileConditionValue.AudioChannels,
+                            Value = "2",
+                            IsRequired = true
+                        },
+                        new ProfileCondition
+                        {
+                            Condition = ProfileConditionType.Equals,
+                            Property = ProfileConditionValue.IsSecondaryAudio,
+                            Value = "false",
+                            IsRequired = false
+                        }
+                    }
+            });
+
+            CodecProfiles = codecProfiles.ToArray();
 
             SubtitleProfiles = new[]
             {
@@ -91,21 +249,24 @@ namespace RokuMetadata
                 {
                     Container = "mp3",
                     AudioCodec = "mp3",
-                    Type = DlnaProfileType.Audio
+                    Type = DlnaProfileType.Audio,
+                    Context = EncodingContext.Static
                 },
 
                 new TranscodingProfile
                 {
-                    Container = "ts",
+                    Container = "mp4",
                     Type = DlnaProfileType.Video,
                     AudioCodec = "aac",
-                    VideoCodec = "h264"
+                    VideoCodec = "h264",
+                    Context = EncodingContext.Static
                 },
 
                 new TranscodingProfile
                 {
                     Container = "jpeg",
-                    Type = DlnaProfileType.Photo
+                    Type = DlnaProfileType.Photo,
+                    Context = EncodingContext.Static
                 }
             };
 

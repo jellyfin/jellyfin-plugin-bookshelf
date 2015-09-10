@@ -127,7 +127,7 @@ namespace Trakt.ScheduledTasks
                 var userData = _userDataManager.GetUserData(user.Id, child.GetUserDataKey());
 
                 var collectedMovies = SyncFromTraktTask.FindMatches(movie, traktCollectedMovies).ToList();
-                if (!collectedMovies.Any() || collectedMovies.All(collectedMovie => collectedMovie.MetadataIsDifferent(movie)))
+                if (!collectedMovies.Any() || (traktUser.ExportMediaInfo && collectedMovies.All(collectedMovie => collectedMovie.MetadataIsDifferent(movie))))
                 {
                     movies.Add(movie);
                 }

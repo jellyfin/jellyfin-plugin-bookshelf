@@ -1,4 +1,5 @@
-﻿using MediaBrowser.Common.IO;
+﻿using System.Globalization;
+using MediaBrowser.Common.IO;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Common.ScheduledTasks;
 using MediaBrowser.Controller;
@@ -180,7 +181,7 @@ namespace Trakt.ScheduledTasks
                 if (matchedShow != null)
                 {
                     var matchedSeason = matchedShow.Seasons
-                        .FirstOrDefault(tSeason => tSeason.Number == (episode.ParentIndexNumber ?? -1));
+                        .FirstOrDefault(tSeason => tSeason.Number == (episode.ParentIndexNumber == 0? 0 : ((episode.ParentIndexNumber ?? 1) + (episode.Series.AnimeSeriesIndex ?? 1) - 1)));
 
                     // if it's not a match then it means trakt doesn't know about the season, leave the watched state alone and move on
                     if (matchedSeason != null)
@@ -273,7 +274,7 @@ namespace Trakt.ScheduledTasks
 
             var tmdb = item.GetProviderId(MetadataProviders.Tmdb);
 
-            if (!string.IsNullOrEmpty(tmdb) && int.Parse(tmdb) == movie.Ids.Tmdb)
+            if (movie.Ids.Tmdb.HasValue && string.Equals(tmdb, movie.Ids.Tmdb.Value.ToString(CultureInfo.InvariantCulture), StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }
