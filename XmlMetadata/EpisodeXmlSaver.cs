@@ -1,31 +1,33 @@
-﻿using System.Collections.Generic;
+﻿using MediaBrowser.Controller.Configuration;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.TV;
+using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Persistence;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Security;
 using System.Text;
 using System.Threading;
-using MediaBrowser.Controller.Configuration;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Entities.TV;
-using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Persistence;
-using MediaBrowser.LocalMetadata.Savers;
+using MediaBrowser.Common.IO;
 
 namespace XmlMetadata
 {
-    public class EpisodeXmlSaver : IMetadataFileSaver
+    public class EpisodeXmlProvider : IMetadataFileSaver, IConfigurableProvider
     {
         private readonly IItemRepository _itemRepository;
 
         private readonly CultureInfo _usCulture = new CultureInfo("en-US");
         private readonly IServerConfigurationManager _config;
         private readonly ILibraryManager _libraryManager;
+        private IFileSystem _fileSystem;
 
-        public EpisodeXmlSaver(IItemRepository itemRepository, IServerConfigurationManager config, ILibraryManager libraryManager)
+        public EpisodeXmlProvider(IItemRepository itemRepository, IServerConfigurationManager config, ILibraryManager libraryManager, IFileSystem fileSystem)
         {
             _itemRepository = itemRepository;
             _config = config;
             _libraryManager = libraryManager;
+            _fileSystem = fileSystem;
         }
 
         /// <summary>
@@ -50,6 +52,11 @@ namespace XmlMetadata
             {
                 return Plugin.MetadataName;
             }
+        }
+
+        public bool IsEnabled
+        {
+            get { return !_config.Configuration.DisableXmlSavers; }
         }
 
         /// <summary>
@@ -93,7 +100,7 @@ namespace XmlMetadata
             {
                 builder.Append("<airsbefore_season>" + SecurityElement.Escape(episode.AirsBeforeSeasonNumber.Value.ToString(_usCulture)) + "</airsbefore_season>");
             }
-   
+
             if (episode.ParentIndexNumber.HasValue)
             {
                 builder.Append("<SeasonNumber>" + SecurityElement.Escape(episode.ParentIndexNumber.Value.ToString(_usCulture)) + "</SeasonNumber>");
@@ -103,7 +110,7 @@ namespace XmlMetadata
             {
                 builder.Append("<absolute_number>" + SecurityElement.Escape(episode.AbsoluteEpisodeNumber.Value.ToString(_usCulture)) + "</absolute_number>");
             }
-            
+
             if (episode.DvdEpisodeNumber.HasValue)
             {
                 builder.Append("<DVD_episodenumber>" + SecurityElement.Escape(episode.DvdEpisodeNumber.Value.ToString(_usCulture)) + "</DVD_episodenumber>");
@@ -112,8 +119,8 @@ namespace XmlMetadata
             if (episode.DvdSeasonNumber.HasValue)
             {
                 builder.Append("<DVD_season>" + SecurityElement.Escape(episode.DvdSeasonNumber.Value.ToString(_usCulture)) + "</DVD_season>");
-            } 
-            
+            }
+
             if (episode.PremiereDate.HasValue)
             {
                 builder.Append("<FirstAired>" + SecurityElement.Escape(episode.PremiereDate.Value.ToLocalTime().ToString("yyyy-MM-dd")) + "</FirstAired>");
@@ -139,7 +146,8 @@ namespace XmlMetadata
                     "DVD_episodenumber",
                     "DVD_season",
                     "absolute_number"
-                }, _config);
+
+                }, _config, _fileSystem);
         }
 
         /// <summary>
