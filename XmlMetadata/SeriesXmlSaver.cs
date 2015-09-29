@@ -17,7 +17,7 @@ namespace XmlMetadata
     {
         private readonly IServerConfigurationManager _config;
         private readonly ILibraryManager _libraryManager;
-        private IFileSystem _fileSystem;
+        private readonly IFileSystem _fileSystem;
 
         public SeriesXmlProvider(IServerConfigurationManager config, ILibraryManager libraryManager, IFileSystem fileSystem)
         {

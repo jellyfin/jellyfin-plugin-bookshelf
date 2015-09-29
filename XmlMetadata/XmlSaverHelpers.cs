@@ -1,5 +1,4 @@
-﻿using MediaBrowser.Common.IO;
-using MediaBrowser.Controller.Configuration;
+﻿using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Entities.TV;
@@ -15,6 +14,7 @@ using System.Linq;
 using System.Security;
 using System.Text;
 using System.Xml;
+using MediaBrowser.Common.IO;
 
 namespace XmlMetadata
 {
@@ -426,17 +426,13 @@ namespace XmlMetadata
                 }
             }
 
-            var hasLanguage = item as IHasPreferredMetadataLanguage;
-            if (hasLanguage != null)
+            if (!string.IsNullOrEmpty(item.PreferredMetadataLanguage))
             {
-                if (!string.IsNullOrEmpty(hasLanguage.PreferredMetadataLanguage))
-                {
-                    builder.Append("<Language>" + SecurityElement.Escape(hasLanguage.PreferredMetadataLanguage) + "</Language>");
-                }
-                if (!string.IsNullOrEmpty(hasLanguage.PreferredMetadataCountryCode))
-                {
-                    builder.Append("<CountryCode>" + SecurityElement.Escape(hasLanguage.PreferredMetadataCountryCode) + "</CountryCode>");
-                }
+                builder.Append("<Language>" + SecurityElement.Escape(item.PreferredMetadataLanguage) + "</Language>");
+            }
+            if (!string.IsNullOrEmpty(item.PreferredMetadataCountryCode))
+            {
+                builder.Append("<CountryCode>" + SecurityElement.Escape(item.PreferredMetadataCountryCode) + "</CountryCode>");
             }
 
             // Use original runtime here, actual file runtime later in MediaInfo
