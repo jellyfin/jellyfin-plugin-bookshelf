@@ -12,6 +12,7 @@ using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
 using System;
 using System.Linq;
+using CommonIO;
 using Trakt.Api;
 using Trakt.Helpers;
 

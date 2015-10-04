@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CommonIO;
 
 namespace FolderSync
 {
@@ -166,7 +167,7 @@ namespace FolderSync
                 return Task.FromResult(result);
             }
 
-            var files = new DirectoryInfo(account.Path).EnumerateFiles("*", SearchOption.AllDirectories)
+            var files = _fileSystem.GetFiles(account.Path, true)
                 .Select(GetFile)
                 .ToArray();
 
@@ -176,7 +177,7 @@ namespace FolderSync
             return Task.FromResult(result);
         }
 
-        private FileMetadata GetFile(FileSystemInfo file)
+        private FileMetadata GetFile(FileSystemMetadata file)
         {
             return new FileMetadata
             {

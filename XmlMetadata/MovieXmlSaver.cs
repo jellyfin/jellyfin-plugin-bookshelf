@@ -9,6 +9,7 @@ using System.IO;
 using System.Security;
 using System.Text;
 using System.Threading;
+using CommonIO;
 using MediaBrowser.Common.IO;
 
 namespace XmlMetadata
@@ -21,7 +22,7 @@ namespace XmlMetadata
         private readonly IItemRepository _itemRepository;
         private readonly IServerConfigurationManager _config;
         private readonly ILibraryManager _libraryManager;
-        private IFileSystem _fileSystem;
+        private readonly IFileSystem _fileSystem;
 
         public MovieXmlProvider(IItemRepository itemRepository, IServerConfigurationManager config, ILibraryManager libraryManager, IFileSystem fileSystem)
         {

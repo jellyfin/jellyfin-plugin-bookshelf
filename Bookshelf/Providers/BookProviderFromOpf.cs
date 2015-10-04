@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using CommonIO;
 
 namespace MBBookshelf.Providers
 {
@@ -30,31 +31,26 @@ namespace MBBookshelf.Providers
             _logger = logger;
         }
 
-        private FileInfo GetXmlFile(string path, bool isInMixedFolder)
+        private FileSystemMetadata GetXmlFile(string path, bool isInMixedFolder)
         {
             var fileInfo = _fileSystem.GetFileSystemInfo(path);
 
-            var directoryInfo = fileInfo as DirectoryInfo;
-
-            if (directoryInfo == null)
-            {
-                directoryInfo = new DirectoryInfo(Path.GetDirectoryName(path));
-            }
+            var directoryInfo = fileInfo.IsDirectory ? fileInfo : _fileSystem.GetDirectoryInfo(Path.GetDirectoryName(path));
 
             var directoryPath = directoryInfo.FullName;
 
             var specificFile = Path.Combine(directoryPath, Path.GetFileNameWithoutExtension(path) + ".opf");
 
-            var file = new FileInfo(specificFile);
+            var file = _fileSystem.GetFileInfo(specificFile);
 
             if (file.Exists)
             {
                 return file;
             }
 
-            file = new FileInfo(Path.Combine(directoryPath, StandardOpfFile));
+            file = _fileSystem.GetFileInfo(Path.Combine(directoryPath, StandardOpfFile));
 
-            return file.Exists ? file : new FileInfo(Path.Combine(directoryPath, CalibreOpfFile));
+            return file.Exists ? file : _fileSystem.GetFileInfo(Path.Combine(directoryPath, CalibreOpfFile));
         }
 
         public bool HasChanged(IHasMetadata item, IDirectoryService directoryService, DateTime date)
@@ -156,7 +152,7 @@ namespace MBBookshelf.Providers
             if (authorNode != null)
             {
                 var person = new PersonInfo { Name = authorNode.InnerText, Type = "Author" };
-                
+
                 bookResult.People.Add(person);
             }
 

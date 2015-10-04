@@ -5,6 +5,7 @@ using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Providers;
 using System.Threading;
 using System.Threading.Tasks;
+using CommonIO;
 
 namespace GameBrowser.Providers
 {

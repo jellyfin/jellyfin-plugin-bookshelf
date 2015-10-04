@@ -11,6 +11,7 @@ using MediaBrowser.Model.Logging;
 using RokuMetadata.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
+using CommonIO;
 
 namespace RokuMetadata.Providers
 {
