@@ -40,15 +40,9 @@ namespace TVHeadEnd
             _htsConnectionHandler.setLiveTvService(this);
         }
 
-        public string HomePageUrl
-        {
-            get { return "http://tvheadend.org/"; }
-        }
+        public string HomePageUrl { get { return "http://tvheadend.org/"; } }
 
-        public string Name
-        {
-            get { return "TVHclient-LiveTvService"; }
-        }
+        public string Name { get { return "TVHclient LiveTvService"; } }
 
         public void sendDataSourceChanged()
         {
