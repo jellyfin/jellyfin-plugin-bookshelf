@@ -9,9 +9,9 @@ using TVHeadEnd.Helper;
 
 namespace TVHeadEnd.HTSP
 {
-    public class HTSMessage //: Dictionary<string, object>
+    public class HTSMessage
     {
-        public const long HTSP_VERSION = 20;
+        public const long HTSP_VERSION = 10;
         private const byte HMF_MAP = 1;
         private const byte HMF_S64 = 2;
         private const byte HMF_STR = 3;

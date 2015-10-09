@@ -117,87 +117,87 @@ namespace TVHeadEnd.DataHelper
                         {
                         }
 
-                       sti.StartDate = DateTime.Now.ToUniversalTime();
+                        sti.StartDate = DateTime.Now.ToUniversalTime();
 
-                       try
-                       {
-                           if (m.containsField("retention"))
-                           {
-                               int retentionInDays = m.getInt("retention");
-                               sti.EndDate = DateTime.Now.AddDays(retentionInDays).ToUniversalTime();
-                           }
-                       }
-                       catch (InvalidCastException)
-                       {
-                       }
+                        try
+                        {
+                            if (m.containsField("retention"))
+                            {
+                                int retentionInDays = m.getInt("retention");
+                                sti.EndDate = DateTime.Now.AddDays(retentionInDays).ToUniversalTime();
+                            }
+                        }
+                        catch (InvalidCastException)
+                        {
+                        }
 
-                       try
-                       {
-                           if (m.containsField("channel"))
-                           {
-                               sti.ChannelId = "" + m.getInt("channel");
-                           }
-                       }
-                       catch (InvalidCastException)
-                       {
-                       }
+                        try
+                        {
+                            if (m.containsField("channel"))
+                            {
+                                sti.ChannelId = "" + m.getInt("channel");
+                            }
+                        }
+                        catch (InvalidCastException)
+                        {
+                        }
 
-                       try
-                       {
-                           if (m.containsField("startExtra"))
-                           {
-                               sti.PrePaddingSeconds = (int)m.getLong("startExtra") * 60;
-                               sti.IsPrePaddingRequired = true;
-                           }
-                       }
-                       catch (InvalidCastException)
-                       {
-                       }
+                        try
+                        {
+                            if (m.containsField("startExtra"))
+                            {
+                                sti.PrePaddingSeconds = (int)m.getLong("startExtra") * 60;
+                                sti.IsPrePaddingRequired = true;
+                            }
+                        }
+                        catch (InvalidCastException)
+                        {
+                        }
 
-                       try
-                       {
-                           if (m.containsField("stopExtra"))
-                           {
-                               sti.PostPaddingSeconds = (int)m.getLong("stopExtra") * 60;
-                               sti.IsPostPaddingRequired = true;
-                           }
-                       }
-                       catch (InvalidCastException)
-                       {
-                       }
+                        try
+                        {
+                            if (m.containsField("stopExtra"))
+                            {
+                                sti.PostPaddingSeconds = (int)m.getLong("stopExtra") * 60;
+                                sti.IsPostPaddingRequired = true;
+                            }
+                        }
+                        catch (InvalidCastException)
+                        {
+                        }
 
-                       try
-                       {
-                           if (m.containsField("title"))
-                           {
-                               sti.Name = m.getString("title");
-                           }
-                       }
-                       catch (InvalidCastException)
-                       {
-                       }
+                        try
+                        {
+                            if (m.containsField("title"))
+                            {
+                                sti.Name = m.getString("title");
+                            }
+                        }
+                        catch (InvalidCastException)
+                        {
+                        }
 
-                       try
-                       {
-                           if (m.containsField("description"))
-                           {
-                               sti.Overview = m.getString("description");
-                           }
-                       }
-                       catch (InvalidCastException)
-                       {
-                       }
+                        try
+                        {
+                            if (m.containsField("description"))
+                            {
+                                sti.Overview = m.getString("description");
+                            }
+                        }
+                        catch (InvalidCastException)
+                        {
+                        }
 
-                       try
-                       {
-                           if (m.containsField("priority"))
-                           {
-                               sti.Priority = m.getInt("priority");
-                           }
-                       }
-                       catch (InvalidCastException)
-                       {
-                       }
+                        try
+                        {
+                            if (m.containsField("priority"))
+                            {
+                                sti.Priority = m.getInt("priority");
+                            }
+                        }
+                        catch (InvalidCastException)
+                        {
+                        }
 
                         /*
                                 public string ProgramId { get; set; }
@@ -217,7 +217,7 @@ namespace TVHeadEnd.DataHelper
         private List<DayOfWeek> getDayOfWeekListFromInt(int daysOfWeek)
         {
             List<DayOfWeek> result = new List<DayOfWeek>();
-            if((daysOfWeek & 0x01) != 0)
+            if ((daysOfWeek & 0x01) != 0)
             {
                 result.Add(DayOfWeek.Monday);
             }
