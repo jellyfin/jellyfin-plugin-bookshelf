@@ -1,5 +1,4 @@
 ﻿using FolderSync.Configuration;
-using MediaBrowser.Common.IO;
 using MediaBrowser.Controller.Sync;
 using MediaBrowser.Model.MediaInfo;
 using MediaBrowser.Model.Net;
@@ -29,16 +28,11 @@ namespace FolderSync
         {
             var fullPath = GetFullPath(remotePath, target);
 
-            Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
+            _fileSystem.CreateDirectory(Path.GetDirectoryName(fullPath));
             using (var fileStream = _fileSystem.GetFileStream(fullPath, FileMode.Create, FileAccess.Write, FileShare.Read, true))
             {
                 await stream.CopyToAsync(fileStream).ConfigureAwait(false);
-                return new SyncedFileInfo
-                {
-                    Path = fullPath,
-                    Protocol = MediaProtocol.File,
-                    Id = fullPath
-                };
+                return GetSyncedFileInfo(fullPath);
             }
         }
 
@@ -46,7 +40,7 @@ namespace FolderSync
         {
             return Task.Run(() =>
             {
-                File.Delete(id);
+                _fileSystem.DeleteFile(id);
 
                 var account = GetSyncAccounts()
                     .FirstOrDefault(i => string.Equals(i.Id, target.Id, StringComparison.OrdinalIgnoreCase));
@@ -67,7 +61,7 @@ namespace FolderSync
 
         public Task<Stream> GetFile(string id, SyncTarget target, IProgress<double> progress, CancellationToken cancellationToken)
         {
-            return Task.FromResult((Stream)File.OpenRead(id));
+            return Task.FromResult(_fileSystem.OpenRead(id));
         }
 
         public string GetFullPath(IEnumerable<string> paths, SyncTarget target)
@@ -117,14 +111,14 @@ namespace FolderSync
             return Plugin.Instance.Configuration.SyncAccounts.ToList();
         }
 
-        private static void DeleteEmptyFolders(string parent)
+        private void DeleteEmptyFolders(string parent)
         {
-            foreach (var directory in Directory.GetDirectories(parent))
+            foreach (var directory in _fileSystem.GetDirectoryPaths(parent))
             {
                 DeleteEmptyFolders(directory);
-                if (!Directory.EnumerateFileSystemEntries(directory).Any())
+                if (!_fileSystem.GetFileSystemEntryPaths(directory).Any())
                 {
-                    Directory.Delete(directory, false);
+                    _fileSystem.DeleteDirectory(directory, false);
                 }
             }
         }
@@ -156,7 +150,8 @@ namespace FolderSync
 
             if (query.FullPath != null && query.FullPath.Length > 0)
             {
-                var file = _fileSystem.GetFileSystemInfo(query.FullPath[0]);
+                var fullPath = GetFullPath(query.FullPath, target);
+                var file = _fileSystem.GetFileSystemInfo(fullPath);
 
                 if (file.Exists)
                 {
@@ -182,7 +177,7 @@ namespace FolderSync
             return new FileMetadata
             {
                 Id = file.FullName,
-                Name = Path.GetFileName(file.FullName),
+                Name = file.Name,
                 MimeType = MimeTypes.GetMimeType(file.FullName)
             };
         }
@@ -191,17 +186,25 @@ namespace FolderSync
         {
             var fullPath = GetFullPath(pathParts, target);
 
-            Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
+            _fileSystem.CreateDirectory(Path.GetDirectoryName(fullPath));
 
-            File.Copy(path, fullPath, true);
+            _fileSystem.CopyFile(path, fullPath, true);
 
-            return Task.FromResult(new SyncedFileInfo
+            return Task.FromResult(GetSyncedFileInfo(fullPath));
+        }
+
+        private SyncedFileInfo GetSyncedFileInfo(string path)
+        {
+            // Normalize the full path to make sure it's consistent with the results you'd get from directory queries
+            var file = _fileSystem.GetFileInfo(path);
+            path = file.FullName;
+
+            return new SyncedFileInfo
             {
-                Path = fullPath,
+                Path = path,
                 Protocol = MediaProtocol.File,
-                Id = fullPath
-            });
-
+                Id = path
+            };
         }
     }
 }
