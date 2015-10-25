@@ -50,7 +50,7 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
                 Audio = ParseAudio(epg.Audio),
                 IsHD = string.Equals(epg.Quality, "hdtv", StringComparison.OrdinalIgnoreCase),
                 IsRepeat = !epg.FirstRun,
-                IsSeries = !string.IsNullOrEmpty(epg.Subtitle),
+                IsSeries = true, //!string.IsNullOrEmpty(epg.Subtitle),  http://emby.media/community/index.php?/topic/21264-series-record-ability-missing-in-emby-epg/#entry239633
                 ImageUrl = string.IsNullOrEmpty(epg.FanArt) ? null : (_baseUrl + "/" + epg.FanArt),
                 HasImage = !string.IsNullOrEmpty(epg.FanArt),
                 IsNews = epg.Genres.Contains("news", StringComparer.OrdinalIgnoreCase),
