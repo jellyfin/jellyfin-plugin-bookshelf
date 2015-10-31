@@ -44,7 +44,7 @@ namespace TVHeadEnd
 
             //System.Diagnostics.StackTrace t = new System.Diagnostics.StackTrace();
             _logger.Info("[TVHclient] HTSConnectionHandler()");
-            
+
             _channelDataHelper = new ChannelDataHelper(logger);
             _dvrDataHelper = new DvrDataHelper(logger);
             _autorecDataHelper = new AutorecDataHelper(logger);
@@ -273,28 +273,22 @@ namespace TVHeadEnd
 
                     case "dvrEntryAdd":
                         _dvrDataHelper.dvrEntryAdd(response);
-                        _liveTvService.sendRecordingStatusChanged();
                         break;
                     case "dvrEntryUpdate":
                         _dvrDataHelper.dvrEntryUpdate(response);
-                        _liveTvService.sendRecordingStatusChanged();
                         break;
                     case "dvrEntryDelete":
                         _dvrDataHelper.dvrEntryDelete(response);
-                        _liveTvService.sendRecordingStatusChanged();
                         break;
 
                     case "autorecEntryAdd":
                         _autorecDataHelper.autorecEntryAdd(response);
-                        _liveTvService.sendRecordingStatusChanged();
                         break;
                     case "autorecEntryUpdate":
                         _autorecDataHelper.autorecEntryUpdate(response);
-                        _liveTvService.sendRecordingStatusChanged();
                         break;
                     case "autorecEntryDelete":
                         _autorecDataHelper.autorecEntryDelete(response);
-                        _liveTvService.sendRecordingStatusChanged();
                         break;
 
                     case "eventAdd":

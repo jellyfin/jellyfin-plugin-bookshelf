@@ -38,6 +38,8 @@ namespace TVHeadEnd
 
             _htsConnectionHandler = HTSConnectionHandler.GetInstance(_logger);
             _htsConnectionHandler.setLiveTvService(this);
+
+            sendDataSourceChanged();
         }
 
         public string HomePageUrl { get { return "http://tvheadend.org/"; } }
@@ -48,10 +50,11 @@ namespace TVHeadEnd
         {
             try
             {
-                EventHandler handler = DataSourceChanged;
-                if (handler != null)
+                _logger.Fatal("[TVHclient] sendDataSourceChanged 1");
+                if (DataSourceChanged != null)
                 {
-                    handler(this, EventArgs.Empty);
+                    _logger.Fatal("[TVHclient] sendDataSourceChanged 2");
+                    DataSourceChanged(this, EventArgs.Empty);
                 }
             }
             catch (Exception ex)
@@ -60,14 +63,16 @@ namespace TVHeadEnd
             }
         }
 
-        public void sendRecordingStatusChanged()
+        /*
+        public void sendRecordingStatusChanged(RecordingStatusChangedEventArgs recordingStatusChangedEventArgs)
         {
             try
             {
-                EventHandler <RecordingStatusChangedEventArgs> handler = RecordingStatusChanged;
-                if (handler != null)
+                _logger.Fatal("[TVHclient] sendRecordingStatusChanged 1");
+                if (RecordingStatusChanged != null)
                 {
-                    handler(this, new RecordingStatusChangedEventArgs());
+                    _logger.Fatal("[TVHclient] sendRecordingStatusChanged 2");
+                    RecordingStatusChanged(this, recordingStatusChangedEventArgs);
                 }
             }
             catch (Exception ex)
@@ -75,6 +80,7 @@ namespace TVHeadEnd
                 _logger.Error("[TVHclient] LiveTvService.sendRecordingStatusChanged caught exception: " + ex.Message);
             }
         }
+        */
 
         public async Task CancelSeriesTimerAsync(string timerId, CancellationToken cancellationToken)
         {
