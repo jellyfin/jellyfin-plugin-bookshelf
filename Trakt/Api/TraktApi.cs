@@ -946,7 +946,7 @@ namespace Trakt.Api
 
         private async Task<Stream> PostToTrakt(string url, object data, CancellationToken cancellationToken, TraktUser traktUser)
         {
-            var requestContent = data.ToJSON();
+            var requestContent = data == null? string.Empty : _jsonSerializer.SerializeToString(data);
             if (traktUser != null && traktUser.ExtraLogging && url != TraktUris.Login)
             {
                 _logger.Debug(requestContent);
