@@ -4,7 +4,6 @@ using System.Linq;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Model.Entities;
-using Newtonsoft.Json;
 using Trakt.Api.DataContracts.Users.Collection;
 
 namespace Trakt
@@ -135,14 +134,7 @@ namespace Trakt
             }
             return null;
         }
-
-        public static string ToJSON(this object obj)
-        {
-            if (obj == null) return string.Empty;
-            return JsonConvert.SerializeObject(obj,
-                    new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
-        }
-
+        
         public static string ToISO8601(this DateTime dt, double hourShift = 0)
         {
             return dt.AddHours(hourShift).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ");
