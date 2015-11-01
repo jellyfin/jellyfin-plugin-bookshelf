@@ -461,12 +461,15 @@ namespace TVHeadEnd
             queryEvents.putField("channelId", Convert.ToInt32(channelId));
             _htsConnectionHandler.SendMessage(queryEvents, currGetEventsResponseHandler);
 
+            _logger.Info("[TVHclient] GetProgramsAsync, ask TVH for events of channel '" + channelId + "'.");
+
             TaskWithTimeoutRunner<IEnumerable<ProgramInfo>> twtr = new TaskWithTimeoutRunner<IEnumerable<ProgramInfo>>(TIMEOUT);
             TaskWithTimeoutResult<IEnumerable<ProgramInfo>> twtRes = await
                 twtr.RunWithTimeout(currGetEventsResponseHandler.GetEvents(cancellationToken));
 
             if (twtRes.HasTimeout)
             {
+                _logger.Info("[TVHclient] GetProgramsAsync, timeout during call for events of channel '" + channelId + "'.");
                 return new List<ProgramInfo>();
             }
 
