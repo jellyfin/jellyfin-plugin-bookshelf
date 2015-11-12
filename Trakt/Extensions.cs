@@ -1,14 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Runtime.Serialization.Json;
-using System.Text;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Logging;
-using Trakt.Api.DataContracts;
 using Trakt.Api.DataContracts.Users.Collection;
 
 namespace Trakt
@@ -139,18 +134,7 @@ namespace Trakt
             }
             return null;
         }
-
-        public static string ToJSON(this object obj)
-        {
-            if (obj == null) return string.Empty;
-            using (var ms = new MemoryStream())
-            {
-                var ser = new DataContractJsonSerializer(obj.GetType());
-                ser.WriteObject(ms, obj);
-                return Encoding.UTF8.GetString(ms.ToArray());
-            }
-        }
-
+        
         public static string ToISO8601(this DateTime dt, double hourShift = 0)
         {
             return dt.AddHours(hourShift).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ");

@@ -1,20 +1,19 @@
-﻿using MediaBrowser.Controller.Configuration;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Entities.TV;
-using MediaBrowser.Controller.Library;
-using MediaBrowser.Model.Entities;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Security;
 using System.Text;
 using System.Threading;
 using CommonIO;
-using MediaBrowser.Common.IO;
+using MediaBrowser.Controller.Configuration;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.TV;
+using MediaBrowser.Controller.Library;
+using MediaBrowser.Model.Entities;
 
 namespace XmlMetadata
 {
-    public class SeriesXmlProvider : IMetadataFileSaver, IConfigurableProvider
+    public class SeriesXmlProvider : IMetadataFileSaver
     {
         private readonly IServerConfigurationManager _config;
         private readonly ILibraryManager _libraryManager;
@@ -49,11 +48,6 @@ namespace XmlMetadata
             }
 
             return item is Series && updateType >= ItemUpdateType.MetadataDownload;
-        }
-
-        public bool IsEnabled
-        {
-            get { return !_config.Configuration.DisableXmlSavers; }
         }
 
         private static readonly CultureInfo UsCulture = new CultureInfo("en-US");

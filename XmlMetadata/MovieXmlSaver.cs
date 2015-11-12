@@ -1,23 +1,22 @@
-﻿using MediaBrowser.Controller.Configuration;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Entities.Movies;
-using MediaBrowser.Controller.Entities.TV;
-using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Persistence;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Security;
 using System.Text;
 using System.Threading;
 using CommonIO;
-using MediaBrowser.Common.IO;
+using MediaBrowser.Controller.Configuration;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.Movies;
+using MediaBrowser.Controller.Entities.TV;
+using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Persistence;
 
 namespace XmlMetadata
 {
     /// <summary>
     /// Saves movie.xml for movies, trailers and music videos
     /// </summary>
-    public class MovieXmlProvider : IMetadataFileSaver, IConfigurableProvider
+    public class MovieXmlProvider : IMetadataFileSaver
     {
         private readonly IItemRepository _itemRepository;
         private readonly IServerConfigurationManager _config;

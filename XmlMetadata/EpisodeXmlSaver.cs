@@ -1,27 +1,26 @@
-﻿using MediaBrowser.Controller.Configuration;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Entities.TV;
-using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Persistence;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Security;
 using System.Text;
 using System.Threading;
 using CommonIO;
-using MediaBrowser.Common.IO;
+using MediaBrowser.Controller.Configuration;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.TV;
+using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Persistence;
 
 namespace XmlMetadata
 {
-    public class EpisodeXmlProvider : IMetadataFileSaver, IConfigurableProvider
+    public class EpisodeXmlProvider : IMetadataFileSaver
     {
         private readonly IItemRepository _itemRepository;
 
         private readonly CultureInfo _usCulture = new CultureInfo("en-US");
         private readonly IServerConfigurationManager _config;
         private readonly ILibraryManager _libraryManager;
-        private IFileSystem _fileSystem;
+        private readonly IFileSystem _fileSystem;
 
         public EpisodeXmlProvider(IItemRepository itemRepository, IServerConfigurationManager config, ILibraryManager libraryManager, IFileSystem fileSystem)
         {
@@ -53,11 +52,6 @@ namespace XmlMetadata
             {
                 return Plugin.MetadataName;
             }
-        }
-
-        public bool IsEnabled
-        {
-            get { return !_config.Configuration.DisableXmlSavers; }
         }
 
         /// <summary>
