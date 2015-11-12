@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
+using MediaBrowser.Model.Dto;
 
 
 namespace MediaBrowser.Plugins.ArgusTV
@@ -817,6 +818,27 @@ namespace MediaBrowser.Plugins.ArgusTV
             await EnsureConnectionAsync(cancellationToken);
             throw new NotImplementedException();
         }
+
+        public Task<MediaSourceInfo> GetRecordingStream(string recordingId, string streamId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<MediaSourceInfo> GetChannelStream(string channelId, string streamId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<MediaSourceInfo>> GetChannelStreamMediaSources(string channelId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<MediaSourceInfo>> GetRecordingStreamMediaSources(string recordingId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
 
         public async Task ResetTuner(string id, CancellationToken cancellationToken)
         {

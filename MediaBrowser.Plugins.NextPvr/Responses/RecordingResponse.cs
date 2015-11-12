@@ -139,7 +139,7 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
                 info.Overview = epg.Desc;
                 info.Genres = epg.Genres.Where(g => !string.IsNullOrWhiteSpace(g)).ToList();
                 info.IsRepeat = !epg.FirstRun;
-                info.IsSeries = !string.IsNullOrEmpty(epg.Subtitle);
+                info.IsSeries = true;    //!string.IsNullOrEmpty(epg.Subtitle); http://emby.media/community/index.php?/topic/21264-series-record-ability-missing-in-emby-epg/#entry239633
                 info.CommunityRating = ListingsResponse.ParseCommunityRating(epg.StarRating);
                 info.IsHD = string.Equals(epg.Quality, "hdtv", StringComparison.OrdinalIgnoreCase);
                 info.IsNews = epg.Genres.Contains("news", StringComparer.OrdinalIgnoreCase);
