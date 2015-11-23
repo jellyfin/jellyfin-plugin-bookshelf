@@ -12,16 +12,19 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CommonIO;
+using MediaBrowser.Model.Logging;
 
 namespace FolderSync
 {
     public class SyncProvider : IServerSyncProvider, ISupportsDirectCopy
     {
         private readonly IFileSystem _fileSystem;
+        private readonly ILogger _logger;
 
-        public SyncProvider(IFileSystem fileSystem)
+        public SyncProvider(IFileSystem fileSystem, ILogger logger)
         {
             _fileSystem = fileSystem;
+            _logger = logger;
         }
 
         public async Task<SyncedFileInfo> SendFile(Stream stream, string[] remotePath, SyncTarget target, IProgress<double> progress, CancellationToken cancellationToken)
@@ -29,6 +32,9 @@ namespace FolderSync
             var fullPath = GetFullPath(remotePath, target);
 
             _fileSystem.CreateDirectory(Path.GetDirectoryName(fullPath));
+
+            _logger.Debug("Folder sync saving stream to {0}", fullPath);
+            
             using (var fileStream = _fileSystem.GetFileStream(fullPath, FileMode.Create, FileAccess.Write, FileShare.Read, true))
             {
                 await stream.CopyToAsync(fileStream).ConfigureAwait(false);
@@ -188,6 +194,7 @@ namespace FolderSync
 
             _fileSystem.CreateDirectory(Path.GetDirectoryName(fullPath));
 
+            _logger.Debug("Folder sync copying file from {0} to {1}", path, fullPath);
             _fileSystem.CopyFile(path, fullPath, true);
 
             return Task.FromResult(GetSyncedFileInfo(fullPath));
