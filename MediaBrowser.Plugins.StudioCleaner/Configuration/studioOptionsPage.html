@@ -134,7 +134,7 @@
                             StartIndex: 0
                         };
 
-                        ApiClient.getStudios(Dashboard.getCurrentUserId(), query).done(function (result) {
+                        ApiClient.getStudios(Dashboard.getCurrentUserId(), query).then(function (result) {
 
                             StudioOptionsPage.availableStudios = result.Items.map(function (studio) {
                                 return studio.Name;
@@ -255,7 +255,7 @@
 
                     StudioOptionsPage.loadAllStudios();
 
-                    ApiClient.getPluginConfiguration(StudioOptionsPage.pluginUniqueId).done(function (config) {
+                    ApiClient.getPluginConfiguration(StudioOptionsPage.pluginUniqueId).then(function (config) {
 
                         StudioOptionsPage.config = config;
                         switch (StudioOptionsPage.optionType) {
@@ -317,7 +317,7 @@
 
                     var form = this;
 
-                    ApiClient.getPluginConfiguration(StudioOptionsPage.pluginUniqueId).done(function (config) {
+                    ApiClient.getPluginConfiguration(StudioOptionsPage.pluginUniqueId).then(function (config) {
 
                         config.LastChangedOption = StudioOptionsPage.optionType;
                         switch (StudioOptionsPage.optionType) {
@@ -330,7 +330,7 @@
                             default:
                         }
 
-                        ApiClient.updatePluginConfiguration(StudioOptionsPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
+                        ApiClient.updatePluginConfiguration(StudioOptionsPage.pluginUniqueId, config).then(Dashboard.processPluginConfigurationUpdateResult);
                         history.back();
                     });
 
