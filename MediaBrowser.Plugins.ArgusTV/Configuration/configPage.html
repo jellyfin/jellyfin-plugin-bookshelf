@@ -62,7 +62,7 @@
 
                 var page = this;
 
-                ApiClient.getPluginConfiguration(ArgusTVConfigurationPage.pluginUniqueId).done(function (config) {
+                ApiClient.getPluginConfiguration(ArgusTVConfigurationPage.pluginUniqueId).then(function (config) {
 
                     $('#txtServerIp', page).val(config.ServerIp || "");
                     $('#txtServerPort', page).val(config.ServerPort || "");
@@ -79,7 +79,7 @@
 
                 var form = this;
 
-                ApiClient.getPluginConfiguration(ArgusTVConfigurationPage.pluginUniqueId).done(function (config) {
+                ApiClient.getPluginConfiguration(ArgusTVConfigurationPage.pluginUniqueId).then(function (config) {
 
                     config.ServerIp = $('#txtServerIp', form).val();
                     config.ServerPort = $('#txtServerPort', form).val();
@@ -87,7 +87,7 @@
                     config.EnableDebugLogging = $('#chkDebugLogging', form).checked();
 
 
-                    ApiClient.updatePluginConfiguration(ArgusTVConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
+                    ApiClient.updatePluginConfiguration(ArgusTVConfigurationPage.pluginUniqueId, config).then(Dashboard.processPluginConfigurationUpdateResult);
                 });
 
                 // Disable default form submission

@@ -57,7 +57,7 @@
 
                 var page = this;
 
-                ApiClient.getPluginConfiguration(NextPvrConfigurationPage.pluginUniqueId).done(function (config) {
+                ApiClient.getPluginConfiguration(NextPvrConfigurationPage.pluginUniqueId).then(function (config) {
 
                     $('#txtWebServiceUrl', page).val(config.WebServiceUrl || "");
                     $('#txtPin', page).val(config.Pin || "");
@@ -73,13 +73,13 @@
 
                 var form = this;
 
-                ApiClient.getPluginConfiguration(NextPvrConfigurationPage.pluginUniqueId).done(function (config) {
+                ApiClient.getPluginConfiguration(NextPvrConfigurationPage.pluginUniqueId).then(function (config) {
 
                     config.WebServiceUrl = $('#txtWebServiceUrl', form).val();
                     config.Pin = $('#txtPin', form).val();
                     config.EnableDebugLogging = $('#chkDebugLogging', form).checked();
 
-                    ApiClient.updatePluginConfiguration(NextPvrConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
+                    ApiClient.updatePluginConfiguration(NextPvrConfigurationPage.pluginUniqueId, config).then(Dashboard.processPluginConfigurationUpdateResult);
                 });
 
                 // Disable default form submission
