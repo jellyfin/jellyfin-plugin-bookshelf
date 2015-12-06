@@ -889,8 +889,6 @@ namespace MediaBrowser.Plugins.ArgusTV
             }
         }
 
-
-
         private List<ScheduleRule> UpdateRules(List<ScheduleRule> rules, TimerInfo timerInfo, SeriesTimerInfo seriesTimerInfo)
         {
             if (timerInfo != null)

@@ -456,6 +456,23 @@ namespace MediaBrowser.Plugins.NextPvr
             timerSettings.recurringName = info.Name;
             timerSettings.recordAnyTimeslot = info.RecordAnyTime;
 
+            if (!info.RecordAnyTime)
+            {
+                timerSettings.startDate = info.StartDate.ToString(_usCulture);
+                timerSettings.endDate = info.EndDate.ToString(_usCulture);
+                timerSettings.recordThisTimeslot = true;
+            }
+
+            if (info.Days.Count == 1)
+            {
+                timerSettings.recordThisDay = true;
+            }
+
+            if (info.Days.Count > 1 && info.Days.Count < 7)
+            {
+                timerSettings.recordSpecificdays = true;
+            }
+
             timerSettings.recordAnyDay = info.Days.Count == 7;
             timerSettings.daySunday = info.Days.Contains(DayOfWeek.Sunday);
             timerSettings.dayMonday = info.Days.Contains(DayOfWeek.Monday);
