@@ -15,6 +15,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CommonIO;
 
 namespace RokuMetadata.Drawing
 {
@@ -168,7 +169,7 @@ namespace RokuMetadata.Drawing
 
             var protocol = mediaSource.Protocol;
 
-            var inputPath = MediaEncoderHelpers.GetInputArgument(mediaSource.Path, protocol, null, mediaSource.PlayableStreamFileNames);
+            var inputPath = MediaEncoderHelpers.GetInputArgument(_fileSystem, mediaSource.Path, protocol, null, mediaSource.PlayableStreamFileNames);
 
             var tempDirectory = Path.Combine(_appPaths.TempDirectory, Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(tempDirectory);

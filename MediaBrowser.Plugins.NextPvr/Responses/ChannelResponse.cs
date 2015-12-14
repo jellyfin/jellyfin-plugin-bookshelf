@@ -36,7 +36,7 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
                 return root.channelsJSONObject.Channels.Select(i => new ChannelInfo
                 {
                     Name = i.channel.channelName,
-                    Number = i.channel.channelNum.ToString(_usCulture),
+                    Number = i.channel.channelFormattedNumber.ToString(_usCulture),
                     Id = i.channel.channelOID.ToString(_usCulture),
                     ImageUrl = string.IsNullOrEmpty(i.channel.channelIcon) ? null : (_baseUrl + "/" + i.channel.channelIcon),
                     HasImage = !string.IsNullOrEmpty(i.channel.channelIcon)
@@ -47,35 +47,40 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
         }
 
         // Classes created with http://json2csharp.com/
-
-        private class Channel2
+        public class Channel2
         {
             public int channelNum { get; set; }
+            public int channelMinor { get; set; }
+            public string channelFormattedNumber { get; set; }
             public string channelName { get; set; }
             public int channelOID { get; set; }
             public string channelIcon { get; set; }
         }
 
-        private class Channel
+        public class Channel
         {
             public Channel2 channel { get; set; }
         }
 
-        private class Rtn
+        public class Rtn
         {
             public bool Error { get; set; }
+            public int HTTPStatus { get; set; }
             public string Message { get; set; }
         }
 
-        private class ChannelsJSONObject
+        public class ChannelsJSONObject
         {
             public List<Channel> Channels { get; set; }
             public Rtn rtn { get; set; }
         }
 
-        private class RootObject
+        public class RootObject
         {
             public ChannelsJSONObject channelsJSONObject { get; set; }
         }
+
+
+
     }
 }

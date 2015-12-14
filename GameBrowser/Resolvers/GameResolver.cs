@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using CommonIO;
 using GameSystem = MediaBrowser.Model.Games.GameSystem;
 
 namespace GameBrowser.Resolvers

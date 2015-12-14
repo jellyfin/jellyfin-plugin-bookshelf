@@ -17,6 +17,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Linq;
+using CommonIO;
 
 namespace GameBrowser.Providers.GamesDb
 {

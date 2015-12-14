@@ -67,15 +67,15 @@
 
                     Dashboard.showLoadingMsg();
 
-                    ApiClient.getPluginConfiguration(pluginId).done(function (config) {
+                    ApiClient.getPluginConfiguration(pluginId).then(function (config) {
 
                         config.Options.filter(function (c) {
 
-                            $.ajax({
+                            ApiClient.ajax({
                                 type: "POST",
                                 url: ApiClient.getUrl("Notification/Pushover/Test/" + c.MediaBrowserUserId)
 
-                            }).done(function () {
+                            }).then(function () {
                                 Dashboard.hideLoadingMsg();
                             });
                         });
@@ -86,7 +86,7 @@
 
                     Dashboard.showLoadingMsg();
 
-                    ApiClient.getPluginConfiguration(pluginId).done(function (config) {
+                    ApiClient.getPluginConfiguration(pluginId).then(function (config) {
 
                         var pushOverConfig = config.Options.filter(function (c) {
 
@@ -118,7 +118,7 @@
 
                     var page = this;
 
-                    ApiClient.getUsers().done(function (users) {
+                    ApiClient.getUsers().then(function (users) {
 
                         $('#selectUser', page).html(users.map(function (user) {
 
@@ -137,7 +137,7 @@
 
                     var form = this;
 
-                    ApiClient.getPluginConfiguration(pluginId).done(function (config) {
+                    ApiClient.getPluginConfiguration(pluginId).then(function (config) {
 
                         var userId = $('#selectUser', form).val();
 
@@ -159,7 +159,7 @@
                         pushOverConfig.UserKey = $('#txtPushOverUserKey', form).val();
                         pushOverConfig.DeviceName = $('#txtPushOverDeviceName', form).val();
 
-                        ApiClient.updatePluginConfiguration(pluginId, config).done(Dashboard.processPluginConfigurationUpdateResult);
+                        ApiClient.updatePluginConfiguration(pluginId, config).then(Dashboard.processPluginConfigurationUpdateResult);
                     });
 
                     return false;

@@ -3,30 +3,32 @@ using System.IO;
 using System.Security;
 using System.Text;
 using System.Threading;
+using CommonIO;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Persistence;
-using MediaBrowser.LocalMetadata.Savers;
 
 namespace XmlMetadata
 {
     /// <summary>
     /// Saves movie.xml for movies, trailers and music videos
     /// </summary>
-    public class MovieXmlSaver : IMetadataFileSaver
+    public class MovieXmlProvider : IMetadataFileSaver
     {
         private readonly IItemRepository _itemRepository;
         private readonly IServerConfigurationManager _config;
         private readonly ILibraryManager _libraryManager;
+        private readonly IFileSystem _fileSystem;
 
-        public MovieXmlSaver(IItemRepository itemRepository, IServerConfigurationManager config, ILibraryManager libraryManager)
+        public MovieXmlProvider(IItemRepository itemRepository, IServerConfigurationManager config, ILibraryManager libraryManager, IFileSystem fileSystem)
         {
             _itemRepository = itemRepository;
             _config = config;
             _libraryManager = libraryManager;
+            _fileSystem = fileSystem;
         }
 
         public string Name
@@ -35,6 +37,11 @@ namespace XmlMetadata
             {
                 return Plugin.MetadataName;
             }
+        }
+
+        public bool IsEnabled
+        {
+            get { return !_config.Configuration.DisableXmlSavers; }
         }
 
         /// <summary>
@@ -100,7 +107,7 @@ namespace XmlMetadata
                     builder.Append("<TmdbCollectionName>" + SecurityElement.Escape(movie.TmdbCollectionName) + "</TmdbCollectionName>");
                 }
             }
-            
+
             XmlSaverHelpers.AddMediaInfo(video, builder, _itemRepository);
 
             builder.Append("</Title>");
@@ -118,7 +125,7 @@ namespace XmlMetadata
                     "Artist",
                     "Album",
                     "TmdbCollectionName"
-                }, _config);
+                }, _config, _fileSystem);
         }
 
         public string GetSavePath(IHasMetadata item)

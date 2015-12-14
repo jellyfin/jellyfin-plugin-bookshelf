@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CommonIO;
 using Trakt.Api;
 using Trakt.Api.DataContracts.BaseModel;
 using Trakt.Api.DataContracts.Users.Collection;
@@ -145,23 +146,45 @@ namespace Trakt.ScheduledTasks
                     _logger.Debug("Movie is in Watched list " + movie.Name);
 
                     var userData = _userDataManager.GetUserData(user.Id, movie.GetUserDataKey());
+                    bool changed = false;
 
                     // set movie as watched
-                    userData.Played = true;
-                    userData.PlayCount = Math.Max(matchedMovie.Plays, userData.PlayCount);
+                    if (!userData.Played)
+                    {
+                        userData.Played = true;
+                        changed = true;
+                    }
+
                     // keep the highest play count
+                    int playcount = Math.Max(matchedMovie.Plays, userData.PlayCount);
+                    // set movie playcount
+                    if (userData.PlayCount != playcount)
+                    {
+                        userData.PlayCount = playcount;
+                        changed = true;
+                    }
 
                     // Set last played to whichever is most recent, remote or local time...
                     if (!string.IsNullOrEmpty(matchedMovie.LastWatchedAt))
                     {
                         var tLastPlayed = DateTime.Parse(matchedMovie.LastWatchedAt);
-                        userData.LastPlayedDate = tLastPlayed > userData.LastPlayedDate
+                        var latestPlayed = tLastPlayed > userData.LastPlayedDate
                             ? tLastPlayed
                             : userData.LastPlayedDate;
+                        if (userData.LastPlayedDate != latestPlayed)
+                        {
+                            userData.LastPlayedDate = latestPlayed;
+                            changed = true;
+                        }
                     }
-                    await
-                        _userDataManager.SaveUserData(user.Id, movie, userData, UserDataSaveReason.Import,
-                            cancellationToken);
+
+                    // Only process if there's a change
+                    if (changed)
+                    {
+                        await
+                            _userDataManager.SaveUserData(user.Id, movie, userData, UserDataSaveReason.Import,
+                                cancellationToken);
+                    }
                 }
                 else
                 {
@@ -188,6 +211,7 @@ namespace Trakt.ScheduledTasks
                     {
                         // episode is in users libary. Now we need to determine if it's watched
                         var userData = _userDataManager.GetUserData(user.Id, episode.GetUserDataKey());
+                        bool changed = false;
 
                         var matchedEpisode = matchedSeason.Episodes.FirstOrDefault(x => x.Number == (episode.IndexNumber ?? -1));
 
@@ -195,19 +219,37 @@ namespace Trakt.ScheduledTasks
                         {
                             _logger.Debug("Episode is in Watched list " + GetVerboseEpisodeData(episode));
 
-                            userData.Played = true;
-                            userData.PlayCount = Math.Max(matchedEpisode.Plays, userData.PlayCount);
+                            // Set episode as watched
+                            if (!userData.Played)
+                            {
+                                userData.Played = true;
+                                changed = true;
+                            }
+
+                            // keep the highest play count
+                            int playcount = Math.Max(matchedEpisode.Plays, userData.PlayCount);
+                            // set episode playcount
+                            if (userData.PlayCount != playcount)
+                            {
+                                userData.PlayCount = playcount;
+                                changed = true;
+                            }
                         }
                         else if (!traktUser.SkipUnwatchedImportFromTrakt)
                         {
                             userData.Played = false;
                             userData.PlayCount = 0;
                             userData.LastPlayedDate = null;
+                            changed = true;
                         }
-                   
-                        await
-                            _userDataManager.SaveUserData(user.Id, episode, userData, UserDataSaveReason.Import,
-                                cancellationToken);
+
+                        // only process if changed
+                        if (changed)
+                        {
+                            await
+                                _userDataManager.SaveUserData(user.Id, episode, userData, UserDataSaveReason.Import,
+                                    cancellationToken);
+                        }
                     }
                     else
                     {

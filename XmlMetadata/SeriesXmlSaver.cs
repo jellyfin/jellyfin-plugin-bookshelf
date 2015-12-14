@@ -1,27 +1,29 @@
-﻿using MediaBrowser.Controller.Configuration;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Entities.TV;
-using MediaBrowser.Controller.Library;
-using MediaBrowser.LocalMetadata.Savers;
-using MediaBrowser.Model.Entities;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Security;
 using System.Text;
 using System.Threading;
+using CommonIO;
+using MediaBrowser.Controller.Configuration;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.TV;
+using MediaBrowser.Controller.Library;
+using MediaBrowser.Model.Entities;
 
 namespace XmlMetadata
 {
-    public class SeriesXmlSaver : IMetadataFileSaver
+    public class SeriesXmlProvider : IMetadataFileSaver
     {
         private readonly IServerConfigurationManager _config;
         private readonly ILibraryManager _libraryManager;
+        private readonly IFileSystem _fileSystem;
 
-        public SeriesXmlSaver(IServerConfigurationManager config, ILibraryManager libraryManager)
+        public SeriesXmlProvider(IServerConfigurationManager config, ILibraryManager libraryManager, IFileSystem fileSystem)
         {
             _config = config;
             _libraryManager = libraryManager;
+            _fileSystem = fileSystem;
         }
 
         public string Name
@@ -130,7 +132,7 @@ namespace XmlMetadata
 
                     // Deprecated. No longer saving in this field.
                     "AnimeSeriesIndex"
-                }, _config);
+                }, _config, _fileSystem);
         }
 
         /// <summary>

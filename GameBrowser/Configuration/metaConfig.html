@@ -37,7 +37,7 @@
 
                             Dashboard.showLoadingMsg();
                             
-                            ApiClient.getPluginConfiguration(GameBrowserMetaConfigurationPage.pluginUniqueId).done(function (pluginConfig) {
+                            ApiClient.getPluginConfiguration(GameBrowserMetaConfigurationPage.pluginUniqueId).then(function (pluginConfig) {
 
                                 var page = $.mobile.activePage;
 
@@ -65,12 +65,12 @@
 
                     var page = $.mobile.activePage;
 
-                    ApiClient.getPluginConfiguration(GameBrowserMetaConfigurationPage.pluginUniqueId).done(function (config) {
+                    ApiClient.getPluginConfiguration(GameBrowserMetaConfigurationPage.pluginUniqueId).then(function (config) {
 
                         config.EmuMoviesUsername = $('#txtUsername', page).val();
                         config.EmuMoviesPassword = $('#txtPassword', page).val();
 
-                        ApiClient.updatePluginConfiguration(GameBrowserMetaConfigurationPage.pluginUniqueId, config).done(function(result) {
+                        ApiClient.updatePluginConfiguration(GameBrowserMetaConfigurationPage.pluginUniqueId, config).then(function(result) {
                             Dashboard.processPluginConfigurationUpdateResult(result);
 
                             return true;

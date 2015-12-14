@@ -8,6 +8,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using CommonIO;
 
 namespace MBBookshelf.Providers
 {
@@ -62,8 +63,6 @@ namespace MBBookshelf.Providers
 
             if (!string.IsNullOrEmpty(author))
             {
-                book.People = new List<PersonInfo>();
-
                 var person = new PersonInfo { Name = author, Type = "Author" };
 
                 bookResult.People.Add(person);
@@ -71,24 +70,19 @@ namespace MBBookshelf.Providers
 
         }
 
-        private FileInfo GetXmlFile(string path, bool isInMixedFolder)
+        private FileSystemMetadata GetXmlFile(string path, bool isInMixedFolder)
         {
             var fileInfo = _fileSystem.GetFileSystemInfo(path);
 
-            var directoryInfo = fileInfo as DirectoryInfo;
-
-            if (directoryInfo == null)
-            {
-                directoryInfo = new DirectoryInfo(Path.GetDirectoryName(path));
-            }
+            var directoryInfo = fileInfo.IsDirectory ? fileInfo : _fileSystem.GetDirectoryInfo(Path.GetDirectoryName(path));
 
             var directoryPath = directoryInfo.FullName;
 
             var specificFile = Path.Combine(directoryPath, Path.GetFileNameWithoutExtension(path) + ".xml");
 
-            var file = new FileInfo(specificFile);
+            var file = _fileSystem.GetFileInfo(specificFile);
 
-            return file.Exists ? file : new FileInfo(Path.Combine(directoryPath, ComicRackMetaFile));
+            return file.Exists ? file : _fileSystem.GetFileInfo(Path.Combine(directoryPath, ComicRackMetaFile));
         }
 
         public bool HasChanged(IHasMetadata item, IDirectoryService directoryService, DateTime date)

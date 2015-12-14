@@ -14,14 +14,14 @@
                                 Google Drive Client Id:
                             </label>
                             <input id="googleDriveClientId" name="googleDriveClientId" type="text" required />
-                            <div class="fieldDescription"><a href="#popupAuthInfo" data-rel="popup">Create a Google Drive Client Id and Secret</a></div>
+                            <div class="fieldDescription"><a href="#" onclick="$('#popupAuthInfo').popup('open');return false;">Create a Google Drive Client Id and Secret</a></div>
                         </li>
                         <li>
                             <label for="googleDriveClientSecret">
                                 Google Drive Client Secret:
                             </label>
                             <input id="googleDriveClientSecret" name="googleDriveClientSecret" type="text" required />
-                            <div class="fieldDescription"><a href="#popupAuthInfo" data-rel="popup">Create a Google Drive Client Id and Secret</a></div>
+                            <div class="fieldDescription"><a href="#" onclick="$('#popupAuthInfo').popup('open');return false;">Create a Google Drive Client Id and Secret</a></div>
                         </li>
                         <li>
                             <button type="submit" data-theme="b" data-icon="check" data-mini="true">Save</button>
@@ -175,7 +175,7 @@
                             ApiClient.ajax({
                                 type: 'DELETE',
                                 url: ApiClient.getUrl('GoogleDrive/SyncTarget/' + id)
-                            }).done(function () {
+                            }).then(function () {
                                 loadConfig(page);
                             });
                         }
@@ -183,13 +183,13 @@
                 }
 
                 function editAccount(page, id) {
-                    ApiClient.getJSON(ApiClient.getUrl('GoogleDrive/SyncTarget/' + id)).done(function (folder) {
+                    ApiClient.getJSON(ApiClient.getUrl('GoogleDrive/SyncTarget/' + id)).then(function (folder) {
                         editAccountObject(page, folder);
                     });
                 }
 
                 function editAccountObject(page, folder) {
-                    ApiClient.getUsers().done(function (users) {
+                    ApiClient.getUsers().then(function (users) {
                         loadUsers(page, folder, users);
                     });
                     $('#displayName', page).val(folder.Name || '');
@@ -229,7 +229,7 @@
                 }
 
                 function loadConfig(page) {
-                    ApiClient.getPluginConfiguration(pluginId).done(function (config) {
+                    ApiClient.getPluginConfiguration(pluginId).then(function (config) {
                         loadPageData(page, config);
                         Dashboard.hideLoadingMsg();
                     });
@@ -277,11 +277,11 @@
 
                     var page = $(this).parents('.page');
 
-                    ApiClient.getPluginConfiguration(pluginId).done(function (config) {
+                    ApiClient.getPluginConfiguration(pluginId).then(function (config) {
                         config.GoogleDriveClientId = $('#googleDriveClientId', page).val();
                         config.GoogleDriveClientSecret = $('#googleDriveClientSecret', page).val();
 
-                        ApiClient.updatePluginConfiguration(pluginId, config).done(function (result) {
+                        ApiClient.updatePluginConfiguration(pluginId, config).then(function (result) {
                             Dashboard.hideLoadingMsg();
                             Dashboard.processPluginConfigurationUpdateResult(result);
                         });
@@ -313,7 +313,7 @@
                         url: ApiClient.getUrl('GoogleDrive/SyncTarget'),
                         data: JSON.stringify(syncTarget),
                         contentType: 'application/json'
-                    }).done(function () {
+                    }).then(function () {
                         $('#popupAddFolder', page).popup('close');
                         loadConfig(page);
                         Dashboard.hideLoadingMsg();
@@ -321,7 +321,7 @@
                 }
 
                 function getCurrentUrlWithoutQueryStrings() {
-                    var url = getWindowUrl().split('#')[0];
+                    var url = window.location.href.split('#')[0];
 
                     url = removeQueryStringParameterFromUrl(url, 'code');
                     url = removeQueryStringParameterFromUrl(url, 'error');
@@ -369,7 +369,7 @@
                     ApiClient.ajax({
                         type: 'GET',
                         url: ApiClient.getUrl('GoogleDrive/SyncTarget/UrlEncode?Str=' + syncTarget.Name)
-                    }).done(function (str) {
+                    }).then(function (str) {
                         url += '&configName=' + str;
 
                         url = encodeURIComponent(url);

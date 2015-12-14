@@ -84,7 +84,7 @@
 
                         loadConfiguration: function () {
 
-                            ApiClient.getPluginConfiguration(GameBrowserConfigurationPage.pluginUniqueId).done(function (pluginConfig) {
+                            ApiClient.getPluginConfiguration(GameBrowserConfigurationPage.pluginUniqueId).then(function (pluginConfig) {
 
                                 // Just in case it's empty
                                 pluginConfig.RootLocations = pluginConfig.RootLocations || [];
@@ -154,7 +154,7 @@
 
                             var name = link.getAttribute('data-id');
 
-                            ApiClient.getPluginConfiguration(GameBrowserConfigurationPage.pluginUniqueId).done(function (config) {
+                            ApiClient.getPluginConfiguration(GameBrowserConfigurationPage.pluginUniqueId).then(function (config) {
 
                                 var msg = "Are you sure you want to remove " + name + "?";
 
@@ -173,7 +173,7 @@
 
                                         config.GameSystems.splice(index, 1);
 
-                                        ApiClient.updatePluginConfiguration(GameBrowserConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
+                                        ApiClient.updatePluginConfiguration(GameBrowserConfigurationPage.pluginUniqueId, config).then(Dashboard.processPluginConfigurationUpdateResult);
 
                                         // For some reason this isn't refreshing the page.
                                         GameBrowserConfigurationPage.loadConsoleFolders(config);
@@ -220,7 +220,7 @@
 
                     var page = $.mobile.activePage;
 
-                    ApiClient.getPluginConfiguration(GameBrowserConfigurationPage.pluginUniqueId).done(function (config) {
+                    ApiClient.getPluginConfiguration(GameBrowserConfigurationPage.pluginUniqueId).then(function (config) {
 
                         var newEntry = true;
                         var path = $('#txtPlatformPath', page).val();
@@ -248,7 +248,7 @@
                             
                         }
 
-                        ApiClient.updatePluginConfiguration(GameBrowserConfigurationPage.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
+                        ApiClient.updatePluginConfiguration(GameBrowserConfigurationPage.pluginUniqueId, config).then(Dashboard.processPluginConfigurationUpdateResult);
 
                         GameBrowserConfigurationPage.loadConsoleFolders(config);
                         

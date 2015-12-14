@@ -14,14 +14,14 @@
                                 OneDrive Client ID:
                             </label>
                             <input id="oneDriveClientId" name="oneDriveClientId" type="text" required />
-                            <div class="fieldDescription"><a href="#popupAuthInfo" data-rel="popup">Create a OneDrive Client ID and Secret</a></div>
+                            <div class="fieldDescription"><a href="#" onclick="$('#popupAuthInfo').popup('open');return false;">Create a OneDrive Client ID and Secret</a></div>
                         </li>
                         <li>
                             <label for="oneDriveClientSecret">
                                 OneDrive Client Secret:
                             </label>
                             <input id="oneDriveClientSecret" name="oneDriveClientSecret" type="text" required />
-                            <div class="fieldDescription"><a href="#popupAuthInfo" data-rel="popup">Create a OneDrive Client ID and Secret</a></div>
+                            <div class="fieldDescription"><a href="#" onclick="$('#popupAuthInfo').popup('open');return false;">Create a OneDrive Client ID and Secret</a></div>
                         </li>
                         <li>
                             <button type="submit" data-theme="b" data-icon="check" data-mini="true">Save</button>
@@ -177,7 +177,7 @@
                             ApiClient.ajax({
                                 type: 'DELETE',
                                 url: ApiClient.getUrl('OneDrive/SyncTarget/' + id)
-                            }).done(function () {
+                            }).then(function () {
                                 loadConfig(page);
                             });
                         }
@@ -185,13 +185,13 @@
                 }
 
                 function editAccount(page, id) {
-                    ApiClient.getJSON(ApiClient.getUrl('OneDrive/SyncTarget/' + id)).done(function (folder) {
+                    ApiClient.getJSON(ApiClient.getUrl('OneDrive/SyncTarget/' + id)).then(function (folder) {
                         editAccountObject(page, folder);
                     });
                 }
 
                 function editAccountObject(page, folder) {
-                    ApiClient.getUsers().done(function (users) {
+                    ApiClient.getUsers().then(function (users) {
                         loadUsers(page, folder, users);
                     });
                     $('#displayName', page).val(folder.Name || '');
@@ -231,7 +231,7 @@
                 }
 
                 function loadConfig(page) {
-                    ApiClient.getPluginConfiguration(pluginId).done(function (config) {
+                    ApiClient.getPluginConfiguration(pluginId).then(function (config) {
                         loadPageData(page, config);
                         Dashboard.hideLoadingMsg();
                     });
@@ -278,11 +278,11 @@
 
                     var page = $(this).parents('.page');
 
-                    ApiClient.getPluginConfiguration(pluginId).done(function (config) {
+                    ApiClient.getPluginConfiguration(pluginId).then(function (config) {
                         config.oneDriveClientId = $('#oneDriveClientId', page).val();
                         config.oneDriveClientSecret = $('#oneDriveClientSecret', page).val();
 
-                        ApiClient.updatePluginConfiguration(pluginId, config).done(function (result) {
+                        ApiClient.updatePluginConfiguration(pluginId, config).then(function (result) {
                             Dashboard.hideLoadingMsg();
                             Dashboard.processPluginConfigurationUpdateResult(result);
                         });
@@ -313,7 +313,7 @@
                         url: ApiClient.getUrl('OneDrive/SyncTarget'),
                         data: JSON.stringify(syncTarget),
                         contentType: 'application/json'
-                    }).done(function () {
+                    }).then(function () {
                         $('#popupAddFolder', page).popup('close');
                         loadConfig(page);
                         Dashboard.hideLoadingMsg();

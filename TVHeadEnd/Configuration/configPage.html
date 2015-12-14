@@ -118,7 +118,7 @@
                     config.Priority = $('#txtPriority', form).val();
                     config.Profile = $('#txtProfile', form).val();
                     config.ChannelType = $('#selChannelType', form).val();
-                    ApiClient.updatePluginConfiguration(TVHclientConfigurationPageVar.pluginUniqueId, config).done(Dashboard.processPluginConfigurationUpdateResult);
+                    ApiClient.updatePluginConfiguration(TVHclientConfigurationPageVar.pluginUniqueId, config).then(Dashboard.processPluginConfigurationUpdateResult);
                 });
                 // Disable default form submission
                 return false;

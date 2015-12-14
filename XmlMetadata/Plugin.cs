@@ -17,7 +17,7 @@ namespace XmlMetadata
         /// <value>The name.</value>
         public override string Name
         {
-            get { return "Xml Metadata"; }
+            get { return "Xml Metadata Saver"; }
         }
 
         public static string MetadataName

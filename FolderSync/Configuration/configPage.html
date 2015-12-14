@@ -146,7 +146,7 @@
                                 type: "DELETE",
                                 url: ApiClient.getUrl("FolderSync/Folders/" + id)
 
-                            }).done(function () {
+                            }).then(function () {
                                 loadConfig(page);
                             });
                         }
@@ -156,14 +156,14 @@
 
                 function editFolder(page, id) {
 
-                    ApiClient.getJSON(ApiClient.getUrl("FolderSync/Folders/" + id)).done(function (folder) {
+                    ApiClient.getJSON(ApiClient.getUrl("FolderSync/Folders/" + id)).then(function (folder) {
                         editFolderObject(page, folder);
                     });
                 }
 
                 function editFolderObject(page, folder) {
 
-                    ApiClient.getUsers().done(function (users) {
+                    ApiClient.getUsers().then(function (users) {
                         loadUsers(page, folder, users);
                     });
                     $('#txtName', page).val(folder.Name || '');
@@ -202,7 +202,7 @@
 
                 function loadConfig(page) {
 
-                    ApiClient.getPluginConfiguration(pluginId).done(function (config) {
+                    ApiClient.getPluginConfiguration(pluginId).then(function (config) {
 
                         loadPageData(page, config);
                         Dashboard.hideLoadingMsg();
@@ -258,10 +258,11 @@
                         data: JSON.stringify(folder),
                         contentType: "application/json"
 
-                    }).done(function () {
+                    }).then(function () {
                         $('#popupAddFolder', page).popup('close');
                         loadConfig(page);
-                    }).fail(function () {
+
+                    }, function () {
                         Dashboard.alert({
                             message: 'There was an error adding the path entered. Please ensure the path is valid and can be written to before proceeding.'
                         });

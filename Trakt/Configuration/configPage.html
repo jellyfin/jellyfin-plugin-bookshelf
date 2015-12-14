@@ -72,7 +72,7 @@
                     pluginUniqueId: "8abc6789-fde2-4705-8592-4028806fa343",
                     loadConfiguration: function (userId) {
                         Dashboard.showLoadingMsg();
-                        ApiClient.getPluginConfiguration(TraktConfigurationPage.pluginUniqueId).done(function (config) {
+                        ApiClient.getPluginConfiguration(TraktConfigurationPage.pluginUniqueId).then(function (config) {
                             var currentUserConfig = config.TraktUsers.filter(function (curr) {
                                 return curr.LinkedMbUserId == userId;
                                 //return true;
@@ -97,7 +97,7 @@
                             $('#chkExtraLogging', page).checked(currentUserConfig.ExtraLogging).checkboxradio("refresh");
                             $('#chkExportMediaInfo', page).checked(currentUserConfig.ExportMediaInfo).checkboxradio("refresh");
                             // List the folders the user can access
-                            ApiClient.getVirtualFolders(userId).done(function (result) {
+                            ApiClient.getVirtualFolders(userId).then(function (result) {
                                 TraktConfigurationPage.loadFolders(currentUserConfig, result);
                             });
                             Dashboard.hideLoadingMsg();
@@ -140,7 +140,7 @@
             $('#traktConfigurationPage').on('pageshow', function () {
                 Dashboard.showLoadingMsg();
                 var page = $.mobile.activePage;
-                ApiClient.getUsers().done(function (users) {
+                ApiClient.getUsers().then(function (users) {
                     TraktConfigurationPage.populateUsers(users);
                     var currentUserId = $('#selectUser', page).val();
                     TraktConfigurationPage.loadConfiguration(currentUserId);
@@ -150,7 +150,7 @@
                 Dashboard.showLoadingMsg();
                 var page = $.mobile.activePage;
                 var currentUserId = $('#selectUser', page).val();
-                ApiClient.getPluginConfiguration(TraktConfigurationPage.pluginUniqueId).done(function (config) {
+                ApiClient.getPluginConfiguration(TraktConfigurationPage.pluginUniqueId).then(function (config) {
                     var currentUserConfig = config.TraktUsers.filter(function (curr) {
                         return curr.LinkedMbUserId == currentUserId;
                     })[0];
@@ -173,9 +173,9 @@
                     if (currentUserConfig.UserName == '') {
                         config.TraktUsers.remove(config.TraktUsers.indexOf(currentUserConfig));
                     }
-                    ApiClient.updatePluginConfiguration(TraktConfigurationPage.pluginUniqueId, config).done(function (result) {
+                    ApiClient.updatePluginConfiguration(TraktConfigurationPage.pluginUniqueId, config).then(function (result) {
                         Dashboard.processPluginConfigurationUpdateResult(result);
-                        ApiClient.getUsers().done(function (users) {
+                        ApiClient.getUsers().then(function (users) {
                             TraktConfigurationPage.populateUsers(users);
                             Dashboard.alert('Settings saved.');
                         });

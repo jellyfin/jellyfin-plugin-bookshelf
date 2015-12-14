@@ -14,14 +14,14 @@
                                 Dropbox App Key:
                             </label>
                             <input id="dropboxAppKey" name="dropboxAppKey" type="text" required />
-                            <div class="fieldDescription"><a href="#popupAuthInfo" data-rel="popup">Create a Dropbox App Key and Secret</a></div>
+                            <div class="fieldDescription"><a href="#" onclick="$('#popupAuthInfo').popup('open');return false;">Create a Dropbox App Key and Secret</a></div>
                         </li>
                         <li>
                             <label for="dropboxAppSecret">
                                 Dropbox App Secret:
                             </label>
                             <input id="dropboxAppSecret" name="dropboxAppSecret" type="text" required />
-                            <div class="fieldDescription"><a href="#popupAuthInfo" data-rel="popup">Create a Dropbox App Key and Secret</a></div>
+                            <div class="fieldDescription"><a href="#" onclick="$('#popupAuthInfo').popup('open');return false;">Create a Dropbox App Key and Secret</a></div>
                         </li>
                         <li>
                             <button type="submit" data-theme="b" data-icon="check" data-mini="true">Save</button>
@@ -174,7 +174,7 @@
                             ApiClient.ajax({
                                 type: 'DELETE',
                                 url: ApiClient.getUrl('Dropbox/SyncTarget/' + id)
-                            }).done(function () {
+                            }).then(function () {
                                 loadConfig(page);
                             });
                         }
@@ -182,13 +182,13 @@
                 }
 
                 function editAccount(page, id) {
-                    ApiClient.getJSON(ApiClient.getUrl('Dropbox/SyncTarget/' + id)).done(function (folder) {
+                    ApiClient.getJSON(ApiClient.getUrl('Dropbox/SyncTarget/' + id)).then(function (folder) {
                         editAccountObject(page, folder);
                     });
                 }
 
                 function editAccountObject(page, folder) {
-                    ApiClient.getUsers().done(function (users) {
+                    ApiClient.getUsers().then(function (users) {
                         loadUsers(page, folder, users);
                     });
                     $('#displayName', page).val(folder.Name || '');
@@ -228,7 +228,7 @@
                 }
 
                 function loadConfig(page) {
-                    ApiClient.getPluginConfiguration(pluginId).done(function (config) {
+                    ApiClient.getPluginConfiguration(pluginId).then(function (config) {
                         loadPageData(page, config);
                         Dashboard.hideLoadingMsg();
                     });
@@ -275,11 +275,11 @@
 
                     var page = $(this).parents('.page');
 
-                    ApiClient.getPluginConfiguration(pluginId).done(function (config) {
+                    ApiClient.getPluginConfiguration(pluginId).then(function (config) {
                         config.DropboxAppKey = $('#dropboxAppKey', page).val();
                         config.DropboxAppSecret = $('#dropboxAppSecret', page).val();
 
-                        ApiClient.updatePluginConfiguration(pluginId, config).done(function (result) {
+                        ApiClient.updatePluginConfiguration(pluginId, config).then(function (result) {
                             Dashboard.hideLoadingMsg();
                             Dashboard.processPluginConfigurationUpdateResult(result);
                         });
@@ -310,7 +310,7 @@
                         url: ApiClient.getUrl('Dropbox/SyncTarget'),
                         data: JSON.stringify(syncTarget),
                         contentType: 'application/json'
-                    }).done(function () {
+                    }).then(function () {
                         $('#popupAddFolder', page).popup('close');
                         loadConfig(page);
                         Dashboard.hideLoadingMsg();

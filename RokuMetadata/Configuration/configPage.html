@@ -101,7 +101,7 @@
 
                     Dashboard.showLoadingMsg();
 
-                    ApiClient.getPluginConfiguration(pluginId).done(function (config) {
+                    ApiClient.getPluginConfiguration(pluginId).then(function (config) {
 
                         $('#chkEnableHD', page).checked(config.EnableHdThumbnails).checkboxradio('refresh');
                         $('#chkEnableSD', page).checked(config.EnableSdThumbnails).checkboxradio('refresh');
@@ -121,7 +121,7 @@
 
                     var form = this;
 
-                    ApiClient.getPluginConfiguration(pluginId).done(function (config) {
+                    ApiClient.getPluginConfiguration(pluginId).then(function (config) {
 
                         config.EnableHdThumbnails = $('#chkEnableHD', form).checked();
                         config.EnableSdThumbnails = $('#chkEnableSD', form).checked();
@@ -131,7 +131,7 @@
 
                         config.EnableLocalMediaFolderSaving = $('#chkSaveBifLocal', form).checked();
 
-                        ApiClient.updatePluginConfiguration(pluginId, config).done(Dashboard.processPluginConfigurationUpdateResult);
+                        ApiClient.updatePluginConfiguration(pluginId, config).then(Dashboard.processPluginConfigurationUpdateResult);
                     });
 
                     return false;
