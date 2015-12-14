@@ -92,7 +92,7 @@
                 Dashboard.showLoadingMsg();
                 var page = this;
 
-                ApiClient.getPluginConfiguration(TVHclientConfigurationPageVar.pluginUniqueId).done(function (config) {
+                ApiClient.getPluginConfiguration(TVHclientConfigurationPageVar.pluginUniqueId).then(function (config) {
                     $('#txtTVH_ServerName', page).val(config.TVH_ServerName || "");
                     $('#txtHTTP_Port', page).val(config.HTTP_Port || "9981");
                     $('#txtHTSP_Port', page).val(config.HTSP_Port || "9982");
@@ -109,7 +109,7 @@
             $('.TVHclientConfigurationForm').on('submit', function (e) {
                 Dashboard.showLoadingMsg();
                 var form = this;
-                ApiClient.getPluginConfiguration(TVHclientConfigurationPageVar.pluginUniqueId).done(function (config) {
+                ApiClient.getPluginConfiguration(TVHclientConfigurationPageVar.pluginUniqueId).then(function (config) {
                     config.TVH_ServerName = $('#txtTVH_ServerName', form).val();
                     config.HTTP_Port = $('#txtHTTP_Port', form).val();
                     config.HTSP_Port = $('#txtHTSP_Port', form).val();
