@@ -465,7 +465,7 @@ namespace TVHeadEnd
 
             TaskWithTimeoutRunner<IEnumerable<ProgramInfo>> twtr = new TaskWithTimeoutRunner<IEnumerable<ProgramInfo>>(TIMEOUT);
             TaskWithTimeoutResult<IEnumerable<ProgramInfo>> twtRes = await
-                twtr.RunWithTimeout(currGetEventsResponseHandler.GetEvents(cancellationToken));
+                twtr.RunWithTimeout(currGetEventsResponseHandler.GetEvents(cancellationToken, channelId));
 
             if (twtRes.HasTimeout)
             {
