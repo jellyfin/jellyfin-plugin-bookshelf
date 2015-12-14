@@ -208,6 +208,11 @@ namespace TVHeadEnd.DataHelper
                             _logger.Info("[TVHclient] ChannelDataHelper: unable to detect service-type (tvheadend tag!!!) from service list:" + m.ToString());
                             continue;
                         }
+
+
+                        _logger.Info("[TVHclient] ChannelDataHelper: Adding channel \n" + m.ToString());
+
+
                         result.Add(ci);
                     }
                     return result;
