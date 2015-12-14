@@ -48,6 +48,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XmlMetadata", "XmlMetadata\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.ArgusTV", "MediaBrowser.Plugins.ArgusTV\MediaBrowser.Plugins.ArgusTV.csproj", "{30B2A395-5E43-454F-8093-DAF307D6D4FB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TVHeadEnd", "TVHeadEnd\TVHeadEnd.csproj", "{255072D7-49B0-4E0A-93D4-C283144499B7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -176,6 +178,12 @@ Global
 		{30B2A395-5E43-454F-8093-DAF307D6D4FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{30B2A395-5E43-454F-8093-DAF307D6D4FB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{30B2A395-5E43-454F-8093-DAF307D6D4FB}.Release|x86.ActiveCfg = Release|Any CPU
+		{255072D7-49B0-4E0A-93D4-C283144499B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{255072D7-49B0-4E0A-93D4-C283144499B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{255072D7-49B0-4E0A-93D4-C283144499B7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{255072D7-49B0-4E0A-93D4-C283144499B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{255072D7-49B0-4E0A-93D4-C283144499B7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{255072D7-49B0-4E0A-93D4-C283144499B7}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
