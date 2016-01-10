@@ -38,8 +38,6 @@ namespace TVHeadEnd
 
             _htsConnectionHandler = HTSConnectionHandler.GetInstance(_logger);
             _htsConnectionHandler.setLiveTvService(this);
-
-            sendDataSourceChanged();
         }
 
         public string HomePageUrl { get { return "http://tvheadend.org/"; } }
@@ -63,7 +61,6 @@ namespace TVHeadEnd
             }
         }
 
-        /*
         public void sendRecordingStatusChanged(RecordingStatusChangedEventArgs recordingStatusChangedEventArgs)
         {
             try
@@ -80,7 +77,6 @@ namespace TVHeadEnd
                 _logger.Error("[TVHclient] LiveTvService.sendRecordingStatusChanged caught exception: " + ex.Message);
             }
         }
-        */
 
         public async Task CancelSeriesTimerAsync(string timerId, CancellationToken cancellationToken)
         {

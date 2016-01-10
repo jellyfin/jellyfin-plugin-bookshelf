@@ -209,9 +209,7 @@ namespace TVHeadEnd.DataHelper
                             continue;
                         }
 
-
                         _logger.Info("[TVHclient] ChannelDataHelper: Adding channel \n" + m.ToString());
-
 
                         result.Add(ci);
                     }
