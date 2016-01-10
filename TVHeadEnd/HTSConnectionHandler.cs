@@ -15,6 +15,8 @@ namespace TVHeadEnd
         private static volatile HTSConnectionHandler _instance;
         private static object _syncRoot = new Object();
 
+        private readonly object _lock = new Object();
+
         private readonly ILogger _logger;
 
         private volatile Boolean _initialLoadFinished = false;
@@ -75,6 +77,7 @@ namespace TVHeadEnd
 
         public int WaitForInitialLoad(CancellationToken cancellationToken)
         {
+            ensureConnection();
             DateTime start = DateTime.Now;
             while (!_initialLoadFinished || cancellationToken.IsCancellationRequested)
             {
@@ -133,22 +136,18 @@ namespace TVHeadEnd
             _httpBaseUrl = "http://" + _tvhServerName + ":" + _httpPort;
         }
 
-        private void createHTSConnection()
-        {
-            _logger.Info("[TVHclient] HTSConnectionHandler.createHTSConnection()");
-            Version version = Assembly.GetEntryAssembly().GetName().Version;
-            _htsConnection = new HTSConnectionAsync(this, "TVHclient4Emby", version.ToString(), _logger);
-            _connected = false;
-        }
-
         private void ensureConnection()
         {
+            _logger.Info("[TVHclient] HTSConnectionHandler.ensureConnection()");
             if (_htsConnection == null || _htsConnection.needsRestart())
             {
-                createHTSConnection();
+                _logger.Info("[TVHclient] HTSConnectionHandler.ensureConnection() : create new HTS-Connection");
+                Version version = Assembly.GetEntryAssembly().GetName().Version;
+                _htsConnection = new HTSConnectionAsync(this, "TVHclient4Emby", version.ToString(), _logger);
+                _connected = false;
             }
 
-            lock (_htsConnection)
+            lock (_lock)
             {
                 if (!_connected)
                 {
@@ -163,12 +162,6 @@ namespace TVHeadEnd
                     _connected = _htsConnection.authenticate(_userName, _password);
 
                     _logger.Info("[TVHclient] HTSConnectionHandler.ensureConnection: connection established " + _connected);
-
-                    /*
-                    _channelDataHelper.Clean();
-                    _dvrDataHelper.clean();
-                    _autorecDataHelper.clean();
-                    */
                 }
             }
         }
