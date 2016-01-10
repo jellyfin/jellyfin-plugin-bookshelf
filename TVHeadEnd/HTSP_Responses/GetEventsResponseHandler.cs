@@ -741,11 +741,9 @@ namespace TVHeadEnd.HTSP_Responses
         {
             return Task.Factory.StartNew<IEnumerable<ProgramInfo>>(() =>
             {
-                _logger.Info("[TVHclient] GetEventsResponseHandler.GetEvents: channelId=" + channelId + "  / dataReady=" + _dataReady + "  / cancellationToken.IsCancellationRequested=" + cancellationToken.IsCancellationRequested);
                 while (!_dataReady || cancellationToken.IsCancellationRequested)
                 {
                     Thread.Sleep(500);
-                    _logger.Info("[TVHclient] GetEventsResponseHandler.GetEvents: channelId=" + channelId + "  / dataReady=" + _dataReady + "  / cancellationToken.IsCancellationRequested=" + cancellationToken.IsCancellationRequested);
                 }
                 _logger.Info("[TVHclient] GetEventsResponseHandler.GetEvents: channelId=" + channelId + "  / dataReady=" + _dataReady + "  / cancellationToken.IsCancellationRequested=" + cancellationToken.IsCancellationRequested);
                 return _result;

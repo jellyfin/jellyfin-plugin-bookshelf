@@ -51,8 +51,6 @@ namespace TVHeadEnd
 
             init();
             _channelDataHelper.SetChannelType4Other(_channelType);
-
-            ensureConnection();
         }
 
         public static HTSConnectionHandler GetInstance(ILogger logger)
@@ -177,26 +175,31 @@ namespace TVHeadEnd
 
         public void SendMessage(HTSMessage message, HTSResponseHandler responseHandler)
         {
+            ensureConnection();
             _htsConnection.sendMessage(message, responseHandler);
         }
 
         public String GetServername()
         {
+            ensureConnection();
             return _htsConnection.getServername();
         }
 
         public String GetServerVersion()
         {
+            ensureConnection();
             return _htsConnection.getServerversion();
         }
 
         public int GetServerProtocolVersion()
         {
+            ensureConnection();
             return _htsConnection.getServerProtocolVersion();
         }
 
         public String GetDiskSpace()
         {
+            ensureConnection();
             return _htsConnection.getDiskspace();
         }
 
