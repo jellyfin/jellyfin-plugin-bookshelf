@@ -598,13 +598,13 @@ namespace TVHeadEnd
 
             string serverName = _htsConnectionHandler.GetServername();
             string serverVersion = _htsConnectionHandler.GetServerVersion();
-            int serverProtokollVersion = _htsConnectionHandler.GetServerProtocolVersion();
+            int serverProtocolVersion = _htsConnectionHandler.GetServerProtocolVersion();
             string diskSpace = _htsConnectionHandler.GetDiskSpace();
 
-            int usedHTSPversion = (serverProtokollVersion < (int)HTSMessage.HTSP_VERSION) ? serverProtokollVersion : (int)HTSMessage.HTSP_VERSION;
+            int usedHTSPversion = (serverProtocolVersion < (int)HTSMessage.HTSP_VERSION) ? serverProtocolVersion : (int)HTSMessage.HTSP_VERSION;
 
             string serverVersionMessage = "<p>" + serverName + " " + serverVersion + "</p>"
-                + "<p>HTSP protokoll version: " + usedHTSPversion + "</p>"
+                + "<p>HTSP protocol version: " + usedHTSPversion + "</p>"
                 + "<p>Free diskspace: " + diskSpace + "</p>";
 
             //TaskWithTimeoutRunner<List<LiveTvTunerInfo>> twtr = new TaskWithTimeoutRunner<List<LiveTvTunerInfo>>(TIMEOUT);
