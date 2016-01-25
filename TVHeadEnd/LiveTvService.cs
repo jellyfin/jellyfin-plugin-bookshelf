@@ -1,5 +1,6 @@
 using MediaBrowser.Controller.Drawing;
 using MediaBrowser.Controller.LiveTv;
+using MediaBrowser.Controller.MediaEncoding;
 using MediaBrowser.Model.Dto;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.LiveTv;
@@ -7,6 +8,8 @@ using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.MediaInfo;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,6 +25,9 @@ namespace TVHeadEnd
         public event EventHandler DataSourceChanged;
         public event EventHandler<RecordingStatusChangedEventArgs> RecordingStatusChanged;
 
+        //Added for stream probing
+        private readonly IMediaEncoder _mediaEncoder;
+        
         private readonly TimeSpan TIMEOUT = TimeSpan.FromMinutes(5);
 
         private HTSConnectionHandler _htsConnectionHandler;
@@ -29,7 +35,7 @@ namespace TVHeadEnd
 
         private readonly ILogger _logger;
 
-        public LiveTvService(ILogger logger)
+        public LiveTvService(ILogger logger, IMediaEncoder mediaEncoder)
         {
             //System.Diagnostics.StackTrace t = new System.Diagnostics.StackTrace();
             logger.Info("[TVHclient] LiveTvService()");
@@ -38,6 +44,9 @@ namespace TVHeadEnd
 
             _htsConnectionHandler = HTSConnectionHandler.GetInstance(_logger);
             _htsConnectionHandler.setLiveTvService(this);
+
+            //Added for stream probing
+            _mediaEncoder = mediaEncoder;
         }
 
         public string HomePageUrl { get { return "http://tvheadend.org/"; } }
@@ -375,7 +384,7 @@ namespace TVHeadEnd
 
             if (twtRes.HasTimeout)
             {
-                _logger.Error("[TVHclient] Can't delete recording because of timeout");
+                _logger.Error("[TVHclient] Timeout obtaining playback authentication ticket from TVH");
             }
             else
             {
@@ -387,6 +396,25 @@ namespace TVHeadEnd
                 }
                 int currSubscriptionId = _subscriptionId++;
 
+               
+                MediaSourceInfo livetvasset = new MediaSourceInfo();
+
+                livetvasset.Id = "" + currSubscriptionId;
+
+                // Use HTTP basic auth instead of TVH ticketing system for authentication to allow the users to switch subs or audio tracks at any time
+                livetvasset.Path = _htsConnectionHandler.GetHttpBaseUrl() + getTicketResponse.getString("path");
+                livetvasset.Protocol = MediaProtocol.Http;
+
+                // Probe the asset stream to determine available sub-streams
+                string livetvasset_probeUrl = "" + livetvasset.Path;
+                string livetvasset_source = "LiveTV";
+
+                // Probe the asset stream to determine available sub-streams
+                await ProbeStream(livetvasset, livetvasset_probeUrl, livetvasset_source, cancellationToken);
+
+                return livetvasset;
+
+                /*
                 return new MediaSourceInfo
                 {
                     Id = "" + currSubscriptionId,
@@ -409,7 +437,7 @@ namespace TVHeadEnd
                                 Index = -1
                             }
                         }
-                };
+                };*/
             }
 
             throw new TimeoutException("");
@@ -502,6 +530,123 @@ namespace TVHeadEnd
             return twtRes.Result;
         }
 
+        public async Task ProbeStream(MediaSourceInfo mediaSourceInfo, string probeUrl, string source, CancellationToken cancellationToken)
+        {
+
+            _logger.Info("[TVHclient] Probe stream for {0}", source);
+            _logger.Info("[TVHclient] Probe URL: {0}", probeUrl);
+            
+            MediaInfoRequest req = new MediaInfoRequest
+
+            {
+
+                MediaType = MediaBrowser.Model.Dlna.DlnaProfileType.Video,
+
+                InputPath = probeUrl,
+
+                Protocol = MediaProtocol.Http,
+
+                ExtractChapters = false,
+
+                VideoType = VideoType.VideoFile,
+
+            };
+
+
+
+            var originalRuntime = mediaSourceInfo.RunTimeTicks;
+
+            Stopwatch stopWatch = new Stopwatch();
+
+            stopWatch.Start();
+
+            MediaInfo info = await _mediaEncoder.GetMediaInfo(req, cancellationToken).ConfigureAwait(false);
+
+            stopWatch.Stop();
+
+            TimeSpan ts = stopWatch.Elapsed;
+
+            string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}", ts.Hours, ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
+
+            _logger.Info("[TVHclient] Probe RunTime " + elapsedTime);
+
+
+
+            if (info != null)
+            {
+
+                mediaSourceInfo.Bitrate = info.Bitrate;
+
+                mediaSourceInfo.Container = info.Container;
+
+                mediaSourceInfo.Formats = info.Formats;
+
+                mediaSourceInfo.MediaStreams = info.MediaStreams;
+
+                mediaSourceInfo.RunTimeTicks = info.RunTimeTicks;
+
+                mediaSourceInfo.Size = info.Size;
+
+                mediaSourceInfo.Timestamp = info.Timestamp;
+
+                mediaSourceInfo.Video3DFormat = info.Video3DFormat;
+
+                mediaSourceInfo.VideoType = info.VideoType;
+
+                mediaSourceInfo.RequiresClosing = true;
+
+                mediaSourceInfo.RequiresOpening = true;
+
+                mediaSourceInfo.SupportsDirectPlay = true;
+
+                mediaSourceInfo.SupportsDirectStream = true;
+
+                mediaSourceInfo.SupportsTranscoding = true;
+
+
+
+
+
+                mediaSourceInfo.DefaultSubtitleStreamIndex = null;
+
+
+
+                if (!originalRuntime.HasValue)
+                {
+
+                    mediaSourceInfo.RunTimeTicks = null;
+
+                }
+
+                var audioStream = mediaSourceInfo.MediaStreams.FirstOrDefault(i => i.Type == MediaBrowser.Model.Entities.MediaStreamType.Audio);
+
+
+
+                if (audioStream == null || audioStream.Index == -1)
+                {
+
+                    mediaSourceInfo.DefaultAudioStreamIndex = null;
+
+                }
+
+                else
+                {
+
+                    mediaSourceInfo.DefaultAudioStreamIndex = audioStream.Index;
+
+                }
+
+            }
+
+            else
+            {
+
+                _logger.Error("[TVHclient] Cannot probe {0} stream", source);
+
+            }
+
+        }
+
         public async Task<MediaSourceInfo> GetRecordingStream(string recordingId, string mediaSourceId, CancellationToken cancellationToken)
         {
             HTSMessage getTicketMessage = new HTSMessage();
@@ -518,7 +663,7 @@ namespace TVHeadEnd
 
             if (twtRes.HasTimeout)
             {
-                _logger.Error("[TVHclient] Can't delete recording because of timeout");
+                _logger.Error("[TVHclient] Timeout obtaining playback authentication ticket from TVH");
             }
             else
             {
@@ -530,6 +675,24 @@ namespace TVHeadEnd
                 }
                 int currSubscriptionId = _subscriptionId++;
 
+                MediaSourceInfo recordingasset = new MediaSourceInfo();
+
+                recordingasset.Id = "" + currSubscriptionId;
+                
+                // Use HTTP basic auth instead of TVH ticketing system for authentication to allow the users to switch subs or audio tracks at any time
+                recordingasset.Path = _htsConnectionHandler.GetHttpBaseUrl() + getTicketResponse.getString("path");
+                recordingasset.Protocol = MediaProtocol.Http;
+
+                // Set asset source and type for stream probing and logging
+                string recordingasset_probeUrl = "" + recordingasset.Path;
+                string recordingasset_source = "Recording";
+
+                // Probe the asset stream to determine available sub-streams
+                await ProbeStream(recordingasset, recordingasset_probeUrl, recordingasset_source, cancellationToken);
+
+                return recordingasset;
+
+                /*
                 return new MediaSourceInfo
                 {
                     Id = "" + currSubscriptionId,
@@ -552,7 +715,7 @@ namespace TVHeadEnd
                                 Index = -1
                             }
                         }
-                };
+                };*/
             }
 
             throw new TimeoutException();

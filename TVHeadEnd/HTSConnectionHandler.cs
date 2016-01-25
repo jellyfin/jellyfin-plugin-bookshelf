@@ -133,7 +133,9 @@ namespace TVHeadEnd
             _userName = config.Username.Trim();
             _password = config.Password.Trim();
 
-            _httpBaseUrl = "http://" + _tvhServerName + ":" + _httpPort;
+            //_httpBaseUrl = "http://" + _tvhServerName + ":" + _httpPort;
+            // Use HTTP basic auth instead of TVH ticketing system for authentication to allow the users to switch subs or audio tracks at any time
+            _httpBaseUrl = "http://" + _userName + ":" + _password + "@" + _tvhServerName + ":" + _httpPort;
         }
 
         private void ensureConnection()
