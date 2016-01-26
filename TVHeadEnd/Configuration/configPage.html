@@ -66,6 +66,15 @@
                             </select>
                         </li>
                         <li>
+                            <label for="chkEnableSubsMaudios">
+                                Enable live TV subtitles and multiple audio tracks (EXPERIMENTAL)
+                            </label>
+                            <input type="checkbox" id="chkEnableSubsMaudios" />
+                            <div class="fieldDescription">
+                                Note: enabling this feature have security implications (TVH username and password will appear in Emby logs and will be transmitted in clear text on the network). Configuration change requires Emby server restart.
+                            </div>
+                        </li>
+                        <li>
                             <button type="submit" data-theme="b">Save</button>
                             <button type="button" onclick="history.back();">Cancel</button>
                         </li>
@@ -93,7 +102,7 @@
                     $('#txtPriority', page).val(config.Priority || "5");
                     $('#txtProfile', page).val(config.Profile || "");
                     $('#selChannelType', page).val(config.ChannelType || "Ignore");
-
+                    $('#chkEnableSubsMaudios', page).checked(config.EnableSubsMaudios || false).checkboxradio("refresh");
                     Dashboard.hideLoadingMsg();
                 });
             });
@@ -110,6 +119,7 @@
                     config.Priority = $('#txtPriority', form).val();
                     config.Profile = $('#txtProfile', form).val();
                     config.ChannelType = $('#selChannelType', form).val();
+                    config.EnableSubsMaudios = $('#chkEnableSubsMaudios', form).checked();
                     ApiClient.updatePluginConfiguration(TVHclientConfigurationPageVar.pluginUniqueId, config).then(Dashboard.processPluginConfigurationUpdateResult);
                 });
                 // Disable default form submission

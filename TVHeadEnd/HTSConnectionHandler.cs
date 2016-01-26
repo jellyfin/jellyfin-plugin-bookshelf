@@ -32,6 +32,7 @@ namespace TVHeadEnd
         private int _htspPort;
         private string _userName;
         private string _password;
+        private bool _enableSubsMaudios;
 
         // Data helpers
         private readonly ChannelDataHelper _channelDataHelper;
@@ -120,6 +121,7 @@ namespace TVHeadEnd
             _priority = config.Priority;
             _profile = config.Profile.Trim();
             _channelType = config.ChannelType.Trim();
+            _enableSubsMaudios = config.EnableSubsMaudios;
 
             if (_priority < 0 || _priority > 4)
             {
@@ -133,7 +135,19 @@ namespace TVHeadEnd
             _userName = config.Username.Trim();
             _password = config.Password.Trim();
 
-            _httpBaseUrl = "http://" + _tvhServerName + ":" + _httpPort;
+            if (_enableSubsMaudios)
+            {
+            
+                // Use HTTP basic auth instead of TVH ticketing system for authentication to allow the users to switch subs or audio tracks at any time
+                _httpBaseUrl = "http://" + _userName + ":" + _password + "@" + _tvhServerName + ":" + _httpPort;
+
+            }
+            else
+            {
+
+                _httpBaseUrl = "http://" + _tvhServerName + ":" + _httpPort;
+
+            }
         }
 
         private void ensureConnection()
@@ -219,6 +233,11 @@ namespace TVHeadEnd
         public String GetHttpBaseUrl()
         {
             return _httpBaseUrl;
+        }
+
+        public bool GetEnableSubsMaudios()
+        {
+            return _enableSubsMaudios;
         }
 
         public Task<IEnumerable<RecordingInfo>> BuildDvrInfos(CancellationToken cancellationToken)
