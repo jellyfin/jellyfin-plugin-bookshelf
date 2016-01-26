@@ -34,7 +34,7 @@ namespace TVHeadEnd
         {
             get
             {
-                return "Provides live tv using tvheadend as a back-end.";
+                return "Provides live TV using Tvheadend as a back-end.";
             }
         }
 
