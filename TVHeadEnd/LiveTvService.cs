@@ -396,48 +396,57 @@ namespace TVHeadEnd
                 }
                 int currSubscriptionId = _subscriptionId++;
 
-               
-                MediaSourceInfo livetvasset = new MediaSourceInfo();
-
-                livetvasset.Id = "" + currSubscriptionId;
-
-                // Use HTTP basic auth instead of TVH ticketing system for authentication to allow the users to switch subs or audio tracks at any time
-                livetvasset.Path = _htsConnectionHandler.GetHttpBaseUrl() + getTicketResponse.getString("path");
-                livetvasset.Protocol = MediaProtocol.Http;
-
-                // Probe the asset stream to determine available sub-streams
-                string livetvasset_probeUrl = "" + livetvasset.Path;
-                string livetvasset_source = "LiveTV";
-
-                // Probe the asset stream to determine available sub-streams
-                await ProbeStream(livetvasset, livetvasset_probeUrl, livetvasset_source, cancellationToken);
-
-                return livetvasset;
-
-                /*
-                return new MediaSourceInfo
+                if (_htsConnectionHandler.GetEnableSubsMaudios())
                 {
-                    Id = "" + currSubscriptionId,
-                    Path = _htsConnectionHandler.GetHttpBaseUrl() + getTicketResponse.getString("path") + "?ticket=" + getTicketResponse.getString("ticket"),
-                    Protocol = MediaProtocol.Http,
-                    MediaStreams = new List<MediaStream>
-                        {
-                            new MediaStream
+
+                    _logger.Info("[TVHclient] Support for live TV subtitles and multiple audio tracks is enabled.");
+
+                    MediaSourceInfo livetvasset = new MediaSourceInfo();
+
+                    livetvasset.Id = "" + currSubscriptionId;
+
+                    // Use HTTP basic auth instead of TVH ticketing system for authentication to allow the users to switch subs or audio tracks at any time
+                    livetvasset.Path = _htsConnectionHandler.GetHttpBaseUrl() + getTicketResponse.getString("path");
+                    livetvasset.Protocol = MediaProtocol.Http;
+
+                    // Probe the asset stream to determine available sub-streams
+                    string livetvasset_probeUrl = "" + livetvasset.Path;
+                    string livetvasset_source = "LiveTV";
+
+                    // Probe the asset stream to determine available sub-streams
+                    await ProbeStream(livetvasset, livetvasset_probeUrl, livetvasset_source, cancellationToken);
+
+                    return livetvasset;
+
+                }
+                else
+                {
+                    
+                    return new MediaSourceInfo
+                    {
+                        Id = "" + currSubscriptionId,
+                        Path = _htsConnectionHandler.GetHttpBaseUrl() + getTicketResponse.getString("path") + "?ticket=" + getTicketResponse.getString("ticket"),
+                        Protocol = MediaProtocol.Http,
+                        MediaStreams = new List<MediaStream>
                             {
-                                Type = MediaStreamType.Video,
-                                // Set the index to -1 because we don't know the exact index of the video stream within the container
-                                Index = -1,
-                                // Set to true if unknown to enable deinterlacing
-                                IsInterlaced = true
-                            },
-                            new MediaStream
-                            {
-                                Type = MediaStreamType.Audio,
-                                // Set the index to -1 because we don't know the exact index of the audio stream within the container
-                                Index = -1
+                                new MediaStream
+                                {
+                                    Type = MediaStreamType.Video,
+                                    // Set the index to -1 because we don't know the exact index of the video stream within the container
+                                    Index = -1,
+                                    // Set to true if unknown to enable deinterlacing
+                                    IsInterlaced = true
+                                },
+                                new MediaStream
+                                {
+                                    Type = MediaStreamType.Audio,
+                                    // Set the index to -1 because we don't know the exact index of the audio stream within the container
+                                    Index = -1
+                                }
                             }
-                        }
-                };*/
+                    };
+
+                }
             }
 
             throw new TimeoutException("");
@@ -675,47 +684,57 @@ namespace TVHeadEnd
                 }
                 int currSubscriptionId = _subscriptionId++;
 
-                MediaSourceInfo recordingasset = new MediaSourceInfo();
-
-                recordingasset.Id = "" + currSubscriptionId;
-                
-                // Use HTTP basic auth instead of TVH ticketing system for authentication to allow the users to switch subs or audio tracks at any time
-                recordingasset.Path = _htsConnectionHandler.GetHttpBaseUrl() + getTicketResponse.getString("path");
-                recordingasset.Protocol = MediaProtocol.Http;
-
-                // Set asset source and type for stream probing and logging
-                string recordingasset_probeUrl = "" + recordingasset.Path;
-                string recordingasset_source = "Recording";
-
-                // Probe the asset stream to determine available sub-streams
-                await ProbeStream(recordingasset, recordingasset_probeUrl, recordingasset_source, cancellationToken);
-
-                return recordingasset;
-
-                /*
-                return new MediaSourceInfo
+                if (_htsConnectionHandler.GetEnableSubsMaudios())
                 {
-                    Id = "" + currSubscriptionId,
-                    Path = _htsConnectionHandler.GetHttpBaseUrl() + getTicketResponse.getString("path") + "?ticket=" + getTicketResponse.getString("ticket"),
-                    Protocol = MediaProtocol.Http,
-                    MediaStreams = new List<MediaStream>
-                        {
-                            new MediaStream
+
+                    _logger.Info("[TVHclient] Support for live TV subtitles and multiple audio tracks is enabled.");
+
+                    MediaSourceInfo recordingasset = new MediaSourceInfo();
+
+                    recordingasset.Id = "" + currSubscriptionId;
+
+                    // Use HTTP basic auth instead of TVH ticketing system for authentication to allow the users to switch subs or audio tracks at any time
+                    recordingasset.Path = _htsConnectionHandler.GetHttpBaseUrl() + getTicketResponse.getString("path");
+                    recordingasset.Protocol = MediaProtocol.Http;
+
+                    // Set asset source and type for stream probing and logging
+                    string recordingasset_probeUrl = "" + recordingasset.Path;
+                    string recordingasset_source = "Recording";
+
+                    // Probe the asset stream to determine available sub-streams
+                    await ProbeStream(recordingasset, recordingasset_probeUrl, recordingasset_source, cancellationToken);
+
+                    return recordingasset;
+
+                }
+                else
+                {
+
+                    return new MediaSourceInfo
+                    {
+                        Id = "" + currSubscriptionId,
+                        Path = _htsConnectionHandler.GetHttpBaseUrl() + getTicketResponse.getString("path") + "?ticket=" + getTicketResponse.getString("ticket"),
+                        Protocol = MediaProtocol.Http,
+                        MediaStreams = new List<MediaStream>
                             {
-                                Type = MediaStreamType.Video,
-                                // Set the index to -1 because we don't know the exact index of the video stream within the container
-                                Index = -1,
-                                // Set to true if unknown to enable deinterlacing
-                                IsInterlaced = true
-                            },
-                            new MediaStream
-                            {
-                                Type = MediaStreamType.Audio,
-                                // Set the index to -1 because we don't know the exact index of the audio stream within the container
-                                Index = -1
+                                new MediaStream
+                                {
+                                    Type = MediaStreamType.Video,
+                                    // Set the index to -1 because we don't know the exact index of the video stream within the container
+                                    Index = -1,
+                                    // Set to true if unknown to enable deinterlacing
+                                    IsInterlaced = true
+                                },
+                                new MediaStream
+                                {
+                                    Type = MediaStreamType.Audio,
+                                    // Set the index to -1 because we don't know the exact index of the audio stream within the container
+                                    Index = -1
+                                }
                             }
-                        }
-                };*/
+                    };
+
+                }
             }
 
             throw new TimeoutException();
