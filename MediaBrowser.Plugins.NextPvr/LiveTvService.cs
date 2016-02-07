@@ -700,13 +700,15 @@ namespace MediaBrowser.Plugins.NextPvr
                         {
                             new MediaStream
                             {
-                                Type = MediaStreamType.Video,                               
+                                Type = MediaStreamType.Video,
+                                IsInterlaced = true,
                                 // Set the index to -1 because we don't know the exact index of the video stream within the container
                                 Index = -1
                             },
                             new MediaStream
                             {
                                 Type = MediaStreamType.Audio,
+                                IsInterlaced = true,
                                 // Set the index to -1 because we don't know the exact index of the audio stream within the container
                                 Index = -1
                             }
@@ -727,12 +729,14 @@ namespace MediaBrowser.Plugins.NextPvr
                             new MediaStream
                             {
                                 Type = MediaStreamType.Video,
+                                IsInterlaced = true,
                                 // Set the index to -1 because we don't know the exact index of the video stream within the container
                                 Index = -1,
                             },
                             new MediaStream
                             {
                                 Type = MediaStreamType.Audio,
+                                IsInterlaced = true,
                                 // Set the index to -1 because we don't know the exact index of the audio stream within the container
                                 Index = -1
                             }
@@ -758,6 +762,7 @@ namespace MediaBrowser.Plugins.NextPvr
                             new MediaStream
                             {
                                 Type = MediaStreamType.Video,
+
                                 // Set the index to -1 because we don't know the exact index of the video stream within the container
                                 Index = -1,
 

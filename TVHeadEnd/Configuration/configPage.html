@@ -66,19 +66,20 @@
                             </select>
                         </li>
                         <li>
+                            <label for="chkEnableSubsMaudios">
+                                Enable live TV subtitles and multiple audio tracks (EXPERIMENTAL)
+                            </label>
+                            <input type="checkbox" id="chkEnableSubsMaudios" />
+                            <div class="fieldDescription">
+                                Note: enabling this feature have security implications (TVH username and password will appear in Emby logs and will be transmitted in clear text on the network). Configuration change requires Emby server restart.
+                            </div>
+                        </li>
+                        <li>
                             <button type="submit" data-theme="b">Save</button>
                             <button type="button" onclick="history.back();">Cancel</button>
                         </li>
                     </ul>
                 </form>
-
-                <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
-                    <input type="hidden" name="cmd" value="_s-xclick">
-                    <input type="hidden" name="hosted_button_id" value="HK5YA36PAC7EE">
-                    <input type="image" src="https://www.paypalobjects.com/de_DE/DE/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="Jetzt einfach, schnell und sicher online bezahlen – mit PayPal.">
-                    <img alt="" border="0" src="https://www.paypalobjects.com/de_DE/i/scr/pixel.gif" width="1" height="1">
-                </form>
-
             </div>
         </div>
 
@@ -101,7 +102,7 @@
                     $('#txtPriority', page).val(config.Priority || "5");
                     $('#txtProfile', page).val(config.Profile || "");
                     $('#selChannelType', page).val(config.ChannelType || "Ignore");
-
+                    $('#chkEnableSubsMaudios', page).checked(config.EnableSubsMaudios || false).checkboxradio("refresh");
                     Dashboard.hideLoadingMsg();
                 });
             });
@@ -118,6 +119,7 @@
                     config.Priority = $('#txtPriority', form).val();
                     config.Profile = $('#txtProfile', form).val();
                     config.ChannelType = $('#selChannelType', form).val();
+                    config.EnableSubsMaudios = $('#chkEnableSubsMaudios', form).checked();
                     ApiClient.updatePluginConfiguration(TVHclientConfigurationPageVar.pluginUniqueId, config).then(Dashboard.processPluginConfigurationUpdateResult);
                 });
                 // Disable default form submission
@@ -127,5 +129,6 @@
         </script>
 
     </div>
+
 </body>
 </html>

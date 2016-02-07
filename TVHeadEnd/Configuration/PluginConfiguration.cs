@@ -16,6 +16,7 @@ namespace TVHeadEnd.Configuration
         public int Priority { get; set; }
         public string Profile { get; set; }
         public string ChannelType { get; set; }
+        public bool EnableSubsMaudios { get; set; }
 
         public PluginConfiguration()
         {
@@ -27,6 +28,7 @@ namespace TVHeadEnd.Configuration
             Priority = 5;
             Profile = "";
             ChannelType = "Ignore";
+            EnableSubsMaudios = false;
         }
     }
 }

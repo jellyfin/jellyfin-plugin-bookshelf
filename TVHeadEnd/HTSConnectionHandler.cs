@@ -15,6 +15,8 @@ namespace TVHeadEnd
         private static volatile HTSConnectionHandler _instance;
         private static object _syncRoot = new Object();
 
+        private readonly object _lock = new Object();
+
         private readonly ILogger _logger;
 
         private volatile Boolean _initialLoadFinished = false;
@@ -30,6 +32,7 @@ namespace TVHeadEnd
         private int _htspPort;
         private string _userName;
         private string _password;
+        private bool _enableSubsMaudios;
 
         // Data helpers
         private readonly ChannelDataHelper _channelDataHelper;
@@ -51,8 +54,6 @@ namespace TVHeadEnd
 
             init();
             _channelDataHelper.SetChannelType4Other(_channelType);
-
-            ensureConnection();
         }
 
         public static HTSConnectionHandler GetInstance(ILogger logger)
@@ -77,6 +78,7 @@ namespace TVHeadEnd
 
         public int WaitForInitialLoad(CancellationToken cancellationToken)
         {
+            ensureConnection();
             DateTime start = DateTime.Now;
             while (!_initialLoadFinished || cancellationToken.IsCancellationRequested)
             {
@@ -119,6 +121,7 @@ namespace TVHeadEnd
             _priority = config.Priority;
             _profile = config.Profile.Trim();
             _channelType = config.ChannelType.Trim();
+            _enableSubsMaudios = config.EnableSubsMaudios;
 
             if (_priority < 0 || _priority > 4)
             {
@@ -132,25 +135,33 @@ namespace TVHeadEnd
             _userName = config.Username.Trim();
             _password = config.Password.Trim();
 
-            _httpBaseUrl = "http://" + _tvhServerName + ":" + _httpPort;
-        }
+            if (_enableSubsMaudios)
+            {
+            
+                // Use HTTP basic auth instead of TVH ticketing system for authentication to allow the users to switch subs or audio tracks at any time
+                _httpBaseUrl = "http://" + _userName + ":" + _password + "@" + _tvhServerName + ":" + _httpPort;
 
-        private void createHTSConnection()
-        {
-            _logger.Info("[TVHclient] HTSConnectionHandler.createHTSConnection()");
-            Version version = Assembly.GetEntryAssembly().GetName().Version;
-            _htsConnection = new HTSConnectionAsync(this, "TVHclient4Emby", version.ToString(), _logger);
-            _connected = false;
+            }
+            else
+            {
+
+                _httpBaseUrl = "http://" + _tvhServerName + ":" + _httpPort;
+
+            }
         }
 
         private void ensureConnection()
         {
+            _logger.Info("[TVHclient] HTSConnectionHandler.ensureConnection()");
             if (_htsConnection == null || _htsConnection.needsRestart())
             {
-                createHTSConnection();
+                _logger.Info("[TVHclient] HTSConnectionHandler.ensureConnection() : create new HTS-Connection");
+                Version version = Assembly.GetEntryAssembly().GetName().Version;
+                _htsConnection = new HTSConnectionAsync(this, "TVHclient4Emby", version.ToString(), _logger);
+                _connected = false;
             }
 
-            lock (_htsConnection)
+            lock (_lock)
             {
                 if (!_connected)
                 {
@@ -165,38 +176,37 @@ namespace TVHeadEnd
                     _connected = _htsConnection.authenticate(_userName, _password);
 
                     _logger.Info("[TVHclient] HTSConnectionHandler.ensureConnection: connection established " + _connected);
-
-                    /*
-                    _channelDataHelper.Clean();
-                    _dvrDataHelper.clean();
-                    _autorecDataHelper.clean();
-                    */
                 }
             }
         }
 
         public void SendMessage(HTSMessage message, HTSResponseHandler responseHandler)
         {
+            ensureConnection();
             _htsConnection.sendMessage(message, responseHandler);
         }
 
         public String GetServername()
         {
+            ensureConnection();
             return _htsConnection.getServername();
         }
 
         public String GetServerVersion()
         {
+            ensureConnection();
             return _htsConnection.getServerversion();
         }
 
         public int GetServerProtocolVersion()
         {
+            ensureConnection();
             return _htsConnection.getServerProtocolVersion();
         }
 
         public String GetDiskSpace()
         {
+            ensureConnection();
             return _htsConnection.getDiskspace();
         }
 
@@ -223,6 +233,11 @@ namespace TVHeadEnd
         public String GetHttpBaseUrl()
         {
             return _httpBaseUrl;
+        }
+
+        public bool GetEnableSubsMaudios()
+        {
+            return _enableSubsMaudios;
         }
 
         public Task<IEnumerable<RecordingInfo>> BuildDvrInfos(CancellationToken cancellationToken)
