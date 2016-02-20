@@ -27,7 +27,7 @@ namespace TVHeadEnd
 
         //Added for stream probing
         private readonly IMediaEncoder _mediaEncoder;
-        
+
         private readonly TimeSpan TIMEOUT = TimeSpan.FromMinutes(5);
 
         private HTSConnectionHandler _htsConnectionHandler;
@@ -421,7 +421,7 @@ namespace TVHeadEnd
                 }
                 else
                 {
-                    
+
                     return new MediaSourceInfo
                     {
                         Id = "" + currSubscriptionId,
@@ -541,66 +541,57 @@ namespace TVHeadEnd
 
         public async Task ProbeStream(MediaSourceInfo mediaSourceInfo, string probeUrl, string source, CancellationToken cancellationToken)
         {
-
             _logger.Info("[TVHclient] Probe stream for {0}", source);
             _logger.Info("[TVHclient] Probe URL: {0}", probeUrl);
-            
+
             MediaInfoRequest req = new MediaInfoRequest
-
             {
-
                 MediaType = MediaBrowser.Model.Dlna.DlnaProfileType.Video,
-
                 InputPath = probeUrl,
-
                 Protocol = MediaProtocol.Http,
-
                 ExtractChapters = false,
-
                 VideoType = VideoType.VideoFile,
-
             };
 
-
-
             var originalRuntime = mediaSourceInfo.RunTimeTicks;
-
             Stopwatch stopWatch = new Stopwatch();
-
             stopWatch.Start();
-
             MediaInfo info = await _mediaEncoder.GetMediaInfo(req, cancellationToken).ConfigureAwait(false);
-
             stopWatch.Stop();
-
             TimeSpan ts = stopWatch.Elapsed;
-
             string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}", ts.Hours, ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
-
             _logger.Info("[TVHclient] Probe RunTime " + elapsedTime);
-
-
 
             if (info != null)
             {
+                _logger.Info("[TVHclient] Probe returned:");
 
                 mediaSourceInfo.Bitrate = info.Bitrate;
+                _logger.Info("[TVHclient]         BitRate:                 " + info.Bitrate);
 
                 mediaSourceInfo.Container = info.Container;
+                _logger.Info("[TVHclient]         Container:               " + info.Container);
 
                 mediaSourceInfo.Formats = info.Formats;
+                _logger.Info("[TVHclient]         Formats:                 " + info.Formats);
 
                 mediaSourceInfo.MediaStreams = info.MediaStreams;
+                _logger.Info("[TVHclient]         MediaStreams:            " + info.MediaStreams);
 
                 mediaSourceInfo.RunTimeTicks = info.RunTimeTicks;
+                _logger.Info("[TVHclient]         RunTimeTicks:            " + info.RunTimeTicks);
 
                 mediaSourceInfo.Size = info.Size;
+                _logger.Info("[TVHclient]         Size:                    " + info.Size);
 
                 mediaSourceInfo.Timestamp = info.Timestamp;
+                _logger.Info("[TVHclient]         Timestamp:               " + info.Timestamp);
 
                 mediaSourceInfo.Video3DFormat = info.Video3DFormat;
+                _logger.Info("[TVHclient]         Video3DFormat:           " + info.Video3DFormat);
 
                 mediaSourceInfo.VideoType = info.VideoType;
+                _logger.Info("[TVHclient]         VideoType:               " + info.VideoType);
 
                 mediaSourceInfo.RequiresClosing = true;
 
@@ -612,48 +603,30 @@ namespace TVHeadEnd
 
                 mediaSourceInfo.SupportsTranscoding = true;
 
-
-
-
-
                 mediaSourceInfo.DefaultSubtitleStreamIndex = null;
-
-
 
                 if (!originalRuntime.HasValue)
                 {
-
                     mediaSourceInfo.RunTimeTicks = null;
-
+                    _logger.Info("[TVHclient]         Original runtime:        n/a");
                 }
 
                 var audioStream = mediaSourceInfo.MediaStreams.FirstOrDefault(i => i.Type == MediaBrowser.Model.Entities.MediaStreamType.Audio);
-
-
-
                 if (audioStream == null || audioStream.Index == -1)
                 {
-
                     mediaSourceInfo.DefaultAudioStreamIndex = null;
-
+                    _logger.Info("[TVHclient]         DefaultAudioStreamIndex: n/a");
                 }
-
                 else
                 {
-
                     mediaSourceInfo.DefaultAudioStreamIndex = audioStream.Index;
-
+                    _logger.Info("[TVHclient]         DefaultAudioStreamIndex: " + info.DefaultAudioStreamIndex);
                 }
-
             }
-
             else
             {
-
                 _logger.Error("[TVHclient] Cannot probe {0} stream", source);
-
             }
-
         }
 
         public async Task<MediaSourceInfo> GetRecordingStream(string recordingId, string mediaSourceId, CancellationToken cancellationToken)
