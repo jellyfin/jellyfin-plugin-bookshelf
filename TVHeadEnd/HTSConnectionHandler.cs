@@ -1,12 +1,18 @@
-﻿using MediaBrowser.Model.Logging;
-using System;
-using System.Reflection;
-using System.Threading;
-using TVHeadEnd.HTSP;
-using TVHeadEnd.DataHelper;
-using System.Threading.Tasks;
-using System.Collections.Generic;
+﻿using MediaBrowser.Controller.Drawing;
 using MediaBrowser.Controller.LiveTv;
+using MediaBrowser.Model.Logging;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
+using System.Net;
+using System.Reflection;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using TVHeadEnd.DataHelper;
+using TVHeadEnd.HTSP;
+
 
 namespace TVHeadEnd
 {
@@ -53,6 +59,7 @@ namespace TVHeadEnd
             _autorecDataHelper = new AutorecDataHelper(logger);
 
             init();
+
             _channelDataHelper.SetChannelType4Other(_channelType);
         }
 
@@ -137,27 +144,47 @@ namespace TVHeadEnd
 
             if (_enableSubsMaudios)
             {
-            
                 // Use HTTP basic auth instead of TVH ticketing system for authentication to allow the users to switch subs or audio tracks at any time
                 _httpBaseUrl = "http://" + _userName + ":" + _password + "@" + _tvhServerName + ":" + _httpPort;
-
             }
             else
             {
-
                 _httpBaseUrl = "http://" + _tvhServerName + ":" + _httpPort;
-
             }
+        }
+
+        public ImageStream GetChannelImage(string channelId, CancellationToken cancellationToken)
+        {
+            String channelIcon = _channelDataHelper.GetChannelIcon4ChannelId(channelId);
+            WebRequest request = WebRequest.Create("http://" + _tvhServerName + ":" + _httpPort + "/" + channelIcon);
+
+            string authInfo = _userName + ":" + _password;
+            authInfo = Convert.ToBase64String(Encoding.Default.GetBytes(authInfo));
+            request.Headers["Authorization"] = "Basic " + authInfo;
+
+            ImageStream imageStream = new ImageStream();
+            try
+            {
+                HttpWebResponse httpWebReponse = (HttpWebResponse)request.GetResponse();
+                imageStream.Stream = httpWebReponse.GetResponseStream();
+                imageStream.Format = MediaBrowser.Model.Drawing.ImageFormat.Png;
+            }
+            catch(Exception ex)
+            {
+                _logger.Error("[TVHclient] HTSConnectionHandler.GetChannelImage() caught exception: " + ex.Message);
+            }
+
+            return imageStream;
         }
 
         private void ensureConnection()
         {
-            _logger.Info("[TVHclient] HTSConnectionHandler.ensureConnection()");
+            //_logger.Info("[TVHclient] HTSConnectionHandler.ensureConnection()");
             if (_htsConnection == null || _htsConnection.needsRestart())
             {
                 _logger.Info("[TVHclient] HTSConnectionHandler.ensureConnection() : create new HTS-Connection");
                 Version version = Assembly.GetEntryAssembly().GetName().Version;
-                _htsConnection = new HTSConnectionAsync(this, "TVHclient4Emby", version.ToString(), _logger);
+                _htsConnection = new HTSConnectionAsync(this, "TVHclient4Emby-" + version.ToString(), "" + HTSMessage.HTSP_VERSION, _logger);
                 _connected = false;
             }
 
@@ -223,11 +250,6 @@ namespace TVHeadEnd
         public String GetProfile()
         {
             return _profile;
-        }
-
-        public String GetPiconData(String channelID)
-        {
-            return _channelDataHelper.GetPiconData(channelID);
         }
 
         public String GetHttpBaseUrl()
