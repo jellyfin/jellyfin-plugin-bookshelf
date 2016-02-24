@@ -27,14 +27,7 @@ namespace TVHeadEnd.DataHelper
             _piconData = new Dictionary<string, string>();
         }
 
-        public ChannelDataHelper(ILogger logger)
-        {
-            _logger = logger;
-            _tunerDataHelper = null;
-
-            _data = new Dictionary<int, HTSMessage>();
-            _piconData = new Dictionary<string, string>();
-        }
+        public ChannelDataHelper(ILogger logger) : this(logger, null) {}
 
         public void SetChannelType4Other(string channelType4Other)
         {
@@ -94,16 +87,9 @@ namespace TVHeadEnd.DataHelper
             }
         }
 
-        public string GetPiconData(string channelID)
+        public string GetChannelIcon4ChannelId(string channelId)
         {
-            if (_piconData.ContainsKey(channelID))
-            {
-                return _piconData[channelID];
-            }
-            else
-            {
-                return null;
-            }
+            return _piconData[channelId];
         }
 
         public Task<IEnumerable<ChannelInfo>> BuildChannelInfos(CancellationToken cancellationToken)
@@ -139,15 +125,10 @@ namespace TVHeadEnd.DataHelper
                                 {
                                     ci.ImageUrl = channelIcon;
                                 }
-                                else if (channelIcon.ToLower().StartsWith("picon://"))
+                                else
                                 {
                                     ci.HasImage = true;
                                     _piconData.Add(ci.Id, channelIcon);
-                                }
-                                else
-                                {
-                                    _logger.Info("[TVHclient] ChannelDataHelper.buildChannelInfos: channelIcon '" + channelIcon +
-                                        "' can not be handled properly for channelID '" + ci.Id + "'!");
                                 }
                             }
                             if (m.containsField("channelName"))

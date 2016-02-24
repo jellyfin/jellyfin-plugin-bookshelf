@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -335,16 +336,10 @@ namespace TVHeadEnd
 
         public Task<ImageStream> GetChannelImageAsync(string channelId, CancellationToken cancellationToken)
         {
-            string piconData = _htsConnectionHandler.GetPiconData(channelId);
-            if (piconData == null)
-            {
-                // Leave as is. This is handled by supplying image url to ChannelInfo
-                throw new NotImplementedException();
-            }
+            return Task.FromResult<ImageStream>(_htsConnectionHandler.GetChannelImage(channelId, cancellationToken));
 
-            _logger.Info("[TVHclient] LiveTvService.GetChannelImageAsync called for channelID '" + channelId + "'  piconData '" + piconData + "'");
-
-            throw new NotImplementedException();
+            // Leave as is. This is handled by supplying image url to ChannelInfo
+            //throw new NotImplementedException();
         }
 
         public async Task<IEnumerable<ChannelInfo>> GetChannelsAsync(CancellationToken cancellationToken)

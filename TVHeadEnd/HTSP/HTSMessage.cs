@@ -11,7 +11,7 @@ namespace TVHeadEnd.HTSP
 {
     public class HTSMessage
     {
-        public const long HTSP_VERSION = 10;
+        public const long HTSP_VERSION = 20;
         private const byte HMF_MAP = 1;
         private const byte HMF_S64 = 2;
         private const byte HMF_STR = 3;
