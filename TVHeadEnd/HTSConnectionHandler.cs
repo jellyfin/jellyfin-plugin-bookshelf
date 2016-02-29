@@ -177,32 +177,9 @@ namespace TVHeadEnd
                 Stream stream = httpWebReponse.GetResponseStream();
 
                 Image image = Image.FromStream(stream);
-                if (ImageFormat.Jpeg.Equals(image.RawFormat))
-                {
-                    imageStream.Format = MediaBrowser.Model.Drawing.ImageFormat.Jpg;
-                }
-                else if (ImageFormat.Png.Equals(image.RawFormat))
-                {
-                    imageStream.Format = MediaBrowser.Model.Drawing.ImageFormat.Png;
-                }
-                else if (ImageFormat.Gif.Equals(image.RawFormat))
-                {
-                    imageStream.Format = MediaBrowser.Model.Drawing.ImageFormat.Gif;
-                }
-                else if (ImageFormat.Bmp.Equals(image.RawFormat))
-                {
-                    imageStream.Format = MediaBrowser.Model.Drawing.ImageFormat.Bmp;
-                }
-                else
-                {
-                    _logger.Error("[TVHclient] HTSConnectionHandler.GetChannelImage() can't calc image type for : '" + channelIcon + "'");
-                    return null;
-                } 
-              
-                // rewind after image check
-                stream.Position = 0;
+                imageStream.Stream = ImageToPNGStream(image);
+                imageStream.Format = MediaBrowser.Model.Drawing.ImageFormat.Png;
 
-                imageStream.Stream = stream;
                 return imageStream;
             }
             catch (Exception ex)
@@ -210,6 +187,14 @@ namespace TVHeadEnd
                 _logger.Error("[TVHclient] HTSConnectionHandler.GetChannelImage() caught exception: " + ex.Message);
                 return null;
             }
+        }
+
+        private static Stream ImageToPNGStream(Image image)
+        {
+            Stream stream = new System.IO.MemoryStream();
+            image.Save(stream, ImageFormat.Png);
+            stream.Position = 0;
+            return stream;
         }
 
         private void ensureConnection()
