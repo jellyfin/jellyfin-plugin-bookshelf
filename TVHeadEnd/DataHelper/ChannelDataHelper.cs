@@ -154,8 +154,13 @@ namespace TVHeadEnd.DataHelper
 
                             if (m.containsField("channelNumber"))
                             {
-                                int chNo = m.getInt("channelNumber");
-                                ci.Number = "" + chNo;
+                                int channelNumber = m.getInt("channelNumber");
+                                ci.Number = "" + channelNumber;
+                                if (m.containsField("channelNumberMinor"))
+                                {
+                                    int channelNumberMinor = m.getInt("channelNumberMinor");
+                                    ci.Number = ci.Number + "." + channelNumberMinor;
+                                }
                             }
 
                             Boolean serviceFound = false;
