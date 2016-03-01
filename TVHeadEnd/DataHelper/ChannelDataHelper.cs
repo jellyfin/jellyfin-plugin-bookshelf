@@ -23,8 +23,6 @@ namespace TVHeadEnd.DataHelper
             _logger = logger;
             _tunerDataHelper = tunerDataHelper;
 
-            _logger.Error("[TVHclient] New ChannelDataHelper created !");
-
             _data = new Dictionary<int, HTSMessage>();
             _piconData = new Dictionary<string, string>();
         }
@@ -215,7 +213,7 @@ namespace TVHeadEnd.DataHelper
                                 continue;
                             }
 
-                            //_logger.Info("[TVHclient] ChannelDataHelper: Adding channel \n" + m.ToString());
+                            _logger.Info("[TVHclient] ChannelDataHelper: Adding channel \n" + m.ToString());
 
                             result.Add(ci);
                         }

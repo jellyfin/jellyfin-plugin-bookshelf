@@ -35,7 +35,7 @@ namespace TVHeadEnd.HTSP_Responses
 
         public void handleResponse(HTSMessage response)
         {
-            //_logger.Info("[TVHclient] GetEventsResponseHandler.handleResponse: received answer from TVH server\n" + response.ToString()); 
+            _logger.Info("[TVHclient] GetEventsResponseHandler.handleResponse: received answer from TVH server\n" + response.ToString()); 
 
             if (response.containsField("events"))
             {
@@ -51,18 +51,18 @@ namespace TVHeadEnd.HTSP_Responses
                         int compResult = DateTime.Compare(currentStartDateTimeUTC, _endDateTimeUtc);
                         if (compResult > 0)
                         {
-                            //_logger.Info("[TVHclient] GetEventsResponseHandler.handleResponse: start value of event larger query stop value - skipping! \n" 
-                            //    + "Query start UTC dateTime: " + _startDateTimeUtc + "\n"
-                            //    + "Query end UTC dateTime:   " + _endDateTimeUtc + "\n"
-                            //    + "Event start UTC dateTime: " + currentStartDateTimeUTC + "\n"
-                            //    + currEventMessage.ToString());
+                            _logger.Info("[TVHclient] GetEventsResponseHandler.handleResponse: start value of event larger query stop value - skipping! \n" 
+                                + "Query start UTC dateTime: " + _startDateTimeUtc + "\n"
+                                + "Query end UTC dateTime:   " + _endDateTimeUtc + "\n"
+                                + "Event start UTC dateTime: " + currentStartDateTimeUTC + "\n"
+                                + currEventMessage.ToString());
                             continue;
                         }
                         pi.StartDate = currentStartDateTimeUTC;
                     }
                     else
                     {
-                        //_logger.Info("[TVHclient] GetEventsResponseHandler.handleResponse: no start value for event - skipping! \n" + currEventMessage.ToString());
+                        _logger.Info("[TVHclient] GetEventsResponseHandler.handleResponse: no start value for event - skipping! \n" + currEventMessage.ToString());
                         continue;
                     }
 
@@ -73,18 +73,18 @@ namespace TVHeadEnd.HTSP_Responses
                         int compResult = DateTime.Compare(currentEndDateTimeUTC, _startDateTimeUtc);
                         if (compResult < 0)
                         {
-                           // _logger.Info("[TVHclient] GetEventsResponseHandler.handleResponse: stop value of event smaller query start value - skipping! \n"
-                           //     + "Query start UTC dateTime: " + _startDateTimeUtc + "\n"
-                           //     + "Query end UTC dateTime:   " + _endDateTimeUtc + "\n"
-                           //     + "Event start UTC dateTime: " + currentEndDateTimeUTC + "\n"
-                           //     + currEventMessage.ToString());
+                            _logger.Info("[TVHclient] GetEventsResponseHandler.handleResponse: stop value of event smaller query start value - skipping! \n"
+                                + "Query start UTC dateTime: " + _startDateTimeUtc + "\n"
+                                + "Query end UTC dateTime:   " + _endDateTimeUtc + "\n"
+                                + "Event start UTC dateTime: " + currentEndDateTimeUTC + "\n"
+                                + currEventMessage.ToString());
                             continue;
                         }
                         pi.EndDate = currentEndDateTimeUTC;
                     }
                     else
                     {
-                        //_logger.Info("[TVHclient] GetEventsResponseHandler.handleResponse: no stop value for event - skipping! \n" + currEventMessage.ToString());
+                        _logger.Info("[TVHclient] GetEventsResponseHandler.handleResponse: no stop value for event - skipping! \n" + currEventMessage.ToString());
                         continue;
                     }
 
@@ -698,7 +698,7 @@ namespace TVHeadEnd.HTSP_Responses
                     //pi.Audio - MediaBrowser.Model.LiveTv.ProgramAudio
                     //pi.ProductionYear - int
 
-                    //_logger.Info("[TVHclient] GetEventsResponseHandler.handleResponse: add event\n" + currEventMessage.ToString() + "\n" + createPiInfo(pi));
+                    _logger.Info("[TVHclient] GetEventsResponseHandler.handleResponse: add event\n" + currEventMessage.ToString() + "\n" + createPiInfo(pi));
 
                     _result.Add(pi);
                 }
