@@ -39,22 +39,28 @@ namespace TVHeadEnd.DataHelper
             lock (_data)
             {
                 _data.Clear();
-                _tunerDataHelper.clean();
+                if (_tunerDataHelper != null)
+                {
+                    _tunerDataHelper.clean();
+                }
             }
         }
 
         public void Add(HTSMessage message)
         {
-            // TVHeadend don't send the information we need 
-            //_tunerDataHelper.addTunerInfo(message);
+            if (_tunerDataHelper != null)
+            {
+                // TVHeadend don't send the information we need 
+                // _tunerDataHelper.addTunerInfo(message);
+            }
 
             lock (_data)
             {
                 try
                 {
-                    if (_data.ContainsKey(message.getInt("channelId")))
+                    int channelID = message.getInt("channelId");
+                    if (_data.ContainsKey(channelID))
                     {
-                        int channelID = message.getInt("channelId");
                         HTSMessage storedMessage = _data[channelID];
                         if (storedMessage != null)
                         {
@@ -76,7 +82,7 @@ namespace TVHeadEnd.DataHelper
                     {
                         if (message.containsField("channelNumber") && message.getInt("channelNumber") > 0) // use only channels with number > 0
                         {
-                            _data.Add(message.getInt("channelId"), message);
+                            _data.Add(channelID, message);
                         }
                     }
                 }
@@ -128,7 +134,10 @@ namespace TVHeadEnd.DataHelper
                                 else
                                 {
                                     ci.HasImage = true;
-                                    _piconData.Add(ci.Id, channelIcon);
+                                    if(!_piconData.ContainsKey(ci.Id))
+                                    {
+                                        _piconData.Add(ci.Id, channelIcon);
+                                    }
                                 }
                             }
                             if (m.containsField("channelName"))
@@ -143,8 +152,13 @@ namespace TVHeadEnd.DataHelper
 
                             if (m.containsField("channelNumber"))
                             {
-                                int chNo = m.getInt("channelNumber");
-                                ci.Number = "" + chNo;
+                                int channelNumber = m.getInt("channelNumber");
+                                ci.Number = "" + channelNumber;
+                                if (m.containsField("channelNumberMinor"))
+                                {
+                                    int channelNumberMinor = m.getInt("channelNumberMinor");
+                                    ci.Number = ci.Number + "." + channelNumberMinor;
+                                }
                             }
 
                             Boolean serviceFound = false;
@@ -205,7 +219,7 @@ namespace TVHeadEnd.DataHelper
                         }
                         catch (Exception ex)
                         {
-                            _logger.Error("[TVHclient] ChannelDataHelper.Add caught exception: " + ex.Message + "\nHTSmessage=" + m);
+                            _logger.Error("[TVHclient] ChannelDataHelper.BuildChannelInfos caught exception: " + ex.Message + "\nHTSmessage=" + m);
                         }
                     }
                     return result;

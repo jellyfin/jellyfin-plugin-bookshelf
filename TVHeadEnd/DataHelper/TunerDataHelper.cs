@@ -130,6 +130,8 @@ namespace TVHeadEnd.DataHelper
                                 ltti.ChannelId = channelId;
                                 ltti.Status = LiveTvTunerStatus.Available;
 
+                                ltti.CanReset = false; // currently not possible
+
                                 //ltti.Clients // not available from TVheadend
                                 //ltti.RecordingId // not available from TVheadend
 

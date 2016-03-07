@@ -58,11 +58,13 @@ namespace TVHeadEnd
         {
             try
             {
-                _logger.Fatal("[TVHclient] sendDataSourceChanged 1");
                 if (DataSourceChanged != null)
                 {
-                    _logger.Fatal("[TVHclient] sendDataSourceChanged 2");
                     DataSourceChanged(this, EventArgs.Empty);
+                }
+                else
+                {
+                    _logger.Fatal("[TVHclient] sendDataSourceChanged called but EventHandler 'DataSourceChanged' was not set by Emby!!!");
                 }
             }
             catch (Exception ex)
@@ -80,6 +82,10 @@ namespace TVHeadEnd
                 {
                     _logger.Fatal("[TVHclient] sendRecordingStatusChanged 2");
                     RecordingStatusChanged(this, recordingStatusChangedEventArgs);
+                }
+                else
+                {
+                    _logger.Fatal("[TVHclient] sendRecordingStatusChanged called but EventHandler 'RecordingStatusChanged' was not set by Emby!!!");
                 }
             }
             catch (Exception ex)

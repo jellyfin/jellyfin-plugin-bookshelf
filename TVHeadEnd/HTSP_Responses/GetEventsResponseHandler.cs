@@ -745,7 +745,7 @@ namespace TVHeadEnd.HTSP_Responses
                 {
                     Thread.Sleep(500);
                 }
-                _logger.Info("[TVHclient] GetEventsResponseHandler.GetEvents: channelId=" + channelId + "  / dataReady=" + _dataReady + "  / cancellationToken.IsCancellationRequested=" + cancellationToken.IsCancellationRequested);
+                //_logger.Info("[TVHclient] GetEventsResponseHandler.GetEvents: channelId=" + channelId + "  / dataReady=" + _dataReady + "  / cancellationToken.IsCancellationRequested=" + cancellationToken.IsCancellationRequested);
                 return _result;
             });
         }

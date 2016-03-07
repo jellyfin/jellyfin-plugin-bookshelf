@@ -4,6 +4,7 @@ using MediaBrowser.Model.Logging;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Net;
 using System.Reflection;
@@ -155,26 +156,45 @@ namespace TVHeadEnd
 
         public ImageStream GetChannelImage(string channelId, CancellationToken cancellationToken)
         {
-            String channelIcon = _channelDataHelper.GetChannelIcon4ChannelId(channelId);
-            WebRequest request = WebRequest.Create("http://" + _tvhServerName + ":" + _httpPort + "/" + channelIcon);
-
-            string authInfo = _userName + ":" + _password;
-            authInfo = Convert.ToBase64String(Encoding.Default.GetBytes(authInfo));
-            request.Headers["Authorization"] = "Basic " + authInfo;
-
-            ImageStream imageStream = new ImageStream();
             try
             {
+                _logger.Info("[TVHclient] HTSConnectionHandler.GetChannelImage() channelId: " + channelId);
+
+                String channelIcon = _channelDataHelper.GetChannelIcon4ChannelId(channelId);
+
+                _logger.Info("[TVHclient] HTSConnectionHandler.GetChannelImage() channelIcon: " + channelIcon);
+
+                WebRequest request = WebRequest.Create("http://" + _tvhServerName + ":" + _httpPort + "/" + channelIcon);
+
+                _logger.Info("[TVHclient] HTSConnectionHandler.GetChannelImage() WebRequest: " + "http://" + _tvhServerName + ":" + _httpPort + "/" + channelIcon);
+
+                string authInfo = _userName + ":" + _password;
+                authInfo = Convert.ToBase64String(Encoding.Default.GetBytes(authInfo));
+                request.Headers["Authorization"] = "Basic " + authInfo;
+
+                ImageStream imageStream = new ImageStream();
                 HttpWebResponse httpWebReponse = (HttpWebResponse)request.GetResponse();
-                imageStream.Stream = httpWebReponse.GetResponseStream();
+                Stream stream = httpWebReponse.GetResponseStream();
+
+                Image image = Image.FromStream(stream);
+                imageStream.Stream = ImageToPNGStream(image);
                 imageStream.Format = MediaBrowser.Model.Drawing.ImageFormat.Png;
+
+                return imageStream;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.Error("[TVHclient] HTSConnectionHandler.GetChannelImage() caught exception: " + ex.Message);
+                return null;
             }
+        }
 
-            return imageStream;
+        private static Stream ImageToPNGStream(Image image)
+        {
+            Stream stream = new System.IO.MemoryStream();
+            image.Save(stream, ImageFormat.Png);
+            stream.Position = 0;
+            return stream;
         }
 
         private void ensureConnection()
