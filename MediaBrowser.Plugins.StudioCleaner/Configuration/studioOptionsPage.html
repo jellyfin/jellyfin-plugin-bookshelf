@@ -95,7 +95,7 @@
                             html += "<h3>" + studio + StudioOptionsPage.getMappedString(StudioOptionsPage.options.StudioMappings, studio) + "</h3>";
                             html += "<span data-studioname='" + studio + "' title='Map this studio to one of the other available ones' onclick='StudioOptionsPage.mapStudioPopup(this);' class='ui-li-count'>Map to...</span>";
                             html += "</a>";
-                            html += "<a data-studioindex='" + i + "' data-studioname='" + studio + "' onclick='StudioOptionsPage.deleteAllowed(this);' href='#'>Remove from available studios</a>";
+                            html += "<a data-studioindex='" + i + "' data-studioname='" + studio + "' onclick='StudioOptionsPage.deleteAllowed(this);' href='#' data-icon='delete'>Remove from available studios</a>";
                             html += "</li>";
 
                         }
@@ -107,7 +107,7 @@
                             $('#initButton', page).hide();
                         }
 
-                        $('#allowedStudios', page).html(html).listview('refresh');
+                        $('#allowedStudios', page).html(html);
 
                     },
 
@@ -191,14 +191,14 @@
                             html += "<li><a>";
                             html += "<h3>" + studio + "</h3>";
                             html += "</a>";
-                            html += "<a data-studioname='" + studio + "' onclick='StudioOptionsPage.deleteMapped(this);' href='#'>Remove this mapping</a>";
+                            html += "<a data-studioname='" + studio + "' onclick='StudioOptionsPage.deleteMapped(this);' href='#' data-icon='delete'>Remove this mapping</a>";
                             html += "</li>";
                         }
 
                         if (mapped.length == 0) {
                             html += "<li><h3>No mapped studios</h3></li>"
                         }
-                        $('#mappedStudios', page).html(html).listview('refresh');
+                        $('#mappedStudios', page).html(html);
 
                     },
 

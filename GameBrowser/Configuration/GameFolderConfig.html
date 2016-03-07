@@ -14,7 +14,7 @@
                         <li>
                             <label for="txtPlatformPath"> Path: </label>
                             <input id="txtPlatformPath" name="txtPlatformPath" type="text" data-inline="true" style="display: inline; max-width: 85%;" />
-                            <button type="button" data-icon="search" data-iconpos="notext" data-inline="true" onclick="GameBrowserConfigurationPage.selectDirectory();">Select Directory</button>
+                            <button type="button" data-icon="search" data-iconpos="notext" data-inline="true" onclick="GameBrowserConfigurationPage.selectDirectory();">...</button>
                         </li>
                         <li>
                             <label for="platformType"> Platform: </label>
@@ -120,7 +120,7 @@
                                 
                                     html += "</a>";
                                 
-                                    html += "<a data-id='" + gameSystem.Path + "' onclick='GameBrowserConfigurationPage.deleteConsoleFolder(this);' href='#'>Delete</a>";
+                                    html += "<a data-id='" + gameSystem.Path + "' onclick='GameBrowserConfigurationPage.deleteConsoleFolder(this);' href='#' data-icon='delete'>Delete</a>";
                                 
                                     html += '</li>';
                                 }
@@ -135,7 +135,7 @@
                             }
                             
 
-                            $('#ulPlatformFolders', page).html(html).listview('refresh');
+                            $('#ulPlatformFolders', page).html(html);
                         },
                         
 
@@ -190,18 +190,23 @@
                         selectDirectory: function () {
 
                             var page = $.mobile.activePage;
-                            new DirectoryBrowser(page).show({
-                                callback: function (path) {
 
-                                    if (path) {
-                                        $('#txtPlatformPath', $.mobile.activePage).val(path);
-                                    }
-                                    $('#popupDirectoryPicker', $.mobile.activePage).popup("close");
-                                },
+                            require(['directorybrowser'], function (directoryBrowser) {
 
-                                header: "Select Game Platform Path"
+                                var picker = new directoryBrowser();
+
+                                picker.show({
+
+                                    callback: function (path) {
+                                        if (path) {
+                                            $('#txtPlatformPath', page).val(path);
+                                        }
+                                        picker.close();
+                                    },
+
+                                    header: "Select Game Platform Path"
+                                });
                             });
-
                         }
                     };
 
