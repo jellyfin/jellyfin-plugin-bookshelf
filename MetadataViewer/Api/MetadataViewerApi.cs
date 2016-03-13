@@ -1,14 +1,9 @@
-﻿using MediaBrowser.Common.Extensions;
-using MediaBrowser.Controller.Library;
+﻿using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Net;
 using MediaBrowser.Model.Logging;
-using MediaBrowser.Model.Serialization;
 using MetadataViewer.DTO;
 using MetadataViewer.Service;
 using ServiceStack;
-using System;
-using System.IO;
-using System.Linq;
 using System.Threading;
 
 namespace MetadataViewer.Api
@@ -18,7 +13,15 @@ namespace MetadataViewer.Api
     {
         [ApiMember(Name = "ItemId", Description = "The id of the item", IsRequired = true, DataType = "string", ParameterType = "path", Verb = "GET")]
         public string ItemId { get; set; }
+
+        [ApiMember(Name = "language", Description = "The metadata language", IsRequired = false, DataType = "string", ParameterType = "query", Verb = "GET")]
+        public string language { get; set; }
     }
+
+    //[Route("/web/components/metadataviewer/metadataviewer.js", "GET", Summary = "overrides static file retrieval")]
+    //public class GetMetadataViewerJs : IReturn<MetadataRawTable>
+    //{
+    //}
 
     [Authenticated]
     public class MetadataViewerApi : IRestfulService
@@ -38,7 +41,7 @@ namespace MetadataViewer.Api
         {
             var item = _libraryManager.GetItemById(request.ItemId);
 
-            return _service.GetMetadataRaw(item, CancellationToken.None);
+            return _service.GetMetadataRaw(item, request.language, CancellationToken.None);
         }
     }
 }

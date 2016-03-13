@@ -1,8 +1,7 @@
-﻿using MetadataViewer.Configuration;
-using MediaBrowser.Common.Configuration;
+﻿using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Serialization;
-using System.Threading;
+using MetadataViewer.Configuration;
 
 namespace MetadataViewer
 {
@@ -15,6 +14,7 @@ namespace MetadataViewer
         {
             Instance = this;
             _appPaths = appPaths;
+            InstallHelper.InstallFiles(_appPaths, PluginConfiguration);
         }
 
         public override string Name
@@ -27,7 +27,6 @@ namespace MetadataViewer
             get { return "Metadata Viewer"; }
         }
 
-
         public override string Description
         {
             get
@@ -38,6 +37,7 @@ namespace MetadataViewer
 
         public override void OnUninstalling()
         {
+            InstallHelper.UninstallFiles(_appPaths, PluginConfiguration);
             base.OnUninstalling();
         }
 

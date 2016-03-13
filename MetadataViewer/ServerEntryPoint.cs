@@ -1,22 +1,18 @@
-﻿using MediaBrowser.Common.IO;
-using MediaBrowser.Common.Net;
+﻿using CommonIO;
 using MediaBrowser.Controller;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Entities.Movies;
-using MediaBrowser.Controller.Entities.TV;
+using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Net;
 using MediaBrowser.Controller.Plugins;
-using MediaBrowser.Controller.Session;
-using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
-using MediaBrowser.Model.Serialization;
-using System;
-using System.Linq;
-using CommonIO;
+using MetadataViewer;
 using MetadataViewer.Api;
 using MetadataViewer.Service;
-using MediaBrowser.Controller.Configuration;
-using MediaBrowser.Controller.Providers;
+using ServiceStack;
+using ServiceStack.Host.Handlers;
+using ServiceStack.Web;
+using System.IO;
+using System.Web;
 
 namespace Trakt
 {
@@ -29,9 +25,11 @@ namespace Trakt
         private readonly ILogger _logger;
         private readonly IServerApplicationHost _appHost;
         private readonly IFileSystem _fileSystem;
+        private readonly IHttpServer _httpServer;
         private readonly IServerConfigurationManager _configurationManager;
         private MetadataViewerApi _api;
         private MetadataViewerService _service;
+        private string _htmlPath;
 
         public static ServerEntryPoint Instance { get; private set; }
 
@@ -46,7 +44,7 @@ namespace Trakt
         /// <param name="httpClient"></param>
         /// <param name="appHost"></param>
         /// <param name="fileSystem"></param>
-        public ServerEntryPoint(IServerConfigurationManager configurationManager, ILibraryManager libraryManager, ILogManager logger, IServerApplicationHost appHost, IFileSystem fileSystem)
+        public ServerEntryPoint(IServerConfigurationManager configurationManager, ILibraryManager libraryManager, ILogManager logger, IServerApplicationHost appHost, IHttpServer httpServer, IFileSystem fileSystem)
         {
             Instance = this;
             _libraryManager = libraryManager;
@@ -54,6 +52,12 @@ namespace Trakt
             _appHost = appHost;
             _fileSystem = fileSystem;
             _configurationManager = configurationManager;
+            _httpServer = httpServer;
+
+            _htmlPath = InstallHelper.GetHtmlPath(_configurationManager.ApplicationPaths.PluginsPath);
+
+            var serviceStackHost = (IAppHost)httpServer;
+            serviceStackHost.RawHttpHandlers.Add(ProcessRequestRaw);
 
             _service = new MetadataViewerService(_configurationManager, logger, _fileSystem, _appHost);
             _api = new MetadataViewerApi(logger, _service, _libraryManager);
@@ -64,10 +68,6 @@ namespace Trakt
         /// </summary>
         public void Run()
         {
-            ////_sessionManager.PlaybackStart += KernelPlaybackStart;
-            ////_sessionManager.PlaybackStopped += KernelPlaybackStopped;
-            ////_libraryManager.ItemAdded += LibraryManagerItemAdded;
-            ////_libraryManager.ItemRemoved += LibraryManagerItemRemoved;
         }
 
         /// <summary>
@@ -75,10 +75,58 @@ namespace Trakt
         /// </summary>
         public void Dispose()
         {
-            ////_sessionManager.PlaybackStart -= KernelPlaybackStart;
-            ////_sessionManager.PlaybackStopped -= KernelPlaybackStopped;
-            ////_libraryManager.ItemAdded -= LibraryManagerItemAdded;
-            ////_libraryManager.ItemRemoved -= LibraryManagerItemRemoved;
+        }
+
+        public virtual IHttpHandler ProcessRequestRaw(IHttpRequest request)
+        {
+            if (request.PathInfo.Contains("/components/metadataviewer/metadataviewer.js"))
+            {
+                ////_logger.Info("RawHttpHandlers.ProcessRequestRaw {0}", request.PathInfo);
+                var fileName = Path.Combine(_htmlPath, "metadataviewer.js");
+
+                var handler = new CustomActionHandler((httpReq, httpRes) =>
+                {
+                    httpRes.ContentType = "text/html";
+                    httpRes.WriteFile(fileName);
+                    httpRes.End();
+                });
+
+                return handler;
+            }
+
+            if (request.PathInfo.Contains("/components/metadataviewer/metadataviewer.template.html"))
+            {
+                ////_logger.Info("RawHttpHandlers.ProcessRequestRaw {0}", request.PathInfo);
+                var fileName = Path.Combine(_htmlPath, "metadataviewer.template.html");
+
+                var handler = new CustomActionHandler((httpReq, httpRes) =>
+                {
+                    httpRes.ContentType = "text/html";
+                    httpRes.WriteFile(fileName);
+                    httpRes.End();
+                });
+
+                return handler;
+            }
+
+            if (request.PathInfo.Contains("/components/metadataeditor/metadataeditor.js"))
+            {
+                ////_logger.Info("RawHttpHandlers.ProcessRequestRaw {0}", request.PathInfo);
+                var fileName = Path.Combine(_htmlPath, "metadataeditor.js");
+
+                var handler = new CustomActionHandler((httpReq, httpRes) =>
+                {
+                    httpRes.ContentType = "text/html";
+                    httpRes.WriteFile(fileName);
+                    httpRes.End();
+                });
+
+                return handler;
+            }
+
+            ////_logger.Info("RawHttpHandlers.ProcessRequestRaw: {0}", request.PathInfo);
+
+            return null;
         }
     }
 }

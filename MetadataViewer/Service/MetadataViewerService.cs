@@ -2,7 +2,6 @@
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Configuration;
 using MediaBrowser.Model.Entities;
@@ -12,7 +11,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -47,7 +45,7 @@ namespace MetadataViewer.Service
             _metadataProviders = metadataProviders.ToArray();
         }
 
-        public Task<MetadataRawTable> GetMetadataRaw(IHasMetadata item, CancellationToken cancellationToken)
+        public Task<MetadataRawTable> GetMetadataRaw(IHasMetadata item, string language, CancellationToken cancellationToken)
         {
             var table = new MetadataRawTable();
 
@@ -59,17 +57,20 @@ namespace MetadataViewer.Service
                 return null;
             }
 
-            return this.GetMetadataRaw(item, service, new MetadataRefreshOptions(_fileSystem), cancellationToken);
+            return this.GetMetadataRaw(item, service, language, cancellationToken);
         }
 
-        public async Task<MetadataRawTable> GetMetadataRaw(IHasMetadata item, IMetadataService service, MetadataRefreshOptions refreshOptions, CancellationToken cancellationToken)
+        public async Task<MetadataRawTable> GetMetadataRaw(IHasMetadata item, IMetadataService service, string language, CancellationToken cancellationToken)
         {
             List<string> ignoreProperties = new List<string>(new[] { "LocalAlternateVersions", "LinkedAlternateVersions", "IsThemeMedia", 
                 "SupportsAddingToPlaylist", "AlwaysScanInternalMetadataPath", "ProviderIds", "IsFolder", "IsTopParent", "SupportsAncestors",
                 "ParentId", "Parents", "PhysicalLocations", "LockedFields", "IsLocked", "DisplayPreferencesId", "Id", "ImageInfos", "SubtitleFiles", 
                 "HasSubtitles", "IsPlaceHolder", "IsShortcut", "SupportsRemoteImageDownloading", "AdditionalParts", "IsStacked", "HasLocalAlternateVersions", 
                 "IsArchive", "IsOffline", "IsHidden", "IsOwnedItem", "MediaSourceCount", "VideoType", "PlayableStreamFileNames", "Is3D", 
-                "IsInMixedFolder", "SupportsLocalMetadata", "IndexByOptionStrings" });
+                "IsInMixedFolder", "SupportsLocalMetadata", "IndexByOptionStrings", "IsInSeasonFolder", "IsMissingEpisode", "IsVirtualUnaired",
+                "ContainsEpisodesWithoutSeasonFolders", "IsPhysicalRoot", "IsPreSorted", "DisplaySpecialsWithSeasons", "IsRoot", "IsVirtualFolder", 
+                "LinkedChildren", "Children", "RecursiveChildren", "LocationType", "SpecialFeatureIds", "LocalTrailerIds", "RemoteTrailerIds", 
+                "RemoteTrailers" });
 
             var itemOfType = item as BaseItem;
             var lookupItem = item as IHasLookupInfo<ItemLookupInfo>;
@@ -88,9 +89,15 @@ namespace MetadataViewer.Service
             var status = new MetadataStatus();
             var logName = item.LocationType == LocationType.Remote ? item.Name ?? item.Path : item.Path ?? item.Name;
             var resultItems = new Dictionary<string, BaseItem>();
+            var emptyItem = CreateNew(item.GetType());
+            var lookupInfo = lookupItem.GetLookupInfo();
+
+            if (!string.IsNullOrWhiteSpace(language))
+            {
+                lookupInfo.MetadataLanguage = language;
+            }
 
             var providers = GetProviders(item).ToList();
-            //var remoteProviders = new List<IMetadataProvider>();
             var remoteProviders = new List<IRemoteMetadataProvider<BaseItem, ItemLookupInfo>>();
 
             foreach (var providerCandidate in providers)
@@ -104,21 +111,16 @@ namespace MetadataViewer.Service
                         {
                             var providerName = providerCandidate.GetType().Name;
                             _logger.Debug("Running {0} for {1}", providerName, logName);
-                            var id = lookupItem.GetLookupInfo();
-
+                            
                             table.Headers.Add(providerName);
 
                             try
                             {
                                 var mi = ifType.GetMethod("GetMetadata");
-                                ////var mi = ifType.InvokeMember("GetMetadata", BindingFlags.InvokeMethod, )
-                                dynamic task = mi.Invoke(providerCandidate, new object[] { id, cancellationToken });
+                                dynamic task = mi.Invoke(providerCandidate, new object[] { lookupInfo, cancellationToken });
                                 await task;
 
                                 var result = task.Result;
-
-                                ////var result = x.GetMetadata((object)provider, id, cancellationToken);
-                                ////var result = await provider.GetMetadata(id, cancellationToken).ConfigureAwait(false);
 
                                 if (result.HasMetadata)
                                 {
@@ -135,22 +137,19 @@ namespace MetadataViewer.Service
                             }
                             catch (Exception ex)
                             {
-                                ////refreshResult.Failures++;
-                                ////refreshResult.ErrorMessage = ex.Message;
                                 _logger.ErrorException("Error in {0}", ex, providerCandidate.Name);
                             }
 
                             if (!resultItems.ContainsKey(providerName))
                             {
-                                resultItems.Add(providerName, this.CreateNew(item.GetType()));
+                                resultItems.Add(providerName, emptyItem);
                             }
                         }
                     }
                 }
             }
 
-
-            var emptyItem = CreateNew(item.GetType());
+            FillLookupData(lookupInfo, table);
 
             var propInfos = GetItemProperties(item.GetType());
 
@@ -165,37 +164,49 @@ namespace MetadataViewer.Service
                 foreach (var key in resultItems.Keys)
                 {
                     var resultItem = resultItems[key];
-                    var value = propInfo.GetValue(resultItem);
 
-                    if (propInfo.PropertyType == typeof(DateTime))
+                    if (resultItem.Equals(emptyItem))
                     {
-                        DateTime dateValue = (DateTime)value;
-
-                        row.Values.Add(dateValue.ToShortDateString());
-                        if (dateValue != (DateTime)emptyValue)
-                        {
-                            addRow = true;
-                        }
+                        row.Values.Add(null);
                     }
-                    else if (propInfo.PropertyType == typeof(DateTime?))
+                    else
                     {
-                        DateTime? dateValue = (DateTime?)value;
+                        var value = propInfo.GetValue(resultItem);
 
-                        if (dateValue.HasValue)
+                        if (propInfo.PropertyType == typeof(DateTime))
                         {
-                            row.Values.Add(dateValue.Value.ToShortDateString());
-                            if (dateValue != (DateTime?)emptyValue)
+                            DateTime dateValue = (DateTime)value;
+
+                            row.Values.Add(dateValue.ToShortDateString());
+                            if (dateValue != (DateTime)emptyValue)
                             {
                                 addRow = true;
                             }
                         }
-                    }
-                    else
-                    {
-                        row.Values.Add(value);
-                        if (value != emptyValue)
+                        else if (propInfo.PropertyType == typeof(DateTime?))
                         {
-                            addRow = true;
+                            DateTime? dateValue = (DateTime?)value;
+
+                            if (dateValue.HasValue)
+                            {
+                                row.Values.Add(dateValue.Value.ToShortDateString());
+                                if (dateValue != (DateTime?)emptyValue)
+                                {
+                                    addRow = true;
+                                }
+                            }
+                            else
+                            {
+                                row.Values.Add(null);
+                            }
+                        }
+                        else
+                        {
+                            row.Values.Add(value);
+                            if (value != emptyValue)
+                            {
+                                addRow = true;
+                            }
                         }
                     }
                 }
@@ -207,6 +218,85 @@ namespace MetadataViewer.Service
             }
 
             return table;
+        }
+
+        private void FillLookupData(ItemLookupInfo lookupInfo, MetadataRawTable table)
+        {
+            var propInfos = GetItemProperties(lookupInfo.GetType());
+
+            var name = lookupInfo.Name;
+
+            if (lookupInfo.Year.HasValue)
+            {
+                name = string.Format("{0} ({1})", name, lookupInfo.Year.Value);
+            }
+
+            table.LookupData.Add(new KeyValuePair<string, object>("Name", name));
+
+            foreach (var propInfo in propInfos)
+            {
+                switch (propInfo.Name)
+                {
+                    case "ProviderIds":
+                        table.LookupData.Add(new KeyValuePair<string, object>(propInfo.Name, FlattenProviderIds(lookupInfo.ProviderIds)));
+                        break;
+                    case "SeriesProviderIds":
+                        var seasonInfo = lookupInfo as SeasonInfo;
+                        if (seasonInfo != null)
+                        {
+                            table.LookupData.Add(new KeyValuePair<string, object>(propInfo.Name, FlattenProviderIds(seasonInfo.SeriesProviderIds)));
+                        }
+                        
+                        var episodeInfo = lookupInfo as EpisodeInfo;
+                        if (episodeInfo != null)
+                        {
+                            table.LookupData.Add(new KeyValuePair<string, object>(propInfo.Name, FlattenProviderIds(episodeInfo.SeriesProviderIds)));
+                        }
+                        
+                        break;
+                    case "Name":
+                    case "Year":
+                    case "IsAutomated":
+                    case "MetadataCountryCode":
+                        break;
+                    default:
+                        var value = propInfo.GetValue(lookupInfo);
+                        if (value != null)
+                        {
+                            if (propInfo.PropertyType == typeof(DateTime?))
+                            {
+                                DateTime? dateValue = (DateTime?)value;
+                                table.LookupData.Add(new KeyValuePair<string, object>(propInfo.Name, dateValue.Value.ToShortDateString()));
+                            }
+                            else
+                            {
+                                table.LookupData.Add(new KeyValuePair<string, object>(propInfo.Name, value));
+                            }
+                        }
+
+                        break;
+                }
+            }
+        }
+
+        private object FlattenProviderIds(Dictionary<string, string> providerIds)
+        {
+            string result = "";
+
+            foreach (var item in providerIds)
+            {
+                if (!string.IsNullOrWhiteSpace(item.Value))
+                {
+                    if (result.Length > 0)
+                    {
+                        result += ", ";
+                    }
+
+                    result += string.Format("{0}:{1}", item.Key, item.Value);
+                }
+            }
+
+            return result;
         }
 
         /// <summary>

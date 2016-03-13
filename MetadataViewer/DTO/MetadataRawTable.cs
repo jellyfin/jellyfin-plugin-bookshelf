@@ -1,12 +1,11 @@
-﻿using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Globalization;
-using MediaBrowser.Model.Providers;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace MetadataViewer.DTO
 {
     public class MetadataRawTable
     {
+        public List<KeyValuePair<string, object>> LookupData { get; set; }
+
         public List<string> Headers { get; set; }
 
         public List<MetadataRawRow> Rows { get; set; }
@@ -15,6 +14,7 @@ namespace MetadataViewer.DTO
         {
             Headers = new List<string>();
             Rows = new List<MetadataRawRow>();
+            LookupData = new List<KeyValuePair<string, object>>();
         }
 
         public class MetadataRawRow
