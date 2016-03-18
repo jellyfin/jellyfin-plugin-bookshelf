@@ -343,9 +343,6 @@ namespace TVHeadEnd
         public Task<ImageStream> GetChannelImageAsync(string channelId, CancellationToken cancellationToken)
         {
             return Task.FromResult<ImageStream>(_htsConnectionHandler.GetChannelImage(channelId, cancellationToken));
-
-            // Leave as is. This is handled by supplying image url to ChannelInfo
-            //throw new NotImplementedException();
         }
 
         public async Task<IEnumerable<ChannelInfo>> GetChannelsAsync(CancellationToken cancellationToken)
@@ -406,9 +403,10 @@ namespace TVHeadEnd
 
                     livetvasset.Id = "" + currSubscriptionId;
 
-                    // Use HTTP basic auth instead of TVH ticketing system for authentication to allow the users to switch subs or audio tracks at any time
+                    // Use HTTP basic auth in HTTP header instead of TVH ticketing system for authentication to allow the users to switch subs or audio tracks at any time
                     livetvasset.Path = _htsConnectionHandler.GetHttpBaseUrl() + getTicketResponse.getString("path");
                     livetvasset.Protocol = MediaProtocol.Http;
+                    livetvasset.RequiredHttpHeaders = _htsConnectionHandler.GetHeaders();
 
                     // Probe the asset stream to determine available sub-streams
                     string livetvasset_probeUrl = "" + livetvasset.Path;
@@ -422,7 +420,6 @@ namespace TVHeadEnd
                 }
                 else
                 {
-
                     return new MediaSourceInfo
                     {
                         Id = "" + currSubscriptionId,
@@ -540,7 +537,7 @@ namespace TVHeadEnd
             return twtRes.Result;
         }
 
-        public async Task ProbeStream(MediaSourceInfo mediaSourceInfo, string probeUrl, string source, CancellationToken cancellationToken)
+        private async Task ProbeStream(MediaSourceInfo mediaSourceInfo, string probeUrl, string source, CancellationToken cancellationToken)
         {
             _logger.Info("[TVHclient] Probe stream for {0}", source);
             _logger.Info("[TVHclient] Probe URL: {0}", probeUrl);
@@ -552,6 +549,8 @@ namespace TVHeadEnd
                 Protocol = MediaProtocol.Http,
                 ExtractChapters = false,
                 VideoType = VideoType.VideoFile,
+                // currently not available !!! 
+                // RequiredHttpHeaders = mediaSourceInfo.RequiredHttpHeaders,
             };
 
             var originalRuntime = mediaSourceInfo.RunTimeTicks;

@@ -48,6 +48,8 @@ namespace TVHeadEnd
 
         private LiveTvService _liveTvService;
 
+        private Dictionary<string, string> _headers = new Dictionary<string, string>();
+
         private HTSConnectionHandler(ILogger logger)
         {
             _logger = logger;
@@ -152,6 +154,10 @@ namespace TVHeadEnd
             {
                 _httpBaseUrl = "http://" + _tvhServerName + ":" + _httpPort;
             }
+
+            string authInfo = _userName + ":" + _password;
+            authInfo = Convert.ToBase64String(Encoding.Default.GetBytes(authInfo));
+            _headers["Authorization"] = "Basic " + authInfo;
         }
 
         public ImageStream GetChannelImage(string channelId, CancellationToken cancellationToken)
@@ -168,9 +174,7 @@ namespace TVHeadEnd
 
                 _logger.Info("[TVHclient] HTSConnectionHandler.GetChannelImage() WebRequest: " + "http://" + _tvhServerName + ":" + _httpPort + "/" + channelIcon);
 
-                string authInfo = _userName + ":" + _password;
-                authInfo = Convert.ToBase64String(Encoding.Default.GetBytes(authInfo));
-                request.Headers["Authorization"] = "Basic " + authInfo;
+                request.Headers["Authorization"] = _headers["Authorization"];
 
                 ImageStream imageStream = new ImageStream();
                 HttpWebResponse httpWebReponse = (HttpWebResponse)request.GetResponse();
@@ -187,6 +191,11 @@ namespace TVHeadEnd
                 _logger.Error("[TVHclient] HTSConnectionHandler.GetChannelImage() caught exception: " + ex.Message);
                 return null;
             }
+        }
+
+        public Dictionary<string, string> GetHeaders()
+        {
+            return new Dictionary<string, string>(_headers);
         }
 
         private static Stream ImageToPNGStream(Image image)
