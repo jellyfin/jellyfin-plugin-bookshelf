@@ -67,6 +67,18 @@
 
         <!-- ReSharper disable UseOfImplicitGlobalInFunctionScope -->
         <script type="text/javascript">
+
+            Array.prototype.remove = function () {
+                var what, a = arguments, L = a.length, ax;
+                while (L && this.length) {
+                    what = a[--L];
+                    while ((ax = this.indexOf(what)) !== -1) {
+                        this.splice(ax, 1);
+                    }
+                }
+                return this;
+            };
+
             var TraktConfigurationPage =
                 {
                     pluginUniqueId: "8abc6789-fde2-4705-8592-4028806fa343",
