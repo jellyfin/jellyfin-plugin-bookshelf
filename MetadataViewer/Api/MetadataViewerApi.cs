@@ -18,11 +18,6 @@ namespace MetadataViewer.Api
         public string language { get; set; }
     }
 
-    //[Route("/web/components/metadataviewer/metadataviewer.js", "GET", Summary = "overrides static file retrieval")]
-    //public class GetMetadataViewerJs : IReturn<MetadataRawTable>
-    //{
-    //}
-
     [Authenticated]
     public class MetadataViewerApi : IRestfulService
     {

@@ -14,7 +14,7 @@ namespace MetadataViewer
         {
             Instance = this;
             _appPaths = appPaths;
-            InstallHelper.InstallFiles(_appPaths, PluginConfiguration);
+            HtmlHelper.InstallFiles(_appPaths, PluginConfiguration);
         }
 
         public override string Name
@@ -37,7 +37,7 @@ namespace MetadataViewer
 
         public override void OnUninstalling()
         {
-            InstallHelper.UninstallFiles(_appPaths, PluginConfiguration);
+            HtmlHelper.UninstallFiles(_appPaths, PluginConfiguration);
             base.OnUninstalling();
         }
 

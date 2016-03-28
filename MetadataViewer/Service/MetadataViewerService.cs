@@ -9,6 +9,7 @@ using MediaBrowser.Model.Logging;
 using MetadataViewer.DTO;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -81,7 +82,8 @@ namespace MetadataViewer.Service
             }
 
             var serviceType = service.GetType();
-            var serviceGenericTypes = serviceType.BaseType.GenericTypeArguments;
+            var serviceTypeInfo = service.GetType().GetTypeInfo();
+            var serviceGenericTypes = serviceTypeInfo.BaseType.GenericTypeArguments;
             var serviceItemType = serviceGenericTypes[0];
             var serviceIdType = serviceGenericTypes[1];
 
@@ -177,7 +179,7 @@ namespace MetadataViewer.Service
                         {
                             DateTime dateValue = (DateTime)value;
 
-                            row.Values.Add(dateValue.ToShortDateString());
+                            row.Values.Add(dateValue.ToString(CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern));
                             if (dateValue != (DateTime)emptyValue)
                             {
                                 addRow = true;
@@ -189,7 +191,7 @@ namespace MetadataViewer.Service
 
                             if (dateValue.HasValue)
                             {
-                                row.Values.Add(dateValue.Value.ToShortDateString());
+                                row.Values.Add(dateValue.Value.ToString(CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern));
                                 if (dateValue != (DateTime?)emptyValue)
                                 {
                                     addRow = true;
@@ -266,7 +268,7 @@ namespace MetadataViewer.Service
                             if (propInfo.PropertyType == typeof(DateTime?))
                             {
                                 DateTime? dateValue = (DateTime?)value;
-                                table.LookupData.Add(new KeyValuePair<string, object>(propInfo.Name, dateValue.Value.ToShortDateString()));
+                                table.LookupData.Add(new KeyValuePair<string, object>(propInfo.Name, dateValue.Value.ToString(CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern)));
                             }
                             else
                             {

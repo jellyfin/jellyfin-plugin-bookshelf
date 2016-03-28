@@ -29,7 +29,6 @@ namespace Trakt
         private readonly IServerConfigurationManager _configurationManager;
         private MetadataViewerApi _api;
         private MetadataViewerService _service;
-        private string _htmlPath;
 
         public static ServerEntryPoint Instance { get; private set; }
 
@@ -54,8 +53,6 @@ namespace Trakt
             _configurationManager = configurationManager;
             _httpServer = httpServer;
 
-            _htmlPath = InstallHelper.GetHtmlPath(_configurationManager.ApplicationPaths.PluginsPath);
-
             var serviceStackHost = (IAppHost)httpServer;
             serviceStackHost.RawHttpHandlers.Add(ProcessRequestRaw);
 
@@ -77,54 +74,41 @@ namespace Trakt
         {
         }
 
-        public virtual IHttpHandler ProcessRequestRaw(IHttpRequest request)
+        public virtual HttpAsyncTaskHandler ProcessRequestRaw(IHttpRequest request)
         {
+            MemoryStream resultStream = null;
+
             if (request.PathInfo.Contains("/components/metadataviewer/metadataviewer.js"))
             {
-                ////_logger.Info("RawHttpHandlers.ProcessRequestRaw {0}", request.PathInfo);
-                var fileName = Path.Combine(_htmlPath, "metadataviewer.js");
-
-                var handler = new CustomActionHandler((httpReq, httpRes) =>
-                {
-                    httpRes.ContentType = "text/html";
-                    httpRes.WriteFile(fileName);
-                    httpRes.End();
-                });
-
-                return handler;
+                resultStream = HtmlHelper.ViewerScript;
             }
-
-            if (request.PathInfo.Contains("/components/metadataviewer/metadataviewer.template.html"))
+            else if (request.PathInfo.Contains("/components/metadataviewer/metadataviewer.template.html"))
             {
-                ////_logger.Info("RawHttpHandlers.ProcessRequestRaw {0}", request.PathInfo);
-                var fileName = Path.Combine(_htmlPath, "metadataviewer.template.html");
-
-                var handler = new CustomActionHandler((httpReq, httpRes) =>
-                {
-                    httpRes.ContentType = "text/html";
-                    httpRes.WriteFile(fileName);
-                    httpRes.End();
-                });
-
-                return handler;
+                resultStream = HtmlHelper.ViewerTemplate;
             }
-
-            if (request.PathInfo.Contains("/components/metadataeditor/metadataeditor.js"))
+            else if (request.PathInfo.Contains("/components/metadataeditor/metadataeditor.js"))
             {
-                ////_logger.Info("RawHttpHandlers.ProcessRequestRaw {0}", request.PathInfo);
-                var fileName = Path.Combine(_htmlPath, "metadataeditor.js");
+                resultStream = HtmlHelper.ModifiedEditor;
+            }
 
+            if (resultStream != null)
+            {
                 var handler = new CustomActionHandler((httpReq, httpRes) =>
                 {
                     httpRes.ContentType = "text/html";
-                    httpRes.WriteFile(fileName);
+
+                    lock (resultStream)
+                    {
+                        resultStream.Seek(0, SeekOrigin.Begin);
+                        resultStream.WriteTo(httpRes.OutputStream);
+                        httpRes.EndRequest();
+                    }
+
                     httpRes.End();
                 });
 
                 return handler;
             }
-
-            ////_logger.Info("RawHttpHandlers.ProcessRequestRaw: {0}", request.PathInfo);
 
             return null;
         }

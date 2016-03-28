@@ -6,17 +6,23 @@ using System.Text;
 
 namespace MetadataViewer
 {
-    internal static class InstallHelper
+    internal static class HtmlHelper
     {
+        public static MemoryStream ViewerScript { get; private set; }
+
+        public static MemoryStream ViewerTemplate { get; private set; }
+
+        public static MemoryStream ModifiedEditor { get; private set; }
+
+
         public static void InstallFiles(IApplicationPaths appPaths, PluginConfiguration config)
         {
-            EnsureHtmlFolder(appPaths.PluginsPath);
-            CopyResourceToFile("metadataviewer.js", appPaths.PluginsPath);
-            CopyResourceToFile("metadataviewer.template.html", appPaths.PluginsPath);
-            ModifyMetadataEditor(appPaths);
+            ViewerScript = GetResourceStream("metadataviewer.js");
+            ViewerTemplate = GetResourceStream("metadataviewer.template.html");
+            ModifiedEditor = ModifyMetadataEditor(appPaths);
         }
 
-        private static void ModifyMetadataEditor(IApplicationPaths appPaths)
+        private static MemoryStream ModifyMetadataEditor(IApplicationPaths appPaths)
         {
             var sb = new StringBuilder();
 
@@ -65,20 +71,21 @@ namespace MetadataViewer
                 }
             }
 
-            var htmlPath = GetHtmlPath(appPaths.PluginsPath);
-            var targetPath = Path.Combine(htmlPath, "metadataeditor.js");
-            if (File.Exists(targetPath))
+            var memStream = new MemoryStream();
+
+            using (var sw = new StreamWriter(memStream, Encoding.UTF8, sb.Length, true))
             {
-                File.Delete(targetPath);
+                sw.Write(sb.ToString());
             }
 
-            StreamWriter sw = new StreamWriter(targetPath, false);
-            sw.Write(sb.ToString());
-            sw.Close();
+            return memStream;
         }
 
         public static void UninstallFiles(IApplicationPaths appPaths, PluginConfiguration config)
         {
+            ViewerScript = null;
+            ViewerTemplate = null;
+            ModifiedEditor = null;
         }
 
         public static string GetHtmlPath(string pluginsPath)
@@ -86,38 +93,13 @@ namespace MetadataViewer
             return Path.Combine(pluginsPath, "MetadataViewer");
         }
 
-        private static void EnsureHtmlFolder(string pluginsPath)
-        {
-            var htmlPath = GetHtmlPath(pluginsPath);
-            if (!Directory.Exists(htmlPath))
-            {
-                Directory.CreateDirectory(htmlPath);
-            }
-        }
-
-        private static void CopyResourceToFile(string resourceName, string pluginsPath)
-        {
-            var htmlPath = GetHtmlPath(pluginsPath);
-            var targetPath = Path.Combine(htmlPath, resourceName);
-            if (File.Exists(targetPath))
-            {
-                File.Delete(targetPath);
-            }
-
-            var stream = GetResourceStream(resourceName);
-            using (var fileStream = File.Create(targetPath))
-            {
-                stream.Seek(0, SeekOrigin.Begin);
-                stream.CopyTo(fileStream);
-            }
-
-            stream.Close();
-        }
-
-        private static Stream GetResourceStream(string resourceName)
+        private static MemoryStream GetResourceStream(string resourceName)
         {
             var fullQualName = "MetadataViewer.Html." + resourceName;
-            return Assembly.GetExecutingAssembly().GetManifestResourceStream(fullQualName);
+            var stream = typeof(HtmlHelper).GetTypeInfo().Assembly.GetManifestResourceStream(fullQualName);
+            var memStream = new MemoryStream((int)stream.Length);
+            stream.CopyTo(memStream);
+            return memStream;
         }
     }
 }
