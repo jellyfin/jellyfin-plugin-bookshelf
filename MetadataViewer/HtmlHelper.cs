@@ -26,7 +26,7 @@ namespace MetadataViewer
         {
             var sb = new StringBuilder();
 
-            var editorPath = Path.Combine(appPaths.ProgramSystemPath, "dashboard-ui\\components\\metadataeditor\\metadataeditor.js");
+            var editorPath = Path.Combine(appPaths.ProgramSystemPath, "dashboard-ui", "components", "metadataeditor", "metadataeditor.js");
 
             var lines = File.ReadLines(editorPath);
 
