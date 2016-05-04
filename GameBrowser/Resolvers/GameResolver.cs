@@ -179,6 +179,12 @@ namespace GameBrowser.Resolvers
                 case "Xbox":
                     return new[] { ".disc", ".iso" };
 
+                case "Xbox 360":
+                    return new[] { ".disc" };
+
+                case "Xbox One":
+                    return new[] { ".disc" };
+
                 case "Neo Geo":
                     return new[] { ".zip", ".iso" };
 
@@ -211,6 +217,9 @@ namespace GameBrowser.Resolvers
 
                 case "Nintendo Wii":
                     return new[] { ".iso", ".dol", ".ciso", ".wbfs", ".wad", ".gcz" };
+
+                case "Nintendo Wii U":
+                    return new[] { ".disc" };
 
                 case "DOS":
                     return new[] { ".gbdos", ".disc" };
@@ -247,6 +256,12 @@ namespace GameBrowser.Resolvers
 
                 case "PS2":
                     return new[] { ".iso", ".bin" };
+
+                case "PS3":
+                    return new[] { ".disc" };
+
+                case "PS4":
+                    return new[] { ".disc" };
 
                 case "PSP":
                     return new[] { ".iso", ".cso" };
