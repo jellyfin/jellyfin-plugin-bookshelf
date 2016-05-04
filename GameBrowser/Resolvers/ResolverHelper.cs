@@ -283,6 +283,12 @@ namespace GameBrowser.Resolvers
                 case "Xbox":
                     return "XboxGame";
 
+                case "Xbox 360":
+                    return "Xbox360Game";
+
+                case "Xbox One":
+                    return "XboxOneGame";
+
                 case "Neo Geo":
                     return "NeoGeoGame";
 
@@ -315,6 +321,9 @@ namespace GameBrowser.Resolvers
 
                 case "Nintendo Wii":
                     return "NesGame";
+
+                case "Nintendo Wii U":
+                    return "WiiUGame";
 
                 case "DOS":
                     return "DosGame";
@@ -351,6 +360,12 @@ namespace GameBrowser.Resolvers
 
                 case "PS2":
                     return "Ps2Game";
+
+                case "PS3":
+                    return "Ps3Game";
+
+                case "PS4":
+                    return "Ps4Game";
 
                 case "PSP":
                     return "PlayStationPortableGame";
