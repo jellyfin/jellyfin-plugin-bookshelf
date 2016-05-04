@@ -168,7 +168,7 @@ namespace GameBrowser.Resolvers
                     return new[] { ".col", ".rom" };
 
                 case "Commodore 64":
-                    return new[] { ".d64", ".g64", ".prg", ".tap" };
+                    return new[] { ".d64", ".g64", ".prg", ".tap", ".t64" };
 
                 case "Commodore Vic-20":
                     return new[] { ".prg" };
