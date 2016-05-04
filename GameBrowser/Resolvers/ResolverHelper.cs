@@ -320,7 +320,7 @@ namespace GameBrowser.Resolvers
                     return "NesGame";
 
                 case "Nintendo Wii":
-                    return "NesGame";
+                    return "WiiGame";
 
                 case "Nintendo Wii U":
                     return "WiiUGame";
