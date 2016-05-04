@@ -177,7 +177,7 @@ namespace GameBrowser.Resolvers
                     return new[] { ".int", ".rom" };
 
                 case "Xbox":
-                    return new[] { ".iso" };
+                    return new[] { ".disc", ".iso" };
 
                 case "Neo Geo":
                     return new[] { ".zip", ".iso" };
