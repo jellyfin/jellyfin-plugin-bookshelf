@@ -30,6 +30,8 @@ namespace GameBrowser.Resolvers
                                                         {"DOS", 1},
                                                         {"Intellivision", 32},
                                                         {"Xbox", 14},
+                                                        {"Xbox 360", 15},                                                        
+                                                        {"Xbox One", 4920},
                                                         {"Neo Geo", 24},
                                                         {"Nintendo 64", 3},
                                                         {"Nintendo DS", 8},
@@ -40,6 +42,7 @@ namespace GameBrowser.Resolvers
                                                         {"Gamecube", 2},
                                                         {"Super Nintendo", 6},
                                                         {"Nintendo Wii", 9},
+                                                        {"Nintendo Wii U", 38},
                                                         {"PC", 1},
                                                         {"Sega 32X", 33},
                                                         {"Sega CD", 21},
@@ -51,6 +54,8 @@ namespace GameBrowser.Resolvers
                                                         {"Sega Saturn", 17},
                                                         {"Sony Playstation", 10},
                                                         {"PS2", 11},
+                                                        {"PS3", 12},
+                                                        {"PS4", 4919},
                                                         {"PSP", 13},
                                                         {"TurboGrafx 16", 34},
                                                         {"TurboGrafx CD", 34},
@@ -127,6 +132,12 @@ namespace GameBrowser.Resolvers
                 case "Xbox":
                     return GameSystem.MicrosoftXBox;
 
+                case "Xbox 360":
+                    return GameSystem.MicrosoftXBox360;
+
+                case "Xbox One":
+                    return GameSystem.MicrosoftXBoxOne;
+
                 case "Neo Geo":
                     return GameSystem.NeoGeo;
 
@@ -159,6 +170,9 @@ namespace GameBrowser.Resolvers
 
                 case "Nintendo Wii":
                     return GameSystem.Wii;
+
+                case "Nintendo Wii U":
+                    return GameSystem.WiiU;
 
                 case "DOS":
                     return GameSystem.DOS;
@@ -195,6 +209,12 @@ namespace GameBrowser.Resolvers
 
                 case "PS2":
                     return GameSystem.SonyPlaystation2;
+
+                case "PS3":
+                    return GameSystem.SonyPlaystation3;
+
+                case "PS4":
+                    return GameSystem.SonyPlaystation4;
 
                 case "PSP":
                     return GameSystem.SonyPSP;
@@ -263,6 +283,12 @@ namespace GameBrowser.Resolvers
                 case "Xbox":
                     return "XboxGame";
 
+                case "Xbox 360":
+                    return "Xbox360Game";
+
+                case "Xbox One":
+                    return "XboxOneGame";
+
                 case "Neo Geo":
                     return "NeoGeoGame";
 
@@ -295,6 +321,9 @@ namespace GameBrowser.Resolvers
 
                 case "Nintendo Wii":
                     return "NesGame";
+
+                case "Nintendo Wii U":
+                    return "WiiUGame";
 
                 case "DOS":
                     return "DosGame";
@@ -331,6 +360,12 @@ namespace GameBrowser.Resolvers
 
                 case "PS2":
                     return "Ps2Game";
+
+                case "PS3":
+                    return "Ps3Game";
+
+                case "PS4":
+                    return "Ps4Game";
 
                 case "PSP":
                     return "PlayStationPortableGame";

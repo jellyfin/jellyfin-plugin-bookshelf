@@ -672,6 +672,16 @@ namespace GameBrowser.Providers.GamesDb
 
                     break;
 
+                case "Xbox 360":
+                    tgdbPlatformString = "Microsoft Xbox 360";
+
+                    break;
+
+                case "Xbox One":
+                    tgdbPlatformString = "Microsoft Xbox One";
+
+                    break;
+
                 case "Neo Geo":
                     tgdbPlatformString = "NeoGeo";
 
@@ -727,6 +737,11 @@ namespace GameBrowser.Providers.GamesDb
 
                     break;
 
+                case "Nintendo Wii U":
+                    tgdbPlatformString = "Nintendo Wii U";
+
+                    break;
+                    
                 case "DOS":
                     tgdbPlatformString = "PC";
 
@@ -784,6 +799,16 @@ namespace GameBrowser.Providers.GamesDb
 
                 case "PS2":
                     tgdbPlatformString = "Sony Playstation 2";
+
+                    break;
+
+                case "PS3":
+                    tgdbPlatformString = "Sony Playstation 3";
+
+                    break;
+
+                case "PS4":
+                    tgdbPlatformString = "Sony Playstation 4";
 
                     break;
 
