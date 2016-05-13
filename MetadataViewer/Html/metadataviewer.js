@@ -1,4 +1,4 @@
-﻿define(['dialogHelper', 'paper-dialog', 'paper-fab', 'paper-input', 'paper-checkbox', 'detailtablecss'], function (paperDialogHelper) {
+﻿define(['dialogHelper', 'paper-fab', 'paper-input', 'paper-checkbox', 'detailtablecss'], function (paperDialogHelper) {
 
     var currentItem;
     var currentItemType;
@@ -56,7 +56,6 @@
 
             html += '</tbody></table>';
 
-            page.querySelector('.dialogHeaderTitle').innerHTML = 'Metadata Viewer'; // Globalize.translate('HeaderMetadataRaw');
             page.querySelector('.metadataRawTable').innerHTML = html;
 
             Dashboard.hideLoadingMsg();
@@ -86,16 +85,25 @@
 
                 dlg.classList.add('ui-body-b');
                 dlg.classList.add('background-theme-b');
-                
+                dlg.classList.add('popupEditor');
+
                 var html = '';
+
+                html += '<h2 class="dialogHeader">';
+                html += '<paper-fab icon="arrow-back" mini class="btnCloseDialog" tabindex="-1"></paper-fab>';
+                html += '<div style="display:inline-block;margin-left:.6em;vertical-align:middle;">' + item.Name + '</div>';
+                html += '</h2>';
+
+                html += '<div class="editorContent">';
                 html += Globalize.translateDocument(template);
+                html += '</div>';
 
                 dlg.innerHTML = html;
                 document.body.appendChild(dlg);
 
                 paperDialogHelper.open(dlg);
 
-                dlg.querySelector('.btnCancel').addEventListener('click', function (e) {
+                dlg.querySelector('.btnCloseDialog').addEventListener('click', function (e) {
 
                     paperDialogHelper.close(dlg);
                 });

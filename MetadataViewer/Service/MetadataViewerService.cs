@@ -90,8 +90,8 @@ namespace MetadataViewer.Service
             var table = new MetadataRawTable();
             var status = new MetadataStatus();
             var logName = item.LocationType == LocationType.Remote ? item.Name ?? item.Path : item.Path ?? item.Name;
-            var resultItems = new Dictionary<string, BaseItem>();
-            var emptyItem = CreateNew(item.GetType());
+            var resultItems = new Dictionary<string, MetadataResultProxy>();
+            var emptyItem = new MetadataResultProxy(CreateNew(item.GetType()), null);
             var lookupInfo = lookupItem.GetLookupInfo();
 
             if (!string.IsNullOrWhiteSpace(language))
@@ -113,7 +113,7 @@ namespace MetadataViewer.Service
                         {
                             var providerName = providerCandidate.GetType().Name;
                             _logger.Debug("Running {0} for {1}", providerName, logName);
-                            
+
                             table.Headers.Add(providerName);
 
                             try
@@ -126,7 +126,8 @@ namespace MetadataViewer.Service
 
                                 if (result.HasMetadata)
                                 {
-                                    resultItems.Add(providerName, result.Item);
+                                    resultItems.Add(providerName, new MetadataResultProxy(result.Item, result.People));
+                                    var result1 = new MetadataResult<BaseItem>();
                                 }
                                 else
                                 {
@@ -154,18 +155,19 @@ namespace MetadataViewer.Service
             FillLookupData(lookupInfo, table);
 
             var propInfos = GetItemProperties(item.GetType());
+            bool hasPeople = false;
 
             foreach (var propInfo in propInfos)
             {
                 bool addRow = false;
-                var emptyValue = propInfo.GetValue(emptyItem);
+                var emptyValue = propInfo.GetValue(emptyItem.Item);
 
                 var row = new MetadataRawTable.MetadataRawRow();
                 row.Caption = propInfo.Name;
 
                 foreach (var key in resultItems.Keys)
                 {
-                    var resultItem = resultItems[key];
+                    MetadataResultProxy resultItem = resultItems[key];
 
                     if (resultItem.Equals(emptyItem))
                     {
@@ -173,7 +175,12 @@ namespace MetadataViewer.Service
                     }
                     else
                     {
-                        var value = propInfo.GetValue(resultItem);
+                        if (resultItem.Persons != null && resultItem.Persons.Count > 0)
+                        {
+                            hasPeople = true;
+                        }
+
+                        var value = propInfo.GetValue(resultItem.Item);
 
                         if (propInfo.PropertyType == typeof(DateTime))
                         {
@@ -219,6 +226,35 @@ namespace MetadataViewer.Service
                 }
             }
 
+            if (hasPeople)
+            {
+                var row = new MetadataRawTable.MetadataRawRow();
+                row.Caption = "People";
+
+                foreach (var key in resultItems.Keys)
+                {
+                    MetadataResultProxy resultItem = resultItems[key];
+
+                    if (resultItem.Persons == null || resultItem.Persons.Count == 0)
+                    {
+                        row.Values.Add(null);
+                    }
+                    else
+                    {
+                        var peopleString = "";
+
+                        foreach (PersonInfo person in resultItem.Persons)
+                        {
+                            peopleString += string.Format("{0}: {1} ({2})<br />", person.Type, person.Name, person.Role);
+                        }
+
+                        row.Values.Add(peopleString);
+                    }
+                }
+
+                table.Rows.Add(row);
+            }
+
             return table;
         }
 
@@ -248,13 +284,13 @@ namespace MetadataViewer.Service
                         {
                             table.LookupData.Add(new KeyValuePair<string, object>(propInfo.Name, FlattenProviderIds(seasonInfo.SeriesProviderIds)));
                         }
-                        
+
                         var episodeInfo = lookupInfo as EpisodeInfo;
                         if (episodeInfo != null)
                         {
                             table.LookupData.Add(new KeyValuePair<string, object>(propInfo.Name, FlattenProviderIds(episodeInfo.SeriesProviderIds)));
                         }
-                        
+
                         break;
                     case "Name":
                     case "Year":
