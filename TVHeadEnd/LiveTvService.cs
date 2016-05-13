@@ -567,66 +567,124 @@ namespace TVHeadEnd
                 _logger.Info("[TVHclient] Probe returned:");
 
                 mediaSourceInfo.Bitrate = info.Bitrate;
-                _logger.Info("[TVHclient]         BitRate:                 " + info.Bitrate);
+                _logger.Info("[TVHclient]         BitRate:                    " + info.Bitrate);
 
                 mediaSourceInfo.Container = info.Container;
-                _logger.Info("[TVHclient]         Container:               " + info.Container);
+                _logger.Info("[TVHclient]         Container:                  " + info.Container);
 
                 mediaSourceInfo.Formats = info.Formats;
-                _logger.Info("[TVHclient]         Formats:                 " + info.Formats);
+                _logger.Info("[TVHclient]         Formats:                    ");
+                LogStringList(info.Formats, "                                 ");
 
                 mediaSourceInfo.MediaStreams = info.MediaStreams;
-                _logger.Info("[TVHclient]         MediaStreams:            " + info.MediaStreams);
+                _logger.Info("[TVHclient]         MediaStreams:               ");
+                LogMediaStreamList(info.MediaStreams, "                       ");
 
                 mediaSourceInfo.RunTimeTicks = info.RunTimeTicks;
-                _logger.Info("[TVHclient]         RunTimeTicks:            " + info.RunTimeTicks);
+                _logger.Info("[TVHclient]         RunTimeTicks:               " + info.RunTimeTicks);
 
                 mediaSourceInfo.Size = info.Size;
-                _logger.Info("[TVHclient]         Size:                    " + info.Size);
+                _logger.Info("[TVHclient]         Size:                       " + info.Size);
 
                 mediaSourceInfo.Timestamp = info.Timestamp;
-                _logger.Info("[TVHclient]         Timestamp:               " + info.Timestamp);
+                _logger.Info("[TVHclient]         Timestamp:                  " + info.Timestamp);
 
                 mediaSourceInfo.Video3DFormat = info.Video3DFormat;
-                _logger.Info("[TVHclient]         Video3DFormat:           " + info.Video3DFormat);
+                _logger.Info("[TVHclient]         Video3DFormat:              " + info.Video3DFormat);
 
                 mediaSourceInfo.VideoType = info.VideoType;
-                _logger.Info("[TVHclient]         VideoType:               " + info.VideoType);
+                _logger.Info("[TVHclient]         VideoType:                  " + info.VideoType);
 
                 mediaSourceInfo.RequiresClosing = true;
+                _logger.Info("[TVHclient]         RequiresClosing:            " + true);
 
                 mediaSourceInfo.RequiresOpening = true;
+                _logger.Info("[TVHclient]         RequiresOpening:            " + true);
 
                 mediaSourceInfo.SupportsDirectPlay = true;
+                _logger.Info("[TVHclient]         SupportsDirectPlay:         " + true);
 
                 mediaSourceInfo.SupportsDirectStream = true;
+                _logger.Info("[TVHclient]         SupportsDirectStream:       " + true);
 
                 mediaSourceInfo.SupportsTranscoding = true;
+                _logger.Info("[TVHclient]         SupportsTranscoding:        " + true);
 
                 mediaSourceInfo.DefaultSubtitleStreamIndex = null;
+                _logger.Info("[TVHclient]         DefaultSubtitleStreamIndex: n/a");
 
                 if (!originalRuntime.HasValue)
                 {
                     mediaSourceInfo.RunTimeTicks = null;
-                    _logger.Info("[TVHclient]         Original runtime:        n/a");
+                    _logger.Info("[TVHclient]         Original runtime:           n/a");
                 }
 
                 var audioStream = mediaSourceInfo.MediaStreams.FirstOrDefault(i => i.Type == MediaBrowser.Model.Entities.MediaStreamType.Audio);
                 if (audioStream == null || audioStream.Index == -1)
                 {
                     mediaSourceInfo.DefaultAudioStreamIndex = null;
-                    _logger.Info("[TVHclient]         DefaultAudioStreamIndex: n/a");
+                    _logger.Info("[TVHclient]         DefaultAudioStreamIndex:    n/a");
                 }
                 else
                 {
                     mediaSourceInfo.DefaultAudioStreamIndex = audioStream.Index;
-                    _logger.Info("[TVHclient]         DefaultAudioStreamIndex: " + info.DefaultAudioStreamIndex);
+                    _logger.Info("[TVHclient]         DefaultAudioStreamIndex:    '" + info.DefaultAudioStreamIndex + "'");
                 }
             }
             else
             {
                 _logger.Error("[TVHclient] Cannot probe {0} stream", source);
             }
+        }
+
+        private void LogStringList(List<String> theList, String prefix)
+        {
+            theList.ForEach(delegate(String s) { _logger.Info(prefix + s); });
+        }
+
+        private void LogMediaStreamList(List<MediaStream> theList, String prefix)
+        {
+            theList.ForEach(delegate (MediaStream ms) { LogMediaStream(ms, prefix); });
+        }
+
+        private void LogMediaStream(MediaStream ms, String prefix)
+        {
+            _logger.Info(prefix + "AspectRatio             " + ms.AspectRatio);
+            _logger.Info(prefix + "AverageFrameRate        " + ms.AverageFrameRate);
+            _logger.Info(prefix + "BitDepth                " + ms.BitDepth);
+            _logger.Info(prefix + "BitRate                 " + ms.BitRate);
+            _logger.Info(prefix + "ChannelLayout           " + ms.ChannelLayout); // Object
+            _logger.Info(prefix + "Channels                " + ms.Channels);
+            _logger.Info(prefix + "Codec                   " + ms.Codec); // Object
+            _logger.Info(prefix + "CodecTag                " + ms.CodecTag); // Object
+            _logger.Info(prefix + "Comment                 " + ms.Comment);
+            _logger.Info(prefix + "DeliveryMethod          " + ms.DeliveryMethod); // Object
+            _logger.Info(prefix + "DeliveryUrl             " + ms.DeliveryUrl);
+            _logger.Info(prefix + "ExternalId              " + ms.ExternalId);
+            _logger.Info(prefix + "Height                  " + ms.Height);
+            _logger.Info(prefix + "Index                   " + ms.Index);
+            _logger.Info(prefix + "IsAnamorphic            " + ms.IsAnamorphic);
+            _logger.Info(prefix + "IsCabac                 " + ms.IsCabac);
+            _logger.Info(prefix + "IsDefault               " + ms.IsDefault);
+            _logger.Info(prefix + "IsExternal              " + ms.IsExternal);
+            _logger.Info(prefix + "IsExternalUrl           " + ms.IsExternalUrl);
+            _logger.Info(prefix + "IsForced                " + ms.IsForced);
+            _logger.Info(prefix + "IsInterlaced            " + ms.IsInterlaced);
+            _logger.Info(prefix + "IsTextSubtitleStream    " + ms.IsTextSubtitleStream);
+            _logger.Info(prefix + "Language                " + ms.Language);
+            _logger.Info(prefix + "Level                   " + ms.Level);
+            _logger.Info(prefix + "PacketLength            " + ms.PacketLength);
+            _logger.Info(prefix + "Path                    " + ms.Path);
+            _logger.Info(prefix + "PixelFormat             " + ms.PixelFormat);
+            _logger.Info(prefix + "Profile                 " + ms.Profile);
+            _logger.Info(prefix + "RealFrameRate           " + ms.RealFrameRate);
+            _logger.Info(prefix + "RefFrames               " + ms.RefFrames);
+            _logger.Info(prefix + "SampleRate              " + ms.SampleRate);
+            _logger.Info(prefix + "Score                   " + ms.Score);
+            _logger.Info(prefix + "SupportsExternalStream  " + ms.SupportsExternalStream);
+            _logger.Info(prefix + "Type                    " + ms.Type); // Object
+            _logger.Info(prefix + "Width                   " + ms.Width);
+            _logger.Info(prefix + "========================");
         }
 
         public async Task<MediaSourceInfo> GetRecordingStream(string recordingId, string mediaSourceId, CancellationToken cancellationToken)
