@@ -415,6 +415,22 @@ namespace TVHeadEnd
                     // Probe the asset stream to determine available sub-streams
                     await ProbeStream(livetvasset, livetvasset_probeUrl, livetvasset_source, cancellationToken);
 
+                    // If enabled, force video deinterlacing for channels
+                    if(_htsConnectionHandler.GetForceDeinterlace())
+                    {
+                        
+                        _logger.Info("[TVHclient] Force video deinterlacing for all channels and recordings is enabled.");
+
+                        foreach (MediaStream i in livetvasset.MediaStreams)
+                        {
+                            if (i.Type == MediaStreamType.Video && i.IsInterlaced == false)
+                            {
+                                i.IsInterlaced = true;
+                            }
+                        }
+
+                    }
+
                     return livetvasset;
 
                 }
@@ -734,6 +750,22 @@ namespace TVHeadEnd
 
                     // Probe the asset stream to determine available sub-streams
                     await ProbeStream(recordingasset, recordingasset_probeUrl, recordingasset_source, cancellationToken);
+
+                    // If enabled, force video deinterlacing for recordings
+                    if (_htsConnectionHandler.GetForceDeinterlace())
+                    {
+
+                        _logger.Info("[TVHclient] Force video deinterlacing for all channels and recordings is enabled.");
+
+                        foreach (MediaStream i in recordingasset.MediaStreams)
+                        {
+                            if (i.Type == MediaStreamType.Video && i.IsInterlaced == false)
+                            {
+                                i.IsInterlaced = true;
+                            }
+                        }
+
+                    }
 
                     return recordingasset;
 

@@ -40,6 +40,7 @@ namespace TVHeadEnd
         private string _userName;
         private string _password;
         private bool _enableSubsMaudios;
+        private bool _forceDeinterlace;
 
         // Data helpers
         private readonly ChannelDataHelper _channelDataHelper;
@@ -132,6 +133,7 @@ namespace TVHeadEnd
             _profile = config.Profile.Trim();
             _channelType = config.ChannelType.Trim();
             _enableSubsMaudios = config.EnableSubsMaudios;
+            _forceDeinterlace = config.ForceDeinterlace;
 
             if (_priority < 0 || _priority > 4)
             {
@@ -289,6 +291,11 @@ namespace TVHeadEnd
         public bool GetEnableSubsMaudios()
         {
             return _enableSubsMaudios;
+        }
+
+        public bool GetForceDeinterlace()
+        {
+            return _forceDeinterlace;
         }
 
         public Task<IEnumerable<RecordingInfo>> BuildDvrInfos(CancellationToken cancellationToken)
