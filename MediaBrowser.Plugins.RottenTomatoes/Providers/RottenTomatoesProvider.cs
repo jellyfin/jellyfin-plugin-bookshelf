@@ -19,7 +19,7 @@ using System.Threading.Tasks;
 
 namespace MediaBrowser.Plugins.RottenTomatoes.Providers
 {
-    public class RottenTomatoesProvider : ICustomMetadataProvider<Movie>, ICustomMetadataProvider<Trailer>, IHasChangeMonitor
+    public class RottenTomatoesProvider : ICustomMetadataProvider<Movie>, ICustomMetadataProvider<Trailer>, IHasItemChangeMonitor
     {
         // http://developer.rottentomatoes.com/iodocs
         private const int DailyRefreshLimit = 300;
@@ -177,7 +177,7 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
             get { return "Rotten Tomatoes"; }
         }
 
-        public bool HasChanged(IHasMetadata item, IDirectoryService directoryService, DateTime date)
+        public bool HasChanged(IHasMetadata item, IDirectoryService directoryService)
         {
             var imdbId = item.GetProviderId(MetadataProviders.Imdb);
 
@@ -186,7 +186,7 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
                 return false;
             }
 
-            if ((DateTime.UtcNow - date).TotalDays > 14)
+            if ((DateTime.UtcNow - item.DateLastRefreshed).TotalDays > 14)
             {
                 if (string.IsNullOrEmpty(item.GetProviderId(RottenTomatoesExternalId.KeyName)))
                 {
