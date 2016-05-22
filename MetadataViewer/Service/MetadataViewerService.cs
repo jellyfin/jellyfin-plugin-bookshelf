@@ -23,6 +23,7 @@ namespace MetadataViewer.Service
         private readonly IFileSystem _fileSystem;
         private IMetadataService[] _metadataServices = { };
         private IMetadataProvider[] _metadataProviders = { };
+        private IExternalId[] _externalIds = { };
         private IServerConfigurationManager _configurationManager;
 
         /// <summary>
@@ -44,6 +45,8 @@ namespace MetadataViewer.Service
 
             _metadataServices = metadataServices.OrderBy(i => i.Order).ToArray();
             _metadataProviders = metadataProviders.ToArray();
+
+            _externalIds = appHost.GetExports<IExternalId>().ToArray();
         }
 
         public Task<MetadataRawTable> GetMetadataRaw(IHasMetadata item, string language, CancellationToken cancellationToken)
@@ -64,14 +67,15 @@ namespace MetadataViewer.Service
         public async Task<MetadataRawTable> GetMetadataRaw(IHasMetadata item, IMetadataService service, string language, CancellationToken cancellationToken)
         {
             List<string> ignoreProperties = new List<string>(new[] { "LocalAlternateVersions", "LinkedAlternateVersions", "IsThemeMedia", 
-                "SupportsAddingToPlaylist", "AlwaysScanInternalMetadataPath", "ProviderIds", "IsFolder", "IsTopParent", "SupportsAncestors",
+                "SupportsAddingToPlaylist", "AlwaysScanInternalMetadataPath", "IsFolder", "IsTopParent", "SupportsAncestors",
                 "ParentId", "Parents", "PhysicalLocations", "LockedFields", "IsLocked", "DisplayPreferencesId", "Id", "ImageInfos", "SubtitleFiles", 
                 "HasSubtitles", "IsPlaceHolder", "IsShortcut", "SupportsRemoteImageDownloading", "AdditionalParts", "IsStacked", "HasLocalAlternateVersions", 
                 "IsArchive", "IsOffline", "IsHidden", "IsOwnedItem", "MediaSourceCount", "VideoType", "PlayableStreamFileNames", "Is3D", 
                 "IsInMixedFolder", "SupportsLocalMetadata", "IndexByOptionStrings", "IsInSeasonFolder", "IsMissingEpisode", "IsVirtualUnaired",
                 "ContainsEpisodesWithoutSeasonFolders", "IsPhysicalRoot", "IsPreSorted", "DisplaySpecialsWithSeasons", "IsRoot", "IsVirtualFolder", 
                 "LinkedChildren", "Children", "RecursiveChildren", "LocationType", "SpecialFeatureIds", "LocalTrailerIds", "RemoteTrailerIds", 
-                "RemoteTrailers" });
+                "RemoteTrailers", "ThemeSongIds", "ThemeVideoIds", "PresentationUniqueKey", "EnableRememberingTrackSelections", "EnableAlphaNumericSorting",
+                "SupportsCumulativeRunTimeTicks", "SupportsUserDataFromChildren", "DisplayParentId", "SupportsDateLastMediaAdded" });
 
             var itemOfType = item as BaseItem;
             var lookupItem = item as IHasLookupInfo<ItemLookupInfo>;
@@ -100,7 +104,7 @@ namespace MetadataViewer.Service
             }
 
             var providers = GetProviders(item).ToList();
-            var remoteProviders = new List<IRemoteMetadataProvider<BaseItem, ItemLookupInfo>>();
+            ////var remoteProviders = new List<IRemoteMetadataProvider<BaseItem, ItemLookupInfo>>();
 
             foreach (var providerCandidate in providers)
             {
@@ -127,7 +131,6 @@ namespace MetadataViewer.Service
                                 if (result.HasMetadata)
                                 {
                                     resultItems.Add(providerName, new MetadataResultProxy(result.Item, result.People));
-                                    var result1 = new MetadataResult<BaseItem>();
                                 }
                                 else
                                 {
@@ -209,6 +212,21 @@ namespace MetadataViewer.Service
                                 row.Values.Add(null);
                             }
                         }
+                        else if (propInfo.Name == "ProviderIds")
+                        {
+                            var providerIds = value as Dictionary<string, string>;
+
+                            if (providerIds != null && providerIds.Count > 0)
+                            {
+                                var ids = FlattenProviderIds(providerIds, "<br />");
+                                row.Values.Add(ids);
+                                addRow = true;
+                            }
+                            else
+                            {
+                                row.Values.Add(null);
+                            }
+                        }
                         else
                         {
                             row.Values.Add(value);
@@ -276,19 +294,19 @@ namespace MetadataViewer.Service
                 switch (propInfo.Name)
                 {
                     case "ProviderIds":
-                        table.LookupData.Add(new KeyValuePair<string, object>(propInfo.Name, FlattenProviderIds(lookupInfo.ProviderIds)));
+                        table.LookupData.Add(new KeyValuePair<string, object>(propInfo.Name, FlattenProviderIds(lookupInfo.ProviderIds, ", ")));
                         break;
                     case "SeriesProviderIds":
                         var seasonInfo = lookupInfo as SeasonInfo;
                         if (seasonInfo != null)
                         {
-                            table.LookupData.Add(new KeyValuePair<string, object>(propInfo.Name, FlattenProviderIds(seasonInfo.SeriesProviderIds)));
+                            table.LookupData.Add(new KeyValuePair<string, object>(propInfo.Name, FlattenProviderIds(seasonInfo.SeriesProviderIds, ", ")));
                         }
 
                         var episodeInfo = lookupInfo as EpisodeInfo;
                         if (episodeInfo != null)
                         {
-                            table.LookupData.Add(new KeyValuePair<string, object>(propInfo.Name, FlattenProviderIds(episodeInfo.SeriesProviderIds)));
+                            table.LookupData.Add(new KeyValuePair<string, object>(propInfo.Name, FlattenProviderIds(episodeInfo.SeriesProviderIds, ", ")));
                         }
 
                         break;
@@ -317,24 +335,31 @@ namespace MetadataViewer.Service
             }
         }
 
-        private object FlattenProviderIds(Dictionary<string, string> providerIds)
+        private object FlattenProviderIds(Dictionary<string, string> providerIds, string separator)
         {
-            string result = "";
+            var items = new List<string>();
 
             foreach (var item in providerIds)
             {
                 if (!string.IsNullOrWhiteSpace(item.Value))
                 {
-                    if (result.Length > 0)
-                    {
-                        result += ", ";
-                    }
+                    var externalID = _externalIds.FirstOrDefault(e => e.Key.Equals(item.Key, StringComparison.InvariantCultureIgnoreCase));
 
-                    result += string.Format("{0}:{1}", item.Key, item.Value);
+                    var displayString = string.Format("{0}:{1}", item.Key, item.Value);
+
+                    if (externalID != null && !string.IsNullOrEmpty(externalID.UrlFormatString))
+                    {
+                        var url = string.Format(externalID.UrlFormatString, item.Value);
+                        items.Add(string.Format("<a href=\"{0}\" target=\"blank\">{1}</a>", url, displayString));
+                    }
+                    else
+                    {
+                        items.Add(displayString);
+                    }
                 }
             }
 
-            return result;
+            return string.Join(separator, items);
         }
 
         /// <summary>
