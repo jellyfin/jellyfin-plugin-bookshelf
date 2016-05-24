@@ -680,6 +680,7 @@ namespace TVHeadEnd
             _logger.Info(prefix + "Height                  " + ms.Height);
             _logger.Info(prefix + "Index                   " + ms.Index);
             _logger.Info(prefix + "IsAnamorphic            " + ms.IsAnamorphic);
+            _logger.Info(prefix + "IsCabac                 " + ms.IsCabac);
             _logger.Info(prefix + "IsDefault               " + ms.IsDefault);
             _logger.Info(prefix + "IsExternal              " + ms.IsExternal);
             _logger.Info(prefix + "IsExternalUrl           " + ms.IsExternalUrl);
