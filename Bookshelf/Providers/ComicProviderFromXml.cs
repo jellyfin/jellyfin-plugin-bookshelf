@@ -15,7 +15,7 @@ namespace MBBookshelf.Providers
     /// <summary>
     /// http://wiki.mobileread.com/wiki/CBR/CBZ#Metadata
     /// </summary>
-    class ComicProviderFromXml : ILocalMetadataProvider<Book>, IHasChangeMonitor
+    class ComicProviderFromXml : ILocalMetadataProvider<Book>, IHasItemChangeMonitor
     {
         private const string ComicRackMetaFile = "ComicInfo.xml";
 
@@ -85,11 +85,11 @@ namespace MBBookshelf.Providers
             return file.Exists ? file : _fileSystem.GetFileInfo(Path.Combine(directoryPath, ComicRackMetaFile));
         }
 
-        public bool HasChanged(IHasMetadata item, IDirectoryService directoryService, DateTime date)
+        public bool HasChanged(IHasMetadata item, IDirectoryService directoryService)
         {
             var file = GetXmlFile(item.Path, item.IsInMixedFolder);
 
-            return file.Exists && _fileSystem.GetLastWriteTimeUtc(file) > date;
+            return file.Exists && _fileSystem.GetLastWriteTimeUtc(file) > item.DateLastSaved;
         }
 
         public Task<MetadataResult<Book>> GetMetadata(ItemInfo info, IDirectoryService directoryService, CancellationToken cancellationToken)

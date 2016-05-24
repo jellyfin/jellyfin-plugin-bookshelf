@@ -16,7 +16,7 @@ namespace MediaBrowser.Plugins.StudioCleaner.Providers
     public class BaseStudioCleaner : ICustomMetadataProvider<Movie>,
         ICustomMetadataProvider<Series>,
         IHasOrder,
-        IHasChangeMonitor
+        IHasItemChangeMonitor
     {
         protected ILogger Logger { get; set; }
         public BaseStudioCleaner(ILogger logger)
@@ -78,10 +78,10 @@ namespace MediaBrowser.Plugins.StudioCleaner.Providers
 
         public string Name { get { return "Studio Cleaner"; } }
         public int Order { get { return 100; } }
-        public bool HasChanged(IHasMetadata item, IDirectoryService directoryService, DateTime date)
+        public bool HasChanged(IHasMetadata item, IDirectoryService directoryService)
         {
-            if (item is Movie) return Plugin.Instance.Configuration.MovieOptions.LastChange > date;
-            if (item is Series) return Plugin.Instance.Configuration.SeriesOptions.LastChange > date;
+            if (item is Movie) return Plugin.Instance.Configuration.MovieOptions.LastChange > item.DateLastRefreshed;
+            if (item is Series) return Plugin.Instance.Configuration.SeriesOptions.LastChange > item.DateLastRefreshed;
             return false;
         }
     }
