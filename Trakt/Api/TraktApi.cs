@@ -753,7 +753,7 @@ namespace Trakt.Api
             var moviesPayload = movies.Select(m =>
             {
                 var lastPlayedDate = seen
-                    ? _userDataManager.GetUserData(new Guid(traktUser.LinkedMbUserId), m.GetUserDataKey()).LastPlayedDate
+                    ? _userDataManager.GetUserData(new Guid(traktUser.LinkedMbUserId), m).LastPlayedDate
                     : null;
                 return new TraktMovieWatched
                 {
@@ -830,7 +830,7 @@ namespace Trakt.Api
             {
                 var tvDbId = episode.GetProviderId(MetadataProviders.Tvdb);
                 var lastPlayedDate = seen
-                    ? _userDataManager.GetUserData(new Guid(traktUser.LinkedMbUserId), episode.GetUserDataKey())
+                    ? _userDataManager.GetUserData(new Guid(traktUser.LinkedMbUserId), episode)
                         .LastPlayedDate
                     : null;
                 if (!string.IsNullOrEmpty(tvDbId) && (!episode.IndexNumber.HasValue || !episode.IndexNumberEnd.HasValue || episode.IndexNumberEnd <= episode.IndexNumber))

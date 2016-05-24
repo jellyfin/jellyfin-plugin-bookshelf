@@ -1,5 +1,4 @@
-﻿using MediaBrowser.Common.IO;
-using MediaBrowser.Model.Games;
+using MediaBrowser.Common.IO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,6 +29,8 @@ namespace GameBrowser.Resolvers
                                                         {"DOS", 1},
                                                         {"Intellivision", 32},
                                                         {"Xbox", 14},
+                                                        {"Xbox 360", 15},                                                        
+                                                        {"Xbox One", 4920},
                                                         {"Neo Geo", 24},
                                                         {"Nintendo 64", 3},
                                                         {"Nintendo DS", 8},
@@ -40,6 +41,7 @@ namespace GameBrowser.Resolvers
                                                         {"Gamecube", 2},
                                                         {"Super Nintendo", 6},
                                                         {"Nintendo Wii", 9},
+                                                        {"Nintendo Wii U", 38},
                                                         {"PC", 1},
                                                         {"Sega 32X", 33},
                                                         {"Sega CD", 21},
@@ -51,6 +53,8 @@ namespace GameBrowser.Resolvers
                                                         {"Sega Saturn", 17},
                                                         {"Sony Playstation", 10},
                                                         {"PS2", 11},
+                                                        {"PS3", 12},
+                                                        {"PS4", 4919},
                                                         {"PSP", 13},
                                                         {"TurboGrafx 16", 34},
                                                         {"TurboGrafx CD", 34},
@@ -86,127 +90,142 @@ namespace GameBrowser.Resolvers
             switch (platform)
             {
                 case "3DO":
-                    return GameSystem.Panasonic3DO;
+                    return "Panasonic3DO";
 
                 case "Amiga":
-                    return GameSystem.Amiga;
+                    return "Amiga";
 
                 case "Arcade":
-                    return GameSystem.Arcade;
+                    return "Arcade";
 
                 case "Atari 2600":
-                    return GameSystem.Atari2600;
+                    return "Atari2600";
 
                 case "Atari 5200":
-                    return GameSystem.Atari5200;
+                    return "Atari5200";
 
                 case "Atari 7800":
-                    return GameSystem.Atari7800;
+                    return "Atari7800";
 
                 case "Atari XE":
-                    return GameSystem.AtariXE;
+                    return "AtariXE";
 
                 case "Atari Jaguar":
-                    return GameSystem.AtariJaguar;
+                    return "AtariJaguar";
 
                 case "Atari Jaguar CD":
-                    return GameSystem.AtariJaguarCD;
+                    return "AtariJaguarCD";
 
                 case "Colecovision":
-                    return GameSystem.Colecovision;
+                    return "Colecovision";
 
                 case "Commodore 64":
-                    return GameSystem.Commodore64;
+                    return "Commodore64";
 
                 case "Commodore Vic-20":
-                    return GameSystem.CommodoreVic20;
+                    return "CommodoreVic20";
 
                 case "Intellivision":
-                    return GameSystem.Intellivision;
+                    return "Intellivision";
 
                 case "Xbox":
-                    return GameSystem.MicrosoftXBox;
+                    return "MicrosoftXBox";
+
+                case "Xbox 360":
+                    return "MicrosoftXBox360";
+
+                case "Xbox One":
+                    return "MicrosoftXBoxOne";
 
                 case "Neo Geo":
-                    return GameSystem.NeoGeo;
+                    return "NeoGeo";
 
                 case "Nintendo 64":
-                    return GameSystem.Nintendo64;
+                    return "Nintendo64";
 
                 case "Nintendo DS":
-                    return GameSystem.NintendoDS;
+                    return "NintendoDS";
 
                 case "Nintendo":
-                    return GameSystem.Nintendo;
+                    return "Nintendo";
 
                 case "Game Boy":
-                    return GameSystem.NintendoGameBoy;
+                    return "NintendoGameBoy";
 
                 case "Game Boy Advance":
-                    return GameSystem.NintendoGameBoyAdvance;
+                    return "NintendoGameBoyAdvance";
 
                 case "Game Boy Color":
-                    return GameSystem.NintendoGameBoyColor;
+                    return "NintendoGameBoyColor";
 
                 case "Gamecube":
-                    return GameSystem.NintendoGameCube;
+                    return "NintendoGameCube";
 
                 case "Super Nintendo":
-                    return GameSystem.SuperNintendo;
+                    return "SuperNintendo";
 
                 case "Virtual Boy":
-                    return GameSystem.VirtualBoy;
+                    return "VirtualBoy";
 
                 case "Nintendo Wii":
-                    return GameSystem.Wii;
+                    return "Wii";
+
+                case "Nintendo Wii U":
+                    return "WiiU";
 
                 case "DOS":
-                    return GameSystem.DOS;
+                    return "DOS";
 
                 case "Windows":
-                    return GameSystem.Windows;
+                    return "Windows";
 
                 case "Sega 32X":
-                    return GameSystem.Sega32X;
+                    return "Sega32X";
 
                 case "Sega CD":
-                    return GameSystem.SegaCD;
+                    return "SegaCD";
 
                 case "Dreamcast":
-                    return GameSystem.SegaDreamcast;
+                    return "SegaDreamcast";
 
                 case "Game Gear":
-                    return GameSystem.SegaGameGear;
+                    return "SegaGameGear";
 
                 case "Sega Genesis":
-                    return GameSystem.SegaGenesis;
+                    return "SegaGenesis";
 
                 case "Sega Master System":
-                    return GameSystem.SegaMasterSystem;
+                    return "SegaMasterSystem";
 
                 case "Sega Mega Drive":
-                    return GameSystem.SegaMegaDrive;
+                    return "SegaMegaDrive";
 
                 case "Sega Saturn":
-                    return GameSystem.SegaSaturn;
+                    return "SegaSaturn";
 
                 case "Sony Playstation":
-                    return GameSystem.SonyPlaystation;
+                    return "SonyPlaystation";
 
                 case "PS2":
-                    return GameSystem.SonyPlaystation2;
+                    return "SonyPlaystation2";
+
+                case "PS3":
+                    return "SonyPlaystation3";
+
+                case "PS4":
+                    return "SonyPlaystation4";
 
                 case "PSP":
-                    return GameSystem.SonyPSP;
+                    return "SonyPSP";
 
                 case "TurboGrafx 16":
-                    return GameSystem.TurboGrafx16;
+                    return "TurboGrafx16";
 
                 case "TurboGrafx CD":
-                    return GameSystem.TurboGrafxCD;
+                    return "TurboGrafxCD";
 
                 case "ZX Spectrum":
-                    return GameSystem.ZxSpectrum;
+                    return "ZxSpectrum";
 
             }
             return null;
@@ -263,6 +282,12 @@ namespace GameBrowser.Resolvers
                 case "Xbox":
                     return "XboxGame";
 
+                case "Xbox 360":
+                    return "Xbox360Game";
+
+                case "Xbox One":
+                    return "XboxOneGame";
+
                 case "Neo Geo":
                     return "NeoGeoGame";
 
@@ -295,6 +320,9 @@ namespace GameBrowser.Resolvers
 
                 case "Nintendo Wii":
                     return "NesGame";
+
+                case "Nintendo Wii U":
+                    return "WiiUGame";
 
                 case "DOS":
                     return "DosGame";
@@ -331,6 +359,12 @@ namespace GameBrowser.Resolvers
 
                 case "PS2":
                     return "Ps2Game";
+
+                case "PS3":
+                    return "Ps3Game";
+
+                case "PS4":
+                    return "Ps4Game";
 
                 case "PSP":
                     return "PlayStationPortableGame";

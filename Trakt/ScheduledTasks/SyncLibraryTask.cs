@@ -14,6 +14,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CommonIO;
+using MediaBrowser.Model.Entities;
 using Trakt.Api;
 using Trakt.Api.DataContracts.Sync;
 using Trakt.Helpers;
@@ -33,12 +34,14 @@ namespace Trakt.ScheduledTasks
         private readonly ILogger _logger;
         private readonly TraktApi _traktApi;
         private readonly IUserDataManager _userDataManager;
+        private readonly ILibraryManager _libraryManager;
 
-        public SyncLibraryTask(ILogManager logger, IJsonSerializer jsonSerializer, IUserManager userManager, IUserDataManager userDataManager, IHttpClient httpClient, IServerApplicationHost appHost, IFileSystem fileSystem)
+        public SyncLibraryTask(ILogManager logger, IJsonSerializer jsonSerializer, IUserManager userManager, IUserDataManager userDataManager, IHttpClient httpClient, IServerApplicationHost appHost, IFileSystem fileSystem, ILibraryManager libraryManager)
         {
             _jsonSerializer = jsonSerializer;
             _userManager = userManager;
             _userDataManager = userDataManager;
+            _libraryManager = libraryManager;
             _logger = logger.GetLogger("Trakt");
             _traktApi = new TraktApi(jsonSerializer, _logger, httpClient, appHost, userDataManager, fileSystem);
         }
@@ -96,7 +99,12 @@ namespace Trakt.ScheduledTasks
         {
             var libraryRoot = user.RootFolder;
             // purely for progress reporting
-            var mediaItemsCount = libraryRoot.GetRecursiveChildren(user).Count(i => _traktApi.CanSync(i, traktUser));
+            var mediaItemsCount = _libraryManager.GetItemList(new InternalItemsQuery
+            {
+                IncludeItemTypes = new[] { typeof(Movie).Name, typeof(Episode).Name },
+                ExcludeLocationTypes = new[] { LocationType.Virtual }
+
+            }).Count(i => _traktApi.CanSync(i, traktUser));
 
             if (mediaItemsCount == 0)
             {
@@ -112,8 +120,11 @@ namespace Trakt.ScheduledTasks
              */
             var traktWatchedMovies = await _traktApi.SendGetAllWatchedMoviesRequest(traktUser).ConfigureAwait(false);
             var traktCollectedMovies = await _traktApi.SendGetAllCollectedMoviesRequest(traktUser).ConfigureAwait(false);
-            var movieItems = libraryRoot.GetRecursiveChildren(user)
-                .Where(x => x is Movie)
+            var movieItems = _libraryManager.GetItemList(new InternalItemsQuery
+            {
+                IncludeItemTypes = new[] { typeof(Movie).Name },
+                ExcludeLocationTypes = new[] { LocationType.Virtual }
+            })
                 .Where(x => _traktApi.CanSync(x, traktUser))
                 .OrderBy(x => x.Name)
                 .ToList();
@@ -125,7 +136,7 @@ namespace Trakt.ScheduledTasks
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var movie = child as Movie;
-                var userData = _userDataManager.GetUserData(user.Id, child.GetUserDataKey());
+                var userData = _userDataManager.GetUserData(user.Id, child);
 
                 var collectedMovies = SyncFromTraktTask.FindMatches(movie, traktCollectedMovies).ToList();
                 if (!collectedMovies.Any() || (traktUser.ExportMediaInfo && collectedMovies.All(collectedMovie => collectedMovie.MetadataIsDifferent(movie))))
@@ -234,8 +245,11 @@ namespace Trakt.ScheduledTasks
 
             var traktWatchedShows = await _traktApi.SendGetWatchedShowsRequest(traktUser).ConfigureAwait(false);
             var traktCollectedShows = await _traktApi.SendGetCollectedShowsRequest(traktUser).ConfigureAwait(false);
-            var episodeItems = libraryRoot.GetRecursiveChildren(user)
-                .Where(x => x is Episode)
+            var episodeItems = _libraryManager.GetItemList(new InternalItemsQuery
+            {
+                IncludeItemTypes = new[] { typeof(Episode).Name },
+                ExcludeLocationTypes = new[] { LocationType.Virtual }
+            })
                 .Where(x => _traktApi.CanSync(x, traktUser))
                 .OrderBy(x => x is Episode ? (x as Episode).SeriesName : null)
                 .ToList();
@@ -248,7 +262,7 @@ namespace Trakt.ScheduledTasks
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var episode = child as Episode;
-                var userData = _userDataManager.GetUserData(user.Id, episode.GetUserDataKey());
+                var userData = _userDataManager.GetUserData(user.Id, episode);
                 var isPlayedTraktTv = false;
                 var traktWatchedShow = SyncFromTraktTask.FindMatch(episode.Series, traktWatchedShows);
 
