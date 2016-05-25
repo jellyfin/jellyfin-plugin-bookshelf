@@ -75,6 +75,15 @@
                             </div>
                         </li>
                         <li>
+                            <label for="chkForceDeinterlace">
+                                Force video deinterlacing for all channels and recordings (EXPERIMENTAL)
+                            </label>
+                            <input type="checkbox" id="chkForceDeinterlace" />
+                            <div class="fieldDescription">
+                                Note: Configuration change requires Emby server restart.
+                            </div>
+                        </li>
+                        <li>
                             <button type="submit" data-theme="b">Save</button>
                             <button type="button" onclick="history.back();">Cancel</button>
                         </li>
@@ -103,6 +112,7 @@
                     $('#txtProfile', page).val(config.Profile || "");
                     $('#selChannelType', page).val(config.ChannelType || "Ignore");
                     $('#chkEnableSubsMaudios', page).checked(config.EnableSubsMaudios || false).checkboxradio("refresh");
+                    $('#chkForceDeinterlace', page).checked(config.ForceDeinterlace || false).checkboxradio("refresh");
                     Dashboard.hideLoadingMsg();
                 });
             });
@@ -120,6 +130,7 @@
                     config.Profile = $('#txtProfile', form).val();
                     config.ChannelType = $('#selChannelType', form).val();
                     config.EnableSubsMaudios = $('#chkEnableSubsMaudios', form).checked();
+                    config.ForceDeinterlace = $('#chkForceDeinterlace', form).checked();
                     ApiClient.updatePluginConfiguration(TVHclientConfigurationPageVar.pluginUniqueId, config).then(Dashboard.processPluginConfigurationUpdateResult);
                 });
                 // Disable default form submission
