@@ -40,6 +40,7 @@ namespace TVHeadEnd
         private string _userName;
         private string _password;
         private bool _enableSubsMaudios;
+        private bool _forceDeinterlace;
 
         // Data helpers
         private readonly ChannelDataHelper _channelDataHelper;
@@ -47,6 +48,8 @@ namespace TVHeadEnd
         private readonly AutorecDataHelper _autorecDataHelper;
 
         private LiveTvService _liveTvService;
+
+        private Dictionary<string, string> _headers = new Dictionary<string, string>();
 
         private HTSConnectionHandler(ILogger logger)
         {
@@ -130,6 +133,7 @@ namespace TVHeadEnd
             _profile = config.Profile.Trim();
             _channelType = config.ChannelType.Trim();
             _enableSubsMaudios = config.EnableSubsMaudios;
+            _forceDeinterlace = config.ForceDeinterlace;
 
             if (_priority < 0 || _priority > 4)
             {
@@ -152,6 +156,10 @@ namespace TVHeadEnd
             {
                 _httpBaseUrl = "http://" + _tvhServerName + ":" + _httpPort;
             }
+
+            string authInfo = _userName + ":" + _password;
+            authInfo = Convert.ToBase64String(Encoding.Default.GetBytes(authInfo));
+            _headers["Authorization"] = "Basic " + authInfo;
         }
 
         public ImageStream GetChannelImage(string channelId, CancellationToken cancellationToken)
@@ -168,9 +176,7 @@ namespace TVHeadEnd
 
                 _logger.Info("[TVHclient] HTSConnectionHandler.GetChannelImage() WebRequest: " + "http://" + _tvhServerName + ":" + _httpPort + "/" + channelIcon);
 
-                string authInfo = _userName + ":" + _password;
-                authInfo = Convert.ToBase64String(Encoding.Default.GetBytes(authInfo));
-                request.Headers["Authorization"] = "Basic " + authInfo;
+                request.Headers["Authorization"] = _headers["Authorization"];
 
                 ImageStream imageStream = new ImageStream();
                 HttpWebResponse httpWebReponse = (HttpWebResponse)request.GetResponse();
@@ -187,6 +193,11 @@ namespace TVHeadEnd
                 _logger.Error("[TVHclient] HTSConnectionHandler.GetChannelImage() caught exception: " + ex.Message);
                 return null;
             }
+        }
+
+        public Dictionary<string, string> GetHeaders()
+        {
+            return new Dictionary<string, string>(_headers);
         }
 
         private static Stream ImageToPNGStream(Image image)
@@ -280,6 +291,11 @@ namespace TVHeadEnd
         public bool GetEnableSubsMaudios()
         {
             return _enableSubsMaudios;
+        }
+
+        public bool GetForceDeinterlace()
+        {
+            return _forceDeinterlace;
         }
 
         public Task<IEnumerable<RecordingInfo>> BuildDvrInfos(CancellationToken cancellationToken)

@@ -343,9 +343,6 @@ namespace TVHeadEnd
         public Task<ImageStream> GetChannelImageAsync(string channelId, CancellationToken cancellationToken)
         {
             return Task.FromResult<ImageStream>(_htsConnectionHandler.GetChannelImage(channelId, cancellationToken));
-
-            // Leave as is. This is handled by supplying image url to ChannelInfo
-            //throw new NotImplementedException();
         }
 
         public async Task<IEnumerable<ChannelInfo>> GetChannelsAsync(CancellationToken cancellationToken)
@@ -406,9 +403,10 @@ namespace TVHeadEnd
 
                     livetvasset.Id = "" + currSubscriptionId;
 
-                    // Use HTTP basic auth instead of TVH ticketing system for authentication to allow the users to switch subs or audio tracks at any time
+                    // Use HTTP basic auth in HTTP header instead of TVH ticketing system for authentication to allow the users to switch subs or audio tracks at any time
                     livetvasset.Path = _htsConnectionHandler.GetHttpBaseUrl() + getTicketResponse.getString("path");
                     livetvasset.Protocol = MediaProtocol.Http;
+                    livetvasset.RequiredHttpHeaders = _htsConnectionHandler.GetHeaders();
 
                     // Probe the asset stream to determine available sub-streams
                     string livetvasset_probeUrl = "" + livetvasset.Path;
@@ -417,12 +415,27 @@ namespace TVHeadEnd
                     // Probe the asset stream to determine available sub-streams
                     await ProbeStream(livetvasset, livetvasset_probeUrl, livetvasset_source, cancellationToken);
 
+                    // If enabled, force video deinterlacing for channels
+                    if(_htsConnectionHandler.GetForceDeinterlace())
+                    {
+                        
+                        _logger.Info("[TVHclient] Force video deinterlacing for all channels and recordings is enabled.");
+
+                        foreach (MediaStream i in livetvasset.MediaStreams)
+                        {
+                            if (i.Type == MediaStreamType.Video && i.IsInterlaced == false)
+                            {
+                                i.IsInterlaced = true;
+                            }
+                        }
+
+                    }
+
                     return livetvasset;
 
                 }
                 else
                 {
-
                     return new MediaSourceInfo
                     {
                         Id = "" + currSubscriptionId,
@@ -540,7 +553,7 @@ namespace TVHeadEnd
             return twtRes.Result;
         }
 
-        public async Task ProbeStream(MediaSourceInfo mediaSourceInfo, string probeUrl, string source, CancellationToken cancellationToken)
+        private async Task ProbeStream(MediaSourceInfo mediaSourceInfo, string probeUrl, string source, CancellationToken cancellationToken)
         {
             _logger.Info("[TVHclient] Probe stream for {0}", source);
             _logger.Info("[TVHclient] Probe URL: {0}", probeUrl);
@@ -552,6 +565,8 @@ namespace TVHeadEnd
                 Protocol = MediaProtocol.Http,
                 ExtractChapters = false,
                 VideoType = VideoType.VideoFile,
+                // currently not available !!! 
+                // RequiredHttpHeaders = mediaSourceInfo.RequiredHttpHeaders,
             };
 
             var originalRuntime = mediaSourceInfo.RunTimeTicks;
@@ -568,66 +583,123 @@ namespace TVHeadEnd
                 _logger.Info("[TVHclient] Probe returned:");
 
                 mediaSourceInfo.Bitrate = info.Bitrate;
-                _logger.Info("[TVHclient]         BitRate:                 " + info.Bitrate);
+                _logger.Info("[TVHclient]         BitRate:                    " + info.Bitrate);
 
                 mediaSourceInfo.Container = info.Container;
-                _logger.Info("[TVHclient]         Container:               " + info.Container);
+                _logger.Info("[TVHclient]         Container:                  " + info.Container);
 
                 mediaSourceInfo.Formats = info.Formats;
-                _logger.Info("[TVHclient]         Formats:                 " + info.Formats);
+                _logger.Info("[TVHclient]         Formats:                    ");
+                LogStringList(info.Formats, "                                 ");
 
                 mediaSourceInfo.MediaStreams = info.MediaStreams;
-                _logger.Info("[TVHclient]         MediaStreams:            " + info.MediaStreams);
+                _logger.Info("[TVHclient]         MediaStreams:               ");
+                LogMediaStreamList(info.MediaStreams, "                       ");
 
                 mediaSourceInfo.RunTimeTicks = info.RunTimeTicks;
-                _logger.Info("[TVHclient]         RunTimeTicks:            " + info.RunTimeTicks);
+                _logger.Info("[TVHclient]         RunTimeTicks:               " + info.RunTimeTicks);
 
                 mediaSourceInfo.Size = info.Size;
-                _logger.Info("[TVHclient]         Size:                    " + info.Size);
+                _logger.Info("[TVHclient]         Size:                       " + info.Size);
 
                 mediaSourceInfo.Timestamp = info.Timestamp;
-                _logger.Info("[TVHclient]         Timestamp:               " + info.Timestamp);
+                _logger.Info("[TVHclient]         Timestamp:                  " + info.Timestamp);
 
                 mediaSourceInfo.Video3DFormat = info.Video3DFormat;
-                _logger.Info("[TVHclient]         Video3DFormat:           " + info.Video3DFormat);
+                _logger.Info("[TVHclient]         Video3DFormat:              " + info.Video3DFormat);
 
                 mediaSourceInfo.VideoType = info.VideoType;
-                _logger.Info("[TVHclient]         VideoType:               " + info.VideoType);
+                _logger.Info("[TVHclient]         VideoType:                  " + info.VideoType);
 
                 mediaSourceInfo.RequiresClosing = true;
+                _logger.Info("[TVHclient]         RequiresClosing:            " + true);
 
                 mediaSourceInfo.RequiresOpening = true;
+                _logger.Info("[TVHclient]         RequiresOpening:            " + true);
 
                 mediaSourceInfo.SupportsDirectPlay = true;
+                _logger.Info("[TVHclient]         SupportsDirectPlay:         " + true);
 
                 mediaSourceInfo.SupportsDirectStream = true;
+                _logger.Info("[TVHclient]         SupportsDirectStream:       " + true);
 
                 mediaSourceInfo.SupportsTranscoding = true;
+                _logger.Info("[TVHclient]         SupportsTranscoding:        " + true);
 
                 mediaSourceInfo.DefaultSubtitleStreamIndex = null;
+                _logger.Info("[TVHclient]         DefaultSubtitleStreamIndex: n/a");
 
                 if (!originalRuntime.HasValue)
                 {
                     mediaSourceInfo.RunTimeTicks = null;
-                    _logger.Info("[TVHclient]         Original runtime:        n/a");
+                    _logger.Info("[TVHclient]         Original runtime:           n/a");
                 }
 
                 var audioStream = mediaSourceInfo.MediaStreams.FirstOrDefault(i => i.Type == MediaBrowser.Model.Entities.MediaStreamType.Audio);
                 if (audioStream == null || audioStream.Index == -1)
                 {
                     mediaSourceInfo.DefaultAudioStreamIndex = null;
-                    _logger.Info("[TVHclient]         DefaultAudioStreamIndex: n/a");
+                    _logger.Info("[TVHclient]         DefaultAudioStreamIndex:    n/a");
                 }
                 else
                 {
                     mediaSourceInfo.DefaultAudioStreamIndex = audioStream.Index;
-                    _logger.Info("[TVHclient]         DefaultAudioStreamIndex: " + info.DefaultAudioStreamIndex);
+                    _logger.Info("[TVHclient]         DefaultAudioStreamIndex:    '" + info.DefaultAudioStreamIndex + "'");
                 }
             }
             else
             {
                 _logger.Error("[TVHclient] Cannot probe {0} stream", source);
             }
+        }
+
+        private void LogStringList(List<String> theList, String prefix)
+        {
+            theList.ForEach(delegate(String s) { _logger.Info(prefix + s); });
+        }
+
+        private void LogMediaStreamList(List<MediaStream> theList, String prefix)
+        {
+            theList.ForEach(delegate (MediaStream ms) { LogMediaStream(ms, prefix); });
+        }
+
+        private void LogMediaStream(MediaStream ms, String prefix)
+        {
+            _logger.Info(prefix + "AspectRatio             " + ms.AspectRatio);
+            _logger.Info(prefix + "AverageFrameRate        " + ms.AverageFrameRate);
+            _logger.Info(prefix + "BitDepth                " + ms.BitDepth);
+            _logger.Info(prefix + "BitRate                 " + ms.BitRate);
+            _logger.Info(prefix + "ChannelLayout           " + ms.ChannelLayout); // Object
+            _logger.Info(prefix + "Channels                " + ms.Channels);
+            _logger.Info(prefix + "Codec                   " + ms.Codec); // Object
+            _logger.Info(prefix + "CodecTag                " + ms.CodecTag); // Object
+            _logger.Info(prefix + "Comment                 " + ms.Comment);
+            _logger.Info(prefix + "DeliveryMethod          " + ms.DeliveryMethod); // Object
+            _logger.Info(prefix + "DeliveryUrl             " + ms.DeliveryUrl);
+            _logger.Info(prefix + "ExternalId              " + ms.ExternalId);
+            _logger.Info(prefix + "Height                  " + ms.Height);
+            _logger.Info(prefix + "Index                   " + ms.Index);
+            _logger.Info(prefix + "IsAnamorphic            " + ms.IsAnamorphic);
+            _logger.Info(prefix + "IsDefault               " + ms.IsDefault);
+            _logger.Info(prefix + "IsExternal              " + ms.IsExternal);
+            _logger.Info(prefix + "IsExternalUrl           " + ms.IsExternalUrl);
+            _logger.Info(prefix + "IsForced                " + ms.IsForced);
+            _logger.Info(prefix + "IsInterlaced            " + ms.IsInterlaced);
+            _logger.Info(prefix + "IsTextSubtitleStream    " + ms.IsTextSubtitleStream);
+            _logger.Info(prefix + "Language                " + ms.Language);
+            _logger.Info(prefix + "Level                   " + ms.Level);
+            _logger.Info(prefix + "PacketLength            " + ms.PacketLength);
+            _logger.Info(prefix + "Path                    " + ms.Path);
+            _logger.Info(prefix + "PixelFormat             " + ms.PixelFormat);
+            _logger.Info(prefix + "Profile                 " + ms.Profile);
+            _logger.Info(prefix + "RealFrameRate           " + ms.RealFrameRate);
+            _logger.Info(prefix + "RefFrames               " + ms.RefFrames);
+            _logger.Info(prefix + "SampleRate              " + ms.SampleRate);
+            _logger.Info(prefix + "Score                   " + ms.Score);
+            _logger.Info(prefix + "SupportsExternalStream  " + ms.SupportsExternalStream);
+            _logger.Info(prefix + "Type                    " + ms.Type); // Object
+            _logger.Info(prefix + "Width                   " + ms.Width);
+            _logger.Info(prefix + "========================");
         }
 
         public async Task<MediaSourceInfo> GetRecordingStream(string recordingId, string mediaSourceId, CancellationToken cancellationToken)
@@ -677,6 +749,22 @@ namespace TVHeadEnd
 
                     // Probe the asset stream to determine available sub-streams
                     await ProbeStream(recordingasset, recordingasset_probeUrl, recordingasset_source, cancellationToken);
+
+                    // If enabled, force video deinterlacing for recordings
+                    if (_htsConnectionHandler.GetForceDeinterlace())
+                    {
+
+                        _logger.Info("[TVHclient] Force video deinterlacing for all channels and recordings is enabled.");
+
+                        foreach (MediaStream i in recordingasset.MediaStreams)
+                        {
+                            if (i.Type == MediaStreamType.Video && i.IsInterlaced == false)
+                            {
+                                i.IsInterlaced = true;
+                            }
+                        }
+
+                    }
 
                     return recordingasset;
 

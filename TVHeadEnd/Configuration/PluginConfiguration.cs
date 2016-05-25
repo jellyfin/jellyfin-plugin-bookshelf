@@ -17,6 +17,7 @@ namespace TVHeadEnd.Configuration
         public string Profile { get; set; }
         public string ChannelType { get; set; }
         public bool EnableSubsMaudios { get; set; }
+        public bool ForceDeinterlace { get; set; }
 
         public PluginConfiguration()
         {
@@ -29,6 +30,7 @@ namespace TVHeadEnd.Configuration
             Profile = "";
             ChannelType = "Ignore";
             EnableSubsMaudios = false;
+            ForceDeinterlace = false;
         }
     }
 }
