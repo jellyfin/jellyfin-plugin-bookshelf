@@ -5,7 +5,7 @@ using MediaBrowser.Model.Entities;
 
 namespace MediaBrowser.Plugins.ADEProvider
 {
-    public class ExternalId : IExternalId
+    public class UpcCodeId : IExternalId
     {
         public string Key
         {
@@ -14,19 +14,19 @@ namespace MediaBrowser.Plugins.ADEProvider
 
         public string Name
         {
-            get { return "Adult Dvd Empire"; }
+            get { return "UPC Code"; }
         }
 
         public bool Supports(IHasProviderIds item)
         {
-            return item is Movie || item is Person;
+            return item is Movie;
         }
 
         public string UrlFormatString
         {
             get
             {
-                return "http://www.adultdvdempire.com/{0}/";
+                return null;
             }
         }
 
@@ -34,7 +34,7 @@ namespace MediaBrowser.Plugins.ADEProvider
         {
             get
             {
-                return "AdultDvdEmpire";
+                return "UpcCode";
             }
         }
     }
