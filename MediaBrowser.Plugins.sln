@@ -54,6 +54,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MetadataViewer", "MetadataV
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.ADEProvider", "MediaBrowser.Plugins.ADEProvider\MediaBrowser.Plugins.ADEProvider.csproj", "{2F1E5734-05C5-495D-B11B-42C4762CF4CF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MovieOrganizer", "MovieOrganizer\MovieOrganizer.csproj", "{0449243E-8FBD-47DF-8E79-8FBA6E735D36}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -200,6 +202,12 @@ Global
 		{2F1E5734-05C5-495D-B11B-42C4762CF4CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2F1E5734-05C5-495D-B11B-42C4762CF4CF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2F1E5734-05C5-495D-B11B-42C4762CF4CF}.Release|x86.ActiveCfg = Release|Any CPU
+		{0449243E-8FBD-47DF-8E79-8FBA6E735D36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0449243E-8FBD-47DF-8E79-8FBA6E735D36}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0449243E-8FBD-47DF-8E79-8FBA6E735D36}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0449243E-8FBD-47DF-8E79-8FBA6E735D36}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0449243E-8FBD-47DF-8E79-8FBA6E735D36}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0449243E-8FBD-47DF-8E79-8FBA6E735D36}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
