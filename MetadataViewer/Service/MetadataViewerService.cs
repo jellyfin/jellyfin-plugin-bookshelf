@@ -2,6 +2,7 @@
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Configuration;
 using MediaBrowser.Model.Entities;
@@ -154,7 +155,7 @@ namespace MetadataViewer.Service
                 }
             }
 
-            FillLookupData(lookupInfo, table);
+            FillLookupData(lookupInfo, item, table);
 
             var propInfos = GetItemProperties(item.GetType());
             bool hasPeople = false;
@@ -217,7 +218,7 @@ namespace MetadataViewer.Service
 
                             if (providerIds != null && providerIds.Count > 0)
                             {
-                                var ids = FlattenProviderIds(providerIds, "<br />");
+                                var ids = FlattenProviderIds(providerIds, item, "<br />");
                                 row.Values.Add(ids);
                                 addRow = true;
                             }
@@ -275,7 +276,7 @@ namespace MetadataViewer.Service
             return table;
         }
 
-        private void FillLookupData(ItemLookupInfo lookupInfo, MetadataRawTable table)
+        private void FillLookupData(ItemLookupInfo lookupInfo, IHasMetadata item, MetadataRawTable table)
         {
             var propInfos = GetItemProperties(lookupInfo.GetType());
 
@@ -293,19 +294,19 @@ namespace MetadataViewer.Service
                 switch (propInfo.Name)
                 {
                     case "ProviderIds":
-                        table.LookupData.Add(new KeyValuePair<string, object>(propInfo.Name, FlattenProviderIds(lookupInfo.ProviderIds, ", ")));
+                        table.LookupData.Add(new KeyValuePair<string, object>(propInfo.Name, FlattenProviderIds(lookupInfo.ProviderIds, item, ", ")));
                         break;
                     case "SeriesProviderIds":
                         var seasonInfo = lookupInfo as SeasonInfo;
                         if (seasonInfo != null)
                         {
-                            table.LookupData.Add(new KeyValuePair<string, object>(propInfo.Name, FlattenProviderIds(seasonInfo.SeriesProviderIds, ", ")));
+                            table.LookupData.Add(new KeyValuePair<string, object>(propInfo.Name, FlattenProviderIds(seasonInfo.SeriesProviderIds, new Series(), ", ")));
                         }
 
                         var episodeInfo = lookupInfo as EpisodeInfo;
                         if (episodeInfo != null)
                         {
-                            table.LookupData.Add(new KeyValuePair<string, object>(propInfo.Name, FlattenProviderIds(episodeInfo.SeriesProviderIds, ", ")));
+                            table.LookupData.Add(new KeyValuePair<string, object>(propInfo.Name, FlattenProviderIds(episodeInfo.SeriesProviderIds, new Series(), ", ")));
                         }
 
                         break;
@@ -334,21 +335,21 @@ namespace MetadataViewer.Service
             }
         }
 
-        private object FlattenProviderIds(Dictionary<string, string> providerIds, string separator)
+        private object FlattenProviderIds(Dictionary<string, string> providerIds, IHasMetadata item, string separator)
         {
             var items = new List<string>();
 
-            foreach (var item in providerIds)
+            foreach (var provId in providerIds)
             {
-                if (!string.IsNullOrWhiteSpace(item.Value))
+                if (!string.IsNullOrWhiteSpace(provId.Value))
                 {
-                    var externalID = _externalIds.FirstOrDefault(e => e.Key.Equals(item.Key, StringComparison.InvariantCultureIgnoreCase));
+                    var externalID = _externalIds.FirstOrDefault(e => e.Key.Equals(provId.Key, StringComparison.InvariantCultureIgnoreCase) && e.Supports(item));
 
-                    var displayString = string.Format("{0}:{1}", item.Key, item.Value);
+                    var displayString = string.Format("{0}:{1}", provId.Key, provId.Value);
 
                     if (externalID != null && !string.IsNullOrEmpty(externalID.UrlFormatString))
                     {
-                        var url = string.Format(externalID.UrlFormatString, item.Value);
+                        var url = string.Format(externalID.UrlFormatString, provId.Value);
                         items.Add(string.Format("<a href=\"{0}\" target=\"blank\">{1}</a>", url, displayString));
                     }
                     else
