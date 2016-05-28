@@ -92,7 +92,6 @@ namespace MetadataViewer.Service
             var serviceIdType = serviceGenericTypes[1];
 
             var table = new MetadataRawTable();
-            var status = new MetadataStatus();
             var logName = item.LocationType == LocationType.Remote ? item.Name ?? item.Path : item.Path ?? item.Name;
             var resultItems = new Dictionary<string, MetadataResultProxy>();
             var emptyItem = new MetadataResultProxy(CreateNew(item.GetType()), null);
