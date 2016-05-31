@@ -1,8 +1,11 @@
-﻿using HtmlAgilityPack;
+﻿using CommonIO;
+using HtmlAgilityPack;
+using MediaBrowser.Common;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.IO;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
@@ -11,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +22,7 @@ using System.Web;
 
 namespace MediaBrowser.Plugins.ADEProvider
 {
-    public class ADEMetadataProvider : IRemoteMetadataProvider<AdultVideo, ItemLookupInfo>
+    public class ADEMetadataProvider : IRemoteMetadataProvider<Movie, MovieInfo>
     {
         private const string BaseUrl = "http://www.adultdvdempire.com/";
         private const string SearchUrl = BaseUrl + "allsearch/search?q={0}";
@@ -27,15 +31,17 @@ namespace MediaBrowser.Plugins.ADEProvider
         private readonly IHttpClient _httpClient;
         private readonly IApplicationPaths _appPaths;
         private readonly IFileSystem _fileSystem;
+        private readonly IApplicationHost _applicationHost;
 
         public static ADEMetadataProvider Current;
 
-        public ADEMetadataProvider(ILogger logger, IHttpClient httpClient, IApplicationPaths appPaths, IFileSystem fileSystem)
+        public ADEMetadataProvider(ILogger logger, IHttpClient httpClient, IApplicationPaths appPaths, IFileSystem fileSystem, IApplicationHost applicationHost)
         {
             _logger = logger;
             _httpClient = httpClient;
             _appPaths = appPaths;
             _fileSystem = fileSystem;
+            _applicationHost = applicationHost;
 
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomainOnAssemblyResolve;
             Current = this;
@@ -43,15 +49,12 @@ namespace MediaBrowser.Plugins.ADEProvider
 
         public Task<HttpResponseInfo> GetImageResponse(string url, CancellationToken cancellationToken)
         {
-            return _httpClient.GetResponse(new HttpRequestOptions
-            {
-                CancellationToken = cancellationToken,
-                Url = url,
-                ResourcePool = Current.ResourcePool
-            });
+            var options = this.CreateHttpRequestOptions(url, cancellationToken);
+
+            return _httpClient.GetResponse(options);
         }
 
-        public async Task<IEnumerable<RemoteSearchResult>> GetSearchResults(ItemLookupInfo searchInfo, CancellationToken cancellationToken)
+        public async Task<IEnumerable<RemoteSearchResult>> GetSearchResults(MovieInfo searchInfo, CancellationToken cancellationToken)
         {
             var adeId = searchInfo.GetProviderId(ExternalId.KeyName);
 
@@ -69,7 +72,8 @@ namespace MediaBrowser.Plugins.ADEProvider
                              ProductionYear  = result.Item.ProductionYear,
                              ProviderIds = result.Item.ProviderIds,
                              SearchProviderName = Name,
-                             PremiereDate = result.Item.PremiereDate
+                             PremiereDate = result.Item.PremiereDate,
+                             ImageUrl = result.Item.PrimaryImagePath
                         }
                     };
                 }
@@ -81,7 +85,9 @@ namespace MediaBrowser.Plugins.ADEProvider
             {
                 var result = new RemoteSearchResult
                 {
-                    Name = i.Name
+                    Name = i.Name,
+                    ProductionYear = i.Year,
+                    ImageUrl = i.ImageUrl
                 };
 
                 result.SetProviderId(ExternalId.KeyName, i.Id);
@@ -90,9 +96,9 @@ namespace MediaBrowser.Plugins.ADEProvider
             });
         }
 
-        public async Task<MetadataResult<AdultVideo>> GetMetadata(ItemLookupInfo info, CancellationToken cancellationToken)
+        public async Task<MetadataResult<Movie>> GetMetadata(MovieInfo info, CancellationToken cancellationToken)
         {
-            var result = new MetadataResult<AdultVideo>();
+            var result = new MetadataResult<Movie>();
 
             var adeId = info.GetProviderId(ExternalId.KeyName);
             var name = info.Name;
@@ -116,11 +122,11 @@ namespace MediaBrowser.Plugins.ADEProvider
 
             if (!string.IsNullOrEmpty(adeId))
             {
-                result.Item = new AdultVideo();
+                result.Item = new Movie();
                 result.Item.SetProviderId(ExternalId.KeyName, adeId);
                 result.Item.Name = name;
 
-                await GetItemDetails(result.Item, adeId, cancellationToken);
+                await GetItemDetails(result, adeId, cancellationToken);
 
                 result.HasMetadata = true;
             }
@@ -133,9 +139,10 @@ namespace MediaBrowser.Plugins.ADEProvider
             get { return "Adult Dvd Empire"; }
         }
 
-        private async Task GetItemDetails(AdultVideo item, string id, CancellationToken cancellationToken)
+        private async Task GetItemDetails(MetadataResult<Movie> result, string id, CancellationToken cancellationToken)
         {
             string html;
+            Movie item = result.Item;
 
             _logger.Info("Getting details for: {0}", id);
 
@@ -149,15 +156,20 @@ namespace MediaBrowser.Plugins.ADEProvider
 
             var divNodes = doc.DocumentNode.Descendants("div").ToList();
 
-            GetCast(divNodes, item);
+            GetCast(doc, result);
 
-            GetSynopsisAndTagLine(divNodes, item);
+            GetSynopsisAndTagLine(doc, item);
 
-            GetCategories(divNodes, item);
+            GetCategories(doc, result);
 
-            GetDetails(divNodes, item);
+            GetDetails(doc, result);
 
-            item.OfficialRating = "XXX";
+            GetPrimaryImage(doc, result);
+
+            if (string.IsNullOrEmpty(item.OfficialRating))
+            {
+                item.OfficialRating = "XXX";
+            }
         }
 
         public async Task<Stream> GetInfo(string adeId, CancellationToken cancellationToken)
@@ -169,21 +181,17 @@ namespace MediaBrowser.Plugins.ADEProvider
 
             var cachePath = Path.Combine(_appPaths.CachePath, "ade", _fileSystem.GetValidFilename(adeId), "item.html");
 
-            var fileInfo = new FileInfo(cachePath);
+            var fileInfo = _fileSystem.GetFileInfo(cachePath);
 
             // Check cache first
             if (!fileInfo.Exists || (DateTime.UtcNow - _fileSystem.GetLastWriteTimeUtc(fileInfo)).TotalDays > 7)
             {
                 var searchItem = new SearchItem { Id = adeId };
 
-                // Download and cache
-                using (var stream = await _httpClient.Get(new HttpRequestOptions
-                {
-                    Url = searchItem.Url,
-                    CancellationToken = cancellationToken,
-                    ResourcePool = ResourcePool
+                var options = this.CreateHttpRequestOptions(searchItem.Url, cancellationToken);
 
-                }))
+                // Download and cache
+                using (var stream = await _httpClient.Get(options))
                 {
                     Directory.CreateDirectory(Path.GetDirectoryName(cachePath));
 
@@ -197,108 +205,206 @@ namespace MediaBrowser.Plugins.ADEProvider
             return _fileSystem.GetFileStream(cachePath, FileMode.Open, FileAccess.Read, FileShare.Read);
         }
 
-        private void GetDetails(IEnumerable<HtmlNode> divNodes, AdultVideo item)
+        private void GetPrimaryImage(HtmlDocument doc, MetadataResult<Movie> result)
         {
-            var detailsNode = divNodes.FirstOrDefault(x => x.HasAttributes && x.Attributes["class"] != null && x.Attributes["class"].Value == "Section ProductInfo");
-            if (detailsNode == null)
+            var frontCoverImg = doc.DocumentNode.SelectSingleNode("//a[@id='front-cover']/img");
+            if (frontCoverImg != null && frontCoverImg.HasAttributes && frontCoverImg.Attributes["src"] != null)
+            {
+                var url = frontCoverImg.Attributes["src"].Value;
+                var img = new ItemImageInfo();
+                img.Type = ImageType.Primary;
+                img.Path = url;
+                result.Item.ImageInfos.Add(img);
+            }
+        }
+
+        private void GetDetails(HtmlDocument doc, MetadataResult<Movie> result)
+        {
+            var infoAnchor = doc.DocumentNode.SelectSingleNode("//a[@name='productinfo']");
+            if (infoAnchor == null)
             {
                 return;
             }
 
-            var productHtml = detailsNode.InnerHtml;
-            var releasedIndex = productHtml.IndexOf("<strong>Released</strong>", StringComparison.Ordinal);
-            if (releasedIndex != -1)
+            var infoUL = infoAnchor.ParentNode.SelectSingleNode(".//ul");
+            if (infoUL == null)
             {
-                var released = productHtml.Substring(releasedIndex + "<strong>Released</strong>".Length);
-                released = released.Substring(0, released.IndexOf("<br", StringComparison.Ordinal));
-                DateTime releasedDate;
-                if (DateTime.TryParse(released, out releasedDate))
+                return;
+            }
+
+            var items = infoUL.SelectNodes("li");
+            if (items == null)
+            {
+                return;
+            }
+
+            foreach (var item in items)
+            {
+                var smallItem = item.SelectSingleNode("small");
+                if (smallItem != null)
                 {
-                    item.PremiereDate = releasedDate;
+                    var label = smallItem.InnerText.Trim().Replace(":", string.Empty).ToLower();
+
+                    switch (label)
+                    {
+                        case "released":
+                            var released = item.LastChild.InnerText.Replace("\"", string.Empty).Trim();
+                            DateTime releasedDate;
+                            if (DateTime.TryParse(released, out releasedDate))
+                            {
+                                result.Item.PremiereDate = releasedDate;
+                            }
+
+                            break;
+
+                        case "rating":
+                            var rating = item.LastChild.InnerText.Replace("\"", string.Empty).Trim();
+                            if (!string.IsNullOrEmpty(rating))
+                            {
+                                result.Item.OfficialRating = rating;
+                            }
+
+                            break;
+
+                        case "production year":
+                            var year = item.LastChild.InnerText.Replace("\"", string.Empty).Trim();
+                            if (!string.IsNullOrEmpty(year))
+                            {
+                                int intYear;
+                                if (int.TryParse(year, out intYear))
+                                {
+                                    result.Item.ProductionYear = intYear;
+                                }
+                            }
+
+                            break;
+
+                        case "studio":
+                            var studio = item.LastChild.InnerText.Replace("\"", string.Empty).Trim();
+                            if (!string.IsNullOrEmpty(studio))
+                            {
+                                result.Item.AddStudio(studio);
+                            }
+
+                            break;
+
+                        case "upc code":
+                            var upcCode = item.LastChild.InnerText.Replace("\"", string.Empty).Trim();
+                            if (!string.IsNullOrEmpty(upcCode))
+                            {
+                                result.Item.SetProviderId(UpcCodeId.KeyName, upcCode);
+                            }
+
+                            break;
+                    }
                 }
             }
-
-            var studioNode = detailsNode.Descendants("a").FirstOrDefault();
-            if (studioNode != null)
-            {
-                item.AddStudio(studioNode.InnerText.Trim());
-            }
         }
 
-        private void GetCategories(IEnumerable<HtmlNode> divNodes, AdultVideo item)
+        private void GetCategories(HtmlDocument doc, MetadataResult<Movie> result)
         {
-            var categoriesNode = divNodes.FirstOrDefault(x => x.HasAttributes && x.Attributes["class"] != null && x.Attributes["class"].Value == "Section Categories");
-            if (categoriesNode == null)
+            result.Item.Genres.Clear();
+
+            var catAnchor = doc.DocumentNode.SelectSingleNode("//a[@name='categories']");
+
+            if (catAnchor == null)
             {
                 return;
             }
 
-            var cats = categoriesNode.Descendants("p").FirstOrDefault();
-            if (cats == null)
+            var catList = catAnchor.ParentNode.Descendants("ul").FirstOrDefault();
+            if (catList == null)
             {
                 return;
             }
 
-            item.Genres.Clear();
-
-            foreach (var cat in cats.InnerText.Split(new[] { ',' }))
+            var catItems = catList.Descendants("li").ToList();
+            foreach (var item in catItems)
             {
-                item.AddGenre(cat.Trim());
+                var itemAnchor = item.SelectSingleNode("a");
+
+                if (itemAnchor != null && itemAnchor.NextSibling != null && itemAnchor.NextSibling is HtmlTextNode)
+                {
+                    var genre = itemAnchor.NextSibling.InnerText.Trim();
+                    if (!string.IsNullOrEmpty(genre))
+                    {
+                        result.Item.AddGenre(itemAnchor.NextSibling.InnerText.Trim());
+                    }
+                }
             }
         }
 
-        private void GetSynopsisAndTagLine(IEnumerable<HtmlNode> divNodes, AdultVideo item)
+        private void GetSynopsisAndTagLine(HtmlDocument doc, Movie item)
         {
-            var synopsisNode = divNodes.FirstOrDefault(x => x.HasAttributes && x.Attributes["class"] != null && x.Attributes["class"].Value == "Section Synopsis");
+            var h1Node = doc.DocumentNode.SelectSingleNode("//h1");
+            if (h1Node != null)
+            {
+                item.Name = h1Node.InnerText.Trim();
+            }
+
+            var h4Nodes = doc.DocumentNode.SelectNodes("//h4");
+
+            var synopsisNode = h4Nodes.FirstOrDefault(x => x.HasAttributes && x.Attributes["class"] != null && x.Attributes["class"].Value.Contains("synopsis"));
             if (synopsisNode == null)
             {
                 return;
             }
 
-            var synopsisText = synopsisNode.InnerText.Replace("Synopsis", string.Empty);
-
-            var tagline = synopsisNode.ChildNodes.FirstOrDefault(x => x.HasAttributes && x.Attributes["class"] != null && x.Attributes["class"].Value == "Tagline");
-            if (tagline != null && !string.IsNullOrEmpty(tagline.InnerText))
-            {
-                var hasTagline = item as IHasTaglines;
-                if (hasTagline != null)
-                {
-                    hasTagline.AddTagline(tagline.InnerText.Trim());
-                }
-                synopsisText = synopsisText.Replace(tagline.InnerText, string.Empty);
-            }
-
-            item.Overview = synopsisText.Trim();
+            item.Overview = synopsisNode.InnerText.Trim();
         }
 
-        private void GetCast(IEnumerable<HtmlNode> divNodes, AdultVideo item)
+        private void GetCast(HtmlDocument doc, MetadataResult<Movie> result)
         {
-            var castNode = divNodes.FirstOrDefault(x => x.HasAttributes && x.Attributes["class"] != null && x.Attributes["class"].Value == "Section Cast");
+            result.ResetPeople();
 
-            if (castNode == null)
+            var castAnchor = doc.DocumentNode.SelectSingleNode("//a[@name='cast']");
+
+            if (castAnchor == null)
             {
                 return;
             }
 
-            var castList = castNode.Descendants("ul").FirstOrDefault();
+            var castList = castAnchor.ParentNode.Descendants("ul").FirstOrDefault();
             if (castList == null)
             {
                 return;
             }
 
-            var realCastList = castList.Descendants("li").ToList();
-            foreach (var cast in realCastList)
+            var castItems = castList.Descendants("li").ToList();
+            foreach (var item in castItems)
             {
-                var person = new PersonInfo
+                var itemAnchor = item.SelectSingleNode("a");
+
+                if (itemAnchor != null)
                 {
-                    Type = PersonType.Actor
-                };
+                    var person = new PersonInfo
+                    {
+                        Type = PersonType.Actor
+                    };
 
-                var name = CleanItem(cast.InnerText, person);
+                    var name = CleanItem(itemAnchor.InnerText, person);
 
-                person.Name = name;
+                    person.Name = name;
 
-                item.AddPerson(person);
+                    if (itemAnchor.HasAttributes && itemAnchor.Attributes["href"] != null)
+                    {
+                        var href = itemAnchor.Attributes["href"].Value;
+                        if (!string.IsNullOrEmpty(href))
+                        {
+                            var components = href.Split('/');
+                            foreach (var part in components)
+                            {
+                                Int32 personId;
+                                if (Int32.TryParse(part, out personId))
+                                {
+                                    person.SetProviderId(ExternalId.KeyName, personId.ToString());
+                                }
+                            }
+                        }
+                    }
+
+                    result.AddPerson(person);
+                }
             }
         }
 
@@ -327,18 +433,15 @@ namespace MediaBrowser.Plugins.ADEProvider
 
         private async Task<List<SearchItem>> GetSearchItems(string name, CancellationToken cancellationToken)
         {
-            var url = string.Format(SearchUrl, name);
+            var url = string.Format(SearchUrl, WebUtility.UrlEncode(name));
 
             string html;
 
             _logger.Info("Searching for: {0}", name);
 
-            using (var stream = await _httpClient.Get(new HttpRequestOptions
-            {
-                Url = url,
-                ResourcePool = ResourcePool,
-                CancellationToken = cancellationToken
-            }).ConfigureAwait(false))
+            var options = this.CreateHttpRequestOptions(url, cancellationToken);
+
+            using (var stream = await _httpClient.Get(options).ConfigureAwait(false))
             {
                 html = stream.ToStringFromStream();
             }
@@ -357,7 +460,7 @@ namespace MediaBrowser.Plugins.ADEProvider
         private List<SearchItem> ParseSearchHtml(HtmlDocument doc)
         {
             var listNode = doc.DocumentNode.Descendants("div").ToList();
-            var listView = listNode.FirstOrDefault(x => x.HasAttributes && x.Attributes["id"] != null && x.Attributes["id"].Value == "ListView");
+            var listView = listNode.FirstOrDefault(x => x.HasAttributes && x.Attributes["class"] != null && x.Attributes["class"].Value == "item-list");
             if (listView == null)
             {
                 return null;
@@ -367,17 +470,8 @@ namespace MediaBrowser.Plugins.ADEProvider
 
             foreach (var node in listView.ChildNodes)
             {
-                if (node.HasAttributes)
+                if (node.HasAttributes && node.Attributes["class"] != null && node.Attributes["class"].Value.Contains("list-view-item"))
                 {
-                    // Ignore these items in the list, nothing to see here
-                    if ((node.Attributes["class"] == null
-                        || node.Attributes["class"].Value == "clear")
-                        || (node.Attributes["id"] == null
-                        || node.Attributes["id"].Value == "ListFooter"))
-                    {
-                        continue;
-                    }
-
                     try
                     {
                         var item = new SearchItem();
@@ -385,19 +479,38 @@ namespace MediaBrowser.Plugins.ADEProvider
                         var id = node.Attributes["id"].Value;
                         item.Id = id.ToLower().Replace("item", string.Empty).Replace("_", string.Empty);
 
-                        var name = node.SelectSingleNode("//p[@class='title']");
-                        if (name != null)
+                        var img = node.SelectSingleNode(".//img");
+
+                        if (img != null && img.Attributes["src"] != null)
                         {
-                            item.Name = HttpUtility.HtmlDecode(name.InnerText);
+                            item.ImageUrl = img.Attributes["src"].Value;
                         }
 
-                        var rank = node.SelectSingleNode("//span[@class='rank']");
-                        if (rank != null)
-                        {
-                            item.Rank = int.Parse(rank.InnerText.Replace(".", string.Empty));
-                        }
+                        var h3 = node.SelectSingleNode(".//h3");
 
-                        result.Add(item);
+                        if (h3 != null)
+                        {
+                            var a = h3.SelectSingleNode("a");
+                            if (a != null)
+                            {
+                                item.Name = HttpUtility.HtmlDecode(a.InnerText.Trim());
+                            }
+
+                            var smallNodes = h3.SelectNodes("small");
+                            if (smallNodes != null && smallNodes.Count > 0)
+                            {
+                                var smallNode1 = smallNodes[0];
+                                item.Rank = int.Parse(smallNode1.InnerText.Trim().Replace(".", string.Empty));
+                            }
+
+                            if (smallNodes != null && smallNodes.Count > 1)
+                            {
+                                var smallNode2 = smallNodes[1];
+                                item.Year = int.Parse(smallNode2.InnerText.Trim().Replace("(", string.Empty).Replace(")", string.Empty));
+                            }
+
+                            result.Add(item);
+                        }
                     }
                     catch (Exception)
                     {
@@ -428,6 +541,28 @@ namespace MediaBrowser.Plugins.ADEProvider
             }
         }
 
+        private HttpRequestOptions CreateHttpRequestOptions(string url, CancellationToken cancellationToken)
+        {
+            return new HttpRequestOptions()
+            {
+                CancellationToken = cancellationToken,
+                Url = url,
+                UserAgent = UserAgent,
+                ResourcePool = Current.ResourcePool,
+                LogErrorResponseBody = true,
+                LogRequest = true
+            };
+        }
+
+        private string UserAgent
+        {
+            get
+            {
+                var version = _applicationHost.ApplicationVersion.ToString();
+                return string.Format("Emby/{0} +http://emby.media/", version);
+            }
+        }
+
         private class SearchItem
         {
             public string Id { get; set; }
@@ -435,6 +570,10 @@ namespace MediaBrowser.Plugins.ADEProvider
             public string Name { get; set; }
 
             public int Rank { get; set; }
+
+            public int? Year { get; set; }
+
+            public string ImageUrl { get; set; }
 
             public string Url
             {

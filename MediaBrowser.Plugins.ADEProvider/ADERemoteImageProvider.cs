@@ -1,6 +1,7 @@
 ﻿using HtmlAgilityPack;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Providers;
@@ -40,58 +41,55 @@ namespace MediaBrowser.Plugins.ADEProvider
 
         private IEnumerable<RemoteImageInfo> GetImagesFromHtml(string html)
         {
+            var list = new List<RemoteImageInfo>();
+
             var doc = new HtmlDocument();
             doc.LoadHtml(html);
 
-            var divNodes = doc.DocumentNode.Descendants("div").ToList();
-
-            var list = new List<RemoteImageInfo>();
-
-            var boxCoverNode = divNodes.FirstOrDefault(x => x.HasAttributes && x.Attributes["id"] != null && x.Attributes["id"].Value == "Boxcover");
-            if (boxCoverNode == null || !boxCoverNode.ChildNodes.Any())
+            var frontCoverImg = doc.DocumentNode.SelectSingleNode("//a[@id='front-cover']/img");
+            if (frontCoverImg != null && frontCoverImg.HasAttributes && frontCoverImg.Attributes["src"] != null)
             {
-                return list;
-            }
-
-            var frontCover = boxCoverNode.ChildNodes[0];
-            var frontCoverUrl = GetHref(frontCover);
-            if (!string.IsNullOrEmpty(frontCoverUrl))
-            {
+                var url = frontCoverImg.Attributes["src"].Value;
                 list.Add(new RemoteImageInfo
                 {
                     ProviderName = Name,
-                    Url = frontCoverUrl,
+                    Url = url,
                     Type = ImageType.Primary
+                });
+
+            }
+
+            var backCoverImg = doc.DocumentNode.SelectSingleNode("//a[@id='back-cover']");
+            if (backCoverImg != null && backCoverImg.HasAttributes && backCoverImg.Attributes["href"] != null)
+            {
+                var url = backCoverImg.Attributes["href"].Value;
+                list.Add(new RemoteImageInfo
+                {
+                    ProviderName = Name,
+                    Url = url,
+                    Type = ImageType.BoxRear
                 });
             }
 
-            if (boxCoverNode.ChildNodes.Count > 1)
+            var shots = doc.DocumentNode.SelectNodes("//a[@rel='screenshots']");
+            if (shots != null)
             {
-                var backCover = boxCoverNode.ChildNodes[1];
-                var backCoverUrl = GetHref(backCover);
-
-                if (!string.IsNullOrEmpty(backCoverUrl))
+                foreach (var shot in shots)
                 {
-                    list.Add(new RemoteImageInfo
+                    if (list.Count < 10 && shot.HasAttributes && shot.Attributes["href"] != null)
                     {
-                        ProviderName = Name,
-                        Url = backCoverUrl,
-                        Type = ImageType.BoxRear
-                    });
+                        var url = shot.Attributes["href"].Value;
+                        list.Add(new RemoteImageInfo
+                        {
+                            ProviderName = Name,
+                            Url = url,
+                            Type = ImageType.Backdrop
+                        });
+                    }
                 }
             }
 
             return list;
-        }
-
-        private string GetHref(HtmlNode frontCover)
-        {
-            if (frontCover.HasAttributes && frontCover.Attributes["href"] != null)
-            {
-                return frontCover.Attributes["href"].Value;
-            }
-
-            return string.Empty;
         }
 
         public Task<HttpResponseInfo> GetImageResponse(string url, CancellationToken cancellationToken)
@@ -116,7 +114,7 @@ namespace MediaBrowser.Plugins.ADEProvider
 
         public bool Supports(IHasImages item)
         {
-            return item is AdultVideo;
+            return item is Movie;
         }
     }
 }
