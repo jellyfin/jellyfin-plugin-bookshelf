@@ -34,7 +34,7 @@ namespace FolderSync
             _fileSystem.CreateDirectory(Path.GetDirectoryName(fullPath));
 
             _logger.Debug("Folder sync saving stream to {0}", fullPath);
-            
+
             using (var fileStream = _fileSystem.GetFileStream(fullPath, FileMode.Create, FileAccess.Write, FileShare.Read, true))
             {
                 await stream.CopyToAsync(fileStream).ConfigureAwait(false);
@@ -168,9 +168,18 @@ namespace FolderSync
                 return Task.FromResult(result);
             }
 
-            var files = _fileSystem.GetFiles(account.Path, true)
-                .Select(GetFile)
-                .ToArray();
+            FileMetadata[] files;
+
+            try
+            {
+                files = _fileSystem.GetFiles(account.Path, true)
+                   .Select(GetFile)
+                   .ToArray();
+            }
+            catch (DirectoryNotFoundException)
+            {
+                files = new FileMetadata[] { };
+            }
 
             result.Items = files;
             result.TotalRecordCount = files.Length;
