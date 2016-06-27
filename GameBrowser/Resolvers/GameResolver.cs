@@ -117,8 +117,8 @@ namespace GameBrowser.Resolvers
             };
 
             game.IsPlaceHolder =
-                string.Equals(game.GameSystem, GameSystem.Windows, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(game.GameSystem, GameSystem.DOS, StringComparison.OrdinalIgnoreCase);
+                string.Equals(game.GameSystem, "windows", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(game.GameSystem, "dos", StringComparison.OrdinalIgnoreCase);
 
             game.DisplayMediaType = ResolverHelper.GetDisplayMediaTypeFromPlatform(consoleType);
 

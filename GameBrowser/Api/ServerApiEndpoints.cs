@@ -70,7 +70,7 @@ namespace GameBrowser.Api
             _logger.Debug("GetDosGames request received");
 
             var dosGames = _libraryManager.RootFolder.RecursiveChildren
-                .Where(i => i is Game && !string.IsNullOrEmpty(((Game)i).GameSystem) && ((Game)i).GameSystem.Equals(MediaBrowser.Model.Games.GameSystem.DOS))
+                .Where(i => i is Game && !string.IsNullOrEmpty(((Game)i).GameSystem) && ((Game)i).GameSystem.Equals("dos"))
                 .OrderBy(i => i.SortName)
                 .ToList();
 
@@ -96,7 +96,7 @@ namespace GameBrowser.Api
             _logger.Debug("GetWindowsGames request received");
 
             var windowsGames = _libraryManager.RootFolder.RecursiveChildren
-                .Where(i => i is Game && !string.IsNullOrEmpty(((Game)i).GameSystem) && ((Game)i).GameSystem.Equals(MediaBrowser.Model.Games.GameSystem.Windows))
+                .Where(i => i is Game && !string.IsNullOrEmpty(((Game)i).GameSystem) && ((Game)i).GameSystem.Equals("windows"))
                 .OrderBy(i => i.SortName)
                 .ToList();
 
