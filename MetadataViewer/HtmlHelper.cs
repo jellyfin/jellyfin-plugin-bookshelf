@@ -54,7 +54,7 @@ namespace MetadataViewer
                     sb.AppendLine("");
                 }
 
-                if (line.Contains("LibraryBrowser.identifyItem(currentItem.Id);"))
+                if (line.Contains("LibraryBrowser.identifyItem(currentItem.Id)"))
                 {
                     mark2Hit = true;
                 }
