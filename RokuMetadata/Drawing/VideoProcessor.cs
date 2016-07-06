@@ -62,11 +62,6 @@ namespace RokuMetadata.Drawing
                     MediaSourceId = mediaSource.Id
                 });
 
-                if (!streamInfo.IsDirectStream)
-                {
-                    continue;
-                }
-
                 if (Plugin.Instance.Configuration.EnableHdThumbnails)
                 {
                     await Run(item, modifier, mediaSource, 320, cancellationToken).ConfigureAwait(false);
