@@ -1,4 +1,4 @@
-﻿define(['dialogHelper', 'paper-checkbox', 'paper-input', 'paper-button', 'paper-icon-button-light', 'paper-tabs'], function (dialogHelper) {
+﻿define(['dialogHelper', 'paper-checkbox', 'paper-input', 'paper-button', 'paper-icon-button-light', 'paper-icon-item', 'html!bower_components/paper-tabs/paper-tabs.html'], function (dialogHelper) {
 
     var extractedName;
     var extractedYear;

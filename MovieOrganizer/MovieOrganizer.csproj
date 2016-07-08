@@ -92,10 +92,6 @@
     <EmbeddedResource Include="Html\fileorganizer.js" />
     <EmbeddedResource Include="Html\fileorganizer.template.html" />
   </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Html\metadataviewer.js" />
-    <EmbeddedResource Include="Html\metadataviewer.template.html" />
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy "$(TargetPath)" "$(SolutionDir)\..\MediaBrowser.Dev\ProgramData-Server\Plugins\" /y</PostBuildEvent>
