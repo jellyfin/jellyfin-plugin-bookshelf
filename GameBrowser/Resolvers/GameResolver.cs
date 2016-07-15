@@ -218,7 +218,7 @@ namespace GameBrowser.Resolvers
                     return new[] { ".iso", ".dol", ".ciso", ".wbfs", ".wad", ".gcz" };
 
                 case "Nintendo Wii U":
-                    return new[] { ".disc" };
+                    return new[] { ".disc", ".wud" };
 
                 case "DOS":
                     return new[] { ".gbdos", ".disc" };
