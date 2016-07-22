@@ -1,4 +1,4 @@
-﻿define(['dialogHelper', 'paper-checkbox', 'paper-input', 'paper-button', 'paper-icon-button-light', 'paper-icon-item', 'html!bower_components/paper-tabs/paper-tabs.html'], function (dialogHelper) {
+﻿define(['dialogHelper', 'paper-checkbox', 'paper-input', 'emby-button', 'paper-icon-button-light'], function (dialogHelper) {
 
     var extractedName;
     var extractedYear;
@@ -125,8 +125,6 @@
                 context.querySelector('#selectSeriesFolder').innerHTML = seriesFolderHtml;
                 context.querySelector('#selectMovieFolder').innerHTML = movieFolderHtml;
 
-                context.querySelector('#paperTabs').selectIndex(0);
-
             }, onApiFailure);
 
         }, onApiFailure);
@@ -239,7 +237,7 @@
 
         require(['components/itemidentifier/itemidentifier'], function (itemidentifier) {
 
-            itemidentifier.showFindNew(extractedName, extractedYear, 'Series').then(function (newItem) {
+            itemidentifier.showFindNew(extractedName || '', extractedYear, 'Series').then(function (newItem) {
 
                 if (newItem != null) {
                     currentNewItem = newItem;
@@ -267,14 +265,13 @@
 
         require(['components/itemidentifier/itemidentifier'], function (itemidentifier) {
 
-            itemidentifier.showFindNew(extractedName, extractedYear, 'Movie').then(function (newItem) {
+            itemidentifier.showFindNew(extractedName || '', extractedYear, 'Movie').then(function (newItem) {
 
                 if (newItem != null) {
                     currentNewItem = newItem;
                     var movieName = currentNewItem.Name;
 
-                    if (currentNewItem.ProductionYear)
-                    {
+                    if (currentNewItem.ProductionYear) {
                         movieName = movieName + ' (' + currentNewItem.ProductionYear + ')';
                     }
 
@@ -302,10 +299,14 @@
     function selectTab(dlg, tabIndex) {
 
         if (tabIndex == 0) {
+            dlg.querySelector('#episode').classList.add('ui-btn-active');
+            dlg.querySelector('#movie').classList.remove('ui-btn-active');
             dlg.querySelector('#organizeSeries').classList.remove('hide');
             dlg.querySelector('#organizeMovies').classList.add('hide');
         }
         else {
+            dlg.querySelector('#episode').classList.remove('ui-btn-active');
+            dlg.querySelector('#movie').classList.add('ui-btn-active');
             dlg.querySelector('#organizeSeries').classList.add('hide');
             dlg.querySelector('#organizeMovies').classList.remove('hide');
         }
@@ -393,10 +394,14 @@
                         selectedSeriesChanged(dlg);
                     });
 
-                    dlg.querySelector('#paperTabs').addEventListener('iron-select', function (e) {
+                    dlg.querySelector('#episode').addEventListener('click', function (e) {
 
-                        var tabs = dlg.querySelector('#paperTabs');
-                        selectTab(dlg, tabs.selected);
+                        selectTab(dlg, 0);
+                    });
+
+                    dlg.querySelector('#movie').addEventListener('click', function (e) {
+
+                        selectTab(dlg, 1);
                     });
 
                     selectTab(dlg, 0);
