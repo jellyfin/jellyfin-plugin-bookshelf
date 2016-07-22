@@ -12,32 +12,42 @@ namespace MetadataViewer
 
         public static MemoryStream ViewerTemplate { get; private set; }
 
-        public static MemoryStream ModifiedEditor { get; private set; }
+        public static MemoryStream ModifiedContextMenu { get; private set; }
 
 
         public static void InstallFiles(IApplicationPaths appPaths, PluginConfiguration config)
         {
             ViewerScript = GetResourceStream("metadataviewer.js");
             ViewerTemplate = GetResourceStream("metadataviewer.template.html");
-            ModifiedEditor = ModifyMetadataEditor(appPaths);
+            ModifiedContextMenu = ModifyContextMenu(appPaths);
         }
 
-        private static MemoryStream ModifyMetadataEditor(IApplicationPaths appPaths)
+        private static MemoryStream ModifyContextMenu(IApplicationPaths appPaths)
         {
             var sb = new StringBuilder();
 
-            var editorPath = Path.Combine(appPaths.ProgramSystemPath, "dashboard-ui", "components", "metadataeditor", "metadataeditor.js");
+            var editorPath = Path.Combine(appPaths.ProgramSystemPath, "dashboard-ui", "bower_components", "emby-webcomponents", "itemcontextmenu.js");
 
             var lines = File.ReadLines(editorPath);
 
             bool mark1Hit = false;
-            bool mark2Hit = false;
 
             foreach (var line in lines)
             {
+                if (line.Contains("case 'identify':"))
+                {
+                    sb.AppendLine("                case 'showmetadata':");
+                    sb.AppendLine("                    {");
+                    sb.AppendLine("                        require(['components/metadataviewer/metadataviewer'], function (metadataviewer) {");
+                    sb.AppendLine("                            metadataviewer.show(itemId).then(getResolveFunction(resolve, id, true), getResolveFunction(resolve, id));");
+                    sb.AppendLine("                            });");
+                    sb.AppendLine("                            break;");
+                    sb.AppendLine("                    }");
+                }
+
                 sb.AppendLine(line);
 
-                if (line.Contains("id: 'identify',"))
+                if (line.Contains("id: 'identify'"))
                 {
                     mark1Hit = true;
                 }
@@ -46,28 +56,15 @@ namespace MetadataViewer
                 {
                     mark1Hit = false;
                     sb.AppendLine();
-                    sb.AppendLine("        items.push({");
-                    sb.AppendLine("            name: 'View Raw Metadata',");
-                    sb.AppendLine("            id: 'showmetadata',");
-                    sb.AppendLine("            ironIcon: 'info'");
-                    sb.AppendLine("        });");
+                    sb.AppendLine("            if (!isTheater && options.identify !== false) {");
+                    sb.AppendLine("                if (itemHelper.canIdentify(user, item.Type)) {");
+                    sb.AppendLine("                    commands.push({");
+                    sb.AppendLine("                        name: 'View Raw Metadata',");
+                    sb.AppendLine("                        id: 'showmetadata'");
+                    sb.AppendLine("                    });");
+                    sb.AppendLine("                }");
+                    sb.AppendLine("            }");
                     sb.AppendLine("");
-                }
-
-                if (line.Contains("LibraryBrowser.identifyItem(currentItem.Id)"))
-                {
-                    mark2Hit = true;
-                }
-
-                if (mark2Hit && line.Contains("break;"))
-                {
-                    mark2Hit = false;
-                    sb.AppendLine();
-                    sb.AppendLine("                        case 'showmetadata':");
-                    sb.AppendLine("                            require(['components/metadataviewer/metadataviewer'], function (metadataviewer) {");
-                    sb.AppendLine("                                metadataviewer.show(currentItem.Id);");
-                    sb.AppendLine("                            });");
-                    sb.AppendLine("                            break;");
                 }
             }
 
@@ -85,7 +82,7 @@ namespace MetadataViewer
         {
             ViewerScript = null;
             ViewerTemplate = null;
-            ModifiedEditor = null;
+            ModifiedContextMenu = null;
         }
 
         public static string GetHtmlPath(string pluginsPath)

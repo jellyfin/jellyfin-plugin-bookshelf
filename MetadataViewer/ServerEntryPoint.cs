@@ -86,9 +86,9 @@ namespace Trakt
             {
                 resultStream = HtmlHelper.ViewerTemplate;
             }
-            else if (request.PathInfo.Contains("/components/metadataeditor/metadataeditor.js"))
+            else if (request.PathInfo.Contains("/bower_components/emby-webcomponents/itemcontextmenu.js"))
             {
-                resultStream = HtmlHelper.ModifiedEditor;
+                resultStream = HtmlHelper.ModifiedContextMenu;
             }
 
             if (resultStream != null)
