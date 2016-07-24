@@ -56,7 +56,7 @@ namespace MetadataViewer
                 {
                     mark1Hit = false;
                     sb.AppendLine();
-                    sb.AppendLine("            if (!isTheater && options.identify !== false) {");
+                    sb.AppendLine("            if (isMobileApp && options.identify !== false) {");
                     sb.AppendLine("                if (itemHelper.canIdentify(user, item.Type)) {");
                     sb.AppendLine("                    commands.push({");
                     sb.AppendLine("                        name: 'View Raw Metadata',");
