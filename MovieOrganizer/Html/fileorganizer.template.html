@@ -1,0 +1,91 @@
+﻿<div class="dialogHeader" style="margin:0 0 2em;">
+    <button is="paper-icon-button-light" class="btnCancel autoSize" tabindex="-1">
+        <i class="md-icon">&#xE5C4;</i>
+    </button>
+    <div class="dialogHeaderTitle">
+    </div>
+</div>
+
+<div id="tabcontainer" class="readOnlyContent" style="margin:auto;">
+    <div data-role="controlgroup" data-type="horizontal" class="localnav" data-mini="true" style="margin-top: 1em">
+        <a id="episode" href="#" data-role="button" class="ui-btn-active">Series Episode</a>
+        <a id="movie" href="#" data-role="button">Organize Movie</a>
+    </div>
+</div>
+
+<form id="organizeSeries" class="episodeCorrectionForm" style="margin:auto;">
+
+    <p><b>Filename:</b><br /><span class="inputFile"></span></p>
+    <p class="paraInputSeriesName"><b>Extracted Series Name:</b><br /><span class="inputSeriesName"></span></p>
+    <p class="paraInputYear"><b>Extracted Year::</b><br /><span class="inputYear"></span></p>
+
+    <div style="margin: 2em 0 1em;">
+        <div style="width:85%;display:inline-block;">
+            <label for="selectSeries" class="selectLabel">${LabelSeries}</label>
+            <select id="selectSeries" data-mini="true" required="required"></select>
+        </div>
+        <button type="button" is="paper-icon-button-light" id="btnNewSeries" class="autoSize" title="${ButtonNew}">
+            <i class="md-icon">add</i>
+        </button>
+    </div>
+    <div class="fldSelectSeriesFolder hide" style="margin: 1em 0 1em;">
+        <div style="width:100%;display:inline-block;">
+            <label for="selectSeriesFolder" class="selectLabel">Series Root Folder</label>
+            <select id="selectSeriesFolder" data-mini="true"></select>
+        </div>
+    </div>
+    <div style="margin: 1em 0;">
+        <paper-input id="txtSeason" type="number" pattern="[0-9]*" required min="0" label="${LabelSeasonNumber}"></paper-input>
+    </div>
+    <div style="margin: 1em 0;">
+        <paper-input id="txtEpisode" type="number" pattern="[0-9]*" required min="0" label="${LabelEpisodeNumber}"></paper-input>
+    </div>
+    <div style="margin: 1em 0;">
+        <paper-input id="txtEndingEpisode" type="number" pattern="[0-9]*" min="0" label="${LabelEndingEpisodeNumber}"></paper-input>
+        <div class="fieldDescription">${LabelEndingEpisodeNumberHelp}</div>
+    </div>
+    <div class="fldRemember hide">
+        <br />
+        <paper-checkbox type="checkbox" id="chkRememberCorrection">${OptionRememberOrganizeCorrection} <span class="extractedName" style="font-weight: bold; font-style: italic" /></paper-checkbox>
+    </div>
+    <br />
+    <button is="emby-button" type="submit" class="raised submit block">
+        <i class="md-icon">check</i>
+        <span>${ButtonOk}</span>
+    </button>
+    <input id="hfResultId" type="hidden" />
+</form>
+
+<form class="organizeMovieForm" id="organizeMovies" class="hide" style="margin:auto;">
+
+    <p><b>Filename:</b><br /><span class="inputFile2"></span></p>
+    <p class="paraInputSeriesName2"><b>Extracted Name:</b><br /><span class="inputSeriesName2"></span></p>
+    <p class="paraInputYear2"><b>Extracted Year::</b><br /><span class="inputYear2"></span></p>
+
+    <div style="margin: 2em 0 1em;">
+        <button is="emby-button" type="button" class="raised block" id="btnIdentifyMovie">
+            <i class="md-icon">check</i>
+            <span>Identify Movie</span>
+        </button>
+    </div>
+
+    <div id="identifiedMovie" class="hide">
+        <div style="margin: 1em 0;">
+            <paper-input id="txtSelectedMovie" required readonly label="Identified Movie"></paper-input>
+        </div>
+        <br />
+        <div class="fldSelectMovieFolder" style="margin: 1em 0 1em;">
+            <div style="width:100%;display:inline-block;">
+                <label for="selectMovieFolder" class="selectLabel">Movie Root Folder</label>
+                <select id="selectMovieFolder" data-mini="true"></select>
+            </div>
+        </div>
+        <button is="emby-button" type="submit" class="raised submit block">
+            <i class="md-icon">check</i>
+            <span>${ButtonOk}</span>
+        </button>
+    </div>
+    <input id="hfResultIdMovie" type="hidden" />
+</form>
+
+<div id="bottomspace" style="min-height: 1em;" />
