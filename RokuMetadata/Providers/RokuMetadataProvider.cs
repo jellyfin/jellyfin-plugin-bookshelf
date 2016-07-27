@@ -54,12 +54,10 @@ namespace RokuMetadata.Providers
 
         public bool HasChanged(IHasMetadata item, IDirectoryService directoryService)
         {
-            if (item.DateModifiedDuringLastRefresh.HasValue)
+            var file = directoryService.GetFile(item.Path);
+            if (file != null && file.LastWriteTimeUtc != item.DateModified)
             {
-                if (item.DateModifiedDuringLastRefresh.Value != item.DateModified)
-                {
-                    return true;
-                }
+                return true;
             }
 
             return false;
