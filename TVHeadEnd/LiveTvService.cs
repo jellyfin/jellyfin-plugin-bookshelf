@@ -60,6 +60,7 @@ namespace TVHeadEnd
             {
                 if (DataSourceChanged != null)
                 {
+                    _logger.Info("[TVHclient] sendDataSourceChanged called and calling EventHandler 'DataSourceChanged'");
                     DataSourceChanged(this, EventArgs.Empty);
                 }
                 else
