@@ -319,12 +319,8 @@ namespace TVHeadEnd
             _htsConnection.stop();
             _htsConnection = null;
             _connected = false;
-
-            _liveTvService.sendDataSourceChanged();
-
+            //_liveTvService.sendDataSourceChanged();
             ensureConnection();
-
-            throw ex;
         }
 
         public void onMessage(HTSMessage response)
