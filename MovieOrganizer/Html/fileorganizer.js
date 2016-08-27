@@ -1,4 +1,4 @@
-﻿define(['dialogHelper', 'paper-checkbox', 'paper-input', 'emby-button', 'paper-icon-button-light'], function (dialogHelper) {
+﻿define(['dialogHelper', 'require', 'emby-checkbox', 'emby-input', 'emby-button', 'emby-select', 'formDialogStyle'], function (dialogHelper, require) {
 
     var extractedName;
     var extractedYear;
@@ -220,7 +220,7 @@
             data: JSON.stringify(options),
             contentType: 'application/json'
         });
-    };
+    }
 
     function showNewSeriesDialog(dlg) {
 
@@ -345,7 +345,7 @@
                     dlg.innerHTML = html;
                     document.body.appendChild(dlg);
 
-                    dlg.querySelector('.dialogHeaderTitle').innerHTML = Globalize.translate('FileOrganizeManually');
+                    dlg.querySelector('.formDialogHeaderTitle').innerHTML = Globalize.translate('FileOrganizeManually');
 
                     dialogHelper.open(dlg);
 
@@ -407,7 +407,7 @@
                     selectTab(dlg, 0);
 
                     initForms(dlg, item);
-                }
+                };
 
                 xhr.send();
             });
