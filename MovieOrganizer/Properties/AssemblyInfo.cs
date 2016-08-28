@@ -5,8 +5,8 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("MovieOrganizer Beta 4")]
-[assembly: AssemblyDescription("Beta 4")]
+[assembly: AssemblyTitle("MovieOrganizer Beta 5")]
+[assembly: AssemblyDescription("Beta 5")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("MovieOrganizer")]
