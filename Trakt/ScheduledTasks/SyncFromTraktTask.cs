@@ -158,6 +158,7 @@ namespace Trakt.ScheduledTasks
                     if (!userData.Played)
                     {
                         userData.Played = true;
+                        userData.LastPlayedDate = DateTime.UtcNow;
                         changed = true;
                     }
 
@@ -229,6 +230,7 @@ namespace Trakt.ScheduledTasks
                             if (!userData.Played)
                             {
                                 userData.Played = true;
+                                userData.LastPlayedDate = DateTime.UtcNow;
                                 changed = true;
                             }
 

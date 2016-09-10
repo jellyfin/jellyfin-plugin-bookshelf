@@ -1,4 +1,5 @@
 ﻿using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
 
@@ -18,15 +19,14 @@ namespace MediaBrowser.Plugins.ADEProvider
 
         public bool Supports(IHasProviderIds item)
         {
-            return item is AdultVideo;
+            return item is Movie || item is Person;
         }
 
         public string UrlFormatString
         {
             get
             {
-                // TODO: Is there a url for this?
-                return null;
+                return "http://www.adultdvdempire.com/{0}/";
             }
         }
 

@@ -10,7 +10,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using CommonIO;
-using GameSystem = MediaBrowser.Model.Games.GameSystem;
 
 namespace GameBrowser.Resolvers
 {
@@ -118,8 +117,8 @@ namespace GameBrowser.Resolvers
             };
 
             game.IsPlaceHolder =
-                string.Equals(game.GameSystem, GameSystem.Windows, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(game.GameSystem, GameSystem.DOS, StringComparison.OrdinalIgnoreCase);
+                string.Equals(game.GameSystem, "windows", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(game.GameSystem, "dos", StringComparison.OrdinalIgnoreCase);
 
             game.DisplayMediaType = ResolverHelper.GetDisplayMediaTypeFromPlatform(consoleType);
 
@@ -219,7 +218,7 @@ namespace GameBrowser.Resolvers
                     return new[] { ".iso", ".dol", ".ciso", ".wbfs", ".wad", ".gcz" };
 
                 case "Nintendo Wii U":
-                    return new[] { ".disc" };
+                    return new[] { ".disc", ".wud" };
 
                 case "DOS":
                     return new[] { ".gbdos", ".disc" };
