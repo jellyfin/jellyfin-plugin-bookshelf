@@ -41,7 +41,7 @@ namespace XmlMetadata
 
         public bool IsEnabled
         {
-            get { return !_config.Configuration.DisableXmlSavers; }
+            get { return true; }
         }
 
         /// <summary>

@@ -66,11 +66,11 @@ namespace RokuMetadata.Api
             }
 
             _logger.Info("Returning bif file: {0}", path);
-            return ResultFactory.GetStaticFileResult(Request, new StaticFileResultOptions
+            return await ResultFactory.GetStaticFileResult(Request, new StaticFileResultOptions
             {
                 ContentType = "application/octet-stream",
                 Path = path
-            });
+            }).ConfigureAwait(false);
         }
     }
 }
