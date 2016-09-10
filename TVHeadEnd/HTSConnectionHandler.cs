@@ -172,19 +172,83 @@ namespace TVHeadEnd
 
                 _logger.Info("[TVHclient] HTSConnectionHandler.GetChannelImage() channelIcon: " + channelIcon);
 
-                WebRequest request = WebRequest.Create("http://" + _tvhServerName + ":" + _httpPort + "/" + channelIcon);
+                WebRequest request = null;
 
-                _logger.Info("[TVHclient] HTSConnectionHandler.GetChannelImage() WebRequest: " + "http://" + _tvhServerName + ":" + _httpPort + "/" + channelIcon);
+                if (channelIcon.StartsWith("http"))
+                {
+                    request = WebRequest.Create(channelIcon);
 
-                request.Headers["Authorization"] = _headers["Authorization"];
+                    _logger.Info("[TVHclient] HTSConnectionHandler.GetChannelImage() WebRequest: " + channelIcon);
+                }
+                else
+                {
+                    request = WebRequest.Create("http://" + _tvhServerName + ":" + _httpPort + "/" + channelIcon);
+                    request.Headers["Authorization"] = _headers["Authorization"];
 
-                ImageStream imageStream = new ImageStream();
+                    _logger.Info("[TVHclient] HTSConnectionHandler.GetChannelImage() WebRequest: " + "http://" + _tvhServerName + ":" + _httpPort + "/" + channelIcon);
+                }
+
+
                 HttpWebResponse httpWebReponse = (HttpWebResponse)request.GetResponse();
                 Stream stream = httpWebReponse.GetResponseStream();
 
-                Image image = Image.FromStream(stream);
-                imageStream.Stream = ImageToPNGStream(image);
-                imageStream.Format = MediaBrowser.Model.Drawing.ImageFormat.Png;
+                ImageStream imageStream = new ImageStream();
+
+                int lastDot = channelIcon.LastIndexOf('.');
+                if (lastDot > -1)
+                {
+                    String suffix = channelIcon.Substring(lastDot + 1);
+                    suffix = suffix.ToLower();
+
+                    _logger.Info("[TVHclient] HTSConnectionHandler.GetChannelImage() image suffix: " + suffix);
+
+                    switch (suffix)
+                    {
+                        case "bmp":
+                            imageStream.Stream = stream;
+                            imageStream.Format = MediaBrowser.Model.Drawing.ImageFormat.Bmp;
+                            _logger.Info("[TVHclient] HTSConnectionHandler.GetChannelImage() using fix image type BMP.");
+                            break;
+
+                        case "gif":
+                            imageStream.Stream = stream;
+                            imageStream.Format = MediaBrowser.Model.Drawing.ImageFormat.Gif;
+                            _logger.Info("[TVHclient] HTSConnectionHandler.GetChannelImage() using fix image type GIF.");
+                            break;
+
+                        case "jpg":
+                            imageStream.Stream = stream;
+                            imageStream.Format = MediaBrowser.Model.Drawing.ImageFormat.Jpg;
+                            _logger.Info("[TVHclient] HTSConnectionHandler.GetChannelImage() using fix image type JPG.");
+                            break;
+
+                        case "png":
+                            imageStream.Stream = stream;
+                            imageStream.Format = MediaBrowser.Model.Drawing.ImageFormat.Png;
+                            _logger.Info("[TVHclient] HTSConnectionHandler.GetChannelImage() using fix image type PNG.");
+                            break;
+
+                        case "webp":
+                            imageStream.Stream = stream;
+                            imageStream.Format = MediaBrowser.Model.Drawing.ImageFormat.Webp;
+                            _logger.Info("[TVHclient] HTSConnectionHandler.GetChannelImage() using fix image type WEBP.");
+                            break;
+
+                        default:
+                            _logger.Info("[TVHclient] HTSConnectionHandler.GetChannelImage() unkown image type '" + suffix + "' - transform to PNG.");
+                            Image image = Image.FromStream(stream);
+                            imageStream.Stream = ImageToPNGStream(image);
+                            imageStream.Format = MediaBrowser.Model.Drawing.ImageFormat.Png;
+                            break;
+                    }
+                }
+                else
+                {
+                    _logger.Info("[TVHclient] HTSConnectionHandler.GetChannelImage() no image type in suffix of channelImage name '" + channelIcon + "' found - transform to PNG.");
+                    Image image = Image.FromStream(stream);
+                    imageStream.Stream = ImageToPNGStream(image);
+                    imageStream.Format = MediaBrowser.Model.Drawing.ImageFormat.Png;
+                }
 
                 return imageStream;
             }
