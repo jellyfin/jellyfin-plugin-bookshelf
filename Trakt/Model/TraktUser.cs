@@ -16,6 +16,8 @@ namespace Trakt.Model
 
         public bool  SkipUnwatchedImportFromTrakt { get; set; }
 
+        public bool PostWatchedHistory { get; set; }
+
         public bool ExtraLogging { get; set; }
 
         public bool ExportMediaInfo { get; set; }
