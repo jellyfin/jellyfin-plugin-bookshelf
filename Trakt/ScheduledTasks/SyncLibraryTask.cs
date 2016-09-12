@@ -1,27 +1,29 @@
-﻿using MediaBrowser.Common.IO;
-using MediaBrowser.Common.Net;
-using MediaBrowser.Common.ScheduledTasks;
-using MediaBrowser.Controller;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Entities.Movies;
-using MediaBrowser.Controller.Entities.TV;
-using MediaBrowser.Controller.Library;
-using MediaBrowser.Model.Logging;
-using MediaBrowser.Model.Serialization;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using CommonIO;
-using MediaBrowser.Model.Entities;
-using Trakt.Api;
-using Trakt.Api.DataContracts.Sync;
-using Trakt.Helpers;
-using Trakt.Model;
-
-namespace Trakt.ScheduledTasks
+﻿namespace Trakt.ScheduledTasks
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+
+    using CommonIO;
+
+    using MediaBrowser.Common.Net;
+    using MediaBrowser.Common.ScheduledTasks;
+    using MediaBrowser.Controller;
+    using MediaBrowser.Controller.Entities;
+    using MediaBrowser.Controller.Entities.Movies;
+    using MediaBrowser.Controller.Entities.TV;
+    using MediaBrowser.Controller.Library;
+    using MediaBrowser.Model.Entities;
+    using MediaBrowser.Model.Logging;
+    using MediaBrowser.Model.Serialization;
+
+    using Trakt.Api;
+    using Trakt.Api.DataContracts.Sync;
+    using Trakt.Helpers;
+    using Trakt.Model;
+
     /// <summary>
     /// Task that will Sync each users local library with their respective trakt.tv profiles. This task will only include 
     /// titles, watched states will be synced in other tasks.
@@ -53,13 +55,7 @@ namespace Trakt.ScheduledTasks
 
         public async Task Execute(CancellationToken cancellationToken, IProgress<double> progress)
         {
-            var users = _userManager.Users.Where(u =>
-            {
-                var traktUser = UserHelper.GetTraktUser(u);
-
-                return traktUser != null;
-
-            }).ToList();
+            var users = _userManager.Users.Where(u => UserHelper.GetTraktUser(u) != null).ToList();
 
             // No point going further if we don't have users.
             if (users.Count == 0)
@@ -77,7 +73,7 @@ namespace Trakt.ScheduledTasks
                 var traktUser = UserHelper.GetTraktUser(user);
 
                 // I'll leave this in here for now, but in reality this continue should never be reached.
-                if (traktUser == null || String.IsNullOrEmpty(traktUser.LinkedMbUserId))
+                if (string.IsNullOrEmpty(traktUser?.LinkedMbUserId))
                 {
                     _logger.Error("traktUser is either null or has no linked MB account");
                     continue;
@@ -90,61 +86,105 @@ namespace Trakt.ScheduledTasks
             }
         }
 
-        private async Task SyncUserLibrary(User user,
+        private async Task SyncUserLibrary(
+            User user,
             TraktUser traktUser,
             double progPercent,
             double percentPerUser,
             IProgress<double> progress,
             CancellationToken cancellationToken)
         {
-            var libraryRoot = user.RootFolder;
             // purely for progress reporting
             var mediaItemsCount = _libraryManager.GetItemList(new InternalItemsQuery
             {
                 IncludeItemTypes = new[] { typeof(Movie).Name, typeof(Episode).Name },
                 ExcludeLocationTypes = new[] { LocationType.Virtual }
-
-            }).Count(i => _traktApi.CanSync(i, traktUser));
+            })
+            .Count(i => _traktApi.CanSync(i, traktUser));
 
             if (mediaItemsCount == 0)
             {
                 _logger.Info("No media found for '" + user.Name + "'.");
                 return;
             }
+
             _logger.Info(mediaItemsCount + " Items found for '" + user.Name + "'.");
 
-            var percentPerItem = (float) percentPerUser/mediaItemsCount/2.0;
+            var percentPerItem = (float)percentPerUser / mediaItemsCount / 2.0;
+
+            await SyncMovies(user, traktUser, progress, progPercent, percentPerItem, cancellationToken);
+            await SyncShows(user, traktUser, progress, progPercent, percentPerItem, cancellationToken);
+        }
+
+        /// <summary>
+        /// Sync watched and collected status of <see cref="Movie"/>s with trakt.
+        /// </summary>
+        /// <param name="user">
+        /// <see cref="User"/> to get <see cref="UserItemData"/> (e.g. watched status) from.
+        /// </param>
+        /// <param name="traktUser">
+        /// The <see cref="TraktUser"/> to sync with.
+        /// </param>
+        /// <param name="progress">
+        /// Progress reporter.
+        /// </param>
+        /// <param name="progPercent">
+        /// Initial progress value.
+        /// </param>
+        /// <param name="percentPerItem">
+        /// Progress percent per item.
+        /// </param>
+        /// <param name="cancellationToken">
+        /// The cancellation token.
+        /// </param>
+        /// <returns>
+        /// Awaitable <see cref="Task"/>.
+        /// </returns>
+        private async Task SyncMovies(
+            User user,
+            TraktUser traktUser,
+            IProgress<double> progress,
+            double progPercent,
+            double percentPerItem,
+            CancellationToken cancellationToken)
+        {
             /*
              * In order to sync watched status to trakt.tv we need to know what's been watched on Trakt already. This
              * will stop us from endlessly incrementing the watched values on the site.
              */
             var traktWatchedMovies = await _traktApi.SendGetAllWatchedMoviesRequest(traktUser).ConfigureAwait(false);
             var traktCollectedMovies = await _traktApi.SendGetAllCollectedMoviesRequest(traktUser).ConfigureAwait(false);
-            var movieItems = _libraryManager.GetItemList(new InternalItemsQuery
-            {
-                IncludeItemTypes = new[] { typeof(Movie).Name },
-                ExcludeLocationTypes = new[] { LocationType.Virtual }
-            })
-                .Where(x => _traktApi.CanSync(x, traktUser))
-                .OrderBy(x => x.Name)
-                .ToList();
-            var movies = new List<Movie>();
+            var libraryMovies =
+                _libraryManager.GetItemList(
+                        new InternalItemsQuery
+                            {
+                                IncludeItemTypes = new[] { typeof(Movie).Name },
+                                ExcludeLocationTypes = new[] { LocationType.Virtual }
+                            })
+                    .Where(x => _traktApi.CanSync(x, traktUser))
+                    .OrderBy(x => x.Name)
+                    .ToList();
+            var collectedMovies = new List<Movie>();
             var playedMovies = new List<Movie>();
-            var unPlayedMovies = new List<Movie>();
+            var unplayedMovies = new List<Movie>();
 
-            foreach (var child in movieItems)
+            foreach (var child in libraryMovies)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var movie = child as Movie;
+                var libraryMovie = child as Movie;
                 var userData = _userDataManager.GetUserData(user.Id, child);
-
-                var collectedMovies = SyncFromTraktTask.FindMatches(movie, traktCollectedMovies).ToList();
-                if (!collectedMovies.Any() || (traktUser.ExportMediaInfo && collectedMovies.All(collectedMovie => collectedMovie.MetadataIsDifferent(movie))))
+                
+                // if movie is not collected, or (export media info setting is enabled and every collected matching movie has different metadata), collect it
+                var collectedMathingMovies = SyncFromTraktTask.FindMatches(libraryMovie, traktCollectedMovies).ToList();
+                if (!collectedMathingMovies.Any()
+                    || (traktUser.ExportMediaInfo
+                        && collectedMathingMovies.All(collectedMovie => collectedMovie.MetadataIsDifferent(libraryMovie))))
                 {
-                    movies.Add(movie);
+                    collectedMovies.Add(libraryMovie);
                 }
 
-                var movieWatched = SyncFromTraktTask.FindMatch(movie, traktWatchedMovies);
+                var movieWatched = SyncFromTraktTask.FindMatch(libraryMovie, traktWatchedMovies);
+
                 // if the movie has been played locally and is unplayed on trakt.tv then add it to the list
                 if (userData.Played)
                 {
@@ -152,37 +192,62 @@ namespace Trakt.ScheduledTasks
                     {
                         if (traktUser.PostWatchedHistory)
                         {
-                            playedMovies.Add(movie);
+                            playedMovies.Add(libraryMovie);
                         }
                         else
                         {
                             userData.Played = false;
-                            await _userDataManager.SaveUserData(user.Id, movie, userData, UserDataSaveReason.Import,
-                                cancellationToken);
+                            await
+                                _userDataManager.SaveUserData(
+                                    user.Id,
+                                    libraryMovie,
+                                    userData,
+                                    UserDataSaveReason.Import,
+                                    cancellationToken);
                         }
                     }
                 }
-                // If the show has not been played locally but is played on trakt.tv then add it to the unplayed list
                 else
                 {
+                    // If the show has not been played locally but is played on trakt.tv then add it to the unplayed list
                     if (movieWatched != null)
                     {
-                        unPlayedMovies.Add(movie);
+                        unplayedMovies.Add(libraryMovie);
                     }
                 }
+
                 // purely for progress reporting
                 progPercent += percentPerItem;
                 progress.Report(progPercent);
             }
-            _logger.Info("Movies to add to Collection: " + movies.Count);
-            // send any remaining entries
+
+            // send movies to mark collected
+            await SendMovieCollectionUpdates(true, traktUser, collectedMovies, progress, progPercent, percentPerItem, cancellationToken);
+
+            // send movies to mark watched
+            await SendMoviePlaystateUpdates(true, traktUser, playedMovies, progress, progPercent, percentPerItem, cancellationToken);
+
+            // send movies to mark unwatched
+            await SendMoviePlaystateUpdates(false, traktUser, unplayedMovies, progress, progPercent, percentPerItem, cancellationToken);
+        }
+
+        private async Task SendMovieCollectionUpdates(
+            bool collected,
+            TraktUser traktUser,
+            List<Movie> movies,
+            IProgress<double> progress,
+            double progPercent,
+            double percentPerItem,
+            CancellationToken cancellationToken)
+        {
+            _logger.Info("Movies to " + (collected ? "add to" : "remove from") + " Collection: " + movies.Count);
             if (movies.Count > 0)
             {
                 try
                 {
                     var dataContracts =
                         await
-                            _traktApi.SendLibraryUpdateAsync(movies, traktUser, cancellationToken, EventType.Add)
+                            _traktApi.SendLibraryUpdateAsync(movies, traktUser, cancellationToken, collected ? EventType.Add : EventType.Remove)
                                 .ConfigureAwait(false);
                     if (dataContracts != null)
                     {
@@ -200,18 +265,29 @@ namespace Trakt.ScheduledTasks
                 {
                     _logger.ErrorException("Exception handled sending movies to trakt.tv", e);
                 }
+
                 // purely for progress reporting
-                progPercent += (percentPerItem*movies.Count);
+                progPercent += percentPerItem * movies.Count;
                 progress.Report(progPercent);
             }
+        }
 
-            _logger.Info("Movies to set watched: " + playedMovies.Count);
+        private async Task SendMoviePlaystateUpdates(
+            bool seen,
+            TraktUser traktUser,
+            List<Movie> playedMovies,
+            IProgress<double> progress,
+            double progPercent,
+            double percentPerItem,
+            CancellationToken cancellationToken)
+        {
+            _logger.Info("Movies to set " + (seen ? string.Empty : "un") + "watched: " + playedMovies.Count);
             if (playedMovies.Count > 0)
             {
                 try
                 {
                     var dataContracts =
-                        await _traktApi.SendMoviePlaystateUpdates(playedMovies, traktUser, true, cancellationToken);
+                        await _traktApi.SendMoviePlaystateUpdates(playedMovies, traktUser, seen, cancellationToken);
                     if (dataContracts != null)
                     {
                         foreach (var traktSyncResponse in dataContracts)
@@ -224,49 +300,37 @@ namespace Trakt.ScheduledTasks
                 {
                     _logger.ErrorException("Error updating movie play states", e);
                 }
+
                 // purely for progress reporting
-                progPercent += (percentPerItem*playedMovies.Count);
+                progPercent += percentPerItem * playedMovies.Count;
                 progress.Report(progPercent);
             }
+        }
 
-            _logger.Info("Movies to set unwatched: " + unPlayedMovies.Count);
-            if (unPlayedMovies.Count > 0)
-            {
-                try
-                {
-                    var dataContracts =
-                        await _traktApi.SendMoviePlaystateUpdates(unPlayedMovies, traktUser, false, cancellationToken);
-                    if (dataContracts != null)
-                    {
-                        foreach (var traktSyncResponse in dataContracts)
-                        {
-                            LogTraktResponseDataContract(traktSyncResponse);
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    _logger.ErrorException("Error updating movie play states", e);
-                }
-                // purely for progress reporting
-                progPercent += (percentPerItem*unPlayedMovies.Count);
-                progress.Report(progPercent);
-            }
-
+        private async Task SyncShows(
+            User user,
+            TraktUser traktUser,
+            IProgress<double> progress,
+            double progPercent,
+            double percentPerItem,
+            CancellationToken cancellationToken)
+        {
             var traktWatchedShows = await _traktApi.SendGetWatchedShowsRequest(traktUser).ConfigureAwait(false);
             var traktCollectedShows = await _traktApi.SendGetCollectedShowsRequest(traktUser).ConfigureAwait(false);
-            var episodeItems = _libraryManager.GetItemList(new InternalItemsQuery
-            {
-                IncludeItemTypes = new[] { typeof(Episode).Name },
-                ExcludeLocationTypes = new[] { LocationType.Virtual }
-            })
-                .Where(x => _traktApi.CanSync(x, traktUser))
-                .OrderBy(x => x is Episode ? (x as Episode).SeriesName : null)
-                .ToList();
+            var episodeItems =
+                _libraryManager.GetItemList(
+                        new InternalItemsQuery
+                            {
+                                IncludeItemTypes = new[] { typeof(Episode).Name },
+                                ExcludeLocationTypes = new[] { LocationType.Virtual }
+                            })
+                    .Where(x => _traktApi.CanSync(x, traktUser))
+                    .OrderBy(x => (x as Episode)?.SeriesName)
+                    .ToList();
 
-            var episodes = new List<Episode>();
+            var collectedEpisodes = new List<Episode>();
             var playedEpisodes = new List<Episode>();
-            var unPlayedEpisodes = new List<Episode>();
+            var unplayedEpisodes = new List<Episode>();
 
             foreach (var child in episodeItems)
             {
@@ -276,14 +340,13 @@ namespace Trakt.ScheduledTasks
                 var isPlayedTraktTv = false;
                 var traktWatchedShow = SyncFromTraktTask.FindMatch(episode.Series, traktWatchedShows);
 
-                if (traktWatchedShow != null && traktWatchedShow.Seasons != null && traktWatchedShow.Seasons.Count > 0)
+                if (traktWatchedShow?.Seasons != null && traktWatchedShow.Seasons.Count > 0)
                 {
                     isPlayedTraktTv =
                         traktWatchedShow.Seasons.Any(
                             season =>
-                                season.Number == episode.GetSeasonNumber() &&
-                                season.Episodes != null &&
-                                season.Episodes.Any(te => te.Number == episode.IndexNumber && te.Plays > 0));
+                                season.Number == episode.GetSeasonNumber() && season.Episodes != null
+                                && season.Episodes.Any(te => te.Number == episode.IndexNumber && te.Plays > 0));
                 }
 
                 // if the show has been played locally and is unplayed on trakt.tv then add it to the list
@@ -296,23 +359,28 @@ namespace Trakt.ScheduledTasks
                     else
                     {
                         userData.Played = false;
-                        await _userDataManager.SaveUserData(user.Id, episode, userData, UserDataSaveReason.Import,
+                        await
+                            _userDataManager.SaveUserData(
+                                user.Id,
+                                episode,
+                                userData,
+                                UserDataSaveReason.Import,
                                 cancellationToken);
                     }
                 }
-                    // If the show has not been played locally but is played on trakt.tv then add it to the unplayed list
                 else if (userData != null && !userData.Played && isPlayedTraktTv)
                 {
-                    unPlayedEpisodes.Add(episode);
+                    // If the show has not been played locally but is played on trakt.tv then add it to the unplayed list
+                    unplayedEpisodes.Add(episode);
                 }
+
                 var traktCollectedShow = SyncFromTraktTask.FindMatch(episode.Series, traktCollectedShows);
-                if (traktCollectedShow == null ||
-                    traktCollectedShow.Seasons == null ||
-                    traktCollectedShow.Seasons.All(x => x.Number != episode.ParentIndexNumber) ||
-                    traktCollectedShow.Seasons.First(x => x.Number == episode.ParentIndexNumber)
+                if (traktCollectedShow?.Seasons == null
+                    || traktCollectedShow.Seasons.All(x => x.Number != episode.ParentIndexNumber)
+                    || traktCollectedShow.Seasons.First(x => x.Number == episode.ParentIndexNumber)
                         .Episodes.All(e => e.Number != episode.IndexNumber))
                 {
-                    episodes.Add(episode);
+                    collectedEpisodes.Add(episode);
                 }
 
                 // purely for progress reporting
@@ -320,15 +388,14 @@ namespace Trakt.ScheduledTasks
                 progress.Report(progPercent);
             }
 
-
-            _logger.Info("Episodes to add to Collection: " + episodes.Count);
-            if (episodes.Count > 0)
+            _logger.Info("Episodes to add to Collection: " + collectedEpisodes.Count);
+            if (collectedEpisodes.Count > 0)
             {
                 try
                 {
                     var dataContracts =
                         await
-                            _traktApi.SendLibraryUpdateAsync(episodes, traktUser, cancellationToken, EventType.Add)
+                            _traktApi.SendLibraryUpdateAsync(collectedEpisodes, traktUser, cancellationToken, EventType.Add)
                                 .ConfigureAwait(false);
                     if (dataContracts != null)
                     {
@@ -346,8 +413,9 @@ namespace Trakt.ScheduledTasks
                 {
                     _logger.ErrorException("Exception handled sending episodes to trakt.tv", e);
                 }
+
                 // purely for progress reporting
-                progPercent += (percentPerItem*episodes.Count);
+                progPercent += percentPerItem * collectedEpisodes.Count;
                 progress.Report(progPercent);
             }
 
@@ -358,67 +426,44 @@ namespace Trakt.ScheduledTasks
                 {
                     var dataContracts =
                         await _traktApi.SendEpisodePlaystateUpdates(playedEpisodes, traktUser, true, cancellationToken);
-                    if (dataContracts != null)
-                    {
-                        foreach (var traktSyncResponse in dataContracts)
-                            LogTraktResponseDataContract(traktSyncResponse);
-                    }
+                    dataContracts?.ForEach(LogTraktResponseDataContract);
                 }
                 catch (Exception e)
                 {
                     _logger.ErrorException("Error updating episode play states", e);
                 }
+
                 // purely for progress reporting
-                progPercent += (percentPerItem*playedEpisodes.Count);
+                progPercent += percentPerItem * playedEpisodes.Count;
                 progress.Report(progPercent);
             }
-            _logger.Info("Episodes to set unwatched: " + unPlayedEpisodes.Count);
-            if (unPlayedEpisodes.Count > 0)
+
+            _logger.Info("Episodes to set unwatched: " + unplayedEpisodes.Count);
+            if (unplayedEpisodes.Count > 0)
             {
                 try
                 {
                     var dataContracts =
                         await
-                            _traktApi.SendEpisodePlaystateUpdates(unPlayedEpisodes, traktUser, false, cancellationToken);
-                    if (dataContracts != null)
-                    {
-                        foreach (var traktSyncResponse in dataContracts)
-                        {
-                            LogTraktResponseDataContract(traktSyncResponse);
-                        }
-                    }
+                            _traktApi.SendEpisodePlaystateUpdates(unplayedEpisodes, traktUser, false, cancellationToken);
+                    dataContracts?.ForEach(LogTraktResponseDataContract);
                 }
                 catch (Exception e)
                 {
                     _logger.ErrorException("Error updating episode play states", e);
                 }
+
                 // purely for progress reporting
-                progPercent += (percentPerItem*unPlayedEpisodes.Count);
+                progPercent += percentPerItem * unplayedEpisodes.Count;
                 progress.Report(progPercent);
             }
         }
+        
+        public string Name => "Sync library to trakt.tv";
 
-        public string Name
-        {
-            get { return "Sync library to trakt.tv"; }
-        }
+        public string Category => "Trakt";
 
-        public string Category
-        {
-            get
-            {
-                return "Trakt";
-            }
-        }
-
-        public string Description
-        {
-            get
-            {
-                return
-                    "Adds any media that is in each users trakt monitored locations to their trakt.tv profile";
-            }
-        }
+        public string Description => "Adds any media that is in each users trakt monitored locations to their trakt.tv profile";
 
         private void LogTraktResponseDataContract(TraktSyncResponse dataContract)
         {
@@ -430,14 +475,17 @@ namespace Trakt.ScheduledTasks
             {
                 _logger.Error("TraktResponse not Found:" + _jsonSerializer.SerializeToString(traktMovie));
             }
+
             foreach (var traktShow in dataContract.NotFound.Shows)
             {
                 _logger.Error("TraktResponse not Found:" + _jsonSerializer.SerializeToString(traktShow));
             }
+
             foreach (var traktSeason in dataContract.NotFound.Seasons)
             {
                 _logger.Error("TraktResponse not Found:" + _jsonSerializer.SerializeToString(traktSeason));
             }
+
             foreach (var traktEpisode in dataContract.NotFound.Episodes)
             {
                 _logger.Error("TraktResponse not Found:" + _jsonSerializer.SerializeToString(traktEpisode));

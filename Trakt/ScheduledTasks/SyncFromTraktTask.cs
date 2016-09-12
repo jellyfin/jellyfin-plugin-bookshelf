@@ -370,25 +370,16 @@ namespace Trakt.ScheduledTasks
         /// <summary>
         /// 
         /// </summary>
-        public string Name
-        {
-            get { return "Import playstates from Trakt.tv"; }
-        }
+        public string Name => "Import playstates from Trakt.tv";
 
         /// <summary>
         /// 
         /// </summary>
-        public string Description
-        {
-            get { return "Sync Watched/Unwatched status from Trakt.tv for each MB3 user that has a configured Trakt account"; }
-        }
+        public string Description => "Sync Watched/Unwatched status from Trakt.tv for each MB3 user that has a configured Trakt account";
 
         /// <summary>
         /// 
         /// </summary>
-        public string Category
-        {
-            get { return "Trakt"; }
-        }
+        public string Category => "Trakt";
     }
 }

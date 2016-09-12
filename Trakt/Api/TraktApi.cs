@@ -53,6 +53,18 @@ namespace Trakt.Api
             _logger = logger;
         }
 
+        /// <summary>
+        /// Checks whether it's possible/allowed to sync a <see cref="BaseItem"/> for a <see cref="TraktUser"/>.
+        /// </summary>
+        /// <param name="item">
+        /// Item to check.
+        /// </param>
+        /// <param name="traktUser">
+        /// The trakt user to check for.
+        /// </param>
+        /// <returns>
+        /// <see cref="bool"/> indicates if it's possible/allowed to sync this item.
+        /// </returns>
         public bool CanSync(BaseItem item, TraktUser traktUser)
         {
             if (item.Path == null || item.LocationType == LocationType.Virtual)
@@ -85,6 +97,7 @@ namespace Trakt.Api
 
             return false;
         }
+
         /// <summary>
         /// Report to trakt.tv that a movie is being watched, or has been watched.
         /// </summary>
