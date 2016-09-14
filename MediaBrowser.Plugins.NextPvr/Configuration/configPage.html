@@ -4,41 +4,30 @@
     <title>NextPVR</title>
 </head>
 <body>
-    <div data-role="page" class="page type-interior pluginConfigurationPage nextpvrConfigurationPage">
+    <div data-role="page" class="page type-interior pluginConfigurationPage nextpvrConfigurationPage" data-require="emby-button,emby-input,emby-checkbox">
 
         <div data-role="content">
             <div class="content-primary">
                 <form class="nextpvrConfigurationForm">
 
-                    <ul class="ulForm" data-role="listview">
-                        <li>
-                            <label for="txtWebServiceUrl">
-                                NextPVR base url:
-                            </label>
-                            <input type="text" id="txtWebServiceUrl" name="txtWebServiceUrl" />
-                            <div class="fieldDescription">
-                                NextPVR backend url (format --> http://{hostname}:{port}).
-                            </div>
-                        </li>
-                        <li>
-                            <label for="txtPin">
-                                NxtPvr pin:
-                            </label>
-                            <input type="text" id="txtPin" name="txtPin" />
-                            <div class="fieldDescription">
-                                NextPVR pin to access the nextpvr backend.
-                            </div>
-                        </li>
-                        <li>
-                            <label for="chkDebugLogging">Enable NextPVR debug logging</label>
-                            <input type="checkbox" id="chkDebugLogging" data-mini="true" />
-                        </li>
+                    <div class="inputContainer">
+                        <input is="emby-input" type="text" id="txtWebServiceUrl" label="NextPVR base url:" />
+                        <div class="fieldDescription">
+                            NextPVR backend url (format --> http://{hostname}:{port}).
+                        </div>
+                    </div>
+                    <div class="inputContainer">
+                        <input is="emby-input" type="text" id="txtPin" label="NextPVR pin:" />
+                        <div class="fieldDescription">
+                            NextPVR pin to access the nextpvr backend.
+                        </div>
+                    </div>
+                    <label class="checkboxContainer">
+                        <input is="emby-checkbox" type="checkbox" id="chkDebugLogging" />
+                        <span>Enable NextPVR debug logging</span>
+                    </label>
 
-                        <li>
-                            <button type="submit" data-theme="b">Save</button>
-                            <button type="button" onclick="history.back();">Cancel</button>
-                        </li>
-                    </ul>
+                    <button is="emby-button" type="submit" class="raised button-submit block"><span>Save</span></button>
 
                 </form>
             </div>

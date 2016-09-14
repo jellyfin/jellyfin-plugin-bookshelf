@@ -1,50 +1,82 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-    <title>Studio Cleaner Configuration</title>
+    <title>Studio Cleaner</title>
 </head>
 <body>
-    <div id="StudioCleanerConfigurationPage" data-role="page" class="page type-interior pluginConfigurationPage">
+    <div id="StudioCleanerConfigurationPage" data-role="page" class="page type-interior pluginConfigurationPage StudioCleanerConfigurationPage" data-require="listViewStyle,paper-icon-button-light,material-icons">
 
         <div data-role="content">
             <div class="content-primary">
-                <div style="float: right">
-                    <img src="http://mb3admin.com/images/genresweepersm.png" style="max-height: 90px"/>
+
+                <div style="max-width:700px;">
+                    <h1>Studio Cleaner</h1>
+                    <p>Configure Studio Cleaner for media type:</p>
+                    <div class="itemTypes paperList"></div>
                 </div>
-                <div style="margin-top: 90px">
-                    <p><b>Select an item type for which to configure Studio options</b></p>
-                    <ul id="StudioTypes" data-role="listview" data-inset="true"></ul>
-                    
-                </div>
-                <p>Once you have configured all your Studios, the next library scan will run the StudioCleaner against all your items.</p>
-                <p>Plugin Created By snazy2000, based on Ebr's Genre Cleaner plugin.</p>
             </div>
 
             <script type="text/javascript">
 
-                var StudioCleanerConfigurationPage = {
-                    pluginUniqueId: "AB95885A-1D0E-445E-BDBF-80C1912C98C5",
+                (function () {
+                    function parentWithClass(elem, className) {
 
-                    loadTypes: function(types, page) {
-                        var html = '<li data-role="list-divider" class="mediaLocationsHeader ui-li ui-li-divider ui-bar-b ui-corner-top" role="heading">';
-                        html += '<h3>Item Types</h3></li>';
-                        for (var type in types) {
-                            var href = Dashboard.getConfigurationPageUrl("StudioCleanerOptions") + "&type=" + encodeURIComponent(type);
-                            html += "<li>";
-                            html += "<a href='" + href + "'>";
-                            html += "<h3>" + types[type] + "</h3>";
-                            html += "</a>";
-                            html += "</li>";
+                        while (!elem.classList || !elem.classList.contains(className)) {
+                            elem = elem.parentNode;
+
+                            if (!elem) {
+                                return null;
+                            }
                         }
 
-                        $('#StudioTypes', page).html(html);
+                        return elem;
                     }
-                };
 
-                $('#StudioCleanerConfigurationPage').on('pageshow', function (event) {
+                    var StudioCleanerConfigurationPage = {
+                        pluginUniqueId: "AB95885A-1D0E-445E-BDBF-80C1912C98C5",
 
-                    StudioCleanerConfigurationPage.loadTypes({ movies: "Movies", series: "TV Series" }, $($.mobile.activePage));
-                });
+                        loadTypes: function (types, page) {
+
+                            $('.itemTypes', page).html(types.map(function (typeInfo) {
+
+                                var html = '';
+                                html += '<div class="listItem" data-type="' + typeInfo.type + '">';
+                                html += '<i class="md-icon listItemIcon">' + typeInfo.icon + '</i>';
+                                html += '<div class="listItemBody">';
+                                html += '<h3 class="listItemBodyText">';
+                                html += typeInfo.name;
+                                html += '</h3>';
+                                html += '</div>';
+                                html += '<button is="paper-icon-button-light" class="listItemButton"><i class="md-icon">mode_edit</i></button>';
+                                html += '</div>';
+                                return html;
+
+                            }).join(''));
+                        }
+                    };
+
+                    function onPageClick(e) {
+                        var listItem = parentWithClass(e.target, 'listItem');
+
+                        if (listItem) {
+                            var type = listItem.getAttribute('data-type');
+                            var href = Dashboard.getConfigurationPageUrl("StudioCleanerOptions") + "&type=" + encodeURIComponent(type);
+                            Dashboard.navigate(href);
+                        }
+                    }
+
+                    $('.StudioCleanerConfigurationPage').on('pageinit', function (event) {
+
+                        var page = this;
+                        page.addEventListener('click', onPageClick);
+                    });
+
+                    $('.StudioCleanerConfigurationPage').on('pageshow', function (event) {
+
+                        var page = this;
+                        StudioCleanerConfigurationPage.loadTypes([{ name: 'Movies', type: 'Movie', icon: 'local_movies' }, { name: 'TV Series', type: 'Series', icon: 'live_tv' }], page);
+                    });
+                })();
 
             </script>
 
