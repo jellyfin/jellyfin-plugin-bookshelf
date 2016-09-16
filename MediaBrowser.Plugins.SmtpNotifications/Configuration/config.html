@@ -95,6 +95,12 @@
 
                     ApiClient.getPluginConfiguration(pluginId).then(function (config) {
 
+                        if (!config.Options.length) {
+                            require(['alert'], function (alert) {
+                                alert("Please configure and save at least one email account.");
+                            });
+                        }
+
                         config.Options.map(function (c) {
 
                             ApiClient.ajax({
