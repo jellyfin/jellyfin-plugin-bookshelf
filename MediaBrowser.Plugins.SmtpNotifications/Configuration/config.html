@@ -4,90 +4,74 @@
     <title>Email Notifications</title>
 </head>
 <body>
-    <div data-role="page" class="page type-interior pluginConfigurationPage smtpConfigurationPage">
+    <div data-role="page" class="page type-interior pluginConfigurationPage smtpConfigurationPage" data-require="emby-select,emby-checkbox,emby-input,emby-button">
 
         <div data-role="content">
             <div class="content-primary">
 
                 <form class="smtpConfigurationForm">
 
-                    <ul class="ulForm" data-role="listview">
-                        <li>
-                            <label for="selectUser">Configure email notifications for:</label>
-                            <select id="selectUser" data-mini="true"></select>
-                        </li>
-                        <li>
-                            <label for="chkEnableSMTP">Enabled</label>
-                            <input type="checkbox" id="chkEnableSMTP" data-mini="true" />
-                        </li>
-                        <li>
-                            <label for="txtEmailFrom">
-                                Email From :
-                            </label>
-                            <input type="text" id="txtEmailFrom" name="txtEmailFrom" required="required" data-mini="true" />
-                            <div class="fieldDescription">
-                                Email Address that messages will be sent from. Sending from a free email service such as gmail, hotmail, or yahoo is not recommended. The providers may block repeated outgoing, automated email.
-                            </div>
-                        </li>
-                        <li>
-                            <label for="txtEmailTo">
-                                Email To :
-                            </label>
-                            <input type="text" id="txtEmailTo" name="txtEmailTo" required="required" data-mini="true" />
-                            <div class="fieldDescription">
-                                Email Address that messaged will be sent to.
-                            </div>
-                        </li>
-                        <li>
-                            <label for="txtServer">
-                                SMTP Hostname :
-                            </label>
-                            <input type="text" id="txtServer" name="txtServer" required="required" data-mini="true" />
-                            <div class="fieldDescription">
-                                Hostname for your SMTP Server. Sending from a free email service such as gmail, hotmail, or yahoo is not recommended. The providers may block repeated outgoing, automated email.
-                            </div>
-                        </li>
-                        <li>
-                            <label for="txtPort">
-                                SMTP Port :
-                            </label>
-                            <input type="text" id="txtPort" name="txtPort" />
-                            <div class="fieldDescription">
-                                Port for your SMTP Server (Default 25).
-                            </div>
-                        </li>
-                        <li>
-                            <label for="chkEnableSSL">Enable SSL / TLS</label>
-                            <input type="checkbox" id="chkEnableSSL" data-mini="true" />
-                        </li>
-                        <li>
-                            <label for="chkEnableAuth">Enable SMTP Authentication</label>
-                            <input type="checkbox" id="chkEnableAuth" data-mini="true" />
-                        </li>
-                        <li>
-                            <label for="txtUsername">
-                                SMTP Username :
-                            </label>
-                            <input type="text" id="txtUsername" name="txtUsername" data-mini="true" />
-                            <div class="fieldDescription">
-                                Username for your SMTP Server.
-                            </div>
-                        </li>
-                        <li>
-                            <label for="txtPassword">
-                                SMTP Password :
-                            </label>
-                            <input type="password" id="txtPassword" name="txtPassword" data-mini="true" />
-                            <div class="fieldDescription">
-                                Password for your SMTP Server.
-                            </div>
-                        </li>
-                        <li><button type="button" id="testNotification" data-mini="true">Test Notification</button></li>
-                        <li>
-                            <button type="submit" data-theme="b" data-mini="true">Save</button>
-                            <button type="button" onclick="history.back();" data-mini="true">Cancel</button>
-                        </li>
-                    </ul>
+                    <div style="height:0; overflow: hidden;"><input type="text" name="fakeusernameremembered" tabindex="-1" /><input type="password" name="fakepasswordremembered" tabindex="-1" /></div>
+
+                    <div class="selectContainer">
+                        <select is="emby-select" id="selectUser" label="Configure email notifications for:"></select>
+                    </div>
+                    <label class="checkboxContainer">
+                        <input is="emby-checkbox" type="checkbox" id="chkEnableSMTP" />
+                        <span>Enable notifications for this user</span>
+                    </label>
+                    <div class="inputContainer">
+                        <input is="emby-input" type="text" id="txtEmailFrom" name="txtEmailFrom" required="required" label="Email from:" />
+                        <div class="fieldDescription">
+                            Email Address that messages will be sent from. Sending from a free email service such as gmail, hotmail, or yahoo is not recommended. The providers may block repeated outgoing, automated email.
+                        </div>
+                    </div>
+                    <div class="inputContainer">
+                        <input is="emby-input" type="text" id="txtEmailTo" name="txtEmailTo" required="required" label="Email to:" />
+                        <div class="fieldDescription">
+                            Email Address that messaged will be sent to.
+                        </div>
+                    </div>
+                    <div class="inputContainer">
+                        <input is="emby-input" type="text" id="txtServer" name="txtServer" required="required" label="SMTP hostname:" />
+                        <div class="fieldDescription">
+                            Hostname for your SMTP Server. Sending from a free email service such as gmail, hotmail, or yahoo is not recommended. The providers may block repeated outgoing, automated email.
+                        </div>
+                    </div>
+                    <div class="inputContainer">
+                        <input is="emby-input" type="text" id="txtPort" name="txtPort" label="SMTP port:" />
+                        <div class="fieldDescription">
+                            Port for your SMTP Server (Default 25).
+                        </div>
+                    </div>
+                    <label class="checkboxContainer">
+                        <input is="emby-checkbox" type="checkbox" id="chkEnableSSL" />
+                        <span>Enable SSL / TLS</span>
+                    </label>
+                    <label class="checkboxContainer">
+                        <input is="emby-checkbox" type="checkbox" id="chkEnableAuth" />
+                        <span>Enable SMTP Authentication</span>
+                    </label>
+                    <div class="inputContainer">
+                        <input is="emby-input" type="text" id="txtUsername" name="txtUsername" label="SMTP username:" />
+                        <div class="fieldDescription">
+                            Username for your SMTP Server.
+                        </div>
+                    </div>
+                    <div class="inputContainer">
+                        <input is="emby-input" type="password" id="txtPassword" name="txtPassword" label="SMTP password:" />
+                        <div class="fieldDescription">
+                            Password for your SMTP Server.
+                        </div>
+                    </div>
+                    <div>
+                        <button is="emby-button" type="button" class="raised button-cancel block" id="testNotification">
+                            <span>Test Notification</span>
+                        </button>
+                    </div>
+                    <div>
+                        <button is="emby-button" type="submit" class="raised button-submit block"><span>Save</span></button>
+                    </div>
 
                 </form>
             </div>
@@ -128,9 +112,9 @@
 
                             return userId == c.MediaBrowserUserId;
 
-                        })[0] || {};
-                        
-                        $('#chkEnableSMTP', page).checked(smtpConfig.Enabled || false).checkboxradio("refresh");
+                        })[0] || { Enabled: true };
+
+                        $('#chkEnableSMTP', page).checked(smtpConfig.Enabled).checkboxradio("refresh");
                         $('#txtEmailFrom', page).val(smtpConfig.EmailFrom || '');
                         $('#txtEmailTo', page).val(smtpConfig.EmailTo || '');
                         $('#txtServer', page).val(smtpConfig.Server || '');
@@ -192,7 +176,7 @@
                             smtpConfig = {};
                             config.Options.push(smtpConfig);
                         }
-                        
+
                         smtpConfig.MediaBrowserUserId = userId;
                         smtpConfig.Enabled = $('#chkEnableSMTP', form).checked();
                         smtpConfig.EmailFrom = $('#txtEmailFrom', form).val();
