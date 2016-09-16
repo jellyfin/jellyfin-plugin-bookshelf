@@ -87,19 +87,26 @@
 
                     Dashboard.showLoadingMsg();
 
+                    var onError = function () {
+                        require(['alert'], function (alert) {
+                            alert("There was an error sending the test email. Please check your email settings and try again.");
+                        });
+                    };
+
                     ApiClient.getPluginConfiguration(pluginId).then(function (config) {
 
-                        config.Options.filter(function (c) {
+                        config.Options.map(function (c) {
 
                             ApiClient.ajax({
                                 type: "POST",
                                 url: ApiClient.getUrl("Notification/SMTP/Test/" + c.MediaBrowserUserId)
 
-                            }).then(function () {
-                                Dashboard.hideLoadingMsg();
-                            });
+                            }).catch(onError);
                         });
-                    });
+
+                        Dashboard.hideLoadingMsg();
+
+                    }, onError);
                 });
 
                 function loadUserConfig(page, userId) {
