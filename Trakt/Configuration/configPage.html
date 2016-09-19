@@ -43,6 +43,13 @@
                             </div>
                         </li>
                         <li>
+                            <input type="checkbox" id="chkPostWatchedHistory" name="chkPostWatchedHistory" />
+                            <label for="chkPostWatchedHistory">Change watched history on trakt</label>
+                            <div class="fieldDescription">
+                                By default, watched status will be synchronized. This changes it so that emby just copies the status of trakt, and the only time data watched status is changed on trakt is when a video just finished playing (just scrobbles, no history changes).
+                            </div>
+                        </li>
+                        <li>
                             <input type="checkbox" id="chkExtraLogging" name="chkExtraLogging" />
                             <label for="chkExtraLogging">Add Extra Logs</label>
                             <div class="fieldDescription">
@@ -97,6 +104,7 @@
                                     UserName: "",
                                     Password: "",
                                     SkipUnwatchedImportFromTrakt: false,
+                                    PostWatchedHistory: true,
                                     ExtraLogging: false,
 									ExportMediaInfo: false
                                 };
@@ -106,6 +114,7 @@
                             $('#txtTraktUserName', page).val(currentUserConfig.UserName);
                             $('#txtTraktPassword', page).val(currentUserConfig.Password);
                             $('#chkSkipUnwatchedImportFromTrakt', page).checked(currentUserConfig.SkipUnwatchedImportFromTrakt).checkboxradio("refresh");
+                            $('#chkPostWatchedHistory', page).checked(currentUserConfig.PostWatchedHistory).checkboxradio("refresh");
                             $('#chkExtraLogging', page).checked(currentUserConfig.ExtraLogging).checkboxradio("refresh");
                             $('#chkExportMediaInfo', page).checked(currentUserConfig.ExportMediaInfo).checkboxradio("refresh");
                             // List the folders the user can access
@@ -172,6 +181,7 @@
                         config.TraktUsers.push(currentUserConfig);
                     }
                     currentUserConfig.SkipUnwatchedImportFromTrakt = $('#chkSkipUnwatchedImportFromTrakt', page).checked();
+                    currentUserConfig.PostWatchedHistory = $('#chkPostWatchedHistory', page).checked();
                     currentUserConfig.ExtraLogging = $('#chkExtraLogging', page).checked();
                     currentUserConfig.ExportMediaInfo = $('#chkExportMediaInfo', page).checked();
                     currentUserConfig.UserName = $('#txtTraktUserName', page).val();

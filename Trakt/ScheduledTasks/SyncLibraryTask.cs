@@ -145,13 +145,24 @@ namespace Trakt.ScheduledTasks
                 }
 
                 var movieWatched = SyncFromTraktTask.FindMatch(movie, traktWatchedMovies);
+                // if the movie has been played locally and is unplayed on trakt.tv then add it to the list
                 if (userData.Played)
                 {
                     if (movieWatched == null)
                     {
-                        playedMovies.Add(movie);
+                        if (traktUser.PostWatchedHistory)
+                        {
+                            playedMovies.Add(movie);
+                        }
+                        else
+                        {
+                            userData.Played = false;
+                            await _userDataManager.SaveUserData(user.Id, movie, userData, UserDataSaveReason.Import,
+                                cancellationToken);
+                        }
                     }
                 }
+                // If the show has not been played locally but is played on trakt.tv then add it to the unplayed list
                 else
                 {
                     if (movieWatched != null)
@@ -163,7 +174,6 @@ namespace Trakt.ScheduledTasks
                 progPercent += percentPerItem;
                 progress.Report(progPercent);
             }
-
             _logger.Info("Movies to add to Collection: " + movies.Count);
             // send any remaining entries
             if (movies.Count > 0)
@@ -279,7 +289,16 @@ namespace Trakt.ScheduledTasks
                 // if the show has been played locally and is unplayed on trakt.tv then add it to the list
                 if (userData != null && userData.Played && !isPlayedTraktTv)
                 {
-                    playedEpisodes.Add(episode);
+                    if (traktUser.PostWatchedHistory)
+                    {
+                        playedEpisodes.Add(episode);
+                    }
+                    else
+                    {
+                        userData.Played = false;
+                        await _userDataManager.SaveUserData(user.Id, episode, userData, UserDataSaveReason.Import,
+                                cancellationToken);
+                    }
                 }
                     // If the show has not been played locally but is played on trakt.tv then add it to the unplayed list
                 else if (userData != null && !userData.Played && isPlayedTraktTv)
