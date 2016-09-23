@@ -1,20 +1,19 @@
 ﻿<div class="formDialogHeader">
-    <button is="emby-button" class="btnCancel autoSize" tabindex="-1"><i class="md-icon">&#xE5C4;</i></button>
-    <div class="formDialogHeaderTitle">
-    </div>
+    <button is="emby-button" class="btnCancel autoSize button-flat" tabindex="-1" style="background: none;"><i class="md-icon">&#xE5C4;</i></button>
+    <h3 class="formDialogHeaderTitle"></h3>
 </div>
 
 <div class="formDialogContent smoothScrollY">
-    <div style="width:90%; margin:auto;">
+    <div class="dialogContentInner">
         <h2>Lookup Criteria:</h2>
         <form class="popupMetadataForm" style="margin:auto;">
             <div id="searchCriteria"></div>
             <div id="searchCriteriaEditable">
                 <table class="detailTable">
                     <tr>
-                        <td style="width: 7em;"><label for="selectLanguage" class="selectLabel">Language:</label></td>
+                        <td style="width: 7em; vertical-align: top;"><label for="selectLanguage" class="selectLabel">Language:</label></td>
                         <td>
-                            <select id="selectLanguage" style="max-width: 20em;">
+                            <select id="selectLanguage" style="max-width: 20em; color: #fff !important;">
                                 <option value=""></option>
                                 <option value="en">English</option>
                                 <option value="de">German</option>

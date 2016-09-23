@@ -5,8 +5,8 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("MetadataViewer Beta 12")]
-[assembly: AssemblyDescription("Beta 12")]
+[assembly: AssemblyTitle("MetadataViewer Beta 13")]
+[assembly: AssemblyDescription("Beta 13")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("MetadataViewer")]
