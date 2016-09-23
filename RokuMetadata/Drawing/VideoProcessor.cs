@@ -43,24 +43,9 @@ namespace RokuMetadata.Drawing
 
             var modifier = GetItemModifier(item);
 
-            var audioMode = Plugin.Instance.Configuration.AudioOutputMode;
-            var profile = new RokuDeviceProfile(audioMode >= AudioOutputMode.DDPlus, audioMode >= AudioOutputMode.DTS);
-
             foreach (var mediaSource in mediaSources)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-
-                var streamInfo = new StreamBuilder(_logger).BuildVideoItem(new VideoOptions
-                {
-                    Context = EncodingContext.Streaming,
-                    ItemId = item.Id.ToString("N"),
-                    MediaSources = new List<MediaSourceInfo> { mediaSource },
-                    Profile = profile,
-                    MaxBitrate = Plugin.Instance.Configuration.MaxBitrate,
-                    DeviceId = Guid.NewGuid().ToString("N"),
-                    AudioStreamIndex = mediaSource.MediaStreams.Where(i => i.Type == MediaStreamType.Audio).Select(i => i.Index).FirstOrDefault(),
-                    MediaSourceId = mediaSource.Id
-                });
 
                 if (Plugin.Instance.Configuration.EnableHdThumbnails)
                 {

@@ -58,25 +58,6 @@
 
                 var pluginId = "6C3B6965-C257-47C2-AA02-64457AE21D91";
 
-                $('#testNotification').on('click', function (event) {
-
-                    Dashboard.showLoadingMsg();
-
-                    ApiClient.getPluginConfiguration(pluginId).then(function (config) {
-
-                        config.Options.filter(function (c) {
-
-                            ApiClient.ajax({
-                                type: "POST",
-                                url: ApiClient.getUrl("Notification/Pushover/Test/" + c.MediaBrowserUserId)
-
-                            }).then(function () {
-                                Dashboard.hideLoadingMsg();
-                            });
-                        });
-                    });
-                });
-
                 function loadUserConfig(page, userId) {
 
                     Dashboard.showLoadingMsg();
@@ -105,6 +86,39 @@
                     $('#selectUser', page).on('change', function () {
 
                         loadUserConfig(page, this.value);
+                    });
+
+                    $('#testNotification', page).on('click', function (event) {
+
+                        Dashboard.showLoadingMsg();
+
+                        var onError = function () {
+                            alert("There was an error sending the test notification. Please check your notification settings and try again.");
+                            require(['alert'], function (alert) {
+                                Dashboard.hideLoadingMsg();
+                            });
+                        };
+
+                        ApiClient.getPluginConfiguration(pluginId).then(function (config) {
+
+                            if (!config.Options.length) {
+                                Dashboard.hideLoadingMsg();
+                                require(['alert'], function (alert) {
+                                    alert("Please configure and save at least one notification account.");
+                                });
+                            }
+
+                            config.Options.map(function (c) {
+
+                                ApiClient.ajax({
+                                    type: "POST",
+                                    url: ApiClient.getUrl("Notification/Pushover/Test/" + c.MediaBrowserUserId)
+
+                                }).then(function () {
+                                    Dashboard.hideLoadingMsg();
+                                }, onError);
+                            });
+                        });
                     });
 
                 }).on('pageshow', function (event) {

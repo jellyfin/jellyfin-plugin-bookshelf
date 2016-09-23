@@ -4,36 +4,35 @@
     <title>Notify My Android Notifications</title>
 </head>
 <body>
-    <div data-role="page" class="page type-interior pluginConfigurationPage nmaConfigurationPage">
+    <div data-role="page" class="page type-interior pluginConfigurationPage nmaConfigurationPage" data-require="emby-input,emby-button,emby-checkbox,emby-select">
 
         <div data-role="content">
             <div class="content-primary">
                 <form class="nmaConfigurationForm">
                     <p>To use Notify My Android register an application at <a href="http://www.notifymyandroid.com/">notifymyandroid.com</a></p>
-                    <ul class="ulForm" data-role="listview">
-                        <li>
-                            <label for="selectUser">Configure Notify My Android notifications for:</label>
-                            <select id="selectUser" data-mini="true"></select>
-                        </li>
-                        <li>
-                            <label for="chkEnablenma">Enabled</label>
-                            <input type="checkbox" id="chkEnablenma" data-mini="true" />
-                        </li>
-                        <li>
-                            <label for="txtnmaAuthKey">
-                                Notify My Android Auth Token:
-                            </label>
-                            <input type="text" id="txtnmaAuthKey" name="txtnmaAuthKey" required="required" data-mini="true" />
-                            <div class="fieldDescription">
-                                Auth key for your application
-                            </div>
-                        </li>
-                        <li><button type="button" id="testNotification" data-mini="true">Test Notification</button></li>
-                        <li>
-                            <button type="submit" data-theme="b" data-mini="true">Save</button>
-                            <button type="button" onclick="history.back();" data-mini="true">Cancel</button>
-                        </li>
-                    </ul>
+                    <div style="height:0; overflow: hidden;"><input type="text" name="fakeusernameremembered" tabindex="-1" /><input type="password" name="fakepasswordremembered" tabindex="-1" /></div>
+                    <div class="selectContainer">
+                        <select is="emby-select" id="selectUser" label="Configure Notify My Android notifications for:"></select>
+                    </div>
+                    <label class="checkboxContainer">
+                        <input is="emby-checkbox" type="checkbox" id="chkEnablenma" />
+                        <span>Enabled</span>
+                    </label>
+                    <div class="inputContainer">
+                        <input is="emby-input" type="text" id="txtnmaAuthKey" required="required" label="Notify My Android auth token:" />
+                        <div class="fieldDescription">
+                            Auth key for your application
+                        </div>
+                    </div>
+                    <div>
+                        <button is="emby-button" type="button" class="raised button-cancel block" id="testNotification">
+                            <span>Test Notification</span>
+                        </button>
+                    </div>
+                    <br />
+                    <div>
+                        <button is="emby-button" type="submit" class="raised button-submit block"><span>Save</span></button>
+                    </div>
 
                 </form>
             </div>
@@ -44,25 +43,6 @@
             (function () {
 
                 var pluginId = "66fd72a4-7e8e-4f22-8d1c-022ce4b9b0d5";
-
-                $('#testNotification').on('click', function (event) {
-
-                    Dashboard.showLoadingMsg();
-
-                    ApiClient.getPluginConfiguration(pluginId).then(function (config) {
-
-                        config.Options.filter(function (c) {
-
-                            ApiClient.ajax({
-                                type: "POST",
-                                url: ApiClient.getUrl("Notification/NotifyMyAndroid/Test/" + c.MediaBrowserUserId)
-
-                            }).then(function () {
-                                Dashboard.hideLoadingMsg();
-                            });
-                        });
-                    });
-                });
 
                 function loadUserConfig(page, userId) {
 
@@ -90,6 +70,39 @@
                     $('#selectUser', page).on('change', function () {
 
                         loadUserConfig(page, this.value);
+                    });
+
+                    $('#testNotification', page).on('click', function (event) {
+
+                        Dashboard.showLoadingMsg();
+
+                        var onError = function () {
+                            alert("There was an error sending the test notification. Please check your notification settings and try again.");
+                            require(['alert'], function (alert) {
+                                Dashboard.hideLoadingMsg();
+                            });
+                        };
+
+                        ApiClient.getPluginConfiguration(pluginId).then(function (config) {
+
+                            if (!config.Options.length) {
+                                Dashboard.hideLoadingMsg();
+                                require(['alert'], function (alert) {
+                                    alert("Please configure and save at least one notification account.");
+                                });
+                            }
+
+                            config.Options.map(function (c) {
+
+                                ApiClient.ajax({
+                                    type: "POST",
+                                    url: ApiClient.getUrl("Notification/NotifyMyAndroid/Test/" + c.MediaBrowserUserId)
+
+                                }).then(function () {
+                                    Dashboard.hideLoadingMsg();
+                                }, onError);
+                            });
+                        });
                     });
 
                 }).on('pageshow', function (event) {

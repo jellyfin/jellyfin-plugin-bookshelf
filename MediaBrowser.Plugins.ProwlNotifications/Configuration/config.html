@@ -4,36 +4,35 @@
     <title>Prowl Notifications</title>
 </head>
 <body>
-    <div data-role="page" class="page type-interior pluginConfigurationPage prowlConfigurationPage">
+    <div data-role="page" class="page type-interior pluginConfigurationPage prowlConfigurationPage" data-require="emby-input,emby-button,emby-checkbox,emby-select">
 
         <div data-role="content">
             <div class="content-primary">
                 <form class="prowlConfigurationForm">
                     <p>To use Prowl register an application at <a href="https://www.prowlapp.com/">prowlapp.com</a></p>
-                    <ul class="ulForm" data-role="listview">
-                        <li>
-                            <label for="selectUser">Configure Prowl notifications for:</label>
-                            <select id="selectUser" data-mini="true"></select>
-                        </li>
-                        <li>
-                            <label for="chkEnableProwl">Enabled</label>
-                            <input type="checkbox" id="chkEnableProwl" data-mini="true" />
-                        </li>
-                        <li>
-                            <label for="txtProwlAuthKey">
-                                Prowl Auth Token:
-                            </label>
-                            <input type="text" id="txtProwlAuthKey" name="txtProwlAuthKey" required="required" data-mini="true" />
-                            <div class="fieldDescription">
-                                Auth key for your application
-                            </div>
-                        </li>
-                        <li><button type="button" id="testNotification" data-mini="true">Test Notification</button></li>
-                        <li>
-                            <button type="submit" data-theme="b" data-mini="true">Save</button>
-                            <button type="button" onclick="history.back();" data-mini="true">Cancel</button>
-                        </li>
-                    </ul>
+                    <div style="height:0; overflow: hidden;"><input type="text" name="fakeusernameremembered" tabindex="-1" /><input type="password" name="fakepasswordremembered" tabindex="-1" /></div>
+                    <div class="selectContainer">
+                        <select is="emby-select" id="selectUser" label="Configure Prowl notifications for:"></select>
+                    </div>
+                    <label class="checkboxContainer">
+                        <input is="emby-checkbox" type="checkbox" id="chkEnableProwl" />
+                        <span>Enabled</span>
+                    </label>
+                    <div class="inputContainer">
+                        <input is="emby-input" type="text" id="txtProwlAuthKey" required="required" label="Prowl auth token:" />
+                        <div class="fieldDescription">
+                            Auth key for your application
+                        </div>
+                    </div>
+                    <div>
+                        <button is="emby-button" type="button" class="raised button-cancel block" id="testNotification">
+                            <span>Test Notification</span>
+                        </button>
+                    </div>
+                    <br />
+                    <div>
+                        <button is="emby-button" type="submit" class="raised button-submit block"><span>Save</span></button>
+                    </div>
 
                 </form>
             </div>
@@ -44,25 +43,6 @@
             (function () {
 
                 var pluginId = "577f89eb-58a7-4013-be06-9a970ddb1377";
-
-                $('#testNotification').on('click', function (event) {
-
-                    Dashboard.showLoadingMsg();
-
-                    ApiClient.getPluginConfiguration(pluginId).then(function (config) {
-
-                        config.Options.filter(function (c) {
-
-                            ApiClient.ajax({
-                                type: "POST",
-                                url: ApiClient.getUrl("Notification/Prowl/Test/" + c.MediaBrowserUserId)
-
-                            }).then(function () {
-                                Dashboard.hideLoadingMsg();
-                            });
-                        });
-                    });
-                });
 
                 function loadUserConfig(page, userId) {
 
@@ -90,6 +70,39 @@
                     $('#selectUser', page).on('change', function () {
 
                         loadUserConfig(page, this.value);
+                    });
+
+                    $('#testNotification', page).on('click', function (event) {
+
+                        Dashboard.showLoadingMsg();
+
+                        var onError = function () {
+                            alert("There was an error sending the test notification. Please check your notification settings and try again.");
+                            require(['alert'], function (alert) {
+                                Dashboard.hideLoadingMsg();
+                            });
+                        };
+
+                        ApiClient.getPluginConfiguration(pluginId).then(function (config) {
+
+                            if (!config.Options.length) {
+                                Dashboard.hideLoadingMsg();
+                                require(['alert'], function (alert) {
+                                    alert("Please configure and save at least one notification account.");
+                                });
+                            }
+
+                            config.Options.map(function (c) {
+
+                                ApiClient.ajax({
+                                    type: "POST",
+                                    url: ApiClient.getUrl("Notification/Prowl/Test/" + c.MediaBrowserUserId)
+
+                                }).then(function () {
+                                    Dashboard.hideLoadingMsg();
+                                }, onError);
+                            });
+                        });
                     });
 
                 }).on('pageshow', function (event) {

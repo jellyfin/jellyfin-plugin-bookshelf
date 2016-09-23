@@ -84,38 +84,6 @@
 
                 var pluginId = "b9f0c474-e9a8-4292-ae41-eb3c1542f4cd";
 
-                $('#testNotification').on('click', function (event) {
-
-                    Dashboard.showLoadingMsg();
-
-                    var onError = function () {
-                        require(['alert'], function (alert) {
-                            alert("There was an error sending the test email. Please check your email settings and try again.");
-                        });
-                    };
-
-                    ApiClient.getPluginConfiguration(pluginId).then(function (config) {
-
-                        if (!config.Options.length) {
-                            require(['alert'], function (alert) {
-                                alert("Please configure and save at least one email account.");
-                            });
-                        }
-
-                        config.Options.map(function (c) {
-
-                            ApiClient.ajax({
-                                type: "POST",
-                                url: ApiClient.getUrl("Notification/SMTP/Test/" + c.MediaBrowserUserId)
-
-                            }).catch(onError);
-                        });
-
-                        Dashboard.hideLoadingMsg();
-
-                    }, onError);
-                });
-
                 function loadUserConfig(page, userId) {
 
                     Dashboard.showLoadingMsg();
@@ -149,6 +117,39 @@
                     $('#selectUser', page).on('change', function () {
 
                         loadUserConfig(page, this.value);
+                    });
+
+                    $('#testNotification', page).on('click', function (event) {
+
+                        Dashboard.showLoadingMsg();
+
+                        var onError = function () {
+                            require(['alert'], function (alert) {
+                                alert("There was an error sending the test email. Please check your email settings and try again.");
+                            });
+                        };
+
+                        ApiClient.getPluginConfiguration(pluginId).then(function (config) {
+
+                            if (!config.Options.length) {
+                                Dashboard.hideLoadingMsg();
+                                require(['alert'], function (alert) {
+                                    alert("Please configure and save at least one email account.");
+                                });
+                            }
+
+                            config.Options.map(function (c) {
+
+                                ApiClient.ajax({
+                                    type: "POST",
+                                    url: ApiClient.getUrl("Notification/SMTP/Test/" + c.MediaBrowserUserId)
+
+                                }).catch(onError);
+                            });
+
+                            Dashboard.hideLoadingMsg();
+
+                        }, onError);
                     });
 
                 }).on('pageshow', function (event) {
