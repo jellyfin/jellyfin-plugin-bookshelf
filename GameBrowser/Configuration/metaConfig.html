@@ -4,25 +4,22 @@
         <title>GameBrowser</title>
     </head>
     <body>
-        <div id="gameBrowserMetaConfigurationPage" data-role="page" class="page type-interior pluginConfigurationPage">
+        <div id="gameBrowserMetaConfigurationPage" data-role="page" class="page type-interior pluginConfigurationPage gameBrowserMetaConfigurationPage" data-require="emby-input,emby-button">
             <div data-role="content">
                 <div class="content-primary">
                     <h1 id="subTitle">Metadata & Art Configuration</h1>
                     <form id="gameBrowserMetaConfigurationForm">
-                        <ul class="ulForm" data-role="listview" data-inset="true">
-                            <li data-role="list-divider"><h3>EmuMovies Credentials</h3></li>
-                            <li>
-                                <label for="txtUsername"> Username: </label>
-                                <input id="txtUsername" name="txtUsername" type="text" data-inline="true" style="display: inline;" />
-                            </li>
-                            <li>
-                                <label for="txtPassword"> Password: </label>
-                                <input id="txtPassword" name="txtPassword" type="password" data-inline="true" style="display: inline;" />
-                            </li>
-                            <li>
-                                <button type="submit" data-theme="b" data-icon="check">Save</button>
-                            </li>
-                        </ul>
+                        <div data-role="list-divider"><h3>EmuMovies Credentials</h3></div>
+                        <div class="inputContainer">
+                            <input is="emby-input" id="txtUsername" type="text" label="Username:" />
+                        </div>
+                        <div class="inputContainer">
+                            <input is="emby-input" id="txtPassword" type="password" label="Password:" />
+                        </div>
+                        <br />
+                        <div>
+                            <button is="emby-button" type="submit" class="raised button-submit block"><span>Save</span></button>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -52,32 +49,37 @@
                         }
                     };
                 
-                $('#gameBrowserMetaConfigurationPage').on('pageshow', function (event) {
+                $('.gameBrowserMetaConfigurationPage').on('pageshow', function (event) {
 
                     var page = this;
 
                     GameBrowserMetaConfigurationPage.loadConfiguration();
                 });
 
-                $('#gameBrowserMetaConfigurationPage').on('submit', function (e) {
+                $('.gameBrowserMetaConfigurationPage').on('pageinit', function (event) {
 
-                    Dashboard.showLoadingMsg();
+                    var page = this;
 
-                    var page = $.mobile.activePage;
+                    $('#gameBrowserMetaConfigurationPage', page).on('submit', function (e) {
 
-                    ApiClient.getPluginConfiguration(GameBrowserMetaConfigurationPage.pluginUniqueId).then(function (config) {
+                        Dashboard.showLoadingMsg();
 
-                        config.EmuMoviesUsername = $('#txtUsername', page).val();
-                        config.EmuMoviesPassword = $('#txtPassword', page).val();
+                        var page = $.mobile.activePage;
 
-                        ApiClient.updatePluginConfiguration(GameBrowserMetaConfigurationPage.pluginUniqueId, config).then(function(result) {
-                            Dashboard.processPluginConfigurationUpdateResult(result);
+                        ApiClient.getPluginConfiguration(GameBrowserMetaConfigurationPage.pluginUniqueId).then(function (config) {
 
-                            return true;
+                            config.EmuMoviesUsername = $('#txtUsername', page).val();
+                            config.EmuMoviesPassword = $('#txtPassword', page).val();
+
+                            ApiClient.updatePluginConfiguration(GameBrowserMetaConfigurationPage.pluginUniqueId, config).then(function (result) {
+                                Dashboard.processPluginConfigurationUpdateResult(result);
+
+                                return true;
+                            });
                         });
-                    });
 
-                    return false;
+                        return false;
+                    });
                 });
                 
             </script>
