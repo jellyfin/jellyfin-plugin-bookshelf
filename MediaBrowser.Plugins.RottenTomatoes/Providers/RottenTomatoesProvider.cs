@@ -19,7 +19,7 @@ using System.Threading.Tasks;
 
 namespace MediaBrowser.Plugins.RottenTomatoes.Providers
 {
-    public class RottenTomatoesProvider : ICustomMetadataProvider<Movie>, ICustomMetadataProvider<Trailer>, IHasItemChangeMonitor
+    public class RottenTomatoesProvider : IHasItemChangeMonitor
     {
         // http://developer.rottentomatoes.com/iodocs
         private const int DailyRefreshLimit = 300;
