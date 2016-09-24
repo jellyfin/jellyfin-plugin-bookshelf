@@ -1,4 +1,4 @@
-﻿define(['dialogHelper', 'detailtablecss', 'emby-button', 'emby-select', 'formDialogStyle'], function (dialogHelper) {
+﻿define(['dialogHelper', 'globalize', 'loading', 'detailtablecss', 'emby-button', 'emby-select', 'formDialogStyle'], function (dialogHelper, globalize, loading) {
 
     var currentItem;
     var currentItemType;
@@ -76,19 +76,16 @@
 
                     ApiClient.getItem(Dashboard.getCurrentUserId(), itemId).then(function (item) {
 
-                        var dlg = dialogHelper.createDialog({
-                            size: 'large'
-                        });
+                        var dialogOptions = {
+                            removeOnClose: true,
+                            size: 'fullscreen'
+                        };
 
-                        //dlg.classList.add('ui-body-b');
-                        //dlg.classList.add('background-theme-b');
+                        var dlg = dialogHelper.createDialog(dialogOptions);
+
                         dlg.classList.add('formDialog');
 
-                        var html = '';
-
-                        html += Globalize.translateDocument(template);
-
-                        dlg.innerHTML = html;
+                        dlg.innerHTML = globalize.translateDocument(template);
                         document.body.appendChild(dlg);
 
                         dlg.querySelector('.formDialogHeaderTitle').innerHTML = "Raw Metadata for: " + item.Name;
