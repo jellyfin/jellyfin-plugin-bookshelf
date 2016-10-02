@@ -388,6 +388,51 @@
                 progress.Report(progPercent);
             }
 
+            await SendEpisodeCollectionUpdates(true, traktUser, collectedEpisodes, progress, progPercent, percentPerItem, cancellationToken);
+
+            await SendEpisodePlaystateUpdates(true, traktUser, playedEpisodes, progress, progPercent, percentPerItem, cancellationToken);
+
+            await SendEpisodePlaystateUpdates(false, traktUser, unplayedEpisodes, progress, progPercent, percentPerItem, cancellationToken);
+        }
+
+        private async Task SendEpisodePlaystateUpdates(
+            bool seen,
+            TraktUser traktUser,
+            List<Episode> playedEpisodes,
+            IProgress<double> progress,
+            double progPercent,
+            double percentPerItem,
+            CancellationToken cancellationToken)
+        {
+            _logger.Info("Episodes to set " + (seen ? string.Empty : "un") + "watched: " + playedEpisodes.Count);
+            if (playedEpisodes.Count > 0)
+            {
+                try
+                {
+                    var dataContracts =
+                        await _traktApi.SendEpisodePlaystateUpdates(playedEpisodes, traktUser, seen, cancellationToken);
+                    dataContracts?.ForEach(LogTraktResponseDataContract);
+                }
+                catch (Exception e)
+                {
+                    _logger.ErrorException("Error updating episode play states", e);
+                }
+
+                // purely for progress reporting
+                progPercent += percentPerItem * playedEpisodes.Count;
+                progress.Report(progPercent);
+            }
+        }
+
+        private async Task SendEpisodeCollectionUpdates(
+            bool collected,
+            TraktUser traktUser,
+            List<Episode> collectedEpisodes,
+            IProgress<double> progress,
+            double progPercent,
+            double percentPerItem,
+            CancellationToken cancellationToken)
+        {
             _logger.Info("Episodes to add to Collection: " + collectedEpisodes.Count);
             if (collectedEpisodes.Count > 0)
             {
@@ -395,7 +440,7 @@
                 {
                     var dataContracts =
                         await
-                            _traktApi.SendLibraryUpdateAsync(collectedEpisodes, traktUser, cancellationToken, EventType.Add)
+                            _traktApi.SendLibraryUpdateAsync(collectedEpisodes, traktUser, cancellationToken, collected ? EventType.Add : EventType.Remove)
                                 .ConfigureAwait(false);
                     if (dataContracts != null)
                     {
@@ -418,47 +463,8 @@
                 progPercent += percentPerItem * collectedEpisodes.Count;
                 progress.Report(progPercent);
             }
-
-            _logger.Info("Episodes to set watched: " + playedEpisodes.Count);
-            if (playedEpisodes.Count > 0)
-            {
-                try
-                {
-                    var dataContracts =
-                        await _traktApi.SendEpisodePlaystateUpdates(playedEpisodes, traktUser, true, cancellationToken);
-                    dataContracts?.ForEach(LogTraktResponseDataContract);
-                }
-                catch (Exception e)
-                {
-                    _logger.ErrorException("Error updating episode play states", e);
-                }
-
-                // purely for progress reporting
-                progPercent += percentPerItem * playedEpisodes.Count;
-                progress.Report(progPercent);
-            }
-
-            _logger.Info("Episodes to set unwatched: " + unplayedEpisodes.Count);
-            if (unplayedEpisodes.Count > 0)
-            {
-                try
-                {
-                    var dataContracts =
-                        await
-                            _traktApi.SendEpisodePlaystateUpdates(unplayedEpisodes, traktUser, false, cancellationToken);
-                    dataContracts?.ForEach(LogTraktResponseDataContract);
-                }
-                catch (Exception e)
-                {
-                    _logger.ErrorException("Error updating episode play states", e);
-                }
-
-                // purely for progress reporting
-                progPercent += percentPerItem * unplayedEpisodes.Count;
-                progress.Report(progPercent);
-            }
         }
-        
+
         public string Name => "Sync library to trakt.tv";
 
         public string Category => "Trakt";
