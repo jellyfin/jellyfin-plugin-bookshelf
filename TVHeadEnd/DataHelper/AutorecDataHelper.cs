@@ -199,6 +199,17 @@ namespace TVHeadEnd.DataHelper
                         {
                         }
 
+                        try
+                        {
+                            if (m.containsField("title"))
+                            {
+                                sti.SeriesId = m.getString("title");
+                            }
+                        }
+                        catch (InvalidCastException)
+                        {
+                        }
+
                         /*
                                 public string ProgramId { get; set; }
                                 public bool RecordAnyChannel { get; set; }

@@ -98,6 +98,29 @@ namespace TVHeadEnd.HTSP_Responses
                         pi.Id = "" + currEventMessage.getInt("eventId");
                     }
 
+                    if (currEventMessage.containsField("serieslinkId"))
+                    {
+                        pi.SeriesId = "" + currEventMessage.getInt("serieslinkId");
+                    }
+
+                    if (currEventMessage.containsField("episodeNumber"))
+                    {
+                        pi.EpisodeNumber = currEventMessage.getInt("episodeNumber");
+                    }
+                    else if (currEventMessage.containsField("episodeId"))
+                    {
+                        pi.EpisodeNumber = currEventMessage.getInt("episodeId");
+                    }
+
+                    if (currEventMessage.containsField("seasonNumber"))
+                    {
+                        pi.SeasonNumber = currEventMessage.getInt("seasonNumber");
+                    }
+                    else if (currEventMessage.containsField("seasonId"))
+                    {
+                        pi.SeasonNumber = currEventMessage.getInt("seasonId");
+                    }
+
                     if (currEventMessage.containsField("title"))
                     {
                         pi.Name = currEventMessage.getString("title");
