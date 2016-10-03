@@ -32,8 +32,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameBrowser", "GameBrowser\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.StudioCleaner", "MediaBrowser.Plugins.StudioCleaner\MediaBrowser.Plugins.StudioCleaner.csproj", "{776C7D9D-72C5-4C73-AC73-88071B5C963C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RokuMetadata", "RokuMetadata\RokuMetadata.csproj", "{E0FECDE5-B375-45AF-9B07-BD64977F966C}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.GoogleDrive", "MediaBrowser.Plugins.GoogleDrive\MediaBrowser.Plugins.GoogleDrive.csproj", "{1B6D0A02-F1C2-4817-8958-4A996DEF5AC7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FolderSync", "FolderSync\FolderSync.csproj", "{D18C2B09-4793-4D16-AC5D-C04C0E5AC976}"
@@ -138,12 +136,6 @@ Global
 		{776C7D9D-72C5-4C73-AC73-88071B5C963C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{776C7D9D-72C5-4C73-AC73-88071B5C963C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{776C7D9D-72C5-4C73-AC73-88071B5C963C}.Release|x86.ActiveCfg = Release|Any CPU
-		{E0FECDE5-B375-45AF-9B07-BD64977F966C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E0FECDE5-B375-45AF-9B07-BD64977F966C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E0FECDE5-B375-45AF-9B07-BD64977F966C}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{E0FECDE5-B375-45AF-9B07-BD64977F966C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E0FECDE5-B375-45AF-9B07-BD64977F966C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E0FECDE5-B375-45AF-9B07-BD64977F966C}.Release|x86.ActiveCfg = Release|Any CPU
 		{1B6D0A02-F1C2-4817-8958-4A996DEF5AC7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1B6D0A02-F1C2-4817-8958-4A996DEF5AC7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1B6D0A02-F1C2-4817-8958-4A996DEF5AC7}.Debug|x86.ActiveCfg = Debug|Any CPU

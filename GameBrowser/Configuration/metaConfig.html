@@ -30,13 +30,11 @@
                     {
                         pluginUniqueId: "4C2FDA1C-FD5E-433A-AD2B-718E0B73E9A9",
 
-                        loadConfiguration: function () {
+                        loadConfiguration: function (page) {
 
                             Dashboard.showLoadingMsg();
                             
                             ApiClient.getPluginConfiguration(GameBrowserMetaConfigurationPage.pluginUniqueId).then(function (pluginConfig) {
-
-                                var page = $.mobile.activePage;
 
                                 pluginConfig.EmuMoviesUsername = pluginConfig.EmuMoviesUsername || "";
                                 pluginConfig.EmuMoviesPassword = pluginConfig.EmuMoviesPassword || "";
@@ -53,18 +51,16 @@
 
                     var page = this;
 
-                    GameBrowserMetaConfigurationPage.loadConfiguration();
+                    GameBrowserMetaConfigurationPage.loadConfiguration(page);
                 });
 
                 $('.gameBrowserMetaConfigurationPage').on('pageinit', function (event) {
 
                     var page = this;
 
-                    $('#gameBrowserMetaConfigurationPage', page).on('submit', function (e) {
+                    $('form', page).on('submit', function (e) {
 
                         Dashboard.showLoadingMsg();
-
-                        var page = $.mobile.activePage;
 
                         ApiClient.getPluginConfiguration(GameBrowserMetaConfigurationPage.pluginUniqueId).then(function (config) {
 
