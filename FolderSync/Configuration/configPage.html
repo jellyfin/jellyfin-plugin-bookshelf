@@ -4,64 +4,29 @@
     <title>Folder Sync</title>
 </head>
 <body>
-    <div data-role="page" class="page type-interior pluginConfigurationPage folderSyncConfigurationPage" data-helpurl="https://github.com/MediaBrowser/Wiki/wiki/Folder-Sync">
+    <div data-role="page" class="page type-interior pluginConfigurationPage folderSyncConfigurationPage" data-helpurl="https://github.com/MediaBrowser/Wiki/wiki/Folder-Sync" data-require="emby-button,listViewStyle,paper-icon-button-light,material-icons">
         <div data-role="content">
             <div class="content-primary">
 
                 <div class="readOnlyContent">
 
+                    <h1>Folder Sync</h1>
+
                     <p>Add one or more sync folders. Sync folders can be used for backup purposes, and also for easy archiving in multiple quality levels for optimal streaming performance.</p>
 
-                    <div class="folderSyncTargets">
+                    <div style="margin: 2em 0 1em; display: flex;align-items:center;">
+                        <h1 style="margin:0;">
+                            Folders
+                        </h1>
+                        <button is="emby-button" type="button" class="raised btnAddFolder submit mini" style="margin-left:1em;" title="${ButtonInviteUser}">
+                            <i class="md-icon">add</i>
+                            <span>Add</span>
+                        </button>
+                    </div>
+
+                    <div class="folderSyncTargets paperList">
 
                     </div>
-                </div>
-
-                <div data-role="popup" id="popupAddFolder" class="popup" style="min-width: 300px;">
-                    <form class="folderSyncConfigurationForm">
-                        <div class="ui-bar-a" style="text-align: center; padding: 0 20px;">
-                            <h3 class="popupHeader"></h3>
-                        </div>
-                        <div data-role="content">
-
-                            <ul class="ulForm" data-role="listview" style="margin-top:0;">
-                                <li>
-                                    <label for="txtName">
-                                        Display name:
-                                    </label>
-                                    <input id="txtName" type="text" required="required" />
-                                    <div class="fieldDescription">Enter a name to be displayed within sync menus.</div>
-                                </li>
-                                <li>
-                                    <label for="txtPath">
-                                        Folder path:
-                                    </label>
-                                    <input id="txtPath" type="text" required="required" />
-                                </li>
-                            </ul>
-                            <div>
-                                <div class="ui-controlgroup-label">User Access</div>
-                                <div>
-                                    <label for="chkEnableAllUsers">Allow all users to sync to this folder</label>
-                                    <input type="checkbox" id="chkEnableAllUsers" data-mini="true" />
-                                </div>
-                                <div class="userAccessListContainer">
-                                    <br />
-                                    <div class="userAccess">
-                                    </div>
-                                </div>
-                            </div>
-                            <ul class="ulForm" data-role="listview" style="margin-top:.5em;">
-                                <li>
-                                    <input type="hidden" id="fldFolderId" />
-                                    <button type="submit" data-theme="b">Save</button>
-                                    <button type="button" data-icon="delete" onclick="$(this).parents('.popup').popup('close');">
-                                        Cancel
-                                    </button>
-                                </li>
-                            </ul>
-                        </div>
-                    </form>
                 </div>
             </div>
         </div>
@@ -76,28 +41,27 @@
 
                     var html = '';
 
-                    html += '<ul data-inset="true" data-role="listview" data-split-icon="minus">';
-
-                    html += '<li data-role="list-divider">Folders';
-                    html += '<button type="button" data-icon="plus" data-mini="true" data-iconpos="notext" data-inline="true" class="btnAddFolder" style="margin: 0 0 0 1em;">Add</button>';
-                    html += '</li>';
-
                     for (var i = 0, length = targets.length; i < length; i++) {
 
                         var target = targets[i];
-                        html += '<li>';
-                        html += '<a href="#" data-id="' + target.Id + '" class="btnEditFolder">';
-                        html += '<h3>';
+                        html += '<div class="listItem" data-id="' + target.Id + '">';
+
+                        html += '<i class="md-icon listItemIcon">folder</i>';
+                        html += '<div class="listItemBody two-line">';
+
+                        html += '<h3 class="listItemBodyText">';
                         html += target.Name;
                         html += '</h3>';
-                        html += '<p>';
+                        html += '<div class="listItemBodyText secondary">';
                         html += target.Path;
-                        html += '</p>';
-                        html += '</a>';
-                        html += '<a href="#" data-id="' + target.Id + '" class="btnDeleteFolder" data-icon="delete"></a>';
-                        html += '</li>';
+                        html += '</div>';
+
+                        html += '</div>';
+
+                        html += '<button type="button" is="paper-icon-button-light" class="btnDeleteFolder listItemButton" data-id="' + target.Id + '"><i class="md-icon">delete</i></button>';
+
+                        html += '</div>';
                     }
-                    html += '</ul>';
 
                     return html;
                 }
@@ -106,21 +70,19 @@
 
                     var html = '';
 
-                    html += '<div class="ui-controlgroup-label" style="margin-bottom:0;padding-left:2px;">Users</div>';
+                    html += '<h3 class="checkboxListLabel">Users</h3>';
 
-                    html += '<div data-role="controlgroup" style="max-height:100px;overflow-y:auto;">';
+                    html += '<div class="paperList checkboxList checkboxList-paperList">';
 
                     for (var i = 0, length = users.length; i < length; i++) {
 
                         var user = users[i];
 
-                        var id = 'user' + i;
-
                         var isChecked = account.EnableAllUsers || account.UserIds.indexOf(user.Id) != -1;
                         var checkedAttribute = isChecked ? ' checked="checked"' : '';
 
-                        html += '<input class="chkUser" data-id="' + user.Id + '" type="checkbox" id="' + id + '"' + checkedAttribute + ' />';
-                        html += '<label for="' + id + '">' + user.Name + '</label>';
+                        html += '<label><input is="emby-checkbox" class="chkUser" data-id="' + user.Id + '" type="checkbox"' + checkedAttribute + ' />';
+                        html += '<span>' + user.Name + '</span></label>';
                     }
 
                     html += '</div>';
@@ -133,7 +95,7 @@
                         $('.userAccessListContainer', page).hide();
                     }
 
-                    $('#chkEnableAllUsers', page).checked(account.EnableAllUsers).checkboxradio('refresh').trigger('change');
+                    $('#chkEnableAllUsers', page).checked(account.EnableAllUsers).trigger('change');
                 }
 
                 function deleteFolder(page, id) {
@@ -164,39 +126,145 @@
                 function editFolderObject(page, folder) {
 
                     ApiClient.getUsers().then(function (users) {
-                        loadUsers(page, folder, users);
+                        require(['dialogHelper', 'formDialogStyle', 'emby-checkbox', 'emby-input'], function (dialogHelper) {
+                            showFolderEditor(page, folder, users, dialogHelper);
+                        });
                     });
-                    $('#txtName', page).val(folder.Name || '');
-                    $('#txtPath', page).val(folder.Path || '');
-                    $('#fldFolderId', page).val(folder.Id || '');
+                }
 
-                    if (folder.Id) {
-                        $('.popupHeader', page).html('Edit Folder');
-                    } else {
-                        $('.popupHeader', page).html('Add Folder');
-                    }
+                function showFolderEditor(page, folder, users, dialogHelper) {
+                    var dialogOptions = {
+                        removeOnClose: true,
+                        scrollY: false
+                    };
 
-                    $('#popupAddFolder', page).popup('open');
+                    dialogOptions.size = 'small';
+
+                    var dlg = dialogHelper.createDialog(dialogOptions);
+
+                    dlg.classList.add('formDialog');
+
+                    var html = '';
+                    var title = folder.Id ? 'Edit Folder' : 'Add Folder';
+
+                    html += '<div class="formDialogHeader">';
+                    html += '<button is="paper-icon-button-light" class="btnCancel autoSize" tabindex="-1"><i class="md-icon">&#xE5C4;</i></button>';
+                    html += '<h3 class="formDialogHeaderTitle">';
+                    html += title;
+                    html += '</h3>';
+
+                    html += '</div>';
+
+                    html += '<div class="formDialogContent smoothScrollY" style="padding-top:2em;">';
+                    html += '<div class="dialogContentInner dialog-content-centered">';
+                    html += '<form class="newCollectionForm" style="margin:auto;">';
+
+                    html += '<div class="inputContainer"><input id="txtName" type="text" required="required" is="emby-input" label="Display name:" /><div class="fieldDescription">Enter a name to be displayed within sync menus.</div></div>';
+
+                    html += '<div class="inputContainer"><input id="txtPath" type="text" required="required" is="emby-input" label="Path:" /></div>';
+
+                    html += '<div>\
+                    <h2>User Access</h2>\
+                    <label class="checkboxContainer">\
+                        <input type="checkbox" is="emby-checkbox" id="chkEnableAllUsers" />\
+                        <span>Grant access to all users</span>\
+                    </label>\
+                    <div class="userAccessListContainer">\
+                        <div class="userAccess">\
+                        </div>\
+                    </div>\
+                </div>';
+
+                    html += '<div class="formDialogFooter">';
+                    html += '<button is="emby-button" type="submit" class="raised button-submit block formDialogFooterItem"><span>Save</span></button>';
+                    html += '</div>';
+
+                    html += '</form>';
+                    html += '</div>';
+                    html += '</div>';
+
+                    dlg.innerHTML = html;
+
+                    $('#chkEnableAllUsers', dlg).on('change', function () {
+
+                        if (this.checked) {
+                            $('.userAccessListContainer', dlg).hide();
+                        } else {
+                            $('.userAccessListContainer', dlg).show();
+                        }
+                    });
+
+                    loadUsers(dlg, folder, users);
+                    $('#txtName', dlg).val(folder.Name || '');
+                    $('#txtPath', dlg).val(folder.Path || '');
+
+                    dlg.querySelector('.btnCancel').addEventListener('click', function () {
+
+                        dialogHelper.close(dlg);
+                    });
+
+                    dlg.querySelector('form').addEventListener("submit", function (e) {
+
+                        Dashboard.showLoadingMsg();
+
+                        var form = this;
+
+                        var updatedFolder = Object.assign(folder, {
+                            Name: $('#txtName', form).val(),
+                            Path: $('#txtPath', form).val(),
+                            EnableAllUsers: $('#chkEnableAllUsers', form).checked()
+                        });
+
+                        updatedFolder.UserIds = updatedFolder.EnableAllUsers ?
+                            [] :
+                            $('.chkUser:checked', form).map(function () {
+
+                                return this.getAttribute('data-id');
+
+                            }).get();
+
+                        ApiClient.ajax({
+
+                            type: "POST",
+                            url: ApiClient.getUrl("FolderSync/Folders"),
+                            data: JSON.stringify(updatedFolder),
+                            contentType: "application/json"
+
+                        }).then(function () {
+
+                            dialogHelper.close(dlg);
+                            loadConfig(page);
+
+                        }, function () {
+                            Dashboard.alert({
+                                message: 'There was an error adding the path entered. Please ensure the path is valid and can be written to before proceeding.'
+                            });
+                            Dashboard.hideLoadingMsg();
+                        });
+
+                        e.preventDefault();
+                    });
+
+                    dialogHelper.open(dlg);
                 }
 
                 function loadPageData(page, config) {
 
                     var elem = $('.folderSyncTargets', page).html(getTargetListHtml(config.SyncAccounts)).trigger('create');
 
-                    $('.btnDeleteFolder', elem).on('click', function () {
+                    $('.listItem', elem).on('click', function (e) {
 
-                        deleteFolder(page, this.getAttribute('data-id'));
-                    });
-                    $('.btnEditFolder', elem).on('click', function () {
+                        var id = this.getAttribute('data-id');
 
-                        editFolder(page, this.getAttribute('data-id'));
-                    });
-                    $('.btnAddFolder', elem).on('click', function () {
+                        var btnDeleteFolder = e.target.classList.contains('btnDeleteFolder') ?
+                            e.target :
+                            $(e.target).parents('.btnDeleteFolder')[0];
 
-                        editFolderObject(page, {
-                            EnableAllUsers: true,
-                            UserIds: []
-                        });
+                        if (btnDeleteFolder) {
+                            deleteFolder(page, id);
+                        } else {
+                            editFolder(page, id);
+                        }
                     });
                 }
 
@@ -209,17 +277,16 @@
                     });
                 }
 
-                $('.folderSyncConfigurationPage').on('pageshow', function (event) {
+                $('.folderSyncConfigurationPage').on('pageinit', function (event) {
 
                     var page = this;
 
-                    $('#chkEnableAllUsers', page).on('change', function () {
+                    $('.btnAddFolder', page).on('click', function () {
 
-                        if (this.checked) {
-                            $('.userAccessListContainer', page).hide();
-                        } else {
-                            $('.userAccessListContainer', page).show();
-                        }
+                        editFolderObject(page, {
+                            EnableAllUsers: true,
+                            UserIds: []
+                        });
                     });
 
                 }).on('pageshow', function (event) {
@@ -227,49 +294,6 @@
                     var page = this;
 
                     loadConfig(page);
-                });
-
-                $('.folderSyncConfigurationForm').off('submit.plugin').on('submit.plugin', function (e) {
-
-                    Dashboard.showLoadingMsg();
-
-                    var form = this;
-                    var page = $(form).parents('.page');
-
-                    var folder = {
-                        Name: $('#txtName', page).val(),
-                        Path: $('#txtPath', page).val(),
-                        EnableAllUsers: $('#chkEnableAllUsers', page).checked(),
-                        Id: $('#fldFolderId', page).val()
-                    };
-
-                    folder.UserIds = folder.EnableAllUsers ?
-                        [] :
-                        $('.chkUser:checked', page).map(function () {
-
-                            return this.getAttribute('data-id');
-
-                        }).get();
-
-                    ApiClient.ajax({
-
-                        type: "POST",
-                        url: ApiClient.getUrl("FolderSync/Folders"),
-                        data: JSON.stringify(folder),
-                        contentType: "application/json"
-
-                    }).then(function () {
-                        $('#popupAddFolder', page).popup('close');
-                        loadConfig(page);
-
-                    }, function () {
-                        Dashboard.alert({
-                            message: 'There was an error adding the path entered. Please ensure the path is valid and can be written to before proceeding.'
-                        });
-                        Dashboard.hideLoadingMsg();
-                    });
-
-                    return false;
                 });
 
             })();

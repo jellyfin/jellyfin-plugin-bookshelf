@@ -87,7 +87,6 @@
     </Compile>
     <Compile Include="Api\Querying\GameQueryResult.cs" />
     <Compile Include="Api\ServerApiEndpoints.cs" />
-    <Compile Include="Configuration\GameFolderConfigurationPage.cs" />
     <Compile Include="Configuration\MetaConfigurationPage.cs" />
     <Compile Include="Configuration\GameBrowserConfigurationPage.cs" />
     <Compile Include="Extensions\XmlExtensions.cs" />
@@ -115,9 +114,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Configuration\configPage.html" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Configuration\GameFolderConfig.html" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Configuration\metaConfig.html" />

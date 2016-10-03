@@ -749,6 +749,8 @@ namespace Trakt.Api
                 throw new ArgumentNullException("movies");
             if (traktUser == null)
                 throw new ArgumentNullException("traktUser");
+            if (!traktUser.PostWatchedHistory)
+                return new List<TraktSyncResponse>();
 
             var moviesPayload = movies.Select(m =>
             {
@@ -807,8 +809,9 @@ namespace Trakt.Api
 
             if (traktUser == null)
                 throw new ArgumentNullException("traktUser");
-            
-            
+            if (!traktUser.PostWatchedHistory)
+                return new List<TraktSyncResponse>();
+
             var chunks = episodes.ToChunks(100).ToList();
             var traktResponses = new List<TraktSyncResponse>();
 

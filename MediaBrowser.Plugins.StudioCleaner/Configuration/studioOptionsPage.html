@@ -4,41 +4,24 @@
     <title>Studio Cleaner</title>
 </head>
 <body>
-    <div id="StudioOptionsPage" data-role="page" class="page type-interior pluginConfigurationPage">
+    <div id="StudioOptionsPage" data-role="page" class="page type-interior pluginConfigurationPage StudioOptionsPage" data-require="emby-button">
         <div data-role="content">
             <div class="content-primary">
-                <div style="float: right">
-                    <img src="http://mb3admin.com/images/genresweepersm.png" style="max-height: 90px" />
-                </div>
-                <h1 id="header" style="margin-top: 27px"></h1>
-                <p><strong>Only the studios defined below will be allowed.  All other studios from any source will be discarded unless mapped to one of these.</strong></p>
-                <ul id="allowedStudios" data-role="listview" data-inset="true" data-auto-enhanced="false" data-split-icon="minus"></ul>
-                <div id="initButton" style="display: none">
-                    <button onclick="StudioOptionsPage.initWithAvailableStudios();">Initialize with all current studios</button>
-                </div>
+                <h1 id="header"></h1>
+                <p>Only the studios listed below will be allowed. All other studios from any source will be discarded unless mapped to one of these.</p>
                 <form id="StudioOptionsForm">
 
-                    <ul class="ulForm" data-role="listview">
-                        <li>
-                            <button type="submit" data-theme="b">Save</button>
-                            <button type="button" onclick="history.back();">Cancel</button>
-                        </li>
-                    </ul>
+                    <ul id="allowedStudios" data-role="listview" data-inset="true" data-auto-enhanced="false" data-split-icon="minus"></ul>
+                    <div id="initButton" style="display: none">
+                        <button is="emby-button" type="button" class="raised button-cancel block" onclick="StudioOptionsPage.initWithAvailableStudios();"><span>Initialize with all current studios</span></button>
+                    </div>
+
+                    <br />
+                    <br />
+                    <button is="emby-button" type="submit" class="raised button-submit block"><span>Save</span></button>
+                    <button is="emby-button" type="button" class="raised button-cancel block" onclick="Emby.Page.back();"><span>Cancel</span></button>
 
                 </form>
-
-                <div data-role="popup" id="studioPopup" class="ui-content" style="max-width:90%; min-width: 400px" data-overlay-theme="a" data-dismissible="false">
-                    <h3 style="text-align: center">New Studio</h3>
-                    <form id="studioForm">
-                        <label for="txtStudio">Studio:</label>
-                        <input id="txtStudio" type="text" style="min-width: 90%" required />
-
-                        <button type="submit" data-theme="b">Add</button>
-                        <button type="button" data-theme="c" onclick="$('#studioPopup').popup('close')">Cancel</button>
-
-                    </form>
-
-                </div>
 
                 <div data-role="popup" id="mapStudioPopup" class="ui-content" style="max-width:90%; min-width: 400px" data-overlay-theme="a" data-dismissible="false">
                     <h3 style="text-align: center">Map Studio '<span id="studioName"></span>'</h3>
@@ -80,14 +63,14 @@
                     availableStudios: null,
                     currentStudio: null,
 
-                    loadOptions: function (options) {
-                        var page = $($.mobile.activePage);
+                    loadOptions: function (options, page) {
+                        page = page || $($.mobile.activePage);
                         console.log(options);
                         var html = "";
 
                         html += '<li data-role="list-divider" class="mediaLocationsHeader ui-li ui-li-divider ui-bar-b ui-corner-top" role="heading">';
                         html += '<h3>Allowed Studios</h3><span data-corners="true" data-shadow="true" data-iconshadow="true" data-wrapperels="span" data-icon="plus" data-iconpos="notext" data-theme="a" data-inline="true" data-mini="true" ';
-                        html += 'class="ui-btn ui-btn-up-c ui-shadow ui-btn-corner-all ui-mini ui-btn-inline ui-btn-icon-notext ui-icon-plus" data-icon="plus" onclick="StudioOptionsPage.addStudioPopup();">&nbsp;</span>';
+                        html += 'class="ui-btn ui-btn-up-c ui-shadow ui-btn-corner-all ui-mini ui-btn-inline ui-btn-icon-notext ui-icon-plus" data-icon="plus" onclick="StudioOptionsPage.addStudioPopup(this);">&nbsp;</span>';
 
                         for (var i = 0; i < options.AllowedStudios.length; i++) {
                             var studio = options.AllowedStudios[i];
@@ -164,11 +147,25 @@
                         });
                     },
 
-                    addStudioPopup: function () {
-                        var page = $($.mobile.activePage);
-                        $('#txtStudio', page).val("");
-                        $('#studioPopup', page).popup('open');
-                        $('#txtStudio', page).focus();
+                    addStudioPopup: function (button) {
+
+                        var page = $(button).parents('.page')[0];
+                        require(['prompt'], function (prompt) {
+                            prompt({
+
+                                label: 'Studio:',
+                                title: 'Add Studio'
+
+                            }).then(function (studio) {
+                                if (StudioOptionsPage.options.AllowedStudios.indexOf(studio) == -1) {
+                                    StudioOptionsPage.options.AllowedStudios.push(studio);
+                                    StudioOptionsPage.options.AllowedStudios.sort();
+                                    StudioOptionsPage.loadOptions(StudioOptionsPage.options, page);
+                                } else {
+                                    Dashboard.alert("'" + studio + "' already exists.");
+                                }
+                            });
+                        });
                     },
 
                     mappedStudiosPopup: function (link) {
@@ -234,18 +231,18 @@
                     }
                 };
 
-                $('#StudioOptionsPage').on('pageshow', function (event) {
+                $('.StudioOptionsPage').on('pageshow', function (event) {
 
                     Dashboard.showLoadingMsg();
 
                     var page = this;
                     StudioOptionsPage.optionType = getParameterByName("type");
                     switch (StudioOptionsPage.optionType) {
-                        case "movies":
+                        case "Movie":
                             StudioOptionsPage.friendlyType = "Movie";
                             StudioOptionsPage.itemType = "Movie";
                             break;
-                        case "series":
+                        case "Series":
                             StudioOptionsPage.friendlyType = "TV Series";
                             StudioOptionsPage.itemType = "Series";
                             break;
@@ -259,10 +256,10 @@
 
                         StudioOptionsPage.config = config;
                         switch (StudioOptionsPage.optionType) {
-                            case "movies":
+                            case "Movie":
                                 StudioOptionsPage.options = config.MovieOptions;
                                 break;
-                            case "series":
+                            case "Series":
                                 StudioOptionsPage.options = config.SeriesOptions;
                                 break;
                             default:
@@ -271,20 +268,6 @@
                         StudioOptionsPage.loadOptions(StudioOptionsPage.options);
                         Dashboard.hideLoadingMsg();
                     });
-                });
-
-                $('#studioForm').on('submit', function (e) {
-                    var page = $($.mobile.activePage);
-                    $('#studioPopup', page).popup('close');
-                    var studio = $('#txtStudio', this).val();
-                    if (StudioOptionsPage.options.AllowedStudios.indexOf(studio) == -1) {
-                        StudioOptionsPage.options.AllowedStudios.push(studio);
-                        StudioOptionsPage.options.AllowedStudios.sort();
-                        StudioOptionsPage.loadOptions(StudioOptionsPage.options);
-                    } else {
-                        Dashboard.alert("'" + studio + "' already exists.");
-                    }
-                    return false;
                 });
 
                 $('#mapStudioForm').on('submit', function (e) {
@@ -321,10 +304,10 @@
 
                         config.LastChangedOption = StudioOptionsPage.optionType;
                         switch (StudioOptionsPage.optionType) {
-                            case "movies":
+                            case "Movie":
                                 config.MovieOptions = StudioOptionsPage.options;
                                 break;
-                            case "series":
+                            case "Series":
                                 config.SeriesOptions = StudioOptionsPage.options;
                                 break;
                             default:

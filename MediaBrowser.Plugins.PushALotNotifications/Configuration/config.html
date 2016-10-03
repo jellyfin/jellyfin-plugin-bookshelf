@@ -4,73 +4,53 @@
     <title>Pushalot Notifications</title>
 </head>
 <body>
-    <div data-role="page" class="page type-interior pluginConfigurationPage pushALotConfigurationPage">
+    <div data-role="page" class="page type-interior pluginConfigurationPage pushALotConfigurationPage" data-require="emby-input,emby-button,emby-checkbox,emby-select">
 
         <div data-role="content">
             <div class="content-primary">
                 <form class="pushALotConfigurationForm">
                     <p>To use Pushalot register an application at <a href="https://pushalot.com/">pushalot.com</a></p>
-                    <ul class="ulForm" data-role="listview">
-                        <li>
-                            <label for="selectUser">Configure Pushalot notifications for:</label>
-                            <select id="selectUser" data-mini="true"></select>
-                        </li>
-                        <li>
-                            <label for="chkEnablePushALot">Enabled</label>
-                            <input type="checkbox" id="chkEnablePushALot" data-mini="true" />
-                        </li>
-                        <li>
-                            <label for="txtPushALotAuthKey">
-                                Pushalot Auth Token:
-                            </label>
-                            <input type="text" id="txtPushALotAuthKey" name="txtPushALotAuthKey" required="required" data-mini="true" />
-                            <div class="fieldDescription">
-                                Auth key for your application
-                            </div>
-                        </li>
-                        <li><button type="button" id="testNotification" data-mini="true">Test Notification</button></li>
-                        <li>
-                            <button type="submit" data-theme="b" data-mini="true">Save</button>
-                            <button type="button" onclick="history.back();" data-mini="true">Cancel</button>
-                        </li>
-                    </ul>
+                    <div style="height:0; overflow: hidden;"><input type="text" name="fakeusernameremembered" tabindex="-1" /><input type="password" name="fakepasswordremembered" tabindex="-1" /></div>
+                    <div class="selectContainer">
+                        <select is="emby-select" id="selectUser" label="Configure Pushalot notifications for:"></select>
+                    </div>
+                    <label class="checkboxContainer">
+                        <input is="emby-checkbox" type="checkbox" id="chkEnablePushALot" />
+                        <span>Enabled</span>
+                    </label>
+                    <div class="inputContainer">
+                        <input is="emby-input" type="text" id="txtPushALotAuthKey" required="required" label="Pushalot auth token:" />
+                        <div class="fieldDescription">
+                            Auth key for your application
+                        </div>
+                    </div>
+                    <div>
+                        <button is="emby-button" type="button" class="raised button-cancel block" id="testNotification">
+                            <span>Test Notification</span>
+                        </button>
+                    </div>
+                    <br />
+                    <div>
+                        <button is="emby-button" type="submit" class="raised button-submit block"><span>Save</span></button>
+                    </div>
 
                 </form>
             </div>
         </div>
-        
+
         <script type="text/javascript">
 
             (function () {
 
                 var pluginId = "6153FDF0-40CC-4457-8730-3B4A19512BAE";
 
-                $('#testNotification').on('click', function(event) {
-
-                    Dashboard.showLoadingMsg();
-
-                    ApiClient.getPluginConfiguration(pluginId).then(function(config) {
-
-                        config.Options.filter(function(c) {
-
-                            ApiClient.ajax({
-                                type: "POST",
-                                url: ApiClient.getUrl("Notification/Pushalot/Test/" + c.MediaBrowserUserId)
-
-                            }).then(function() {
-                                Dashboard.hideLoadingMsg();
-                            });
-                        });
-                    });
-                });
-
                 function loadUserConfig(page, userId) {
 
                     Dashboard.showLoadingMsg();
 
-                    ApiClient.getPluginConfiguration(pluginId).then(function(config) {
+                    ApiClient.getPluginConfiguration(pluginId).then(function (config) {
 
-                        var pushalotConfig = config.Options.filter(function(c) {
+                        var pushalotConfig = config.Options.filter(function (c) {
 
                             return userId == c.MediaBrowserUserId;
 
@@ -90,6 +70,39 @@
                     $('#selectUser', page).on('change', function () {
 
                         loadUserConfig(page, this.value);
+                    });
+
+                    $('#testNotification', page).on('click', function (event) {
+
+                        Dashboard.showLoadingMsg();
+
+                        var onError = function () {
+                            alert("There was an error sending the test notification. Please check your notification settings and try again.");
+                            require(['alert'], function (alert) {
+                                Dashboard.hideLoadingMsg();
+                            });
+                        };
+
+                        ApiClient.getPluginConfiguration(pluginId).then(function (config) {
+
+                            if (!config.Options.length) {
+                                Dashboard.hideLoadingMsg();
+                                require(['alert'], function (alert) {
+                                    alert("Please configure and save at least one notification account.");
+                                });
+                            }
+
+                            config.Options.map(function (c) {
+
+                                ApiClient.ajax({
+                                    type: "POST",
+                                    url: ApiClient.getUrl("Notification/Pushalot/Test/" + c.MediaBrowserUserId)
+
+                                }).then(function () {
+                                    Dashboard.hideLoadingMsg();
+                                }, onError);
+                            });
+                        });
                     });
 
                 }).on('pageshow', function (event) {
@@ -146,7 +159,7 @@
             })();
 
         </script>
-        
+
 
     </div>
 </body>

@@ -4,83 +4,59 @@
     <title>Pushover Notifications</title>
 </head>
 <body>
-    <div data-role="page" class="page type-interior pluginConfigurationPage pushOverConfigurationPage">
+    <div data-role="page" class="page type-interior pluginConfigurationPage pushOverConfigurationPage" data-require="emby-input,emby-button,emby-checkbox,emby-select">
 
         <div data-role="content">
             <div class="content-primary">
                 <form class="pushOverConfigurationForm">
                     <p>To use Pushover register an application at <a href="https://pushover.net/">pushover.net</a></p>
-                    <ul class="ulForm" data-role="listview">
-                        <li>
-                            <label for="selectUser">Configure Pushover notifications for:</label>
-                            <select id="selectUser" data-mini="true"></select>
-                        </li>
-                        <li>
-                            <label for="chkEnablePushOver">Enabled</label>
-                            <input type="checkbox" id="chkEnablePushOver" data-mini="true" />
-                        </li>
-                        <li>
-                            <label for="txtPushOverAuthKey">
-                                Pushover Auth Token:
-                            </label>
-                            <input type="text" id="txtPushOverAuthKey" name="txtPushOverAuthKey" required="required" data-mini="true" />
-                            <div class="fieldDescription">
-                                Auth key for your application
-                            </div>
-                        </li>
-                        <li>
-                            <label for="txtPushOverUserKey">
-                                Pushover User Key:
-                            </label>
-                            <input type="text" id="txtPushOverUserKey" name="txtPushOverUserKey" required="required" data-mini="true" />
-                            <div class="fieldDescription">
-                                User key for your application
-                            </div>
-                        </li>
-                        <li>
-                            <label for="txtPushOverDeviceName">
-                                Pushover Device Name:
-                            </label>
-                            <input type="text" id="txtPushOverDeviceName" name="txtPushOverDeviceName" data-mini="true" />
-                            <div class="fieldDescription">
-                                Device Name for application
-                            </div>
-                        </li>
-                        <li><button type="button" id="testNotification" data-mini="true">Test Notification</button></li>
-                        <li>
-                            <button type="submit" data-theme="b" data-mini="true">Save</button>
-                            <button type="button" onclick="history.back();" data-mini="true">Cancel</button>
-                        </li>
-                    </ul>
+
+                    <div style="height:0; overflow: hidden;"><input type="text" name="fakeusernameremembered" tabindex="-1" /><input type="password" name="fakepasswordremembered" tabindex="-1" /></div>
+
+                    <div class="selectContainer">
+                        <select is="emby-select" id="selectUser" label="Configure Pushover notifications for:"></select>
+                    </div>
+                    <label class="checkboxContainer">
+                        <input is="emby-checkbox" type="checkbox" id="chkEnablePushOver" />
+                        <span>Enabled</span>
+                    </label>
+                    <div class="inputContainer">
+                        <input is="emby-input" type="text" id="txtPushOverAuthKey" label="Pushover auth token:" required="required" />
+                        <div class="fieldDescription">
+                            Auth key for your application
+                        </div>
+                    </div>
+                    <div class="inputContainer">
+                        <input is="emby-input" type="text" id="txtPushOverUserKey" label="Pushover user key:" required="required" />
+                        <div class="fieldDescription">
+                            User key for your application
+                        </div>
+                    </div>
+                    <div class="inputContainer">
+                        <input is="emby-input" type="text" id="txtPushOverDeviceName" label="Pushover device name:" />
+                        <div class="fieldDescription">
+                            Device Name for application
+                        </div>
+                    </div>
+                    <div>
+                        <button is="emby-button" type="button" class="raised button-cancel block" id="testNotification">
+                            <span>Test Notification</span>
+                        </button>
+                    </div>
+                    <br />
+                    <div>
+                        <button is="emby-button" type="submit" class="raised button-submit block"><span>Save</span></button>
+                    </div>
 
                 </form>
             </div>
         </div>
-        
+
         <script type="text/javascript">
 
             (function () {
 
                 var pluginId = "6C3B6965-C257-47C2-AA02-64457AE21D91";
-
-                $('#testNotification').on('click', function (event) {
-
-                    Dashboard.showLoadingMsg();
-
-                    ApiClient.getPluginConfiguration(pluginId).then(function (config) {
-
-                        config.Options.filter(function (c) {
-
-                            ApiClient.ajax({
-                                type: "POST",
-                                url: ApiClient.getUrl("Notification/Pushover/Test/" + c.MediaBrowserUserId)
-
-                            }).then(function () {
-                                Dashboard.hideLoadingMsg();
-                            });
-                        });
-                    });
-                });
 
                 function loadUserConfig(page, userId) {
 
@@ -110,6 +86,39 @@
                     $('#selectUser', page).on('change', function () {
 
                         loadUserConfig(page, this.value);
+                    });
+
+                    $('#testNotification', page).on('click', function (event) {
+
+                        Dashboard.showLoadingMsg();
+
+                        var onError = function () {
+                            alert("There was an error sending the test notification. Please check your notification settings and try again.");
+                            require(['alert'], function (alert) {
+                                Dashboard.hideLoadingMsg();
+                            });
+                        };
+
+                        ApiClient.getPluginConfiguration(pluginId).then(function (config) {
+
+                            if (!config.Options.length) {
+                                Dashboard.hideLoadingMsg();
+                                require(['alert'], function (alert) {
+                                    alert("Please configure and save at least one notification account.");
+                                });
+                            }
+
+                            config.Options.map(function (c) {
+
+                                ApiClient.ajax({
+                                    type: "POST",
+                                    url: ApiClient.getUrl("Notification/Pushover/Test/" + c.MediaBrowserUserId)
+
+                                }).then(function () {
+                                    Dashboard.hideLoadingMsg();
+                                }, onError);
+                            });
+                        });
                     });
 
                 }).on('pageshow', function (event) {

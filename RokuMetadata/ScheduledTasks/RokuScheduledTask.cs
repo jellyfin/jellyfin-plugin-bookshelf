@@ -57,6 +57,8 @@ namespace RokuMetadata.ScheduledTasks
             {
                 try
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     await new VideoProcessor(_logger, _mediaEncoder, _fileSystem, _appPaths, _libraryMonitor)
                         .Run(item, cancellationToken).ConfigureAwait(false);
                 }

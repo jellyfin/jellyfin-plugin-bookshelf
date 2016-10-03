@@ -4,7 +4,7 @@
     <title>Roku Thumbnails</title>
 </head>
 <body>
-    <div data-role="page" class="page type-interior pluginConfigurationPage rokuConfigurationPage">
+    <div data-role="page" class="page type-interior pluginConfigurationPage rokuConfigurationPage" data-require="emby-button,emby-select,emby-checkbox">
 
         <div data-role="content">
             <div class="content-primary">
@@ -12,79 +12,42 @@
                 <form class="rokuConfigurationForm">
 
                     <div>
-                        <fieldset data-role="controlgroup">
-                            <legend>Create thumbnails in:</legend>
-                            <label for="chkEnableHD">HD</label>
-                            <input type="checkbox" id="chkEnableHD" />
-                            <label for="chkEnableSD">SD</label>
-                            <input type="checkbox" id="chkEnableSD" />
-                        </fieldset>
+                        <h3 class="checkBoxListLabel">Create thumbnails in:</h3>
+                        <div class="checkboxList paperList checkboxList-paperList">
+                            <label>
+                                <input is="emby-checkbox" type="checkbox" id="chkEnableHD" />
+                                <span>HD</span>
+                            </label>
+                            <label>
+                                <input is="emby-checkbox" type="checkbox" id="chkEnableSD" />
+                                <span>SD</span>
+                            </label>
+                        </div>
                         <div class="fieldDescription">Configure this based on the TV screens your Roku devices are connected to, not based on your content. If you do not own any SDTV's, leaving it unchecked will reduce the amount of time required to create thumbnails.</div>
                     </div>
-                    <br /><br />
-                    <ul class="ulForm" data-role="listview">
-                        <li>
-                            <label for="chkSaveBifLocal">Save thumbnail files within media folders</label>
-                            <input type="checkbox" id="chkSaveBifLocal" />
-                            <div class="fieldDescription">This will enable easier storage management of the thumbnail files. Thumbnail files will be saved with a .bif extension.</div>
-                        </li>
-                        <li>
-                            <label for="chkEnableDuringScan">Create thumbnails when videos are discovered</label>
-                            <input type="checkbox" id="chkEnableDuringScan" />
-                            <div class="fieldDescription">This will make thumbnails available sooner but will result in longer library scans. Thumbnails are also created during a scheduled task.</div>
-                            <div class="fieldDescription">To configure the scheduled task, see <a href="scheduledtasks.html">scheduled tasks</a>.</div>
-                            <br />
-                        </li>
-                        <li>
-                            <label for="selectBitrate">Max streaming bitrate:</label>
-                            <select id="selectBitrate">
-                                <option value="1000000">1 mbps</option>
-                                <option value="1500000">1.5 mbps</option>
-                                <option value="2000000">2 mbps</option>
-                                <option value="2500000">2.5 mbps</option>
-                                <option value="3000000">3 mbps</option>
-                                <option value="3500000">3.5 mbps</option>
-                                <option value="4000000">4 mbps</option>
-                                <option value="5000000">5 mbps</option>
-                                <option value="6000000">6 mbps</option>
-                                <option value="7000000">7 mbps</option>
-                                <option value="8000000">8 mbps</option>
-                                <option value="9000000">9 mbps</option>
-                                <option value="10000000">10 mbps</option>
-                                <option value="11000000">11 mbps</option>
-                                <option value="12000000">12 mbps</option>
-                                <option value="13000000">13 mbps</option>
-                                <option value="14000000">14 mbps</option>
-                                <option value="15000000">15 mbps</option>
-                                <option value="16000000">16 mbps</option>
-                                <option value="17000000">17 mbps</option>
-                                <option value="18000000">18 mbps</option>
-                                <option value="19000000">19 mbps</option>
-                                <option value="20000000">20 mbps</option>
-                                <option value="25000000">25 mbps</option>
-                                <option value="30000000">30 mbps</option>
-                                <option value="35000000">35 mbps</option>
-                                <option value="40000000">40 mbps</option>
-                            </select>
-                            <div class="fieldDescription">Configure this to match the value you've set in the Roku app. If you don't know, leave it at the highest value. If you have multiple Roku devices, set this to the highest value being used. Thumbnails are only utilized by the Roku when direct streaming, so this setting will help avoid creating them for videos that will require transcoding.</div>
-                            <br />
-                        </li>
-                        <li>
-                            <label for="selectAudioOutputMode">Audio output mode:</label>
-                            <select id="selectAudioOutputMode">
-                                <option value="Stereo">Stereo</option>
-                                <option value="DD">DD</option>
-                                <option value="DDPlus">DD+</option>
-                                <option value="DTS">DD+, DTS</option>
-                            </select>
-                            <div class="fieldDescription">Configure this to match your Roku device audio output mode. If you don't know, leave it at the highest value. If you have multiple Roku devices, set this to the highest value being used. Thumbnails are only utilized by the Roku when direct streaming, so this setting will help avoid creating them for videos that will require transcoding.</div>
-                            <br />
-                        </li>
-                        <li>
-                            <button type="submit" data-theme="b" data-icon="check">Save</button>
-                            <button type="button" onclick="history.back();" data-icon="delete">Cancel</button>
-                        </li>
-                    </ul>
+                    <br />
+                    <br />
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label>
+                            <input is="emby-checkbox" type="checkbox" id="chkSaveBifLocal" />
+                            <span>Save thumbnail files within media folders</span>
+                        </label>
+                        <div class="fieldDescription checkboxFieldDescription">This will enable easier storage management of the thumbnail files. Thumbnail files will be saved with a .bif extension.</div>
+                    </div>
+
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label>
+                            <input is="emby-checkbox" type="checkbox" id="chkEnableDuringScan" />
+                            <span>Create thumbnails when videos are discovered</span>
+                        </label>
+                        <div class="fieldDescription checkboxFieldDescription">This will make thumbnails available sooner but will result in longer library scans. Thumbnails are also created during a scheduled task.</div>
+                        <div class="fieldDescription checkboxFieldDescription">To configure the scheduled task, see <a href="scheduledtasks.html">scheduled tasks</a>.</div>
+                    </div>
+
+                    <br />
+                    <div>
+                        <button is="emby-button" type="submit" class="raised button-submit block"><span>Save</span></button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -106,8 +69,6 @@
                         $('#chkEnableHD', page).checked(config.EnableHdThumbnails).checkboxradio('refresh');
                         $('#chkEnableSD', page).checked(config.EnableSdThumbnails).checkboxradio('refresh');
                         $('#chkEnableDuringScan', page).checked(config.EnableExtractionDuringLibraryScan).checkboxradio('refresh');
-                        $('#selectBitrate', page).val(config.MaxBitrate).selectmenu('refresh');
-                        $('#selectAudioOutputMode', page).val(config.AudioOutputMode).selectmenu('refresh');
 
                         $('#chkSaveBifLocal', page).checked(config.EnableLocalMediaFolderSaving).checkboxradio('refresh');
 
@@ -126,8 +87,6 @@
                         config.EnableHdThumbnails = $('#chkEnableHD', form).checked();
                         config.EnableSdThumbnails = $('#chkEnableSD', form).checked();
                         config.EnableExtractionDuringLibraryScan = $('#chkEnableDuringScan', form).checked();
-                        config.MaxBitrate = $('#selectBitrate', form).val();
-                        config.AudioOutputMode = $('#selectAudioOutputMode', form).val();
 
                         config.EnableLocalMediaFolderSaving = $('#chkSaveBifLocal', form).checked();
 

@@ -14,8 +14,6 @@ namespace MediaBrowser.Plugins.StudioCleaner
     /// </summary>
     public class Plugin : BasePlugin<PluginConfiguration>
     {
-        public static ILogger Logger { get; set; }
-
         public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer)
             : base(applicationPaths, xmlSerializer)
         {

@@ -1,45 +1,351 @@
 ﻿<!DOCTYPE html>
 <html>
-    <head>
-        <title>GameBrowser Configuration</title>
-    </head>
-    <body>
-<!-- ReSharper disable UnknownCssClass -->
-        <div id="gameBrowserConfigurationPage" data-role="page" class="page type-interior pluginConfigurationPage">
+<head>
+    <title>GameBrowser Configuration</title>
+</head>
+<body>
+    <!-- ReSharper disable UnknownCssClass -->
+    <div id="gameBrowserConfigurationPage" data-role="page" class="page type-interior pluginConfigurationPage gameBrowserConfigurationPage gameBrowserConfigurationPageuninitialized" data-require="emby-button,listViewStyle,paper-icon-button-light,material-icons">
 
-            <div data-role="content">
-                <div class="content-primary">
-                    <div id="configPageContent" class="readOnlyContent">
+        <div data-role="content">
+            <div class="content-primary">
+
+                <h1>GameBrowser</h1>
+
+                <div>
+                    <div style="display:inline-block;background-color:rgba(82,181,75,.8);color:#fff;padding:2px 10px;font-size:20px;border-radius:1000px;vertical-align:middle;">
+                        1
+                    </div>
+                    <h3 style="display:inline-block;vertical-align:middle;margin-left:5px;">
+                        Add a media library in Emby library setup and set the content type to Games.
+                    </h3>
+                </div>
+
+                <div>
+                    <div style="display: inline-block; background-color: rgba(82, 181, 75, .8); color: #fff; padding: 2px 10px; font-size: 20px; border-radius: 1000px; vertical-align: middle;">
+                        2
+                    </div>
+                    <h3 style="display: inline-block; vertical-align: middle; margin-left: 5px;">
+                        Setup Game Systems
+                    </h3>
+                </div>
+
+                <div style="display: flex; align-items: center; margin:2em 0 1em;">
+                    <h1 style="margin:0;">Game Systems</h1>
+                    <button is="emby-button" type="button" class="raised btnAddGameSystem submit mini" style="margin-left:1em;" title="Add">
+                        <i class="md-icon">add</i>
+                        <span>${ButtonAdd}</span>
+                    </button>
+                </div>
+
+                <div class="readOnlyContent">
+
+                    <p style="color: orangered;">Please run an Emby library scan after editing the Game Systems list.</p>
+                    <div class="paperList gameSystemList">
+
                     </div>
                 </div>
+
+                <br />
+
+                <div>
+                    <div style="display: inline-block; background-color: rgba(82, 181, 75, .8); color: #fff; padding: 2px 10px; font-size: 20px; border-radius: 1000px; vertical-align: middle;">
+                        3
+                    </div>
+                    <h3 style="display: inline-block; vertical-align: middle; margin-left: 5px;">
+                        Setup Metadata
+                    </h3>
+                </div>
+                <div class="readOnlyContent">
+                    <br />
+                    <button is="emby-button" type="button" onclick="Dashboard.navigate(Dashboard.getConfigurationPageUrl('GbMetaConfigurationPage'));" class="raised button-submit block"><span>Metadata Settings</span></button>
+                </div>
             </div>
-            
-<!-- ReSharper disable UseOfImplicitGlobalInFunctionScope -->
-            <script type="text/javascript">
-                
-                $('#gameBrowserConfigurationPage').on('pageshow', function (event) {
-                    
-                    var page = this;
-
-                    var basicHref = Dashboard.getConfigurationPageUrl("GameFolderConfigurationPage");
-                    var metaHref = Dashboard.getConfigurationPageUrl("GbMetaConfigurationPage");
-                    var html = "";
-
-                    html += '<p>Configuring GameBrowser is now easier than ever before. All it takes is a few clicks and the server setup is done.</p>';
-                    html += '<div style="display: block; padding: 10px 10px 10px 10px; margin-bottom: 10px" class="fieldDescription warningFieldDescription">';
-                    html += '<p><strong><em>Note:</em></strong> You will also need to add your game collection to the <strong>Default Media Library</strong> before ';
-                    html += 'MediaBrowser 3 can start managing your game library</p></div>';
-                    html += '<p>Click to configure what directories GameBrowser monitors</p>';
-                    html += '<a data-role="button" data-icon="arrow-r" data-iconpos="right" href="' + basicHref + '">Platform Configuration</a>';
-                    html += '<p>Click to configure how GameBrowser deals with online image & data sources</p>';
-                    html += '<a data-role="button" data-icon="arrow-r" data-iconpos="right" href="' + metaHref + '">Metadata & Art Configuration</a>';
-                    html += '<h2>GameBrowser help</h2>';
-                    html += '<a data-role="button" data-icon="arrow-r" data-iconpos="right" href="http://mediabrowser3.com/community/index.php?/topic/855-gamebrowser-iii-support/" target="_blank">Gamebrowser on the Emby forum</a>';
-
-                    $('#configPageContent', page).html(html).trigger('create');
-                });
-            </script>
-<!-- ReSharper restore UseOfImplicitGlobalInFunctionScope -->
         </div>
-    </body>
+
+        <script type="text/javascript">
+
+            var GameBrowserConfigurationPage =
+                {
+                    pluginUniqueId: "4C2FDA1C-FD5E-433A-AD2B-718E0B73E9A9",
+
+                    loadConfiguration: function (page) {
+
+                        ApiClient.getPluginConfiguration(GameBrowserConfigurationPage.pluginUniqueId).then(function (pluginConfig) {
+
+                            // Just in case it's empty
+                            pluginConfig.RootLocations = pluginConfig.RootLocations || [];
+
+                            GameBrowserConfigurationPage.loadConsoleFolders(page, pluginConfig);
+                        });
+
+                        Dashboard.hideLoadingMsg();
+                    },
+
+                    loadConsoleFolders: function (page, pluginConfig) {
+
+                        var html = "";
+
+                        for (var i = 0, length = pluginConfig.GameSystems.length; i < length; i++) {
+
+                            var gameSystem = pluginConfig.GameSystems[i];
+
+                            html += '<div class="listItem">';
+
+                            html += '<i class="md-icon listItemIcon">games</i>';
+
+                            html += '<div class="listItemBody two-line">';
+                            html += "<h3 class='listItemBodyText'>" + gameSystem.ConsoleType + "</h3>";
+                            html += "<div class='listItemBodyText secondary'>" + gameSystem.Path + "</div>";
+                            html += '</div>';
+
+                            html += '<button type="button" is="paper-icon-button-light" data-systempath="' + gameSystem.Path + '" class="btnDeleteSystem"><i class="md-icon">delete</i></button>';
+
+                            html += '</div>';
+                        }
+
+                        page.querySelector('.gameSystemList').innerHTML = html;
+                    },
+
+                    addGameSystem: function (page) {
+                        require(['dialogHelper', 'formDialogStyle', 'emby-select', 'emby-input', 'paper-icon-button-light'], function (dialogHelper) {
+                            GameBrowserConfigurationPage.showGameSystemEditor(page, dialogHelper);
+                        });
+                    },
+
+                    showGameSystemEditor: function (page, dialogHelper) {
+
+                        var dialogOptions = {
+                            removeOnClose: true,
+                            scrollY: false
+                        };
+
+                        dialogOptions.size = 'small';
+
+                        var dlg = dialogHelper.createDialog(dialogOptions);
+
+                        dlg.classList.add('formDialog');
+
+                        var html = '';
+                        var title = 'New Game System';
+
+                        html += '<div class="formDialogHeader">';
+                        html += '<button is="paper-icon-button-light" class="btnCancel autoSize" tabindex="-1"><i class="md-icon">&#xE5C4;</i></button>';
+                        html += '<h3 class="formDialogHeaderTitle">';
+                        html += title;
+                        html += '</h3>';
+
+                        html += '</div>';
+
+                        html += '<div class="formDialogContent smoothScrollY" style="padding-top:2em;">';
+                        html += '<div class="dialogContentInner dialog-content-centered">';
+                        html += '<form class="newCollectionForm" style="margin:auto;">';
+
+                        html += '<div class="selectContainer">';
+                        html += '<select class="selectGameSystem" is="emby-select" label="Game system:">';
+                        html += '<option value="3DO">3DO</option>\
+                                <option value="Amiga">Amiga</option>\
+                                <option value="Arcade">Arcade</option>\
+                                <option value="Atari 2600">Atari 2600</option>\
+                                <option value="Atari 5200">Atari 5200</option>\
+                                <option value="Atari 7800">Atari 7800</option>\
+                                <option value="Atari Jaguar">Atari Jaguar</option>\
+                                <option value="Atari Jaguar CD">Atari Jaguar CD</option>\
+                                <option value="Atari XE">Atari XE</option>\
+                                <option value="Colecovision">Colecovision</option>\
+                                <option value="Commodore 64">Commodore 64</option>\
+                                <option value="Commodore Vic-20">Commodore Vic 20</option>\
+                                <option value="DOS">DOS</option>\
+                                <option value="Intellivision">Intellivision</option>\
+                                <option value="Xbox">Microsoft XBox</option>\
+                                <option value="Xbox 360">Microsoft XBox 360</option>\
+                                <option value="Xbox One">Microsoft XBox One</option>\
+                                <option value="Neo Geo">Neo-Geo</option>\
+                                <option value="Nintendo 64">Nintendo 64</option>\
+                                <option value="Nintendo DS">Nintendo DS</option>\
+                                <option value="Game Boy">Nintendo Game Boy</option>\
+                                <option value="Game Boy Advance">Nintendo Game Boy Advance</option>\
+                                <option value="Game Boy Color">Nintendo Game Boy Color</option>\
+                                <option value="Gamecube">Nintendo GameCube</option>\
+                                <option value="Nintendo">Nintendo NES</option>\
+                                <option value="Super Nintendo">Nintendo SNES</option>\
+                                <option value="Virtual Boy">Nintendo Virtual Boy</option>\
+                                <option value="Nintendo Wii">Nintendo Wii</option>\
+                                <option value="Nintendo Wii U">Nintendo Wii U</option>\
+                                <option value="Sega 32X">Sega 32X</option>\
+                                <option value="Sega CD">Sega CD</option>\
+                                <option value="Dreamcast">Sega Dreamcast</option>\
+                                <option value="Game Gear">Sega Game Gear</option>\
+                                <option value="Sega Genesis">Sega Genesis</option>\
+                                <option value="Sega Master System">Sega Master System</option>\
+                                <option value="Sega Mega Drive">Sega Mega Drive</option>\
+                                <option value="Sega Saturn">Sega Saturn</option>\
+                                <option value="Sony Playstation">Sony Playstation</option>\
+                                <option value="PS2">Sony Playstation 2</option>\
+                                <option value="PS3">Sony Playstation 3</option>\
+                                <option value="PS4">Sony Playstation 4</option>\
+                                <option value="PSP">Sony Playstation Portable</option>\
+                                <option value="TurboGrafx 16">TurboGrafx-16</option>\
+                                <option value="TurboGrafx CD">TurboGrafx CD</option>\
+                                <option value="Windows">Windows</option>\
+                                <option value="ZX Spectrum">ZX Spectrum</option>';
+                        html += '</select>';
+                        html += '</div>';
+
+                        html += '<div class="inputContainer">\
+            <div style="display: flex; align-items: center;">\
+                <div style="flex-grow:1;">\
+                    <input is="emby-input" class="txtPath" label="Game system folder:" required="required" autocomplete="off" />\
+                </div>\
+                <button type="button" is="paper-icon-button-light" id="btnSelectPath" class="autoSize"><i class="md-icon">search</i></button>\
+            </div>\
+        </div>\
+';
+                        html += '<div class="formDialogFooter">';
+                        html += '<button is="emby-button" type="submit" class="raised button-submit block formDialogFooterItem"><span>Save</span></button>';
+                        html += '</div>';
+
+                        html += '</form>';
+                        html += '</div>';
+                        html += '</div>';
+
+                        dlg.innerHTML = html;
+
+                        dlg.querySelector('.btnCancel').addEventListener('click', function () {
+
+                            dialogHelper.close(dlg);
+                        });
+
+                        dlg.querySelector('#btnSelectPath').addEventListener("click", function () {
+                            require(['directorybrowser'], function (directoryBrowser) {
+
+                                var picker = new directoryBrowser();
+
+                                picker.show({
+
+                                    callback: function (path) {
+
+                                        if (path) {
+                                            var txtPath = dlg.querySelector('.txtPath');
+                                            txtPath.value = path;
+                                            txtPath.focus();
+                                        }
+                                        picker.close();
+                                    }
+                                });
+                            });
+                        });
+
+                        dlg.querySelector('form').addEventListener("submit", function (e) {
+
+                            Dashboard.showLoadingMsg();
+
+                            ApiClient.getPluginConfiguration(GameBrowserConfigurationPage.pluginUniqueId).then(function (config) {
+
+                                var newEntry = true;
+
+                                var path = dlg.querySelector('.txtPath').value;
+                                var type = dlg.querySelector('.selectGameSystem').value;
+
+                                // need to handle updating a game system in addition to creating a new one
+                                if (config.GameSystems.length > 0) {
+                                    for (var i = 0, length = config.GameSystems.length; i < length; i++) {
+                                        if (config.GameSystems[i].Path == path) {
+                                            newEntry = false;
+                                            config.GameSystems[i].ConsoleType = type;
+                                        }
+                                    }
+                                }
+
+                                if (newEntry) {
+                                    var platform = {};
+                                    platform.Path = path;
+                                    platform.ConsoleType = type;
+                                    config.GameSystems.push(platform);
+                                }
+
+                                ApiClient.updatePluginConfiguration(GameBrowserConfigurationPage.pluginUniqueId, config).then(function () {
+
+                                    Dashboard.hideLoadingMsg();
+
+                                    dialogHelper.close(dlg);
+                                    GameBrowserConfigurationPage.loadConfiguration(page);
+                                });
+
+                                return true;
+                            });
+
+                            e.preventDefault();
+                        });
+
+                        dialogHelper.open(dlg);
+                    },
+
+                    deleteConsoleFolder: function (page, systemPath) {
+
+                        require(['confirm'], function (confirm) {
+
+                            confirm({
+
+                                title: 'Delete Game System',
+                                text: 'Delete this game system?',
+                                confirmText: 'Delete',
+                                primary: 'cancel'
+
+                            }).then(function () {
+
+                                Dashboard.showLoadingMsg();
+
+                                ApiClient.getPluginConfiguration(GameBrowserConfigurationPage.pluginUniqueId).then(function (config) {
+
+                                    var index = 0;
+                                    for (var i = 0, length = config.GameSystems.length; i < length; i++) {
+
+                                        if (config.GameSystems[i].Path == systemPath) {
+                                            index = i;
+                                        }
+                                    }
+
+                                    config.GameSystems.splice(index, 1);
+
+                                    ApiClient.updatePluginConfiguration(GameBrowserConfigurationPage.pluginUniqueId, config).then(function () {
+                                        Dashboard.hideLoadingMsg();
+                                        GameBrowserConfigurationPage.loadConfiguration(page);
+                                    });
+                                });
+                            });
+                        });
+                    }
+                };
+
+            $('.gameBrowserConfigurationPageuninitialized').on('pageinit', function (event) {
+
+                var page = this;
+
+                page.addEventListener('click', function (e) {
+                    var btnDeleteSystem = e.target.classList.contains('btnDeleteSystem') ? e.target : $(e.target).parents('.btnDeleteSystem')[0];
+
+                    if (btnDeleteSystem) {
+                        GameBrowserConfigurationPage.deleteConsoleFolder(page, btnDeleteSystem.getAttribute('data-systempath'));
+                    }
+
+                    var btnAddGameSystem = e.target.classList.contains('btnAddGameSystem') ? e.target : $(e.target).parents('.btnAddGameSystem')[0];
+
+                    if (btnAddGameSystem) {
+                        GameBrowserConfigurationPage.addGameSystem(page);
+                    }
+                });
+            }).on('pageshow', function (event) {
+
+                Dashboard.showLoadingMsg();
+
+                var page = this;
+
+                GameBrowserConfigurationPage.loadConfiguration(page);
+
+            }).removeClass('gameBrowserConfigurationPageuninitialized');
+
+        </script>
+    </div>
+</body>
 </html>

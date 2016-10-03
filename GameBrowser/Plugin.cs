@@ -29,7 +29,6 @@ namespace GameBrowser
 
         private readonly ILogger _logger;
         private readonly IHttpClient _httpClient;
-        private static ILibraryManager _libraryManager;
         private readonly GameBrowserUriService _gameBrowserUriService;
 
         /// <summary>
@@ -76,25 +75,10 @@ namespace GameBrowser
             : base(appPaths, xmlSerializer)
         {
             Instance = this;
-            _libraryManager = libraryManager;
             _logger = logManager.GetLogger("GameBrowser");
             _httpClient = httpClient;
 
-            _gameBrowserUriService = new GameBrowserUriService(_logger, _libraryManager);
-        }
-
-        /// <summary>
-        /// Only refresh if the configuration file has actually changed.
-        /// </summary>
-        /// <param name="configuration"></param>
-        public override void UpdateConfiguration(BasePluginConfiguration configuration)
-        {
-            var needsToRefresh = !Configuration.Equals(configuration);
-
-            base.UpdateConfiguration(configuration);
-
-            if (needsToRefresh)
-                _libraryManager.ValidateMediaLibrary(new Progress<double>(), CancellationToken.None);
+            _gameBrowserUriService = new GameBrowserUriService(_logger, libraryManager);
         }
 
         private DateTime _keyDate;

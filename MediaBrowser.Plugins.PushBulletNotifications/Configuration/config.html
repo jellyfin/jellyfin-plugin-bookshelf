@@ -4,73 +4,44 @@
     <title>PushBullet Notifications</title>
 </head>
 <body>
-    <div data-role="page" class="page type-interior pluginConfigurationPage pushBulletConfigurationPage">
+    <div data-role="page" class="page type-interior pluginConfigurationPage pushBulletConfigurationPage" data-require="emby-input,emby-button,emby-checkbox,emby-select">
 
         <div data-role="content">
             <div class="content-primary">
                 <form class="pushBulletConfigurationForm">
-                    <ul class="ulForm" data-role="listview">
-                        <li>
-                            <label for="selectUser">Configure PushBullet notifications for:</label>
-                            <select id="selectUser" data-mini="true"></select>
-                        </li>
-                        <li>
-                            <label for="chkEnablePushBullet">Enabled</label>
-                            <input type="checkbox" id="chkEnablePushBullet" data-mini="true" />
-                        </li>
-                        <li>
-                            <label for="txtPushBulletAuthKey">
-                                PushBullet Auth Token:
-                            </label>
-                            <input type="text" id="txtPushBulletAuthKey" name="txtPushBulletAuthKey" required="required" data-mini="true" />
-                            <div class="fieldDescription">
-                                Auth key for your application
-                            </div>
-                        </li>
-                        <!--<li>
-                            <label for="txtPushBulletDeviceId">
-                                PushBullet Device Id:
-                            </label>
-                            <input type="text" id="txtPushBulletDeviceId" name="txtPushBulletDeviceId" data-mini="true" />
-                            <div class="fieldDescription">
-                                Device Identification
-                            </div>
-                        </li>-->
-                        <li><button type="button" id="testNotification" data-mini="true">Test Notification</button></li>
-                        <li>
-                            <button type="submit" data-theme="b" data-mini="true">Save</button>
-                            <button type="button" onclick="history.back();" data-mini="true">Cancel</button>
-                        </li>
-                    </ul>
+                    <div style="height:0; overflow: hidden;"><input type="text" name="fakeusernameremembered" tabindex="-1" /><input type="password" name="fakepasswordremembered" tabindex="-1" /></div>
+                    <div class="selectContainer">
+                        <select is="emby-select" id="selectUser" label="Configure PushBullet notifications for:"></select>
+                    </div>
+                    <label class="checkboxContainer">
+                        <input is="emby-checkbox" type="checkbox" id="chkEnablePushBullet" />
+                        <span>Enabled</span>
+                    </label>
+                    <div class="inputContainer">
+                        <input is="emby-input" type="text" id="txtPushBulletAuthKey" required="required" label="PushBullet auth token:" />
+                        <div class="fieldDescription">
+                            Auth key for your application
+                        </div>
+                    </div>
+                    <div>
+                        <button is="emby-button" type="button" class="raised button-cancel block" id="testNotification">
+                            <span>Test Notification</span>
+                        </button>
+                    </div>
+                    <br />
+                    <div>
+                        <button is="emby-button" type="submit" class="raised button-submit block"><span>Save</span></button>
+                    </div>
 
                 </form>
             </div>
         </div>
-        
+
         <script type="text/javascript">
 
             (function () {
 
                 var pluginId = "DE228F12-E43E-4BD9-9fC0-2830819C3B92";
-
-                $('#testNotification').on('click', function (event) {
-
-                    Dashboard.showLoadingMsg();
-
-                    ApiClient.getPluginConfiguration(pluginId).then(function (config) {
-
-                        config.Options.filter(function (c) {
-
-                            ApiClient.ajax({
-                                type: "POST",
-                                url: ApiClient.getUrl("Notification/PushBullet/Test/" + c.MediaBrowserUserId)
-
-                            }).then(function () {
-                                Dashboard.hideLoadingMsg();
-                            });
-                        });
-                    });
-                });
 
                 function loadUserConfig(page, userId) {
 
@@ -99,6 +70,39 @@
                     $('#selectUser', page).on('change', function () {
 
                         loadUserConfig(page, this.value);
+                    });
+
+                    $('#testNotification', page).on('click', function (event) {
+
+                        Dashboard.showLoadingMsg();
+
+                        var onError = function () {
+                            alert("There was an error sending the test notification. Please check your notification settings and try again.");
+                            require(['alert'], function (alert) {
+                                Dashboard.hideLoadingMsg();
+                            });
+                        };
+
+                        ApiClient.getPluginConfiguration(pluginId).then(function (config) {
+
+                            if (!config.Options.length) {
+                                Dashboard.hideLoadingMsg();
+                                require(['alert'], function (alert) {
+                                    alert("Please configure and save at least one notification account.");
+                                });
+                            }
+
+                            config.Options.map(function (c) {
+
+                                ApiClient.ajax({
+                                    type: "POST",
+                                    url: ApiClient.getUrl("Notification/PushBullet/Test/" + c.MediaBrowserUserId)
+
+                                }).then(function () {
+                                    Dashboard.hideLoadingMsg();
+                                }, onError);
+                            });
+                        });
                     });
 
                 }).on('pageshow', function (event) {
