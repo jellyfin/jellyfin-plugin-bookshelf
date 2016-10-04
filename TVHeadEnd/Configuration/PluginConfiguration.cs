@@ -11,6 +11,7 @@ namespace TVHeadEnd.Configuration
         public string TVH_ServerName { get; set; }
 		public int HTTP_Port { get; set; }
 		public int HTSP_Port { get; set; }
+        public string WebRoot { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
         public int Priority { get; set; }
@@ -24,6 +25,7 @@ namespace TVHeadEnd.Configuration
             TVH_ServerName = "localhost";
             HTTP_Port = 9981;
 			HTSP_Port = 9982;
+            WebRoot = "/";
             Username = "";
             Password = "";
             Priority = 5;
