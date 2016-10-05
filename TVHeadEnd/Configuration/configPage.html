@@ -29,6 +29,15 @@
                             <input type="text" id="txtHTSP_Port" name="txtHTSP_Port" />
                         </li>
                         <li>
+                            <label for="txtWebRoot">
+                                webroot:
+                            </label>
+                            <input type="text" id="txtWebRoot" name="txtWebRoot" />
+                            <div class="fieldDescription">
+                                This path will be added to &lt;Tvheadend-Hostname or IP-Address&gt; : &lt;HTTP-Port&gt;. It should be '/' if you have no special setup.
+                            </div>
+                        </li>
+                        <li>
                             <label for="txtUserName">
                                 User name:
                             </label>
@@ -106,6 +115,7 @@
                     $('#txtTVH_ServerName', page).val(config.TVH_ServerName || "");
                     $('#txtHTTP_Port', page).val(config.HTTP_Port || "9981");
                     $('#txtHTSP_Port', page).val(config.HTSP_Port || "9982");
+                    $('#txtWebRoot', page).val(config.WebRoot || "/");
                     $('#txtUserName', page).val(config.Username || "");
                     $('#txtPassword', page).val(config.Password || "");
                     $('#txtPriority', page).val(config.Priority || "5");
@@ -124,6 +134,7 @@
                     config.TVH_ServerName = $('#txtTVH_ServerName', form).val();
                     config.HTTP_Port = $('#txtHTTP_Port', form).val();
                     config.HTSP_Port = $('#txtHTSP_Port', form).val();
+                    config.WebRoot = $('#txtWebRoot', form).val();
                     config.Username = $('#txtUserName', form).val();
                     config.Password = $('#txtPassword', form).val();
                     config.Priority = $('#txtPriority', form).val();

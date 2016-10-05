@@ -188,7 +188,7 @@ namespace TVHeadEnd.DataHelper
                                         ri.Status = RecordingStatus.Completed;
                                         break;
                                     case "scheduled":
-                                        ri.Status = RecordingStatus.Scheduled;
+                                        ri.Status = RecordingStatus.New;
                                         continue;
                                     //break;
                                     case "missed":
