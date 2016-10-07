@@ -37,6 +37,7 @@ namespace TVHeadEnd
         private string _tvhServerName;
         private int _httpPort;
         private int _htspPort;
+        private string _webRoot;
         private string _userName;
         private string _password;
         private bool _enableSubsMaudios;
@@ -144,17 +145,18 @@ namespace TVHeadEnd
             _tvhServerName = config.TVH_ServerName.Trim();
             _httpPort = config.HTTP_Port;
             _htspPort = config.HTSP_Port;
+            _webRoot = config.WebRoot;
             _userName = config.Username.Trim();
             _password = config.Password.Trim();
 
             if (_enableSubsMaudios)
             {
                 // Use HTTP basic auth instead of TVH ticketing system for authentication to allow the users to switch subs or audio tracks at any time
-                _httpBaseUrl = "http://" + _userName + ":" + _password + "@" + _tvhServerName + ":" + _httpPort;
+                _httpBaseUrl = "http://" + _userName + ":" + _password + "@" + _tvhServerName + ":" + _httpPort + _webRoot;
             }
             else
             {
-                _httpBaseUrl = "http://" + _tvhServerName + ":" + _httpPort;
+                _httpBaseUrl = "http://" + _tvhServerName + ":" + _httpPort + _webRoot;
             }
 
             string authInfo = _userName + ":" + _password;
@@ -182,10 +184,11 @@ namespace TVHeadEnd
                 }
                 else
                 {
-                    request = WebRequest.Create("http://" + _tvhServerName + ":" + _httpPort + "/" + channelIcon);
+                    string requestStr = "http://" + _tvhServerName + ":" + _httpPort + _webRoot + "/" + channelIcon;
+                    request = WebRequest.Create(requestStr);
                     request.Headers["Authorization"] = _headers["Authorization"];
 
-                    _logger.Info("[TVHclient] HTSConnectionHandler.GetChannelImage() WebRequest: " + "http://" + _tvhServerName + ":" + _httpPort + "/" + channelIcon);
+                    _logger.Info("[TVHclient] HTSConnectionHandler.GetChannelImage() WebRequest: " + requestStr);
                 }
 
 
@@ -291,6 +294,7 @@ namespace TVHeadEnd
                         "TVH Server = '" + _tvhServerName + "'; " +
                         "HTTP Port = '" + _httpPort + "'; " +
                         "HTSP Port = '" + _htspPort + "'; " +
+                        "Web-Root = '" + _webRoot + "'; " +
                         "User = '" + _userName + "'; " +
                         "Password set = '" + (_password.Length > 0) + "'");
 
