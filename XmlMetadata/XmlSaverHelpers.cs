@@ -351,22 +351,6 @@ namespace XmlMetadata
                 }
             }
 
-            var hasProductionLocations = item as IHasProductionLocations;
-            if (hasProductionLocations != null)
-            {
-                if (hasProductionLocations.ProductionLocations.Count > 0)
-                {
-                    builder.Append("<Countries>");
-
-                    foreach (var name in hasProductionLocations.ProductionLocations)
-                    {
-                        builder.Append("<Country>" + SecurityElement.Escape(name) + "</Country>");
-                    }
-
-                    builder.Append("</Countries>");
-                }
-            }
-
             var hasDisplayOrder = item as IHasDisplayOrder;
             if (hasDisplayOrder != null && !string.IsNullOrEmpty(hasDisplayOrder.DisplayOrder))
             {
@@ -554,20 +538,11 @@ namespace XmlMetadata
                 builder.Append("<TVRageId>" + SecurityElement.Escape(externalId) + "</TVRageId>");
             }
 
-            var hasTagline = item as IHasTaglines;
-            if (hasTagline != null)
+            if (!string.IsNullOrWhiteSpace(item.Tagline))
             {
-                if (hasTagline.Taglines.Count > 0)
-                {
-                    builder.Append("<Taglines>");
-
-                    foreach (var tagline in hasTagline.Taglines)
-                    {
-                        builder.Append("<Tagline>" + SecurityElement.Escape(tagline) + "</Tagline>");
-                    }
-
-                    builder.Append("</Taglines>");
-                }
+                builder.Append("<Taglines>");
+                builder.Append("<Tagline>" + SecurityElement.Escape(item.Tagline) + "</Tagline>");
+                builder.Append("</Taglines>");
             }
 
             if (item.Genres.Count > 0)
