@@ -1,30 +1,30 @@
-﻿using System.Globalization;
-using MediaBrowser.Common.IO;
-using MediaBrowser.Common.Net;
-using MediaBrowser.Common.ScheduledTasks;
-using MediaBrowser.Controller;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Entities.Movies;
-using MediaBrowser.Controller.Entities.TV;
-using MediaBrowser.Controller.Library;
-using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Logging;
-using MediaBrowser.Model.Serialization;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using CommonIO;
-using Trakt.Api;
-using Trakt.Api.DataContracts.BaseModel;
-using Trakt.Api.DataContracts.Users.Collection;
-using Trakt.Api.DataContracts.Users.Watched;
-using Trakt.Helpers;
-using Trakt.Model;
-
-namespace Trakt.ScheduledTasks
+﻿namespace Trakt.ScheduledTasks
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Globalization;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+
+    using CommonIO;
+
+    using MediaBrowser.Common.Net;
+    using MediaBrowser.Common.ScheduledTasks;
+    using MediaBrowser.Controller;
+    using MediaBrowser.Controller.Entities;
+    using MediaBrowser.Controller.Entities.Movies;
+    using MediaBrowser.Controller.Entities.TV;
+    using MediaBrowser.Controller.Library;
+    using MediaBrowser.Model.Entities;
+    using MediaBrowser.Model.Logging;
+    using MediaBrowser.Model.Serialization;
+
+    using Trakt.Api;
+    using Trakt.Api.DataContracts.BaseModel;
+    using Trakt.Api.DataContracts.Users.Collection;
+    using Trakt.Api.DataContracts.Users.Watched;
+    using Trakt.Helpers;
 
     /// <summary>
     /// Task that will Sync each users trakt.tv profile with their local library. This task will only include 
@@ -120,24 +120,24 @@ namespace Trakt.ScheduledTasks
                 throw;
             }
 
-
             _logger.Info("Trakt.tv watched Movies count = " + traktWatchedMovies.Count());
             _logger.Info("Trakt.tv watched Shows count = " + traktWatchedShows.Count());
 
+            var mediaItems =
+                _libraryManager.GetItemList(
+                        new InternalItemsQuery
+                            {
+                                IncludeItemTypes = new[] { typeof(Movie).Name, typeof(Episode).Name },
+                                ExcludeLocationTypes = new[] { LocationType.Virtual }
+                            })
+                    .Where(i => _traktApi.CanSync(i, traktUser))
+                    .OrderBy(
+                        i =>
+                            {
+                                var episode = i as Episode;
 
-            var mediaItems = _libraryManager.GetItemList(new InternalItemsQuery
-            {
-                IncludeItemTypes = new[] { typeof(Movie).Name, typeof(Episode).Name },
-                ExcludeLocationTypes = new[] { LocationType.Virtual }
-            })
-                .Where(i => _traktApi.CanSync(i, traktUser))
-                .OrderBy(i =>
-                {
-                    var episode = i as Episode;
-
-                    return episode != null ? episode.Series.Id : i.Id;
-                })
-                .ToList();
+                                return episode != null ? episode.Series.Id : i.Id;
+                            }).ToList();
 
             // purely for progress reporting
             var percentPerItem = percentPerUser / mediaItems.Count;
@@ -164,6 +164,7 @@ namespace Trakt.ScheduledTasks
 
                     // keep the highest play count
                     int playcount = Math.Max(matchedMovie.Plays, userData.PlayCount);
+
                     // set movie playcount
                     if (userData.PlayCount != playcount)
                     {
@@ -175,9 +176,7 @@ namespace Trakt.ScheduledTasks
                     if (!string.IsNullOrEmpty(matchedMovie.LastWatchedAt))
                     {
                         var tLastPlayed = DateTime.Parse(matchedMovie.LastWatchedAt);
-                        var latestPlayed = tLastPlayed > userData.LastPlayedDate
-                            ? tLastPlayed
-                            : userData.LastPlayedDate;
+                        var latestPlayed = tLastPlayed > userData.LastPlayedDate ? tLastPlayed : userData.LastPlayedDate;
                         if (userData.LastPlayedDate != latestPlayed)
                         {
                             userData.LastPlayedDate = latestPlayed;
@@ -189,7 +188,11 @@ namespace Trakt.ScheduledTasks
                     if (changed)
                     {
                         await
-                            _userDataManager.SaveUserData(user.Id, movie, userData, UserDataSaveReason.Import,
+                            _userDataManager.SaveUserData(
+                                user.Id,
+                                movie,
+                                userData,
+                                UserDataSaveReason.Import,
                                 cancellationToken);
                     }
                 }
@@ -210,8 +213,13 @@ namespace Trakt.ScheduledTasks
 
                 if (matchedShow != null)
                 {
-                    var matchedSeason = matchedShow.Seasons
-                        .FirstOrDefault(tSeason => tSeason.Number == (episode.ParentIndexNumber == 0 ? 0 : ((episode.ParentIndexNumber ?? 1) + (episode.Series.AnimeSeriesIndex ?? 1) - 1)));
+                    var matchedSeason =
+                        matchedShow.Seasons.FirstOrDefault(
+                            tSeason =>
+                                tSeason.Number
+                                == (episode.ParentIndexNumber == 0
+                                        ? 0
+                                        : ((episode.ParentIndexNumber ?? 1) + (episode.Series.AnimeSeriesIndex ?? 1) - 1)));
 
                     // if it's not a match then it means trakt doesn't know about the season, leave the watched state alone and move on
                     if (matchedSeason != null)
@@ -220,7 +228,8 @@ namespace Trakt.ScheduledTasks
                         var userData = _userDataManager.GetUserData(user.Id, episode);
                         bool changed = false;
 
-                        var matchedEpisode = matchedSeason.Episodes.FirstOrDefault(x => x.Number == (episode.IndexNumber ?? -1));
+                        var matchedEpisode =
+                            matchedSeason.Episodes.FirstOrDefault(x => x.Number == (episode.IndexNumber ?? -1));
 
                         if (matchedEpisode != null)
                         {
@@ -236,6 +245,7 @@ namespace Trakt.ScheduledTasks
 
                             // keep the highest play count
                             int playcount = Math.Max(matchedEpisode.Plays, userData.PlayCount);
+
                             // set episode playcount
                             if (userData.PlayCount != playcount)
                             {
@@ -255,7 +265,11 @@ namespace Trakt.ScheduledTasks
                         if (changed)
                         {
                             await
-                                _userDataManager.SaveUserData(user.Id, episode, userData, UserDataSaveReason.Import,
+                                _userDataManager.SaveUserData(
+                                    user.Id,
+                                    episode,
+                                    userData,
+                                    UserDataSaveReason.Import,
                                     cancellationToken);
                         }
                     }
@@ -273,17 +287,18 @@ namespace Trakt.ScheduledTasks
                 currentProgress += percentPerItem;
                 progress.Report(currentProgress);
             }
-            //_logger.Info(syncItemFailures + " items not parsed");
+
+            // _logger.Info(syncItemFailures + " items not parsed");
         }
 
         private string GetVerboseEpisodeData(Episode episode)
         {
-            string episodeString = "";
+            string episodeString = string.Empty;
             episodeString += "Episode: " + (episode.ParentIndexNumber != null ? episode.ParentIndexNumber.ToString() : "null");
             episodeString += "x" + (episode.IndexNumber != null ? episode.IndexNumber.ToString() : "null");
             episodeString += " '" + episode.Name + "' ";
             episodeString += "Series: '" + (episode.Series != null
-                ? !String.IsNullOrWhiteSpace(episode.Series.Name)
+                ? !string.IsNullOrWhiteSpace(episode.Series.Name)
                     ? episode.Series.Name
                     : "null property"
                 : "null class");
@@ -370,25 +385,16 @@ namespace Trakt.ScheduledTasks
         /// <summary>
         /// 
         /// </summary>
-        public string Name
-        {
-            get { return "Import playstates from Trakt.tv"; }
-        }
+        public string Name => "Import playstates from Trakt.tv";
 
         /// <summary>
         /// 
         /// </summary>
-        public string Description
-        {
-            get { return "Sync Watched/Unwatched status from Trakt.tv for each MB3 user that has a configured Trakt account"; }
-        }
+        public string Description => "Sync Watched/Unwatched status from Trakt.tv for each MB3 user that has a configured Trakt account";
 
         /// <summary>
         /// 
         /// </summary>
-        public string Category
-        {
-            get { return "Trakt"; }
-        }
+        public string Category => "Trakt";
     }
 }

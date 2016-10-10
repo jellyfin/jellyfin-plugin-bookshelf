@@ -13,10 +13,7 @@ namespace Trakt.Configuration
         /// Gets the name.
         /// </summary>
         /// <value>The name.</value>
-        public string Name
-        {
-            get { return "Trakt for MediaBrowser"; }
-        }
+        public string Name => "Trakt for MediaBrowser";
 
         /// <summary>
         /// Gets the HTML stream.
@@ -31,14 +28,8 @@ namespace Trakt.Configuration
         /// Gets the type of the configuration page.
         /// </summary>
         /// <value>The type of the configuration page.</value>
-        public ConfigurationPageType ConfigurationPageType
-        {
-            get { return ConfigurationPageType.PluginConfiguration; }
-        }
+        public ConfigurationPageType ConfigurationPageType => ConfigurationPageType.PluginConfiguration;
 
-        public IPlugin Plugin
-        {
-            get { return Trakt.Plugin.Instance; }
-        }
+        public IPlugin Plugin => Trakt.Plugin.Instance;
     }
 }
