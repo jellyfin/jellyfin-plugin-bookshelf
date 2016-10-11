@@ -4,36 +4,41 @@
     <title>Google Drive</title>
 </head>
 <body>
-    <div data-role="page" class="page type-interior pluginConfigurationPage googleDriveConfigurationPage" data-helpurl="https://github.com/MediaBrowser/Wiki/wiki/Google-Drive">
+    <div data-role="page" class="page type-interior pluginConfigurationPage googleDriveConfigurationPage" data-helpurl="https://github.com/MediaBrowser/Wiki/wiki/Google-Drive" data-require="emby-input,emby-button,listViewStyle">
         <div data-role="content">
-            <div class="content-primary">
+            <div class="content-primary" style="max-width:700px;">
+
+                <h1>Google Drive</h1>
+
                 <form id="googleDriveGeneralConfigurationForm">
-                    <ul class="ulForm" data-role="listview">
-                        <li>
-                            <label for="googleDriveClientId">
-                                Google Drive Client Id:
-                            </label>
-                            <input id="googleDriveClientId" name="googleDriveClientId" type="text" required />
-                            <div class="fieldDescription"><a href="#" onclick="$('#popupAuthInfo').popup('open');return false;">Create a Google Drive Client Id and Secret</a></div>
-                        </li>
-                        <li>
-                            <label for="googleDriveClientSecret">
-                                Google Drive Client Secret:
-                            </label>
-                            <input id="googleDriveClientSecret" name="googleDriveClientSecret" type="text" required />
-                            <div class="fieldDescription"><a href="#" onclick="$('#popupAuthInfo').popup('open');return false;">Create a Google Drive Client Id and Secret</a></div>
-                        </li>
-                        <li>
-                            <button type="submit" data-theme="b" data-icon="check" data-mini="true">Save</button>
-                        </li>
-                    </ul>
+                    <div class="inputContainer">
+                        <input is="emby-input" id="googleDriveClientId" name="googleDriveClientId" label="Google Drive Client Id:" type="text" required />
+                        <div class="fieldDescription">
+                            <a href="#" onclick="$('#popupAuthInfo').popup('open');return false;">Create a Google Drive Client Id and Secret</a>
+                        </div>
+                    </div>
+                    <div class="inputContainer">
+                        <input is="emby-input" id="googleDriveClientSecret" name="googleDriveClientSecret" type="text" label="Google Drive Client Secret:" required />
+                        <div class="fieldDescription">
+                            <a href="#" onclick="$('#popupAuthInfo').popup('open');return false;">Create a Google Drive Client Id and Secret</a>
+                        </div>
+                    </div>
+                    <div>
+                        <button is="emby-button" type="submit" class="raised button-submit block"><span>Save</span></button>
+                    </div>
                 </form>
 
-                <div class="readOnlyContent">
-                    <p>Connect one or more Google Drive accounts.</p>
-
-                    <div class="googleDriveSyncTargets"></div>
+                <div style="display: flex; align-items: center; margin: 3em 0 .5em;">
+                    <h1 style="margin: 0;">Google Drive Accounts</h1>
+                    <button type="button" is="emby-button" class="raised mini btnAddAccount" style="margin-left:1em;">
+                        <i class="md-icon">add</i>
+                        <span>Add</span>
+                    </button>
                 </div>
+
+                <p>Connect one or more Google Drive accounts.</p>
+
+                <div class="googleDriveSyncTargets paperList"></div>
 
                 <div data-role="popup" id="popupAuthInfo" class="popup" data-position-to="window">
                     <div class="ui-bar-a" style="text-align: center; padding: 0 20px;">
@@ -41,18 +46,40 @@
                     </div>
                     <div data-role="content">
 
-                        <div style="line-height:150%;margin:.5em 0;padding:0 .25em;">
-                            <div><b>1.</b> <a href="https://console.developers.google.com/start/api?id=drive&credential=client_key" target="_blank">Open Google Drive</a></div>
-                            <div><b>2.</b> Select a Project or create a new one</div>
-                            <div><b>3.</b> Click "Go to Credentials"</div>
-                            <div><b>4.</b> Click "New Credentials" -> "OAuth Client Id"</div>
-                            <div><b>5.</b> If you're asked to configure the consent screen, click "Configure Consent Screen".</div>
-                            <div><b>6.</b> On the consent screen, select your email address, enter product name "Emby", then submit.</div>
-                            <div><b>7.</b> On the Create Client Id screen, click Application Type Other, then click Create.</div>
-                            <div><b>8.</b> You'll be returned to the main screen, where your Client Id and Client Secret will be displayed. Copy these values.</div>
-                            <div><b>9.</b> In the left sidebar, click "Overview". Then under Google APIs, click Drive API and enable it.</div>
-                            <div><b>10.</b> Enter the Client Id and Client Secret values here and click Save.</div>
-                            <div><b>11.</b> Add one or more google drive accounts using the form below.</div>
+                        <div style="line-height: 150%; margin: .5em 0; padding: 0 .25em;">
+                            <div>
+                                <b>1.</b> <a href="https://console.developers.google.com/start/api?id=drive&credential=client_key" target="_blank">Open Google Drive</a>
+                            </div>
+                            <div>
+                                <b>2.</b> Select a Project or create a new one
+                            </div>
+                            <div>
+                                <b>3.</b> Click "Go to Credentials"
+                            </div>
+                            <div>
+                                <b>4.</b> Click "New Credentials" -> "OAuth Client Id"
+                            </div>
+                            <div>
+                                <b>5.</b> If you're asked to configure the consent screen, click "Configure Consent Screen".
+                            </div>
+                            <div>
+                                <b>6.</b> On the consent screen, select your email address, enter product name "Emby", then submit.
+                            </div>
+                            <div>
+                                <b>7.</b> On the Create Client Id screen, click Application Type Other, then click Create.
+                            </div>
+                            <div>
+                                <b>8.</b> You'll be returned to the main screen, where your Client Id and Client Secret will be displayed. Copy these values.
+                            </div>
+                            <div>
+                                <b>9.</b> In the left sidebar, click "Overview". Then under Google APIs, click Drive API and enable it.
+                            </div>
+                            <div>
+                                <b>10.</b> Enter the Client Id and Client Secret values here and click Save.
+                            </div>
+                            <div>
+                                <b>11.</b> Add one or more google drive accounts using the form below.
+                            </div>
                             <br />
                         </div>
 
@@ -69,20 +96,18 @@
                         </div>
                         <div data-role="content">
 
-                            <ul id="popupAddAccountUlForm" class="ulForm" data-role="listview" style="margin-top:0;">
-                                <li>
-                                    <label for="displayName">
-                                        Display name:
-                                    </label>
-                                    <input id="displayName" type="text" required />
-                                </li>
-                                <li id="codeSection">
-                                    <label for="code">
-                                        Code:
-                                    </label>
-                                    <input id="code" type="text" />
-                                </li>
-                            </ul>
+                            <div>
+                                <label for="displayName">
+                                    Display name:
+                                </label>
+                                <input id="displayName" type="text" required />
+                            </div>
+                            <div id="codeSection">
+                                <label for="code">
+                                    Code:
+                                </label>
+                                <input id="code" type="text" />
+                            </div>
                             <div>
                                 <div class="ui-controlgroup-label">User Access</div>
                                 <div>
@@ -95,13 +120,12 @@
                                     </div>
                                 </div>
                             </div>
-                            <ul class="ulForm" data-role="listview" style="margin-top:.5em;">
-                                <li>
-                                    <input type="hidden" id="configId" />
-                                    <button id="grantAccessButton" type="submit" data-theme="b" data-icon="check">Grant Access</button>
-                                    <button type="button" data-icon="delete" onclick="$(this).parents('.popup').popup('close');">Cancel</button>
-                                </li>
-                            </ul>
+                            <br />
+                            <div>
+                                <input type="hidden" id="configId" />
+                                <button id="grantAccessButton" type="submit" data-theme="b" data-icon="check">Grant Access</button>
+                                <button type="button" data-icon="delete" onclick="$(this).parents('.popup').popup('close');">Cancel</button>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -115,25 +139,22 @@
                 function getTargetListHtml(targets) {
                     var html = '';
 
-                    html += '<ul data-inset="true" data-role="listview" data-split-icon="minus">';
-
-                    html += '<li data-role="list-divider">Google Drive Accounts';
-                    html += '<button type="button" data-icon="plus" data-mini="true" data-iconpos="notext" data-inline="true" class="btnAddAccount" style="margin: 0 0 0 1em;">Add</button>';
-                    html += '</li>';
-
                     for (var i = 0, length = targets.length; i < length; i++) {
+
                         var target = targets[i];
-                        html += '<li>';
-                        html += '<a href="#" data-id="' + target.Id + '" class="btnEditAccount">';
-                        html += '<h3>';
+                        html += '<div class="listItem">';
+
+                        html += '<i class="listItemIcon md-icon">folder</i>';
+
+                        html += '<div class="listItemBody btnEditAccount" data-id="' + target.Id + '">';
+                        html += '<h3 class="listItemBodyText">';
                         html += target.Name;
                         html += '</h3>';
-                        html += '</a>';
-                        html += '<a href="#" data-id="' + target.Id + '" class="btnDeleteAccount" data-icon="delete"></a>';
-                        html += '</li>';
-                    }
+                        html += '</div>';
 
-                    html += '</ul>';
+                        html += '<button type="button" is="paper-icon-button-light" data-id="' + target.Id + '" class="btnDeleteAccount listItemButton"><i class="md-icon">delete</i></button>';
+                        html += '</div>';
+                    }
 
                     return html;
                 }
@@ -159,7 +180,7 @@
 
                     html += '</div>';
 
-                    $('.userAccess', page).show().html(html).trigger('create');
+                    $('.userAccess', page).show().html(html);
 
                     if (users.length) {
                         $('.userAccessListContainer', page).show();
@@ -213,19 +234,13 @@
                     $('#googleDriveClientId', page).val(config.GoogleDriveClientId);
                     $('#googleDriveClientSecret', page).val(config.GoogleDriveClientSecret);
 
-                    var elem = $('.googleDriveSyncTargets', page).html(getTargetListHtml(config.SyncAccounts)).trigger('create');
+                    var elem = $('.googleDriveSyncTargets', page).html(getTargetListHtml(config.SyncAccounts));
 
                     $('.btnDeleteAccount', elem).on('click', function () {
                         deleteAccount(page, this.getAttribute('data-id'));
                     });
                     $('.btnEditAccount', elem).on('click', function () {
                         editAccount(page, this.getAttribute('data-id'));
-                    });
-                    $('.btnAddAccount', elem).on('click', function () {
-                        editAccountObject(page, {
-                            EnableForEveryone: true,
-                            UserIds: []
-                        });
                     });
                 }
 
@@ -236,8 +251,15 @@
                     });
                 }
 
-                $('.googleDriveConfigurationPage').on('pageshow', function (event) {
+                $('.googleDriveConfigurationPage').on('pageinit', function (event) {
                     var page = this;
+
+                    $('.btnAddAccount', page).on('click', function () {
+                        editAccountObject(page, {
+                            EnableForEveryone: true,
+                            UserIds: []
+                        });
+                    });
 
                     $('#chkEnableForEveryone', page).on('change', function () {
                         if (this.checked) {
@@ -247,48 +269,45 @@
                         }
                     });
 
+                    $('.googleDriveConfigurationForm', page).off('submit.plugin').on('submit.plugin', function (e) {
+                        var code = $('#code', page).val();
+
+                        if (code) {
+                            saveAccount(page);
+                        } else {
+                            var clientId = $('#googleDriveClientId', page).val();
+                            var scope = encodeURIComponent('https://www.googleapis.com/auth/drive.file');
+                            var url = 'https://accounts.google.com/o/oauth2/auth?response_type=code&access_type=offline&redirect_uri=urn:ietf:wg:oauth:2.0:oob&client_id=' + clientId + '&scope=' + scope;
+
+                            window.open(url, '_blank');
+
+                            $('#grantAccessButton', page).html('Save');
+                            $('#codeSection', page).show();
+                            $('#code', page).attr('required', true);
+                        }
+
+                        return false;
+                    });
+
+                    $('#googleDriveGeneralConfigurationForm', page).off('submit.plugin').on('submit.plugin', function () {
+                        Dashboard.showLoadingMsg();
+
+                        ApiClient.getPluginConfiguration(pluginId).then(function (config) {
+                            config.GoogleDriveClientId = $('#googleDriveClientId', page).val();
+                            config.GoogleDriveClientSecret = $('#googleDriveClientSecret', page).val();
+
+                            ApiClient.updatePluginConfiguration(pluginId, config).then(function (result) {
+                                Dashboard.hideLoadingMsg();
+                                Dashboard.processPluginConfigurationUpdateResult(result);
+                            });
+                        });
+
+                        return false;
+                    });
+
                 }).on('pageshow', function (event) {
                     var page = this;
                     loadConfig(page);
-                });
-
-                $('.googleDriveConfigurationForm').off('submit.plugin').on('submit.plugin', function (e) {
-                    var page = $(this).parents('.page');
-                    var code = $('#code', page).val();
-
-                    if (code) {
-                        saveAccount(page);
-                    } else {
-                        var clientId = $('#googleDriveClientId', page).val();
-                        var scope = encodeURIComponent('https://www.googleapis.com/auth/drive.file');
-                        var url = 'https://accounts.google.com/o/oauth2/auth?response_type=code&access_type=offline&redirect_uri=urn:ietf:wg:oauth:2.0:oob&client_id=' + clientId + '&scope=' + scope;
-
-                        window.open(url, '_blank');
-
-                        $('#grantAccessButton', page).html('Save');
-                        $('#codeSection', page).show();
-                        $('#code', page).attr('required', true);
-                    }
-
-                    return false;
-                });
-
-                $('#googleDriveGeneralConfigurationForm').off('submit.plugin').on('submit.plugin', function () {
-                    Dashboard.showLoadingMsg();
-
-                    var page = $(this).parents('.page');
-
-                    ApiClient.getPluginConfiguration(pluginId).then(function (config) {
-                        config.GoogleDriveClientId = $('#googleDriveClientId', page).val();
-                        config.GoogleDriveClientSecret = $('#googleDriveClientSecret', page).val();
-
-                        ApiClient.updatePluginConfiguration(pluginId, config).then(function (result) {
-                            Dashboard.hideLoadingMsg();
-                            Dashboard.processPluginConfigurationUpdateResult(result);
-                        });
-                    });
-
-                    return false;
                 });
 
                 function saveAccount(page) {
@@ -319,96 +338,6 @@
                         loadConfig(page);
                         Dashboard.hideLoadingMsg();
                     });
-                }
-
-                function getCurrentUrlWithoutQueryStrings() {
-                    var url = window.location.href.split('#')[0];
-
-                    url = removeQueryStringParameterFromUrl(url, 'code');
-                    url = removeQueryStringParameterFromUrl(url, 'error');
-                    url = removeQueryStringParameterFromUrl(url, 'configId');
-                    url = removeQueryStringParameterFromUrl(url, 'configName');
-                    url = removeQueryStringParameterFromUrl(url, 'enableForEveryone');
-                    url = removeQueryStringParameterFromUrl(url, 'userIds');
-
-                    return url;
-                }
-
-                function getSyncTarget(page) {
-                    var syncTarget = {
-                        Name: $('#displayName', page).val(),
-                        EnableForEveryone: $('#chkEnableForEveryone', page).checked(),
-                        Id: $('#configId', page).val(),
-                        UserIds: []
-                    };
-
-                    if (!syncTarget.EnableForEveryone) {
-                        syncTarget.UserIds = $('.chkUser:checked', page).map(function () {
-                            return this.getAttribute('data-id');
-                        }).get();
-                    }
-
-                    return syncTarget;
-                }
-
-                function buildRedirectUrl(syncTarget, callback) {
-                    var url = getCurrentUrlWithoutQueryStrings();
-
-                    if (syncTarget.Id) {
-                        url += '&configId=' + syncTarget.Id;
-                    }
-
-                    if (syncTarget.EnableForEveryone) {
-                        url += '&enableForEveryone=' + syncTarget.EnableForEveryone;
-                    } else {
-                        syncTarget.UserIds.forEach(function (userId) {
-                            url += '&userIds=' + userId;
-                        });
-                    }
-
-                    // Since redirectUri is matched during OAuth2, use C# UrlEncode which produces the exact same encoding
-                    ApiClient.ajax({
-                        type: 'GET',
-                        url: ApiClient.getUrl('GoogleDrive/SyncTarget/UrlEncode?Str=' + syncTarget.Name)
-                    }).then(function (str) {
-                        url += '&configName=' + str;
-
-                        url = encodeURIComponent(url);
-
-                        callback(url);
-                    });
-                }
-
-                function getQueryString(name) {
-                    var values = [];
-                    var queryStrings = getWindowLocationSearch().substr(1).split("&");
-
-                    queryStrings.forEach(function (item) {
-                        if (item.split("=")[0] == name) {
-                            values.push(item.split("=")[1]);
-                        }
-                    });
-
-                    if (values.length == 0) return '';
-                    if (values.length == 1) return values[0];
-                    return values;
-                }
-
-                function removeQueryStringParameterFromUrl(url, parameter) {
-                    var urlparts = url.split('?');
-
-                    if (urlparts.length >= 2) {
-                        var urlBase = urlparts.shift(); //get first part, and remove from array
-                        var queryString = urlparts.join("?"); //join it back up
-
-                        var prefix = encodeURIComponent(parameter) + '=';
-                        var pars = queryString.split(/[&;]/g);
-                        for (var i = pars.length; i-- > 0;) //reverse iteration as may be destructive
-                            if (pars[i].lastIndexOf(prefix, 0) !== -1) //idiom for string.startsWith
-                                pars.splice(i, 1);
-                        url = urlBase + '?' + pars.join('&');
-                    }
-                    return url;
                 }
             })();
         </script>
