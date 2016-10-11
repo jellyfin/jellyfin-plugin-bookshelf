@@ -146,6 +146,10 @@ namespace TVHeadEnd
             _httpPort = config.HTTP_Port;
             _htspPort = config.HTSP_Port;
             _webRoot = config.WebRoot;
+            if (_webRoot.EndsWith("/"))
+            {
+                _webRoot = _webRoot.Substring(0, _webRoot.Length - 1);
+            }
             _userName = config.Username.Trim();
             _password = config.Password.Trim();
 
