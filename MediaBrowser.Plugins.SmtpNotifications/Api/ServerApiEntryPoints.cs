@@ -6,58 +6,44 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
+using System.Threading.Tasks;
+using MediaBrowser.Model.Logging;
+using System.Threading;
+using MediaBrowser.Controller.Notifications;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Library;
 
 namespace MediaBrowser.Plugins.SmtpNotifications.Api
 {
     [Route("/Notification/SMTP/Test/{UserID}", "POST", Summary = "Tests SMTP")]
     public class TestNotification : IReturnVoid
     {
-        [ApiMember(Name = "UserID", Description = "User Id", IsRequired = true, DataType = "string", ParameterType = "path", Verb = "GET")]
+        [ApiMember(Name = "UserID", Description = "User Id", IsRequired = true, DataType = "string", ParameterType = "path", Verb = "POST")]
         public string UserID { get; set; }
     }
 
     class ServerApiEndpoints : IRestfulService
     {
-        private readonly IEncryptionManager _encryption;
+        private IUserManager _userManager;
 
-        public ServerApiEndpoints(IEncryptionManager encryption)
+        public ServerApiEndpoints(IUserManager userManager)
         {
-            _encryption = encryption;
+            _userManager = userManager;
         }
 
-        private SMTPOptions GetOptions(String userID)
+        public void Post(TestNotification request)
         {
-            return Plugin.Instance.Configuration.Options
-                .FirstOrDefault(i => string.Equals(i.MediaBrowserUserId, userID, StringComparison.OrdinalIgnoreCase));
-        }
-
-        public object Post(TestNotification request)
-        {
-            var options = GetOptions(request.UserID);
-
-            var mail = new MailMessage(options.EmailFrom, options.EmailTo)
+            var task = Notifier.Instance.SendNotification(new UserNotification
             {
-                Subject = "Emby: Test Notification",
-                Body = "This is a test notification from MediaBrowser"
-            };
+                Date = DateTime.UtcNow,
+                Description = "This is a test notification from Emby Server",
+                Level = Model.Notifications.NotificationLevel.Normal,
+                Name = "Emby: Test Notification",
+                User = _userManager.GetUserById(request.UserID)
 
-            var client = new SmtpClient
-            {
-                Host = options.Server,
-                Port = options.Port,
-                DeliveryMethod = SmtpDeliveryMethod.Network,
-                UseDefaultCredentials = false
-            };
+            }, CancellationToken.None);
 
-            if (options.SSL) client.EnableSsl = true;
-
-            if (options.UseCredentials)
-            {
-                var pw = _encryption.DecryptString(options.PwData);
-                client.Credentials = new NetworkCredential(options.Username, pw);
-            }
-
-            return client.SendMailAsync(mail);
+            Task.WaitAll(task);
         }
     }
 }

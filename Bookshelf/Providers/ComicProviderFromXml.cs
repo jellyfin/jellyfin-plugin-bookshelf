@@ -70,7 +70,7 @@ namespace MBBookshelf.Providers
 
         }
 
-        private FileSystemMetadata GetXmlFile(string path, bool isInMixedFolder)
+        private FileSystemMetadata GetXmlFile(string path)
         {
             var fileInfo = _fileSystem.GetFileSystemInfo(path);
 
@@ -87,14 +87,14 @@ namespace MBBookshelf.Providers
 
         public bool HasChanged(IHasMetadata item, IDirectoryService directoryService)
         {
-            var file = GetXmlFile(item.Path, item.IsInMixedFolder);
+            var file = GetXmlFile(item.Path);
 
             return file.Exists && _fileSystem.GetLastWriteTimeUtc(file) > item.DateLastSaved;
         }
 
         public Task<MetadataResult<Book>> GetMetadata(ItemInfo info, IDirectoryService directoryService, CancellationToken cancellationToken)
         {
-            var path = GetXmlFile(info.Path, info.IsInMixedFolder).FullName;
+            var path = GetXmlFile(info.Path).FullName;
 
             var result = new MetadataResult<Book>();
 
@@ -120,7 +120,7 @@ namespace MBBookshelf.Providers
 
         public bool HasLocalMetadata(IHasMetadata item)
         {
-            return GetXmlFile(item.Path, item.IsInMixedFolder).Exists;
+            return GetXmlFile(item.Path).Exists;
         }
     }
 }

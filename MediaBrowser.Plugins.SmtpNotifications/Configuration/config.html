@@ -69,7 +69,7 @@
                             <span>Test Notification</span>
                         </button>
                     </div>
-                    <br/>
+                    <br />
                     <div>
                         <button is="emby-button" type="submit" class="raised button-submit block"><span>Save</span></button>
                     </div>
@@ -94,7 +94,7 @@
 
                             return userId == c.MediaBrowserUserId;
 
-                        })[0] || { Enabled: true };
+                        })[0] || { Enabled: false };
 
                         $('#chkEnableSMTP', page).checked(smtpConfig.Enabled).checkboxradio("refresh");
                         $('#txtEmailFrom', page).val(smtpConfig.EmailFrom || '');
@@ -152,6 +152,44 @@
                         }, onError);
                     });
 
+                    $('.smtpConfigurationForm', page).on('submit', function (e) {
+
+                        Dashboard.showLoadingMsg();
+
+                        var form = this;
+
+                        ApiClient.getPluginConfiguration(pluginId).then(function (config) {
+
+                            var userId = $('#selectUser', form).val();
+
+                            var smtpConfig = config.Options.filter(function (c) {
+
+                                return userId == c.MediaBrowserUserId;
+
+                            })[0];
+
+                            if (!smtpConfig) {
+                                smtpConfig = {};
+                                config.Options.push(smtpConfig);
+                            }
+
+                            smtpConfig.MediaBrowserUserId = userId;
+                            smtpConfig.Enabled = $('#chkEnableSMTP', form).checked();
+                            smtpConfig.EmailFrom = $('#txtEmailFrom', form).val();
+                            smtpConfig.EmailTo = $('#txtEmailTo', form).val();
+                            smtpConfig.Server = $('#txtServer', form).val();
+                            smtpConfig.Port = $('#txtPort', form).val();
+                            smtpConfig.useCredentials = $('#chkEnableAuth', form).checked();
+                            smtpConfig.SSL = $('#chkEnableSSL', form).checked();
+                            smtpConfig.Username = $('#txtUsername', form).val();
+                            smtpConfig.Password = $('#txtPassword', form).val();
+
+                            ApiClient.updatePluginConfiguration(pluginId, config).then(Dashboard.processPluginConfigurationUpdateResult);
+                        });
+
+                        return false;
+                    });
+
                 }).on('pageshow', function (event) {
 
                     Dashboard.showLoadingMsg();
@@ -169,44 +207,6 @@
                     });
 
                     Dashboard.hideLoadingMsg();
-                });
-
-                $('.smtpConfigurationForm').on('submit', function (e) {
-
-                    Dashboard.showLoadingMsg();
-
-                    var form = this;
-
-                    ApiClient.getPluginConfiguration(pluginId).then(function (config) {
-
-                        var userId = $('#selectUser', form).val();
-
-                        var smtpConfig = config.Options.filter(function (c) {
-
-                            return userId == c.MediaBrowserUserId;
-
-                        })[0];
-
-                        if (!smtpConfig) {
-                            smtpConfig = {};
-                            config.Options.push(smtpConfig);
-                        }
-
-                        smtpConfig.MediaBrowserUserId = userId;
-                        smtpConfig.Enabled = $('#chkEnableSMTP', form).checked();
-                        smtpConfig.EmailFrom = $('#txtEmailFrom', form).val();
-                        smtpConfig.EmailTo = $('#txtEmailTo', form).val();
-                        smtpConfig.Server = $('#txtServer', form).val();
-                        smtpConfig.Port = $('#txtPort', form).val();
-                        smtpConfig.useCredentials = $('#chkEnableAuth', form).checked();
-                        smtpConfig.SSL = $('#chkEnableSSL', form).checked();
-                        smtpConfig.Username = $('#txtUsername', form).val();
-                        smtpConfig.Password = $('#txtPassword', form).val();
-
-                        ApiClient.updatePluginConfiguration(pluginId, config).then(Dashboard.processPluginConfigurationUpdateResult);
-                    });
-
-                    return false;
                 });
 
             })();

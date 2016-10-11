@@ -16,11 +16,14 @@ namespace MediaBrowser.Plugins.SmtpNotifications
     {
         private readonly IEncryptionManager _encryption;
         private readonly ILogger _logger;
+        public static Notifier Instance { get; private set; }
 
         public Notifier(ILogManager logManager, IEncryptionManager encryption)
         {
             _encryption = encryption;
             _logger = logManager.GetLogger(GetType().Name);
+
+            Instance = this;
         }
 
         public bool IsEnabledForUser(User user)
@@ -77,7 +80,7 @@ namespace MediaBrowser.Plugins.SmtpNotifications
 
             if (options.SSL) client.EnableSsl = true;
 
-            _logger.Debug("Emailing {0} with subject {1}", options.EmailTo, mail.Subject);
+            _logger.Info("Emailing {0} with subject {1}", options.EmailTo, mail.Subject);
 
             if (options.UseCredentials)
             {
