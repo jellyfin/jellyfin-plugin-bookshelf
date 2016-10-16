@@ -292,7 +292,7 @@ namespace MediaBrowser.Plugins.NextPvr.Responses
                 return RecordingStatus.Cancelled;
             }
             
-            return RecordingStatus.Scheduled;
+            return RecordingStatus.New;
         }
 
         private class Rules
