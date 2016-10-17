@@ -314,19 +314,14 @@ namespace MediaBrowser.Plugins.RottenTomatoes.Providers
 
                 if (!string.IsNullOrEmpty(hit.id))
                 {
-                    var hasCriticRating = item as IHasCriticRating;
+                    // Got a result
+                    item.CriticRatingSummary = hit.critics_consensus;
 
-                    if (hasCriticRating != null)
+                    var rating = float.Parse(hit.ratings.critics_score);
+
+                    if (rating > 0)
                     {
-                        // Got a result
-                        hasCriticRating.CriticRatingSummary = hit.critics_consensus;
-
-                        var rating = float.Parse(hit.ratings.critics_score);
-
-                        if (rating > 0)
-                        {
-                            hasCriticRating.CriticRating = rating;
-                        }
+                        item.CriticRating = rating;
                     }
 
                     item.SetProviderId(RottenTomatoesExternalId.KeyName, hit.id);
