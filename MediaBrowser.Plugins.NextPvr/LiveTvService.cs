@@ -712,7 +712,9 @@ namespace MediaBrowser.Plugins.NextPvr
                                 // Set the index to -1 because we don't know the exact index of the audio stream within the container
                                 Index = -1
                             }
-                        }
+                        },
+                        // This takes too long
+                        SupportsProbing = false
                     };
                 }
             }
@@ -740,7 +742,9 @@ namespace MediaBrowser.Plugins.NextPvr
                                 // Set the index to -1 because we don't know the exact index of the audio stream within the container
                                 Index = -1
                             }
-                        }
+                        },
+                // This takes too long
+                SupportsProbing = false
             };
         }
 
