@@ -3,8 +3,6 @@ using MediaBrowser.Controller.LiveTv;
 using MediaBrowser.Model.Logging;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Net;
 using System.Reflection;
@@ -242,18 +240,22 @@ namespace TVHeadEnd
                             break;
 
                         default:
-                            _logger.Info("[TVHclient] HTSConnectionHandler.GetChannelImage() unkown image type '" + suffix + "' - transform to PNG.");
-                            Image image = Image.FromStream(stream);
-                            imageStream.Stream = ImageToPNGStream(image);
+                            _logger.Info("[TVHclient] HTSConnectionHandler.GetChannelImage() unkown image type '" + suffix + "' - return as PNG");
+                            //Image image = Image.FromStream(stream);
+                            //imageStream.Stream = ImageToPNGStream(image);
+                            //imageStream.Format = MediaBrowser.Model.Drawing.ImageFormat.Png;
+                            imageStream.Stream = stream;
                             imageStream.Format = MediaBrowser.Model.Drawing.ImageFormat.Png;
                             break;
                     }
                 }
                 else
                 {
-                    _logger.Info("[TVHclient] HTSConnectionHandler.GetChannelImage() no image type in suffix of channelImage name '" + channelIcon + "' found - transform to PNG.");
-                    Image image = Image.FromStream(stream);
-                    imageStream.Stream = ImageToPNGStream(image);
+                    _logger.Info("[TVHclient] HTSConnectionHandler.GetChannelImage() no image type in suffix of channelImage name '" + channelIcon + "' found - return as PNG.");
+                    //Image image = Image.FromStream(stream);
+                    //imageStream.Stream = ImageToPNGStream(image);
+                    //imageStream.Format = MediaBrowser.Model.Drawing.ImageFormat.Png;
+                    imageStream.Stream = stream;
                     imageStream.Format = MediaBrowser.Model.Drawing.ImageFormat.Png;
                 }
 
@@ -271,13 +273,13 @@ namespace TVHeadEnd
             return new Dictionary<string, string>(_headers);
         }
 
-        private static Stream ImageToPNGStream(Image image)
-        {
-            Stream stream = new System.IO.MemoryStream();
-            image.Save(stream, ImageFormat.Png);
-            stream.Position = 0;
-            return stream;
-        }
+        //private static Stream ImageToPNGStream(Image image)
+        //{
+        //    Stream stream = new System.IO.MemoryStream();
+        //    image.Save(stream, ImageFormat.Png);
+        //    stream.Position = 0;
+        //    return stream;
+        //}
 
         private void ensureConnection()
         {
