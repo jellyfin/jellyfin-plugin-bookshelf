@@ -2,8 +2,8 @@
 using MediaBrowser.Controller.Net;
 using MediaBrowser.Model.Logging;
 using MovieOrganizer.Service;
-using ServiceStack;
 using System.Threading;
+using MediaBrowser.Model.Services;
 
 namespace MovieOrganizer.Api
 {
@@ -24,7 +24,7 @@ namespace MovieOrganizer.Api
     }
 
     [Authenticated]
-    public class MovieOrganizerApi : IRestfulService
+    public class MovieOrganizerApi : IService
     {
         private readonly ILogger _logger;
         private readonly MovieOrganizerService _service;

@@ -7,8 +7,8 @@ using System.Threading;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Net;
 using MediaBrowser.Model.Logging;
+using MediaBrowser.Model.Services;
 using MediaBrowser.Plugins.NotifyMyAndroidNotifications.Configuration;
-using ServiceStack;
 
 
 namespace MediaBrowser.Plugins.NotifyMyAndroidNotifications.Api
@@ -20,7 +20,7 @@ namespace MediaBrowser.Plugins.NotifyMyAndroidNotifications.Api
         public string UserID { get; set; }
     }
 
-    class ServerApiEndpoints : IRestfulService
+    class ServerApiEndpoints : IService
     {
         private readonly IHttpClient _httpClient;
         private readonly ILogger _logger;

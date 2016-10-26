@@ -4,8 +4,8 @@ using System.Linq;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Net;
 using MediaBrowser.Model.Logging;
+using MediaBrowser.Model.Services;
 using MediaBrowser.Plugins.ProwlNotifications.Configuration;
-using ServiceStack;
 
 
 namespace MediaBrowser.Plugins.ProwlNotifications.Api
@@ -17,7 +17,7 @@ namespace MediaBrowser.Plugins.ProwlNotifications.Api
         public string UserID { get; set; }
     }
 
-    class ServerApiEndpoints : IRestfulService
+    class ServerApiEndpoints : IService
     {
         private readonly IHttpClient _httpClient;
         private readonly ILogger _logger;

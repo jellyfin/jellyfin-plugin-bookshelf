@@ -1,5 +1,4 @@
-﻿using CommonIO;
-using MediaBrowser.Controller;
+﻿using MediaBrowser.Controller;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Net;
@@ -8,11 +7,10 @@ using MediaBrowser.Model.Logging;
 using MetadataViewer;
 using MetadataViewer.Api;
 using MetadataViewer.Service;
-using ServiceStack;
-using ServiceStack.Host.Handlers;
-using ServiceStack.Web;
 using System.IO;
 using System.Web;
+using MediaBrowser.Model.IO;
+using MediaBrowser.Model.Services;
 
 namespace Trakt
 {

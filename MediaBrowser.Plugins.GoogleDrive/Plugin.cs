@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
@@ -8,7 +9,7 @@ using MediaBrowser.Plugins.GoogleDrive.Configuration;
 
 namespace MediaBrowser.Plugins.GoogleDrive
 {
-    public class Plugin : BasePlugin<PluginConfiguration>
+    public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
     {
         public static Plugin Instance { get; private set; }
 
@@ -16,6 +17,18 @@ namespace MediaBrowser.Plugins.GoogleDrive
             : base(applicationPaths, xmlSerializer)
         {
             Instance = this;
+        }
+
+        public IEnumerable<PluginPageInfo> GetPages()
+        {
+            return new[]
+            {
+                new PluginPageInfo
+                {
+                    Name = Name,
+                    EmbeddedResourcePath = GetType().Namespace + ".Configuration.config.html"
+                }
+            };
         }
 
         public override string Name

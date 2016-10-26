@@ -1,9 +1,7 @@
-﻿using CommonIO;
-using MediaBrowser.Controller;
+﻿using MediaBrowser.Controller;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.FileOrganization;
 using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Localization;
 using MediaBrowser.Controller.Net;
 using MediaBrowser.Controller.Plugins;
 using MediaBrowser.Controller.Providers;
@@ -11,11 +9,11 @@ using MediaBrowser.Model.Logging;
 using MovieOrganizer;
 using MovieOrganizer.Api;
 using MovieOrganizer.Service;
-using ServiceStack;
-using ServiceStack.Host.Handlers;
-using ServiceStack.Web;
 using System.IO;
 using System.Web;
+using MediaBrowser.Model.Globalization;
+using MediaBrowser.Model.IO;
+using MediaBrowser.Model.Services;
 
 namespace MovieOrganizer
 {

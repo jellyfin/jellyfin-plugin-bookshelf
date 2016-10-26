@@ -57,7 +57,6 @@
       <Link>Properties\SharedVersion.cs</Link>
     </Compile>
     <Compile Include="Api\ServerApiEndpoints.cs" />
-    <Compile Include="Configuration\ConfigPage.cs" />
     <Compile Include="Configuration\PluginConfiguration.cs" />
     <Compile Include="Notifier.cs" />
     <Compile Include="Plugin.cs" />

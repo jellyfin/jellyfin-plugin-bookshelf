@@ -58,7 +58,6 @@
     </Compile>
     <Compile Include="Responses\CancelRecordingResponse.cs" />
     <Compile Include="Responses\ChannelResponse.cs" />
-    <Compile Include="Configuration\NextPvrConfigurationPage.cs" />
     <Compile Include="Configuration\PluginConfiguration.cs" />
     <Compile Include="Helpers\GeneralHelpers.cs" />
     <Compile Include="Helpers\EncryptionHelper.cs" />

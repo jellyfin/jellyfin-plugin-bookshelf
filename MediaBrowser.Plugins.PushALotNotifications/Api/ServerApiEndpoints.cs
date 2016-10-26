@@ -4,7 +4,7 @@ using System.Linq;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Net;
 using MediaBrowser.Model.Logging;
-using ServiceStack;
+using MediaBrowser.Model.Services;
 using MediaBrowser.Plugins.PushALotNotifications.Configuration;
 
 namespace MediaBrowser.Plugins.PushALotNotifications.Api
@@ -16,7 +16,7 @@ namespace MediaBrowser.Plugins.PushALotNotifications.Api
         public string UserID { get; set; }
     }
 
-    class ServerApiEndpoints : IRestfulService
+    class ServerApiEndpoints : IService
     {
         private readonly IHttpClient _httpClient;
         private readonly ILogger _logger;

@@ -1,5 +1,5 @@
-﻿using MediaBrowser.Plugins.GoogleDrive.Configuration;
-using ServiceStack;
+﻿using MediaBrowser.Model.Services;
+using MediaBrowser.Plugins.GoogleDrive.Configuration;
 
 namespace MediaBrowser.Plugins.GoogleDrive.RestServices
 {

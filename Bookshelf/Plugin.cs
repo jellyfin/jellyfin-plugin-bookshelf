@@ -7,11 +7,12 @@ using System.Threading.Tasks;
 using MBBookshelf.Configuration;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
+using MediaBrowser.Model.Plugins;
 using MediaBrowser.Model.Serialization;
 
 namespace MBBookshelf
 {
-    public class Plugin : BasePlugin<PluginConfiguration>
+    public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
     {
         public readonly SemaphoreSlim GoogleBooksSemiphore = new SemaphoreSlim(5, 5);
         public readonly SemaphoreSlim ComicVineSemiphore = new SemaphoreSlim(5, 5);
@@ -33,6 +34,18 @@ namespace MBBookshelf
         public override string Name
         {
             get { return "MB Bookshelf"; }
+        }
+
+        public IEnumerable<PluginPageInfo> GetPages()
+        {
+            return new[]
+            {
+                new PluginPageInfo
+                {
+                    Name = Name,
+                    EmbeddedResourcePath = GetType().Namespace + ".Configuration.config.html"
+                }
+            };
         }
 
         /// <summary>

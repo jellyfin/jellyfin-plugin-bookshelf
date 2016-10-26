@@ -15,9 +15,9 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using CommonIO;
 using MediaBrowser.Controller.Net;
-using MediaBrowser.Controller.Localization;
+using MediaBrowser.Model.Globalization;
+using MediaBrowser.Model.IO;
 
 namespace MovieOrganizer.Service
 {

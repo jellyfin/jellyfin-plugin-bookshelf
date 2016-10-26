@@ -1,7 +1,6 @@
 ﻿using MediaBrowser.Controller.Net;
 using MediaBrowser.Controller.Security;
 using MediaBrowser.Plugins.SmtpNotifications.Configuration;
-using ServiceStack;
 using System;
 using System.Linq;
 using System.Net;
@@ -12,6 +11,7 @@ using System.Threading;
 using MediaBrowser.Controller.Notifications;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
+using MediaBrowser.Model.Services;
 
 namespace MediaBrowser.Plugins.SmtpNotifications.Api
 {
@@ -22,7 +22,7 @@ namespace MediaBrowser.Plugins.SmtpNotifications.Api
         public string UserID { get; set; }
     }
 
-    class ServerApiEndpoints : IRestfulService
+    class ServerApiEndpoints : IService
     {
         private IUserManager _userManager;
 

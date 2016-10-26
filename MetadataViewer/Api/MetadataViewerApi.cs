@@ -3,8 +3,8 @@ using MediaBrowser.Controller.Net;
 using MediaBrowser.Model.Logging;
 using MetadataViewer.DTO;
 using MetadataViewer.Service;
-using ServiceStack;
 using System.Threading;
+using MediaBrowser.Model.Services;
 
 namespace MetadataViewer.Api
 {
@@ -19,7 +19,7 @@ namespace MetadataViewer.Api
     }
 
     [Authenticated]
-    public class MetadataViewerApi : IRestfulService
+    public class MetadataViewerApi : IService
     {
         private readonly ILogger _logger;
         private readonly MetadataViewerService _service;

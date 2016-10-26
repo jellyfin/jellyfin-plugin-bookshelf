@@ -61,7 +61,6 @@
     </Compile>
     <Compile Include="ApiException.cs" />
     <Compile Include="AuthorizationAccessToken.cs" />
-    <Compile Include="Configuration\ConfigurationPage.cs" />
     <Compile Include="Configuration\ConfigurationRetriever.cs" />
     <Compile Include="Configuration\GeneralConfiguration.cs" />
     <Compile Include="Configuration\GoogleDriveSyncAccount.cs" />
