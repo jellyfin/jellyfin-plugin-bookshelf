@@ -43,7 +43,7 @@ namespace MBBookshelf
                 new PluginPageInfo
                 {
                     Name = Name,
-                    EmbeddedResourcePath = GetType().Namespace + ".Configuration.config.html"
+                    EmbeddedResourcePath = GetType().Namespace + ".Configuration.configPage.html"
                 }
             };
         }
