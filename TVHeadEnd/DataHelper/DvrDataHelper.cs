@@ -357,7 +357,7 @@ namespace TVHeadEnd.DataHelper
                                 switch (state)
                                 {
                                     case "scheduled":
-                                        ti.Status = RecordingStatus.Scheduled;
+                                        ti.Status = RecordingStatus.New;
                                         break;
                                     default:
                                         // only scheduled timers need to be delivered

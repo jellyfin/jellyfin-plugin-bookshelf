@@ -3,13 +3,13 @@ using System.IO;
 using System.Security;
 using System.Text;
 using System.Threading;
-using CommonIO;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Persistence;
+using MediaBrowser.Model.IO;
 
 namespace XmlMetadata
 {

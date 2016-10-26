@@ -14,8 +14,8 @@ using System.Linq;
 using System.Security;
 using System.Text;
 using System.Xml;
-using CommonIO;
 using MediaBrowser.Common.IO;
+using MediaBrowser.Model.IO;
 
 namespace XmlMetadata
 {
