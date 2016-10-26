@@ -1,19 +1,31 @@
-﻿using FolderSync.Configuration;
+﻿using System.Collections.Generic;
+using FolderSync.Configuration;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Serialization;
 using System.Threading;
+using MediaBrowser.Model.Plugins;
 
 namespace FolderSync
 {
-    public class Plugin : BasePlugin<PluginConfiguration>
+    public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
     {
-        public SemaphoreSlim TraktResourcePool = new SemaphoreSlim(2,2);
-
         public Plugin(IApplicationPaths appPaths, IXmlSerializer xmlSerializer)
             : base(appPaths, xmlSerializer)
         {
             Instance = this;
+        }
+
+        public IEnumerable<PluginPageInfo> GetPages()
+        {
+            return new[]
+            {
+                new PluginPageInfo
+                {
+                    Name = Name,
+                    EmbeddedResourcePath = GetType().Namespace + ".Configuration.configPage.html"
+                }
+            };
         }
 
         public override string Name

@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using ServiceStack;
+using MediaBrowser.Model.Services;
 
 namespace Dropbox.RestServices
 {

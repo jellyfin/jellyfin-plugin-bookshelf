@@ -11,7 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using CommonIO;
+using MediaBrowser.Model.IO;
 using MediaBrowser.Model.Logging;
 
 namespace FolderSync
@@ -35,7 +35,7 @@ namespace FolderSync
 
             _logger.Debug("Folder sync saving stream to {0}", fullPath);
 
-            using (var fileStream = _fileSystem.GetFileStream(fullPath, FileMode.Create, FileAccess.Write, FileShare.Read, true))
+            using (var fileStream = _fileSystem.GetFileStream(fullPath, FileOpenMode.Create, FileAccessMode.Write, FileShareMode.Read, true))
             {
                 await stream.CopyToAsync(fileStream).ConfigureAwait(false);
                 return GetSyncedFileInfo(fullPath);

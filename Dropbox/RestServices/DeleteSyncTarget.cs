@@ -1,4 +1,4 @@
-﻿using ServiceStack;
+﻿using MediaBrowser.Model.Services;
 
 namespace Dropbox.RestServices
 {

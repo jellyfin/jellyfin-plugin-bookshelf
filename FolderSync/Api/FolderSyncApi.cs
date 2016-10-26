@@ -2,10 +2,10 @@
 using MediaBrowser.Common.Extensions;
 using MediaBrowser.Controller.Net;
 using MediaBrowser.Model.Serialization;
-using ServiceStack;
 using System;
 using System.IO;
 using System.Linq;
+using MediaBrowser.Model.Services;
 
 namespace FolderSync.Api
 {
@@ -29,7 +29,7 @@ namespace FolderSync.Api
     }
 
     [Authenticated]
-    public class FolderSyncApi : IRestfulService
+    public class FolderSyncApi : IService
     {
         private readonly IJsonSerializer _json;
 

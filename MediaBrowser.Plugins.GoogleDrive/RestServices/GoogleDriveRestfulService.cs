@@ -6,12 +6,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Controller.Net;
 using MediaBrowser.Model.Net;
+using MediaBrowser.Model.Services;
 using MediaBrowser.Plugins.GoogleDrive.Configuration;
 
 namespace MediaBrowser.Plugins.GoogleDrive.RestServices
 {
     [Authenticated]
-    public class GoogleDriveRestfulService2 : IRestfulService
+    public class GoogleDriveRestfulService2 : IService
     {
         private readonly IConfigurationRetriever _configurationRetriever;
         private readonly IGoogleAuthService _googleAuthService;

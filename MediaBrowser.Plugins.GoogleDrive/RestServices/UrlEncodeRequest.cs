@@ -1,4 +1,4 @@
-﻿using ServiceStack;
+﻿using MediaBrowser.Model.Services;
 
 namespace MediaBrowser.Plugins.GoogleDrive.RestServices
 {

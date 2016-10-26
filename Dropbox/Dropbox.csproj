@@ -32,6 +32,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Interfaces.IO, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Interfaces.IO.1.0.0.5\lib\portable-net45+sl4+wp71+win8+wpa81\Interfaces.IO.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="MediaBrowser.Common, Version=3.1.6143.3133, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MediaBrowser.Common.3.0.680\lib\net45\MediaBrowser.Common.dll</HintPath>
       <Private>True</Private>
@@ -71,7 +75,6 @@
     <Compile Include="Api\MediaResult.cs" />
     <Compile Include="Api\TupleStringMetadataConverter.cs" />
     <Compile Include="BufferArray.cs" />
-    <Compile Include="Configuration\ConfigurationPage.cs" />
     <Compile Include="Configuration\ConfigurationRetriever.cs" />
     <Compile Include="Configuration\GeneralConfiguration.cs" />
     <Compile Include="Configuration\DropboxSyncAccount.cs" />

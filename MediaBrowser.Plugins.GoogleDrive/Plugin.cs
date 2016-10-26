@@ -26,7 +26,7 @@ namespace MediaBrowser.Plugins.GoogleDrive
                 new PluginPageInfo
                 {
                     Name = Name,
-                    EmbeddedResourcePath = GetType().Namespace + ".Configuration.config.html"
+                    EmbeddedResourcePath = GetType().Namespace + ".Configuration.configPage.html"
                 }
             };
         }

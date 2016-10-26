@@ -5,11 +5,12 @@ using System.Threading.Tasks;
 using Dropbox.Api;
 using Dropbox.Configuration;
 using MediaBrowser.Controller.Net;
+using MediaBrowser.Model.Services;
 
 namespace Dropbox.RestServices
 {
     [Authenticated]
-    public class DropboxRestfulService : IRestfulService
+    public class DropboxRestfulService : IService
     {
         private readonly IConfigurationRetriever _configurationRetriever;
         private readonly IDropboxApi _dropboxApi;
