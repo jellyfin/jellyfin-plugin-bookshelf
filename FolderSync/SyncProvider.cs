@@ -4,7 +4,6 @@ using MediaBrowser.Model.MediaInfo;
 using MediaBrowser.Model.Net;
 using MediaBrowser.Model.Querying;
 using MediaBrowser.Model.Sync;
-using Interfaces.IO;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -70,6 +69,86 @@ namespace FolderSync
             return Task.FromResult(_fileSystem.OpenRead(id));
         }
 
+        public Task<QueryResult<FileSystemMetadata>> GetFiles(string id, SyncTarget target, CancellationToken cancellationToken)
+        {
+            var account = GetSyncAccounts()
+                .FirstOrDefault(i => string.Equals(i.Id, target.Id, StringComparison.OrdinalIgnoreCase));
+
+            if (account == null)
+            {
+                throw new ArgumentException("Invalid SyncTarget supplied.");
+            }
+
+            var result = new QueryResult<FileSystemMetadata>();
+
+            var file = _fileSystem.GetFileSystemInfo(id);
+
+            if (file.Exists)
+            {
+                result.TotalRecordCount = 1;
+                result.Items = new[] { file }.ToArray();
+            }
+
+            return Task.FromResult(result);
+        }
+
+        public Task<QueryResult<FileSystemMetadata>> GetFiles(string[] pathParts, SyncTarget target, CancellationToken cancellationToken)
+        {
+            var account = GetSyncAccounts()
+                .FirstOrDefault(i => string.Equals(i.Id, target.Id, StringComparison.OrdinalIgnoreCase));
+
+            if (account == null)
+            {
+                throw new ArgumentException("Invalid SyncTarget supplied.");
+            }
+
+            var result = new QueryResult<FileSystemMetadata>();
+
+            if (pathParts != null && pathParts.Length > 0)
+            {
+                var fullPath = GetFullPath(pathParts, target);
+                var file = _fileSystem.GetFileSystemInfo(fullPath);
+
+                if (file.Exists)
+                {
+                    result.TotalRecordCount = 1;
+                    result.Items = new[] { file }.ToArray();
+                }
+            }
+
+            return Task.FromResult(result);
+        }
+
+        public Task<QueryResult<FileSystemMetadata>> GetFiles(SyncTarget target, CancellationToken cancellationToken)
+        {
+            var account = GetSyncAccounts()
+                .FirstOrDefault(i => string.Equals(i.Id, target.Id, StringComparison.OrdinalIgnoreCase));
+
+            if (account == null)
+            {
+                throw new ArgumentException("Invalid SyncTarget supplied.");
+            }
+
+            var result = new QueryResult<FileSystemMetadata>();
+
+            FileSystemMetadata[] files;
+
+            try
+            {
+                files = _fileSystem.GetFiles(account.Path, true)
+                   .ToArray();
+            }
+            catch (DirectoryNotFoundException)
+            {
+                files = new FileSystemMetadata[] { };
+            }
+
+            result.Items = files;
+            result.TotalRecordCount = files.Length;
+
+            return Task.FromResult(result);
+        }
+
         public string GetFullPath(IEnumerable<string> paths, SyncTarget target)
         {
             var account = GetSyncAccounts()
@@ -127,74 +206,6 @@ namespace FolderSync
                     _fileSystem.DeleteDirectory(directory, false);
                 }
             }
-        }
-
-        public Task<QueryResult<FileMetadata>> GetFiles(FileQuery query, SyncTarget target, CancellationToken cancellationToken)
-        {
-            var account = GetSyncAccounts()
-                .FirstOrDefault(i => string.Equals(i.Id, target.Id, StringComparison.OrdinalIgnoreCase));
-
-            if (account == null)
-            {
-                throw new ArgumentException("Invalid SyncTarget supplied.");
-            }
-
-            var result = new QueryResult<FileMetadata>();
-
-            if (!string.IsNullOrWhiteSpace(query.Id))
-            {
-                var file = _fileSystem.GetFileSystemInfo(query.Id);
-
-                if (file.Exists)
-                {
-                    result.TotalRecordCount = 1;
-                    result.Items = new[] { file }.Select(GetFile).ToArray();
-                }
-
-                return Task.FromResult(result);
-            }
-
-            if (query.FullPath != null && query.FullPath.Length > 0)
-            {
-                var fullPath = GetFullPath(query.FullPath, target);
-                var file = _fileSystem.GetFileSystemInfo(fullPath);
-
-                if (file.Exists)
-                {
-                    result.TotalRecordCount = 1;
-                    result.Items = new[] { file }.Select(GetFile).ToArray();
-                }
-
-                return Task.FromResult(result);
-            }
-
-            FileMetadata[] files;
-
-            try
-            {
-                files = _fileSystem.GetFiles(account.Path, true)
-                   .Select(GetFile)
-                   .ToArray();
-            }
-            catch (DirectoryNotFoundException)
-            {
-                files = new FileMetadata[] { };
-            }
-
-            result.Items = files;
-            result.TotalRecordCount = files.Length;
-
-            return Task.FromResult(result);
-        }
-
-        private FileMetadata GetFile(FileSystemMetadata file)
-        {
-            return new FileMetadata
-            {
-                Id = file.FullName,
-                Name = file.Name,
-                MimeType = MimeTypes.GetMimeType(file.FullName)
-            };
         }
 
         public Task<SyncedFileInfo> SendFile(string path, string[] pathParts, SyncTarget target, IProgress<double> progress, CancellationToken cancellationToken)
