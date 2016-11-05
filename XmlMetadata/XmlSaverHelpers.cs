@@ -274,13 +274,9 @@ namespace XmlMetadata
                 builder.Append("<Overview><![CDATA[" + item.Overview + "]]></Overview>");
             }
 
-            var hasOriginalTitle = item as IHasOriginalTitle;
-            if (hasOriginalTitle != null)
+            if (!string.IsNullOrEmpty(item.OriginalTitle))
             {
-                if (!string.IsNullOrEmpty(hasOriginalTitle.OriginalTitle))
-                {
-                    builder.Append("<OriginalTitle>" + SecurityElement.Escape(hasOriginalTitle.OriginalTitle) + "</OriginalTitle>");
-                }
+                builder.Append("<OriginalTitle>" + SecurityElement.Escape(item.OriginalTitle) + "</OriginalTitle>");
             }
 
             if (!string.IsNullOrEmpty(item.ShortOverview))

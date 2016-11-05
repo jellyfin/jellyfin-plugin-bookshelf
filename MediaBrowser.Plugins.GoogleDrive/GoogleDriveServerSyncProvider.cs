@@ -1,5 +1,4 @@
-﻿using Interfaces.IO;
-using MediaBrowser.Common.Net;
+﻿using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Sync;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.MediaInfo;
@@ -12,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using MediaBrowser.Model.IO;
 
 namespace MediaBrowser.Plugins.GoogleDrive
 {
@@ -129,12 +129,28 @@ namespace MediaBrowser.Plugins.GoogleDrive
             };
         }
 
-        public Task<QueryResult<FileMetadata>> GetFiles(FileQuery query, SyncTarget target, CancellationToken cancellationToken)
+        public Task<QueryResult<FileSystemMetadata>> GetFiles(string id, SyncTarget target, CancellationToken cancellationToken)
         {
             var googleCredentials = GetGoogleCredentials(target);
             var syncAccount = _configurationRetriever.GetSyncAccount(target.Id);
 
-            return _googleDriveService.GetFiles(query, syncAccount.FolderId, googleCredentials, cancellationToken);
+            return _googleDriveService.GetFiles(id, syncAccount.FolderId, googleCredentials, cancellationToken);
+        }
+
+        public Task<QueryResult<FileSystemMetadata>> GetFiles(string[] pathParts, SyncTarget target, CancellationToken cancellationToken)
+        {
+            var googleCredentials = GetGoogleCredentials(target);
+            var syncAccount = _configurationRetriever.GetSyncAccount(target.Id);
+
+            return _googleDriveService.GetFiles(pathParts, syncAccount.FolderId, googleCredentials, cancellationToken);
+        }
+
+        public Task<QueryResult<FileSystemMetadata>> GetFiles(SyncTarget target, CancellationToken cancellationToken)
+        {
+            var googleCredentials = GetGoogleCredentials(target);
+            var syncAccount = _configurationRetriever.GetSyncAccount(target.Id);
+
+            return _googleDriveService.GetFiles(syncAccount.FolderId, googleCredentials, cancellationToken);
         }
     }
 }

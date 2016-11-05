@@ -10,7 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Interfaces.IO;
+using MediaBrowser.Model.IO;
 using MediaBrowser.Model.Querying;
 using File = Google.Apis.Drive.v2.Data.File;
 
@@ -21,35 +21,41 @@ namespace MediaBrowser.Plugins.GoogleDrive
         private const string SyncFolderPropertyKey = "CloudSyncFolder";
         private const string SyncFolderPropertyValue = "ba460da6-2cdf-43d8-98fc-ecda617ff1db";
 
-        public async Task<QueryResult<FileMetadata>> GetFiles(FileQuery query, string rootFolderId, GoogleCredentials googleCredentials,
+        public async Task<QueryResult<FileSystemMetadata>> GetFiles(string id, string rootFolderId, GoogleCredentials googleCredentials,
             CancellationToken cancellationToken)
         {
             var fullDriveService = CreateDriveServiceAndCredentials(googleCredentials);
             var driveService = fullDriveService.Item1;
 
-            var result = new QueryResult<FileMetadata>();
+            var result = new QueryResult<FileSystemMetadata>();
 
-            if (!string.IsNullOrWhiteSpace(query.Id))
+            try
             {
-                try
-                {
-                    var file = await GetFile(query.Id, driveService, cancellationToken).ConfigureAwait(false);
+                var file = await GetFile(id, driveService, cancellationToken).ConfigureAwait(false);
 
-                    result.TotalRecordCount = 1;
-                    result.Items = new[] { file }.Select(GetFileMetadata).ToArray();
-                }
-                catch (FileNotFoundException)
-                {
-                    
-                }
+                result.TotalRecordCount = 1;
+                result.Items = new[] { file }.Select(GetFileMetadata).ToArray();
+            }
+            catch (FileNotFoundException)
+            {
 
-                return result;
             }
 
-            if (query.FullPath != null && query.FullPath.Length > 0)
+            return result;
+        }
+
+        public async Task<QueryResult<FileSystemMetadata>> GetFiles(string[] pathParts, string rootFolderId, GoogleCredentials googleCredentials,
+         CancellationToken cancellationToken)
+        {
+            var fullDriveService = CreateDriveServiceAndCredentials(googleCredentials);
+            var driveService = fullDriveService.Item1;
+
+            var result = new QueryResult<FileSystemMetadata>();
+
+            if (pathParts != null && pathParts.Length > 0)
             {
-                var name = query.FullPath.Last();
-                var pathParts = query.FullPath.Take(query.FullPath.Length - 1).ToArray();
+                var name = pathParts.Last();
+                pathParts = pathParts.Take(pathParts.Length - 1).ToArray();
 
                 try
                 {
@@ -69,6 +75,17 @@ namespace MediaBrowser.Plugins.GoogleDrive
                 return result;
             }
 
+            return result;
+        }
+
+        public async Task<QueryResult<FileSystemMetadata>> GetFiles(string rootFolderId, GoogleCredentials googleCredentials,
+            CancellationToken cancellationToken)
+        {
+            var fullDriveService = CreateDriveServiceAndCredentials(googleCredentials);
+            var driveService = fullDriveService.Item1;
+
+            var result = new QueryResult<FileSystemMetadata>();
+
             var queryResult = await GetFiles(null, driveService, cancellationToken).ConfigureAwait(false);
             var files = queryResult
                 .Select(GetFileMetadata)
@@ -80,14 +97,14 @@ namespace MediaBrowser.Plugins.GoogleDrive
             return result;
         }
 
-        private FileMetadata GetFileMetadata(File file)
+        private FileSystemMetadata GetFileMetadata(File file)
         {
-            return new FileMetadata
+            return new FileSystemMetadata
             {
-                IsFolder = string.Equals(file.MimeType, "application/vnd.google-apps.folder", StringComparison.OrdinalIgnoreCase),
+                IsDirectory = string.Equals(file.MimeType, "application/vnd.google-apps.folder", StringComparison.OrdinalIgnoreCase),
                 Name = file.Title,
-                Id = file.Id,
-                MimeType = file.MimeType
+                FullName = file.Id,
+                //MimeType = file.MimeType
             };
         }
 
