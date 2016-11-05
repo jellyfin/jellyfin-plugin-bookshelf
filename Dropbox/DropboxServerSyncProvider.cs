@@ -7,8 +7,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dropbox.Api;
 using Dropbox.Configuration;
-using Interfaces.IO;
 using MediaBrowser.Controller.Sync;
+using MediaBrowser.Model.IO;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.MediaInfo;
 using MediaBrowser.Model.Net;
@@ -127,21 +127,18 @@ namespace Dropbox
             }
         }
 
-        public async Task<QueryResult<FileMetadata>> GetFiles(FileQuery query, SyncTarget target, CancellationToken cancellationToken)
+        public Task<QueryResult<FileSystemMetadata>> GetFiles(string[] pathParts, SyncTarget target, CancellationToken cancellationToken)
         {
-            try
-            {
-                return await TryGetFiles(query, target, cancellationToken);
-            }
-            catch (HttpException ex)
-            {
-                if (ex.StatusCode == HttpStatusCode.NotFound)
-                {
-                    return new QueryResult<FileMetadata>();
-                }
+            var syncAccount = _configurationRetriever.GetSyncAccount(target.Id);
+            var path = FindPathFromFileQuery(pathParts, target);
 
-                throw;
-            }
+            return FindFileMetadata(path, syncAccount.AccessToken, cancellationToken);
+        }
+
+        public Task<QueryResult<FileSystemMetadata>> GetFiles(SyncTarget target, CancellationToken cancellationToken)
+        {
+            var syncAccount = _configurationRetriever.GetSyncAccount(target.Id);
+            return FindFilesMetadata(syncAccount.AccessToken, cancellationToken);
         }
 
         private SyncTarget CreateSyncTarget(DropboxSyncAccount syncAccount)
@@ -196,48 +193,30 @@ namespace Dropbox
             };
         }
 
-        private async Task<QueryResult<FileMetadata>> TryGetFiles(FileQuery query, SyncTarget target, CancellationToken cancellationToken)
+        private string FindPathFromFileQuery(string[] parts, SyncTarget target)
         {
-            var syncAccount = _configurationRetriever.GetSyncAccount(target.Id);
-            var path = FindPathFromFileQuery(query, target);
-
-            if (string.IsNullOrEmpty(path))
+            if (parts != null && parts.Length > 0)
             {
-                return await FindFilesMetadata(syncAccount.AccessToken, cancellationToken);
-            }
-
-            return await FindFileMetadata(path, syncAccount.AccessToken, cancellationToken);
-        }
-
-        private string FindPathFromFileQuery(FileQuery query, SyncTarget target)
-        {
-            if (!string.IsNullOrEmpty(query.Id))
-            {
-                return query.Id;
-            }
-
-            if (query.FullPath != null && query.FullPath.Length > 0)
-            {
-                return GetFullPath(query.FullPath, target);
+                return GetFullPath(parts, target);
             }
 
             return string.Empty;
         }
 
-        private async Task<QueryResult<FileMetadata>> FindFileMetadata(string path, string accessToken, CancellationToken cancellationToken)
+        private async Task<QueryResult<FileSystemMetadata>> FindFileMetadata(string path, string accessToken, CancellationToken cancellationToken)
         {
             var metadata = await _dropboxApi.Metadata(path, accessToken, cancellationToken);
 
-            return new QueryResult<FileMetadata>
+            return new QueryResult<FileSystemMetadata>
             {
                 Items = new[] { CreateFileMetadata(metadata) },
                 TotalRecordCount = 1
             };
         }
 
-        private async Task<QueryResult<FileMetadata>> FindFilesMetadata(string accessToken, CancellationToken cancellationToken)
+        private async Task<QueryResult<FileSystemMetadata>> FindFilesMetadata(string accessToken, CancellationToken cancellationToken)
         {
-            var files = new List<FileMetadata>();
+            var files = new List<FileSystemMetadata>();
             var deltaResult = new DeltaResult { has_more = true };
 
             while (deltaResult.has_more)
@@ -252,20 +231,20 @@ namespace Dropbox
                 files.AddRange(newFiles);
             }
 
-            return new QueryResult<FileMetadata>
+            return new QueryResult<FileSystemMetadata>
             {
                 Items = files.ToArray(),
                 TotalRecordCount = files.Count
             };
         }
 
-        private static FileMetadata CreateFileMetadata(MetadataResult metadata)
+        private static FileSystemMetadata CreateFileMetadata(MetadataResult metadata)
         {
-            return new FileMetadata
+            return new FileSystemMetadata
             {
-                Id = metadata.path,
-                IsFolder = metadata.is_dir,
-                MimeType = metadata.mime_type,
+                FullName = metadata.path,
+                IsDirectory = metadata.is_dir,
+                //MimeType = metadata.mime_type,
                 Name = metadata.path.Split('/').Last()
             };
         }

@@ -129,14 +129,6 @@ namespace MediaBrowser.Plugins.GoogleDrive
             };
         }
 
-        public Task<QueryResult<FileSystemMetadata>> GetFiles(string id, SyncTarget target, CancellationToken cancellationToken)
-        {
-            var googleCredentials = GetGoogleCredentials(target);
-            var syncAccount = _configurationRetriever.GetSyncAccount(target.Id);
-
-            return _googleDriveService.GetFiles(id, syncAccount.FolderId, googleCredentials, cancellationToken);
-        }
-
         public Task<QueryResult<FileSystemMetadata>> GetFiles(string[] pathParts, SyncTarget target, CancellationToken cancellationToken)
         {
             var googleCredentials = GetGoogleCredentials(target);
