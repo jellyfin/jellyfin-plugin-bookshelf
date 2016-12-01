@@ -1,15 +1,9 @@
-﻿using MediaBrowser.Controller.Net;
-using MediaBrowser.Controller.Security;
-using MediaBrowser.Plugins.SmtpNotifications.Configuration;
+﻿using MediaBrowser.Controller.Security;
 using System;
-using System.Linq;
-using System.Net;
-using System.Net.Mail;
 using System.Threading.Tasks;
 using MediaBrowser.Model.Logging;
 using System.Threading;
 using MediaBrowser.Controller.Notifications;
-using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Services;
 
@@ -24,16 +18,20 @@ namespace MediaBrowser.Plugins.SmtpNotifications.Api
 
     class ServerApiEndpoints : IService
     {
-        private IUserManager _userManager;
+        private readonly IUserManager _userManager;
+        private readonly IEncryptionManager _encryption;
+        private readonly ILogger _logger;
 
-        public ServerApiEndpoints(IUserManager userManager)
+        public ServerApiEndpoints(IUserManager userManager, ILogger logger, IEncryptionManager encryption)
         {
             _userManager = userManager;
+            _logger = logger;
+            _encryption = encryption;
         }
 
         public void Post(TestNotification request)
         {
-            var task = Notifier.Instance.SendNotification(new UserNotification
+            var task = new Notifier(_logger, _encryption).SendNotification(new UserNotification
             {
                 Date = DateTime.UtcNow,
                 Description = "This is a test notification from Emby Server",

@@ -2,7 +2,6 @@
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Controller.Security;
-using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Plugins;
 using MediaBrowser.Model.Serialization;
 using MediaBrowser.Plugins.SmtpNotifications.Configuration;
@@ -14,15 +13,13 @@ namespace MediaBrowser.Plugins.SmtpNotifications
     /// </summary>
     public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
     {
-        protected ILogger Logger { get; set; }
         private readonly IEncryptionManager _encryption;
 
-        public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer, ILogManager logManager, IEncryptionManager encryption)
+        public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer, IEncryptionManager encryption)
             : base(applicationPaths, xmlSerializer)
         {
             _encryption = encryption;
             Instance = this;
-            Logger = logManager.GetLogger("SMTP Notifications");
         }
 
         public IEnumerable<PluginPageInfo> GetPages()
@@ -56,21 +53,6 @@ namespace MediaBrowser.Plugins.SmtpNotifications
             {
                 return "Sends notifications via email.";
             }
-        }
-
-        public override void UpdateConfiguration(Model.Plugins.BasePluginConfiguration configuration)
-        {
-            var config = (PluginConfiguration) configuration;
-
-            // Encrypt password for saving.  The Password field the config page sees will always be blank except when updated.
-            // The program actually uses the encrypted version
-            foreach (var optionSet in config.Options)
-            {
-                optionSet.PwData = _encryption.EncryptString(optionSet.Password ?? string.Empty);
-                optionSet.Password = null;
-            }
-
-            base.UpdateConfiguration(configuration);
         }
 
         /// <summary>

@@ -18,10 +18,10 @@ namespace MediaBrowser.Plugins.SmtpNotifications
         private readonly ILogger _logger;
         public static Notifier Instance { get; private set; }
 
-        public Notifier(ILogManager logManager, IEncryptionManager encryption)
+        public Notifier(ILogger logger, IEncryptionManager encryption)
         {
             _encryption = encryption;
-            _logger = logManager.GetLogger(GetType().Name);
+            _logger = logger;
 
             Instance = this;
         }
@@ -45,22 +45,7 @@ namespace MediaBrowser.Plugins.SmtpNotifications
         }
 
 
-        private readonly SemaphoreSlim _resourcePool = new SemaphoreSlim(1, 1);
-        public async Task SendNotification(UserNotification request, CancellationToken cancellationToken)
-        {
-            await _resourcePool.WaitAsync(cancellationToken).ConfigureAwait(false);
-
-            try
-            {
-                await SendNotificationInternal(request, cancellationToken).ConfigureAwait(false);
-            }
-            finally
-            {
-                _resourcePool.Release();
-            }
-        }
-
-        private Task SendNotificationInternal(UserNotification request, CancellationToken cancellationToken)
+        public Task SendNotification(UserNotification request, CancellationToken cancellationToken)
         {
             var options = GetOptions(request.User);
 
@@ -75,7 +60,8 @@ namespace MediaBrowser.Plugins.SmtpNotifications
                 Host = options.Server,
                 Port = options.Port,
                 DeliveryMethod = SmtpDeliveryMethod.Network,
-                UseDefaultCredentials = false
+                UseDefaultCredentials = false,
+                Timeout = 20000
             };
 
             if (options.SSL) client.EnableSsl = true;
@@ -84,7 +70,7 @@ namespace MediaBrowser.Plugins.SmtpNotifications
 
             if (options.UseCredentials)
             {
-                var pw = _encryption.DecryptString(options.PwData);
+                var pw = string.IsNullOrWhiteSpace(options.Password) ? _encryption.DecryptString(options.PwData) : options.Password;
                 client.Credentials = new NetworkCredential(options.Username, pw);
             }
 
