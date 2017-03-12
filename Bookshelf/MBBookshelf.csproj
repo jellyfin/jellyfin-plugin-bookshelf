@@ -65,7 +65,6 @@
     <Compile Include="Providers\ComicVine\ResponseObjects.cs" />
     <Compile Include="Providers\GoogleBooks\ApiUrls.cs" />
     <Compile Include="Providers\GoogleBooks\ResponseObjects.cs" />
-    <Compile Include="Resolvers\BookResolver.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Configuration\configPage.html" />
