@@ -17,7 +17,7 @@ namespace XmlMetadata
         /// <value>The name.</value>
         public override string Name
         {
-            get { return "Xml Metadata Saver"; }
+            get { return "Xml Metadata"; }
         }
 
         public static string MetadataName
@@ -33,7 +33,7 @@ namespace XmlMetadata
         {
             get
             {
-                return "Supports saving Emby Legacy Xml metadata";
+                return "Supports Emby Legacy Xml metadata";
             }
         }
     }
