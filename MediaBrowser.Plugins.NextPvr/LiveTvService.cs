@@ -34,12 +34,14 @@ namespace MediaBrowser.Plugins.NextPvr
         private readonly Dictionary<int, int> _heartBeat = new Dictionary<int, int>();
 
         private string Sid { get; set; }
+        private DateTime LastUpdatedSidDateTime { get; set; }
 
         public LiveTvService(IHttpClient httpClient, IJsonSerializer jsonSerializer, ILogger logger)
         {
             _httpClient = httpClient;
             _jsonSerializer = jsonSerializer;
             _logger = logger;
+            LastUpdatedSidDateTime = DateTime.UtcNow;
         }
 
         /// <summary>
@@ -63,7 +65,7 @@ namespace MediaBrowser.Plugins.NextPvr
                 throw new InvalidOperationException("NextPvr pin must be configured.");
             }
 
-            if (string.IsNullOrEmpty(Sid))
+           if ((string.IsNullOrEmpty(Sid)) || ((!string.IsNullOrEmpty(Sid)) && (LastUpdatedSidDateTime.AddMinutes(5) < DateTime.UtcNow)))
             {
                 await InitiateSession(cancellationToken).ConfigureAwait(false);
             }
@@ -97,6 +99,7 @@ namespace MediaBrowser.Plugins.NextPvr
                 {
                     _logger.Info("[NextPvr] Session initiated.");
                     Sid = sid;
+                    LastUpdatedSidDateTime = DateTime.UtcNow;
                 }
             }
         }
