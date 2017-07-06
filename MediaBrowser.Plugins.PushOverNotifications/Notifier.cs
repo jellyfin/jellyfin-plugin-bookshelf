@@ -50,14 +50,17 @@ namespace MediaBrowser.Plugins.PushOverNotifications
                     {"user", options.UserKey},
                 };
 
+            // TODO: Improve this with escaping based on what PushOver api requires
+            var messageTitle = request.Name.Replace("&", string.Empty);
+
             if (!string.IsNullOrEmpty(options.DeviceName))
                 parameters.Add("device", options.DeviceName);
 
             if (string.IsNullOrEmpty(request.Description))
-                parameters.Add("message", request.Name);
+                parameters.Add("message", messageTitle);
             else
             {
-                parameters.Add("title", request.Name);
+                parameters.Add("title", messageTitle);
                 parameters.Add("message", request.Description);
             }
 
