@@ -40,6 +40,11 @@ namespace Dropbox
             get { return Constants.Name; }
         }
 
+        public bool SupportsRemoteSync
+        {
+            get { return true; }
+        }
+
         public IEnumerable<SyncTarget> GetAllSyncTargets()
         {
             return _configurationRetriever.GetSyncAccounts().Select(CreateSyncTarget);

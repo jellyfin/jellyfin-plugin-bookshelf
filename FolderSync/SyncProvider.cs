@@ -26,6 +26,11 @@ namespace FolderSync
             _logger = logger;
         }
 
+        public bool SupportsRemoteSync
+        {
+            get { return true; }
+        }
+
         public async Task<SyncedFileInfo> SendFile(Stream stream, string[] remotePath, SyncTarget target, IProgress<double> progress, CancellationToken cancellationToken)
         {
             var fullPath = GetFullPath(remotePath, target);
