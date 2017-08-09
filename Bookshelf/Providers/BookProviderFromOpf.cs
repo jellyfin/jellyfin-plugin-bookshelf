@@ -1,5 +1,4 @@
-﻿using MediaBrowser.Common.IO;
-using MediaBrowser.Controller.Entities;
+﻿using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
@@ -143,7 +142,7 @@ namespace MBBookshelf.Providers
                 foreach (var node in genresNodes.Cast<XmlNode>().Where(node => !book.Tags.Contains(node.InnerText)))
                 {
                     // Adding to tags because we can't be sure the values are all genres
-                    book.Tags.Add(node.InnerText);
+                    book.Genres.Add(node.InnerText);
                 }
             }
 

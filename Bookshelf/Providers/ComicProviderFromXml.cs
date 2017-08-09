@@ -1,5 +1,4 @@
 ﻿using MBBookshelf.Extensions;
-using MediaBrowser.Common.IO;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 using System;
@@ -55,8 +54,7 @@ namespace MBBookshelf.Providers
 
             if (!string.IsNullOrEmpty(publisher))
             {
-                if (!book.Studios.Contains(publisher))
-                    book.Studios.Add(publisher);
+                book.SetStudios(new[] { publisher });
             }
 
             var author = doc.SafeGetString("ComicInfo/Writer");
