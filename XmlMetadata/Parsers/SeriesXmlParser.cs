@@ -52,23 +52,6 @@ namespace MediaBrowser.LocalMetadata.Parsers
                     }
                     break;
 
-                case "Airs_DayOfWeek":
-                    {
-                        item.AirDays = TVUtils.GetAirDays(reader.ReadElementContentAsString());
-                        break;
-                    }
-
-                case "Airs_Time":
-                    {
-                        var val = reader.ReadElementContentAsString();
-
-                        if (!string.IsNullOrWhiteSpace(val))
-                        {
-                            item.AirTime = val;
-                        }
-                        break;
-                    }
-
                 case "Status":
                     {
                         var status = reader.ReadElementContentAsString();

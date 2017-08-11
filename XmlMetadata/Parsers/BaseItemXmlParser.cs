@@ -483,7 +483,7 @@ namespace MediaBrowser.LocalMetadata.Parsers
                         {
                             if (!string.IsNullOrWhiteSpace(val))
                             {
-                                hasTrailers.AddTrailerUrl(val, false);
+                                hasTrailers.AddTrailerUrl(val);
                             }
                         }
                         break;
@@ -1093,7 +1093,7 @@ namespace MediaBrowser.LocalMetadata.Parsers
 
                                 if (!string.IsNullOrWhiteSpace(val))
                                 {
-                                    item.AddTrailerUrl(val, false);
+                                    item.AddTrailerUrl(val);
                                 }
                                 break;
                             }
