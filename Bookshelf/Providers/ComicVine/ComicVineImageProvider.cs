@@ -25,7 +25,7 @@ namespace MBBookshelf.Providers.ComicVine
     //    private readonly CultureInfo _usCulture = new CultureInfo("en-US");
     //    private readonly IJsonSerializer _jsonSerializer;
 
-    //    public async Task<IEnumerable<RemoteImageInfo>> GetImages(IHasImages item, CancellationToken cancellationToken)
+    //    public async Task<IEnumerable<RemoteImageInfo>> GetImages(IHasMetadata item, CancellationToken cancellationToken)
     //    {
     //        var volumeId = item.GetProviderId(ComicVineVolumeExternalId.KeyName);
 
@@ -78,7 +78,7 @@ namespace MBBookshelf.Providers.ComicVine
     //        });
     //    }
 
-    //    public IEnumerable<ImageType> GetSupportedImages(IHasImages item)
+    //    public IEnumerable<ImageType> GetSupportedImages(IHasMetadata item)
     //    {
     //        return new List<ImageType> { ImageType.Primary };
     //    }
@@ -88,7 +88,7 @@ namespace MBBookshelf.Providers.ComicVine
     //        get { return "Comic Vine"; }
     //    }
 
-    //    public bool Supports(IHasImages item)
+    //    public bool Supports(IHasMetadata item)
     //    {
     //        return item is Book;
     //    }

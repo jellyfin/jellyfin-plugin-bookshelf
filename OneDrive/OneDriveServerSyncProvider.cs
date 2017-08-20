@@ -5,7 +5,6 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Interfaces.IO;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Sync;
 using MediaBrowser.Model.Logging;
@@ -43,14 +42,14 @@ namespace OneDrive
             get { return Constants.Name; }
         }
 
-        public IEnumerable<SyncTarget> GetAllSyncTargets()
+        public List<SyncTarget> GetAllSyncTargets()
         {
-            return _configurationRetriever.GetSyncAccounts().Select(CreateSyncTarget);
+            return _configurationRetriever.GetSyncAccounts().Select(CreateSyncTarget).ToList();
         }
 
-        public IEnumerable<SyncTarget> GetSyncTargets(string userId)
+        public List<SyncTarget> GetSyncTargets(string userId)
         {
-            return _configurationRetriever.GetUserSyncAccounts(userId).Select(CreateSyncTarget);
+            return _configurationRetriever.GetUserSyncAccounts(userId).Select(CreateSyncTarget).ToList();
         }
 
         public async Task<SyncedFileInfo> SendFile(Stream stream, string[] pathParts, SyncTarget target, IProgress<double> progress, CancellationToken cancellationToken)

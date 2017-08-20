@@ -14,6 +14,7 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace MediaBrowser.Plugins.Lastfm.Providers
 {
@@ -108,7 +109,7 @@ namespace MediaBrowser.Plugins.Lastfm.Providers
                 }
                 if (!string.IsNullOrEmpty(data.bio.placeformed) && !artist.LockedFields.Contains(MetadataFields.ProductionLocations))
                 {
-                    artist.AddProductionLocation(data.bio.placeformed);
+                    artist.ProductionLocations = new[] { data.bio.placeformed };
                 }
             }
 

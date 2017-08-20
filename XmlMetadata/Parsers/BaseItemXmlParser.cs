@@ -179,22 +179,6 @@ namespace MediaBrowser.LocalMetadata.Parsers
                     item.Name = reader.ReadElementContentAsString();
                     break;
 
-                case "Type":
-                    {
-                        var type = reader.ReadElementContentAsString();
-
-                        if (!string.IsNullOrWhiteSpace(type) && !type.Equals("none", StringComparison.OrdinalIgnoreCase))
-                        {
-                            var video = item as Video;
-                            if (video != null)
-                            {
-                                video.DisplayMediaType = type;
-                            }
-                        }
-
-                        break;
-                    }
-
                 case "CriticRating":
                     {
                         var text = reader.ReadElementContentAsString();

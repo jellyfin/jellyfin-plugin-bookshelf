@@ -175,16 +175,17 @@ namespace FolderSync
             get { return Plugin.StaticName; }
         }
 
-        public IEnumerable<SyncTarget> GetSyncTargets(string userId)
+        public List<SyncTarget> GetSyncTargets(string userId)
         {
             return GetSyncAccounts()
                 .Where(i => i.EnableAllUsers || i.UserIds.Contains(userId, StringComparer.OrdinalIgnoreCase))
-                .Select(GetSyncTarget);
+                .Select(GetSyncTarget)
+                .ToList();
         }
 
-        public IEnumerable<SyncTarget> GetAllSyncTargets()
+        public List<SyncTarget> GetAllSyncTargets()
         {
-            return GetSyncAccounts().Select(GetSyncTarget);
+            return GetSyncAccounts().Select(GetSyncTarget).ToList();
         }
 
         private SyncTarget GetSyncTarget(SyncAccount account)
