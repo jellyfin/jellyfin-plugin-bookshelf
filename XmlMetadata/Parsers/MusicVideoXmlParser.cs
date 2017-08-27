@@ -27,8 +27,7 @@ namespace MediaBrowser.LocalMetadata.Parsers
 
                         if (!string.IsNullOrWhiteSpace(val))
                         {
-                            var artists = val.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-                            item.Artists.AddRange(artists);
+                            item.Artists = val.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
                         }
 
                         break;
