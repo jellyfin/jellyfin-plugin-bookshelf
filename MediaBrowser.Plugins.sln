@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F17571BB-66D4-4DB5-8EC0-33A76DD5B018}"
 	ProjectSection(SolutionItems) = preProject
@@ -23,8 +23,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.Lastfm", "MediaBrowser.Plugins.Lastfm\MediaBrowser.Plugins.Lastfm.csproj", "{9D487969-76A8-4CC9-8D4C-FC65B4B3B21E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaBrowser.Plugins.GoogleDrive", "MediaBrowser.Plugins.GoogleDrive\MediaBrowser.Plugins.GoogleDrive.csproj", "{1B6D0A02-F1C2-4817-8958-4A996DEF5AC7}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FolderSync", "FolderSync\FolderSync.csproj", "{D18C2B09-4793-4D16-AC5D-C04C0E5AC976}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MBBookshelf", "Bookshelf\MBBookshelf.csproj", "{C4276F0E-10BD-4D9C-8686-B0E6F9FE7B23}"
 EndProject
@@ -88,12 +86,6 @@ Global
 		{1B6D0A02-F1C2-4817-8958-4A996DEF5AC7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1B6D0A02-F1C2-4817-8958-4A996DEF5AC7}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1B6D0A02-F1C2-4817-8958-4A996DEF5AC7}.Release|x86.ActiveCfg = Release|Any CPU
-		{D18C2B09-4793-4D16-AC5D-C04C0E5AC976}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D18C2B09-4793-4D16-AC5D-C04C0E5AC976}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D18C2B09-4793-4D16-AC5D-C04C0E5AC976}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{D18C2B09-4793-4D16-AC5D-C04C0E5AC976}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D18C2B09-4793-4D16-AC5D-C04C0E5AC976}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D18C2B09-4793-4D16-AC5D-C04C0E5AC976}.Release|x86.ActiveCfg = Release|Any CPU
 		{C4276F0E-10BD-4D9C-8686-B0E6F9FE7B23}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C4276F0E-10BD-4D9C-8686-B0E6F9FE7B23}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C4276F0E-10BD-4D9C-8686-B0E6F9FE7B23}.Debug|x86.ActiveCfg = Debug|Any CPU
@@ -115,5 +107,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FF9BA2AD-B3EF-4AE1-9280-9EED3261A6FF}
 	EndGlobalSection
 EndGlobal
