@@ -28,8 +28,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MBBookshelf", "Bookshelf\MB
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dropbox", "Dropbox\Dropbox.csproj", "{42C6C52F-0A48-43D2-90C8-553B4B3E3333}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XmlMetadata", "XmlMetadata\XmlMetadata.csproj", "{C9F8C128-32CD-4151-A083-18E03C107D23}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -98,12 +96,6 @@ Global
 		{42C6C52F-0A48-43D2-90C8-553B4B3E3333}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{42C6C52F-0A48-43D2-90C8-553B4B3E3333}.Release|Any CPU.Build.0 = Release|Any CPU
 		{42C6C52F-0A48-43D2-90C8-553B4B3E3333}.Release|x86.ActiveCfg = Release|Any CPU
-		{C9F8C128-32CD-4151-A083-18E03C107D23}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C9F8C128-32CD-4151-A083-18E03C107D23}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C9F8C128-32CD-4151-A083-18E03C107D23}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{C9F8C128-32CD-4151-A083-18E03C107D23}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C9F8C128-32CD-4151-A083-18E03C107D23}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C9F8C128-32CD-4151-A083-18E03C107D23}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
