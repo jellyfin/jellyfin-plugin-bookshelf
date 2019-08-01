@@ -1,7 +1,6 @@
 ﻿using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Logging;
 using System;
 using System.IO;
 using System.Linq;
@@ -9,10 +8,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using MediaBrowser.Model.IO;
+using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.Bookshelf.Providers
 {
-    class BookProviderFromOpf : ILocalMetadataProvider<Book>, IHasChangeMonitor
+    public class BookProviderFromOpf : ILocalMetadataProvider<Book>, IHasItemChangeMonitor
     {
         private const string StandardOpfFile = "content.opf";
         private const string CalibreOpfFile = "metadata.opf";
@@ -28,6 +28,8 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             _fileSystem = fileSystem;
             _logger = logger;
         }
+
+        public string Name => "Open Packaging Format";
 
         private FileSystemMetadata GetXmlFile(string path)
         {
@@ -51,17 +53,15 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             return file.Exists ? file : _fileSystem.GetFileInfo(Path.Combine(directoryPath, CalibreOpfFile));
         }
 
-        public bool HasChanged(IHasMetadata item, IDirectoryService directoryService, DateTime date)
+        public bool HasChanged(BaseItem item, IDirectoryService directoryService)
         {
             var file = GetXmlFile(item.Path);
-
-            return file.Exists && _fileSystem.GetLastWriteTimeUtc(file) > date;
+            return file.Exists && _fileSystem.GetLastWriteTimeUtc(file) > item.DateLastSaved;
         }
 
         public Task<MetadataResult<Book>> GetMetadata(ItemInfo info, IDirectoryService directoryService, CancellationToken cancellationToken)
         {
             var path = GetXmlFile(info.Path).FullName;
-
             var result = new MetadataResult<Book>();
 
             try
@@ -77,16 +77,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             }
 
             return Task.FromResult(result);
-        }
-
-        public string Name
-        {
-            get { return "Open Packaging Format"; }
-        }
-
-        public bool HasLocalMetadata(IHasMetadata item)
-        {
-            return GetXmlFile(item.Path).Exists;
         }
 
         /// <summary>
@@ -141,7 +131,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
                 foreach (var node in genresNodes.Cast<XmlNode>().Where(node => !book.Tags.Contains(node.InnerText)))
                 {
                     // Adding to tags because we can't be sure the values are all genres
-                    book.Genres.Add(node.InnerText);
+                    book.Genres.Append(node.InnerText);
                 }
             }
 
@@ -162,9 +152,9 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
                 {
                     book.IndexNumber = Convert.ToInt32(seriesIndexNode.Attributes["content"].Value);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-                    _logger.ErrorException("Error parsing Calibre series index", e);
+                    _logger.LogError("Error parsing Calibre series index");
                 }
 
             }
@@ -177,9 +167,9 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
                 {
                     book.SeriesName = seriesNameNode.Attributes["content"].Value;
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-                    _logger.ErrorException("Error parsing Calibre series name", e);
+                    _logger.LogError("Error parsing Calibre series name");
                 }
             }
 
@@ -191,12 +181,11 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
                 {
                     book.CommunityRating = Convert.ToInt32(ratingNode.Attributes["content"].Value);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-                    _logger.ErrorException("Error parsing Calibre rating node", e);
+                    _logger.LogError("Error parsing Calibre rating node");
                 }
             }
-
         }
     }
 }

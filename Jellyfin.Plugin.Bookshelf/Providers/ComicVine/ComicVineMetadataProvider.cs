@@ -3,7 +3,6 @@ using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Providers;
 using MediaBrowser.Model.Serialization;
 using System;

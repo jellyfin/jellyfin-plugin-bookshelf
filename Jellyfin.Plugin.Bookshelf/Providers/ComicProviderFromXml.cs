@@ -12,7 +12,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
     /// <summary>
     /// http://wiki.mobileread.com/wiki/CBR/CBZ#Metadata
     /// </summary>
-    class ComicProviderFromXml : ILocalMetadataProvider<Book>, IHasItemChangeMonitor
+    public class ComicProviderFromXml : ILocalMetadataProvider<Book>, IHasItemChangeMonitor
     {
         private const string ComicRackMetaFile = "ComicInfo.xml";
 
@@ -22,6 +22,8 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
         {
             _fileSystem = fileSystem;
         }
+
+        public string Name => "Comic Vine XML";
 
         /// <summary>
         /// Reads the XML data.
@@ -60,10 +62,8 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             if (!string.IsNullOrEmpty(author))
             {
                 var person = new PersonInfo { Name = author, Type = "Author" };
-
                 bookResult.People.Add(person);
             }
-
         }
 
         private FileSystemMetadata GetXmlFile(string path)
@@ -81,10 +81,9 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             return file.Exists ? file : _fileSystem.GetFileInfo(Path.Combine(directoryPath, ComicRackMetaFile));
         }
 
-        public bool HasChanged(IHasMetadata item, IDirectoryService directoryService)
+        public bool HasChanged(BaseItem item, IDirectoryService directoryService)
         {
             var file = GetXmlFile(item.Path);
-
             return file.Exists && _fileSystem.GetLastWriteTimeUtc(file) > item.DateLastSaved;
         }
 
@@ -107,16 +106,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             }
 
             return Task.FromResult(result);
-        }
-
-        public string Name
-        {
-            get { return "Comic Vine Xml"; }
-        }
-
-        public bool HasLocalMetadata(IHasMetadata item)
-        {
-            return GetXmlFile(item.Path).Exists;
         }
     }
 }
