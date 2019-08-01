@@ -1,15 +1,13 @@
-﻿using MBBookshelf.Extensions;
+﻿using Jellyfin.Plugin.Bookshelf.Extensions;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using MediaBrowser.Model.IO;
 
-namespace MBBookshelf.Providers
+namespace Jellyfin.Plugin.Bookshelf.Providers
 {
     /// <summary>
     /// http://wiki.mobileread.com/wiki/CBR/CBZ#Metadata

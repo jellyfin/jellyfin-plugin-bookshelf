@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace MBBookshelf.Providers.GoogleBooks
+namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
 {
     public class SearchResult
     {

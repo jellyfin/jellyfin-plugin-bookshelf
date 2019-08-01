@@ -1,16 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
-using MBBookshelf.Configuration;
+using Jellyfin.Plugin.Bookshelf.Configuration;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Plugins;
 using MediaBrowser.Model.Serialization;
 
-namespace MBBookshelf
+namespace Jellyfin.Plugin.Bookshelf
 {
     public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
     {

@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.Xml;
 
-namespace MBBookshelf.Extensions
+namespace Jellyfin.Plugin.Bookshelf.Extensions
 {
     /// <summary>
     /// Class XmlExtensions

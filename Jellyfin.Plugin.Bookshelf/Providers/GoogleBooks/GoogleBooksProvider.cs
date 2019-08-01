@@ -13,7 +13,7 @@ using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
 
-namespace MBBookshelf.Providers.GoogleBooks
+namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
 {
     class GoogleBooksProvider : BaseMetadataProvider
     {

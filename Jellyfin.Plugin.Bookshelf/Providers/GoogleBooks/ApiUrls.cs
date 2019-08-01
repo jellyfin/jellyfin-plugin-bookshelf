@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MBBookshelf.Providers.GoogleBooks
+﻿namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
 {
     public static class GoogleApiUrls
     {
