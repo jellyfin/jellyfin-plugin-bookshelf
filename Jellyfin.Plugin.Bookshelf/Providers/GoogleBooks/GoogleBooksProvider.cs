@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
@@ -17,11 +16,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
 {
     class GoogleBooksProvider : BaseMetadataProvider
     {
-        // Should move these constants elsewhere if I'm reusing them
-        private const string StandardOpfFile = "content.opf";
-        private const string CalibreOpfFile = "metadata.opf";
-        private const string ComicRackMetaFile = "ComicInfo.xml";
-
         private static readonly Regex[] NameMatches = new[] {
             new Regex(@"(?<name>.*)\((?<year>\d{4}\))"), // matches "My book (2001)" and gives us the name and the year
             new Regex(@"(?<name>.*)") // last resort matches the whole string as the name
@@ -31,13 +25,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
         private static IJsonSerializer _jsonSerializer;
         private static ILogger _logger;
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="logManager"></param>
-        /// <param name="configurationManager"></param>
-        /// <param name="httpClient"></param>
-        /// <param name="jsonSerializer"></param>
         public GoogleBooksProvider(ILogManager logManager, IServerConfigurationManager configurationManager, IHttpClient httpClient, IJsonSerializer jsonSerializer)
             : base(logManager, configurationManager)
         {
@@ -46,111 +33,11 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             _logger = logManager.GetLogger("MB Bookshelf");
         }
 
-        #region BaseMetadataProvider
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="item"></param>
-        /// <returns></returns>
         public override bool Supports(BaseItem item)
         {
             return item is Book;
         }
 
-        protected override bool NeedsRefreshInternal(BaseItem item, BaseProviderInfo providerInfo)
-        {
-            //if (HasLocalMeta(item))
-            //    return false;
-
-            //return base.NeedsRefreshInternal(item, providerInfo);
-            return false;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="item"></param>
-        /// <param name="force"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        public override async Task<bool> FetchAsync(BaseItem item, bool force, BaseProviderInfo providerInfo, CancellationToken cancellationToken)
-        {
-            if (HasLocalMeta(item))
-            {
-                SetLastRefreshed(item, DateTime.UtcNow, providerInfo);
-                return true;
-            }
-
-            //await Fetch(item, cancellationToken).ConfigureAwait(false);
-
-            SetLastRefreshed(item, DateTime.UtcNow, providerInfo);
-            return true;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public override MetadataProviderPriority Priority
-        {
-            get { return MetadataProviderPriority.Second; }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public override bool RequiresInternet
-        {
-            get { return true; }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="item"></param>
-        /// <returns></returns>
-        protected override DateTime CompareDate(BaseItem item)
-        {
-            return item.DateModified;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        protected override string ProviderVersion
-        {
-            get
-            {
-                return "GoogleBooks Provider version 1.04";
-            }
-        }
-
-        protected override bool RefreshOnVersionChange
-        {
-            get { return true; }
-        }
-
-        #endregion
-
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="item"></param>
-        /// <returns></returns>
-        private bool HasLocalMeta(BaseItem item)
-        {
-            return item.ResolveArgs.ContainsMetaFileByName(StandardOpfFile) ||
-                   item.ResolveArgs.ContainsMetaFileByName(CalibreOpfFile) ||
-                   item.ResolveArgs.ContainsMetaFileByName(ComicRackMetaFile);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="item"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
         private async Task<bool> Fetch(BaseItem item, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -171,12 +58,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             return true;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="item"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
         private async Task<string> FetchBookId(BaseItem item, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -201,7 +82,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             }
 
 
-            var url = string.Format(GoogleApiUrls.SearchUrl, UrlEncode(name), 0, 20);
+            var url = string.Format(GoogleApiUrls.SearchUrl, WebUtility.UrlEncode(name), 0, 20);
 
             var stream = await _httpClient.Get(url, Plugin.Instance.GoogleBooksSemiphore, cancellationToken);
 
@@ -248,12 +129,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             return null;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="googleBookId"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
         private async Task<BookResult> FetchBookData(string googleBookId, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -271,13 +146,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             return _jsonSerializer.DeserializeFromStream<BookResult>(stream);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="item"></param>
-        /// <param name="bookResult"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
         private void ProcessBookData(BaseItem item, BookResult bookResult, CancellationToken cancellationToken)
         {
             var book = item as Book;
@@ -288,8 +156,8 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             try
             {
                 book.ProductionYear = bookResult.volumeInfo.publishedDate.Length > 4
-                                      ? Convert.ToInt32(bookResult.volumeInfo.publishedDate.Substring(0, 4))
-                                      : Convert.ToInt32(bookResult.volumeInfo.publishedDate);
+                    ? Convert.ToInt32(bookResult.volumeInfo.publishedDate.Substring(0, 4))
+                    : Convert.ToInt32(bookResult.volumeInfo.publishedDate);
             }
             catch (Exception e)
             {
@@ -318,11 +186,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
         // "Face/Off" support.
         private const string Spacers = "/,.:;\\(){}[]+-_=–*"; // (there are not actually two - they are different char codes)
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
         internal static string GetComparableName(string name)
         {
             name = name.ToLower();
@@ -375,9 +238,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             return name.Trim();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         static readonly Dictionary<string, string> ReplaceEndNumerals = new Dictionary<string, string> {
             {" i", " 1"},
             {" ii", " 2"},
@@ -390,16 +250,5 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             {" ix", " 9"},
             {" x", " 10"}
         };
-
-        /// <summary>
-        /// Encodes a text string
-        /// </summary>
-        /// <param name="name">the text to encode</param>
-        /// <returns>a url safe string</returns>
-        private static string UrlEncode(string name)
-        {
-            return WebUtility.UrlEncode(name);
-        }
-
     }
 }
