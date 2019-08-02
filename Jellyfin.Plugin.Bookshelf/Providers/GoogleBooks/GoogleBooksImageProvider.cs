@@ -47,12 +47,12 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             var googleBookId = item.GetProviderId("GoogleBooks");
 
             if (string.IsNullOrEmpty(googleBookId))
-                return null;
+                return list;
 
             var bookResult = await FetchBookData(googleBookId, cancellationToken);
 
             if (bookResult == null)
-                return null;
+                return list;
 
             list.Add(new RemoteImageInfo
             {

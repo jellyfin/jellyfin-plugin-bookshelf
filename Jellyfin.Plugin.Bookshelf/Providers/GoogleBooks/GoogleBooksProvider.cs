@@ -10,6 +10,7 @@ using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.Providers;
 using MediaBrowser.Model.Serialization;
 using Microsoft.Extensions.Logging;
 
@@ -42,27 +43,38 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             return item is Book;
         }
 
-        public async Task<bool> Fetch(BaseItem item, CancellationToken cancellationToken)
+        public async Task<IEnumerable<RemoteSearchResult>> GetSearchResults(BookInfo item, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            var list = new List<RemoteSearchResult>();
+
+            return list;
+        }
+
+        public async Task<MetadataResult<Book>> GetMetadata(BookInfo item, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            MetadataResult<Book> metadataResult = new MetadataResult<Book>();
+            metadataResult.HasMetadata = false;
 
             var googleBookId = item.GetProviderId("GoogleBooks") ??
                 await FetchBookId(item, cancellationToken).ConfigureAwait(false);
 
             if (string.IsNullOrEmpty(googleBookId))
-                return false;
+                return metadataResult;
 
             var bookResult = await FetchBookData(googleBookId, cancellationToken);
 
             if (bookResult == null)
-                return false;
+                return metadataResult;
 
-            ProcessBookData(item, bookResult, cancellationToken);
-
-            return true;
+            metadataResult.Item = ProcessBookData(bookResult, cancellationToken);
+            metadataResult.QueriedById = true;
+            metadataResult.HasMetadata = true;
+            return metadataResult;
         }
 
-        private async Task<string> FetchBookId(BaseItem item, CancellationToken cancellationToken)
+        private async Task<string> FetchBookId(BookInfo item, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -80,9 +92,9 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
                 }
             }
 
-            if (string.IsNullOrEmpty(year) && item.ProductionYear != null)
+            if (string.IsNullOrEmpty(year) && item.Year != null)
             {
-                year = item.ProductionYear.ToString();
+                year = item.Year.ToString();
             }
 
 
@@ -164,9 +176,9 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             return _jsonSerializer.DeserializeFromStream<BookResult>(stream.Content);
         }
 
-        private void ProcessBookData(BaseItem item, BookResult bookResult, CancellationToken cancellationToken)
+        private Book ProcessBookData(BookResult bookResult, CancellationToken cancellationToken)
         {
-            var book = item as Book;
+            var book = new Book();
             cancellationToken.ThrowIfCancellationRequested();
 
             book.Name = bookResult.volumeInfo.title;
@@ -199,6 +211,8 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
 
             if (!string.IsNullOrEmpty(bookResult.id))
                 book.SetProviderId("GoogleBooks", bookResult.id);
+
+            return book;
         }
 
         private const string Remove = "\"'!`?";
@@ -216,7 +230,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
                 if (name.EndsWith(pair.Key))
                 {
                     name = name.Remove(name.IndexOf(pair.Key, StringComparison.InvariantCulture), pair.Key.Length);
-                    name = name + pair.Value;
+                    name += pair.Value;
                 }
             }
 

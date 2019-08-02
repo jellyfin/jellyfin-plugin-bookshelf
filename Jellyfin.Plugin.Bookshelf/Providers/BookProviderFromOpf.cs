@@ -79,12 +79,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             return Task.FromResult(result);
         }
 
-        /// <summary>
-        /// Read the contents of the .opf file and update the book entity
-        /// </summary>
-        /// <param name="bookResult">The book result.</param>
-        /// <param name="metaFile">The meta file.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
         private void ReadOpfData(MetadataResult<Book> bookResult, string metaFile, CancellationToken cancellationToken)
         {
             var book = bookResult.Item;
@@ -122,7 +116,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             var amazonNode = doc.SelectSingleNode("//dc:identifier[@opf:scheme='AMAZON']", namespaceManager);
 
             if (amazonNode != null)
-                book.SetProviderId("AMAZON", amazonNode.InnerText);
+                book.SetProviderId("Amazon", amazonNode.InnerText);
 
             var genresNodes = doc.SelectNodes("//dc:subject", namespaceManager);
 
@@ -156,7 +150,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
                 {
                     _logger.LogError("Error parsing Calibre series index");
                 }
-
             }
 
             var seriesNameNode = doc.SelectSingleNode("//opf:meta[@name='calibre:series']", namespaceManager);
