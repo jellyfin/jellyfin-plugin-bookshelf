@@ -1,9 +1,11 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.Providers;
 using MediaBrowser.Model.Serialization;
 using Microsoft.Extensions.Logging;
 
@@ -14,38 +16,51 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
         private static IHttpClient _httpClient;
         private static IJsonSerializer _jsonSerializer;
         private static ILogger _logger;
-        private static IProviderManager _providerManager;
 
-        public GoogleBooksImageProvider(ILogger logger, IHttpClient httpClient, IJsonSerializer jsonSerializer, IProviderManager providerManager)
+        public GoogleBooksImageProvider(ILogger logger, IHttpClient httpClient, IJsonSerializer jsonSerializer)
         {
             _httpClient = httpClient;
             _jsonSerializer = jsonSerializer;
             _logger = logger;
-            _providerManager = providerManager;
         }
+
+        public string Name => "Google Books";
 
         public bool Supports(BaseItem item)
         {
             return item is Book;
         }
 
-        public async Task<bool> Fetch(BaseItem item, CancellationToken cancellationToken)
+        public IEnumerable<ImageType> GetSupportedImages(BaseItem item)
+        {
+            return new List<ImageType>
+            {
+                ImageType.Primary
+            };
+        }
+
+        public async Task<IEnumerable<RemoteImageInfo>> GetImages(BaseItem item, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            var list = new List<RemoteImageInfo>();
 
             var googleBookId = item.GetProviderId("GoogleBooks");
 
             if (string.IsNullOrEmpty(googleBookId))
-                return false;
+                return null;
 
             var bookResult = await FetchBookData(googleBookId, cancellationToken);
 
             if (bookResult == null)
-                return false;
+                return null;
 
-            await ProcessBookImage(item, bookResult, cancellationToken);
+            list.Add(new RemoteImageInfo
+            {
+                ProviderName = Name,
+                Url = ProcessBookImage(bookResult)
+            });
 
-            return true;
+            return list;
         }
 
         private async Task<BookResult> FetchBookData(string googleBookId, CancellationToken cancellationToken)
@@ -71,23 +86,25 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             return _jsonSerializer.DeserializeFromStream<BookResult>(stream.Content);
         }
 
-        private async Task ProcessBookImage(BaseItem item, BookResult bookResult, CancellationToken cancellationToken)
+        private string ProcessBookImage(BookResult bookResult)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
             string imageUrl = null;
-
             if (!string.IsNullOrEmpty(bookResult.volumeInfo.imageLinks.large))
                 imageUrl = bookResult.volumeInfo.imageLinks.large;
             else if (!string.IsNullOrEmpty(bookResult.volumeInfo.imageLinks.medium))
                 imageUrl = bookResult.volumeInfo.imageLinks.medium;
             else if (!string.IsNullOrEmpty(bookResult.volumeInfo.imageLinks.small))
                 imageUrl = bookResult.volumeInfo.imageLinks.small;
+            return imageUrl;
+        }
 
-            if (!string.IsNullOrEmpty(imageUrl))
-                await _providerManager.SaveImage(item, bookResult.volumeInfo.imageLinks.large,
-                    Plugin.Instance.GoogleBooksSemiphore, ImageType.Primary, null,
-                    cancellationToken).ConfigureAwait(false);
+        public Task<HttpResponseInfo> GetImageResponse(string url, CancellationToken cancellationToken)
+        {
+            return _httpClient.GetResponse(new HttpRequestOptions
+            {
+                CancellationToken = cancellationToken,
+                Url = url
+            });
         }
     }
 }

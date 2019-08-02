@@ -35,6 +35,8 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             _logger = logger;
         }
 
+        public string Name => "Google Books";
+
         public bool Supports(BaseItem item)
         {
             return item is Book;
@@ -268,5 +270,14 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             {" ix", " 9"},
             {" x", " 10"}
         };
+
+        public Task<HttpResponseInfo> GetImageResponse(string url, CancellationToken cancellationToken)
+        {
+            return _httpClient.GetResponse(new HttpRequestOptions
+            {
+                CancellationToken = cancellationToken,
+                Url = url
+            });
+        }
     }
 }
