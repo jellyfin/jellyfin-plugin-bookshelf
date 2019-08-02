@@ -1,44 +1,46 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Common.Net;
-using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Serialization;
+using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
 {
-    class GoogleBooksProvider : BaseMetadataProvider
+    public class GoogleBooksProvider : IRemoteMetadataProvider<Book, BookInfo>
     {
+        // first pattern matches "book (2000)" and gives the name and the year
+        // last resort matches the whole string as the name
         private static readonly Regex[] NameMatches = new[] {
-            new Regex(@"(?<name>.*)\((?<year>\d{4}\))"), // matches "My book (2001)" and gives us the name and the year
-            new Regex(@"(?<name>.*)") // last resort matches the whole string as the name
+            new Regex(@"(?<name>.*)\((?<year>\d{4}\))"),
+            new Regex(@"(?<name>.*)")
         };
         
         private static IHttpClient _httpClient;
         private static IJsonSerializer _jsonSerializer;
         private static ILogger _logger;
 
-        public GoogleBooksProvider(ILogManager logManager, IServerConfigurationManager configurationManager, IHttpClient httpClient, IJsonSerializer jsonSerializer)
-            : base(logManager, configurationManager)
+        public GoogleBooksProvider(ILogger logger, IHttpClient httpClient, IJsonSerializer jsonSerializer)
         {
             _httpClient = httpClient;
             _jsonSerializer = jsonSerializer;
-            _logger = logManager.GetLogger("MB Bookshelf");
+            _logger = logger;
         }
 
-        public override bool Supports(BaseItem item)
+        public bool Supports(BaseItem item)
         {
             return item is Book;
         }
 
-        private async Task<bool> Fetch(BaseItem item, CancellationToken cancellationToken)
+        public async Task<bool> Fetch(BaseItem item, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -84,15 +86,21 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
 
             var url = string.Format(GoogleApiUrls.SearchUrl, WebUtility.UrlEncode(name), 0, 20);
 
-            var stream = await _httpClient.Get(url, Plugin.Instance.GoogleBooksSemiphore, cancellationToken);
+            var stream = await _httpClient.SendAsync(new HttpRequestOptions
+            {
+                Url = url,
+                CancellationToken = cancellationToken,
+                BufferContent = true,
+                EnableDefaultUserAgent = true
+            }, "GET");
 
             if (stream == null)
             {
-                _logger.Info("response is null");
+                _logger.LogInformation("response is null");
                 return null;
             }
 
-            var searchResults = _jsonSerializer.DeserializeFromStream<SearchResult>(stream);
+            var searchResults = _jsonSerializer.DeserializeFromStream<SearchResult>(stream.Content);
 
             if (searchResults == null || searchResults.items == null)
                 return null;
@@ -101,11 +109,12 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
 
             foreach (var i in searchResults.items)
             {
-                if (!GetComparableName(i.volumeInfo.title).Equals(comparableName)) continue; // didn't match, move on to the next item
+                // no match so move on to the next item
+                if (!GetComparableName(i.volumeInfo.title).Equals(comparableName)) continue;
 
                 if (!string.IsNullOrEmpty(year))
                 {
-                    // Need to adjust for googles format yyyy-mm-dd
+                    // adjust for google yyyy-mm-dd format
                     var resultYear = i.volumeInfo.publishedDate.Length > 4 ? i.volumeInfo.publishedDate.Substring(0,4) : i.volumeInfo.publishedDate;
 
                     int bookReleaseYear;
@@ -114,7 +123,8 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
                         int localReleaseYear;
                         if (Int32.TryParse(year, out localReleaseYear))
                         {
-                            if (Math.Abs(bookReleaseYear - localReleaseYear) > 1) // Allow a 1 year variance
+                            // allow a one year variance
+                            if (Math.Abs(bookReleaseYear - localReleaseYear) > 1)
                             {
                                 continue;
                             }
@@ -135,15 +145,21 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
 
             var url = string.Format(GoogleApiUrls.DetailsUrl, googleBookId);
 
-            var stream = await _httpClient.Get(url, Plugin.Instance.GoogleBooksSemiphore, cancellationToken);
+            var stream = await _httpClient.SendAsync(new HttpRequestOptions
+            {
+                Url = url,
+                CancellationToken = cancellationToken,
+                BufferContent = true,
+                EnableDefaultUserAgent = true
+            }, "GET");
 
             if (stream == null)
             {
-                _logger.Info("response is null");
+                _logger.LogInformation("response is null");
                 return null;
             }
 
-            return _jsonSerializer.DeserializeFromStream<BookResult>(stream);
+            return _jsonSerializer.DeserializeFromStream<BookResult>(stream.Content);
         }
 
         private void ProcessBookData(BaseItem item, BookResult bookResult, CancellationToken cancellationToken)
@@ -159,32 +175,34 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
                     ? Convert.ToInt32(bookResult.volumeInfo.publishedDate.Substring(0, 4))
                     : Convert.ToInt32(bookResult.volumeInfo.publishedDate);
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                _logger.ErrorException("Error parsing date", e);
+                _logger.LogError("Error parsing date");
             }
 
             if (!string.IsNullOrEmpty(bookResult.volumeInfo.publisher))
-                book.Studios.Add(bookResult.volumeInfo.publisher);
+                book.Studios.Append(bookResult.volumeInfo.publisher);
 
             if (!string.IsNullOrEmpty(bookResult.volumeInfo.mainCatagory))
-                book.Tags.Add(bookResult.volumeInfo.mainCatagory);
+                book.Tags.Append(bookResult.volumeInfo.mainCatagory);
             
             if (bookResult.volumeInfo.catagories != null && bookResult.volumeInfo.catagories.Count > 0)
             {
-                foreach (var catagory in bookResult.volumeInfo.catagories)
-                    book.Tags.Add(catagory);
+                foreach (var category in bookResult.volumeInfo.catagories)
+                    book.Tags.Append(category);
             }
 
-            book.CommunityRating = bookResult.volumeInfo.averageRating * 2; // Google rates out of 5, not 10
+            // google rates out of five so convert to ten
+            book.CommunityRating = bookResult.volumeInfo.averageRating * 2;
 
             if (!string.IsNullOrEmpty(bookResult.id))
                 book.SetProviderId("GoogleBooks", bookResult.id);
         }
 
         private const string Remove = "\"'!`?";
-        // "Face/Off" support.
-        private const string Spacers = "/,.:;\\(){}[]+-_=–*"; // (there are not actually two - they are different char codes)
+        // convert these characters to whitespace for better matching
+        // there are two dashes with different char codes
+        private const string Spacers = "/,.:;\\(){}[]+-_=–*";
 
         internal static string GetComparableName(string name)
         {
