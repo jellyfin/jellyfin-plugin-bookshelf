@@ -54,11 +54,14 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             if (bookResult == null)
                 return list;
 
-            list.Add(new RemoteImageInfo
+            foreach (var image in ProcessBookImage(bookResult))
             {
-                ProviderName = Name,
-                Url = ProcessBookImage(bookResult)
-            });
+                list.Add(new RemoteImageInfo
+                {
+                    ProviderName = Name,
+                    Url = image
+                });
+            }
 
             return list;
         }
@@ -86,16 +89,23 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             return _jsonSerializer.DeserializeFromStream<BookResult>(stream.Content);
         }
 
-        private string ProcessBookImage(BookResult bookResult)
+        private List<string> ProcessBookImage(BookResult bookResult)
         {
-            string imageUrl = null;
-            if (!string.IsNullOrEmpty(bookResult.volumeInfo.imageLinks.large))
-                imageUrl = bookResult.volumeInfo.imageLinks.large;
-            else if (!string.IsNullOrEmpty(bookResult.volumeInfo.imageLinks.medium))
-                imageUrl = bookResult.volumeInfo.imageLinks.medium;
-            else if (!string.IsNullOrEmpty(bookResult.volumeInfo.imageLinks.small))
-                imageUrl = bookResult.volumeInfo.imageLinks.small;
-            return imageUrl;
+            var images = new List<string>();
+            if (!string.IsNullOrEmpty(bookResult.volumeInfo.imageLinks?.extraLarge))
+                images.Add(bookResult.volumeInfo.imageLinks.extraLarge);
+            else if (!string.IsNullOrEmpty(bookResult.volumeInfo.imageLinks?.large))
+                images.Add(bookResult.volumeInfo.imageLinks.large);
+            else if (!string.IsNullOrEmpty(bookResult.volumeInfo.imageLinks?.medium))
+                images.Add(bookResult.volumeInfo.imageLinks.medium);
+            else if (!string.IsNullOrEmpty(bookResult.volumeInfo.imageLinks?.small))
+                images.Add(bookResult.volumeInfo.imageLinks.small);
+            // sometimes the thumbnails can be different from the larger images
+            if (!string.IsNullOrEmpty(bookResult.volumeInfo.imageLinks?.thumbnail))
+                images.Add(bookResult.volumeInfo.imageLinks.thumbnail);
+            else if (!string.IsNullOrEmpty(bookResult.volumeInfo.imageLinks?.smallThumbnail))
+                images.Add(bookResult.volumeInfo.imageLinks.smallThumbnail);
+            return images;
         }
 
         public Task<HttpResponseInfo> GetImageResponse(string url, CancellationToken cancellationToken)

@@ -18,10 +18,12 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
 {
     public class GoogleBooksProvider : IRemoteMetadataProvider<Book, BookInfo>
     {
-        // first pattern matches "book (2000)" and gives the name and the year
+        // first pattern provides the name and the year
+        // alternate option to use series index instead of year
         // last resort matches the whole string as the name
         private static readonly Regex[] NameMatches = new[] {
-            new Regex(@"(?<name>.*)\((?<year>\d{4}\))"),
+            new Regex(@"(?<name>.*)\((?<year>\d{4})\)"),
+            new Regex(@"(?<index>\d*)\s\-\s(?<name>.*)"),
             new Regex(@"(?<name>.*)")
         };
         
@@ -48,6 +50,16 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             cancellationToken.ThrowIfCancellationRequested();
             var list = new List<RemoteSearchResult>();
 
+            var searchResults = await GetSearchResultsInternal(item, cancellationToken);
+            foreach (var result in searchResults.items)
+            {
+                var remoteSearchResult = new RemoteSearchResult();
+                remoteSearchResult.Name = result.volumeInfo.title;
+                if (result.volumeInfo.imageLinks?.thumbnail != null)
+                    remoteSearchResult.ImageUrl = result.volumeInfo.imageLinks.thumbnail;
+                list.Add(remoteSearchResult);
+            }
+
             return list;
         }
 
@@ -57,8 +69,8 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             MetadataResult<Book> metadataResult = new MetadataResult<Book>();
             metadataResult.HasMetadata = false;
 
-            var googleBookId = item.GetProviderId("GoogleBooks") ??
-                await FetchBookId(item, cancellationToken).ConfigureAwait(false);
+            var googleBookId = item.GetProviderId("GoogleBooks")
+                ?? await FetchBookId(item, cancellationToken).ConfigureAwait(false);
 
             if (string.IsNullOrEmpty(googleBookId))
                 return metadataResult;
@@ -74,32 +86,15 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             return metadataResult;
         }
 
-        private async Task<string> FetchBookId(BookInfo item, CancellationToken cancellationToken)
+        private async Task<SearchResult> GetSearchResultsInternal(BookInfo item, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var name = item.Name;
-            var year = string.Empty;
+            // pattern match the filename
+            // year can be included for better results
+            GetBookMetadata(item);
 
-            foreach (var re in NameMatches)
-            {
-                Match m = re.Match(name);
-                if (m.Success)
-                {
-                    name = m.Groups["name"].Value.Trim();
-                    year = m.Groups["year"] != null ? m.Groups["year"].Value : null;
-                    break;
-                }
-            }
-
-            if (string.IsNullOrEmpty(year) && item.Year != null)
-            {
-                year = item.Year.ToString();
-            }
-
-
-            var url = string.Format(GoogleApiUrls.SearchUrl, WebUtility.UrlEncode(name), 0, 20);
-
+            var url = string.Format(GoogleApiUrls.SearchUrl, WebUtility.UrlEncode(item.Name), 0, 20);
             var stream = await _httpClient.SendAsync(new HttpRequestOptions
             {
                 Url = url,
@@ -114,39 +109,30 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
                 return null;
             }
 
-            var searchResults = _jsonSerializer.DeserializeFromStream<SearchResult>(stream.Content);
+            return _jsonSerializer.DeserializeFromStream<SearchResult>(stream.Content);
+        }
 
+        private async Task<string> FetchBookId(BookInfo item, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var searchResults = await GetSearchResultsInternal(item, cancellationToken);
             if (searchResults == null || searchResults.items == null)
                 return null;
 
             var comparableName = GetComparableName(item.Name);
-
             foreach (var i in searchResults.items)
             {
                 // no match so move on to the next item
                 if (!GetComparableName(i.volumeInfo.title).Equals(comparableName)) continue;
 
-                if (!string.IsNullOrEmpty(year))
-                {
-                    // adjust for google yyyy-mm-dd format
-                    var resultYear = i.volumeInfo.publishedDate.Length > 4 ? i.volumeInfo.publishedDate.Substring(0,4) : i.volumeInfo.publishedDate;
+                // adjust for google yyyy-mm-dd format
+                var resultYear = i.volumeInfo.publishedDate.Length > 4 ? i.volumeInfo.publishedDate.Substring(0,4) : i.volumeInfo.publishedDate;
+                if (!int.TryParse(resultYear, out var bookReleaseYear)) continue;
 
-                    int bookReleaseYear;
-                    if (Int32.TryParse(resultYear, out bookReleaseYear))
-                    {
-                        int localReleaseYear;
-                        if (Int32.TryParse(year, out localReleaseYear))
-                        {
-                            // allow a one year variance
-                            if (Math.Abs(bookReleaseYear - localReleaseYear) > 1)
-                            {
-                                continue;
-                            }
-                        }
-                    }
-                }
+                // allow a one year variance
+                if (Math.Abs(bookReleaseYear - item.Year ?? 0) > 1) continue;
 
-                // We have our match
                 return i.id;
             }
 
@@ -158,7 +144,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             cancellationToken.ThrowIfCancellationRequested();
 
             var url = string.Format(GoogleApiUrls.DetailsUrl, googleBookId);
-
             var stream = await _httpClient.SendAsync(new HttpRequestOptions
             {
                 Url = url,
@@ -215,12 +200,12 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             return book;
         }
 
-        private const string Remove = "\"'!`?";
         // convert these characters to whitespace for better matching
         // there are two dashes with different char codes
         private const string Spacers = "/,.:;\\(){}[]+-_=–*";
+        private const string Remove = "\"'!`?";
 
-        internal static string GetComparableName(string name)
+        private static string GetComparableName(string name)
         {
             name = name.ToLower();
             name = name.Normalize(NormalizationForm.FormKD);
@@ -262,14 +247,30 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             name = name.Replace("the", " ");
             name = name.Replace(" - ", ": ");
 
-            string prevName;
-            do
-            {
-                prevName = name;
-                name = name.Replace("  ", " ");
-            } while (name.Length != prevName.Length);
+            Regex regex = new Regex(@"\s+");
+            name = regex.Replace(name, " ");
 
             return name.Trim();
+        }
+
+        private void GetBookMetadata(BookInfo item)
+        {
+            foreach (var regex in NameMatches)
+            {
+                var match = regex.Match(item.Name);
+                if (!match.Success) continue;
+
+                // catch return value because user may want to index books from zero
+                // but zero is also the return value from int.TryParse failure
+                var result = int.TryParse(match.Groups["index"]?.Value, out var index);
+                if (result) item.IndexNumber = index;
+
+                item.Name = match.Groups["name"].Value.Trim();
+
+                // might as well catch the return value here as well
+                result = int.TryParse(match.Groups["year"]?.Value, out var year);
+                if (result) item.Year = year;
+            }
         }
 
         static readonly Dictionary<string, string> ReplaceEndNumerals = new Dictionary<string, string> {
