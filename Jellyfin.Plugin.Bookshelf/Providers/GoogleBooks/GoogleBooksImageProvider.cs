@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Common.Net;
@@ -13,9 +14,9 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
 {
     public class GoogleBooksImageProvider : IRemoteImageProvider
     {
-        private static IHttpClient _httpClient;
-        private static IJsonSerializer _jsonSerializer;
-        private static ILogger _logger;
+        private IHttpClient _httpClient;
+        private IJsonSerializer _jsonSerializer;
+        private ILogger _logger;
 
         public GoogleBooksImageProvider(ILogger logger, IHttpClient httpClient, IJsonSerializer jsonSerializer)
         {
@@ -33,10 +34,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
 
         public IEnumerable<ImageType> GetSupportedImages(BaseItem item)
         {
-            return new List<ImageType>
-            {
-                ImageType.Primary
-            };
+            yield return ImageType.Primary;
         }
 
         public async Task<IEnumerable<RemoteImageInfo>> GetImages(BaseItem item, CancellationToken cancellationToken)
@@ -47,21 +45,22 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             var googleBookId = item.GetProviderId("GoogleBooks");
 
             if (string.IsNullOrEmpty(googleBookId))
+            {
                 return list;
+            }
 
             var bookResult = await FetchBookData(googleBookId, cancellationToken);
 
             if (bookResult == null)
-                return list;
-
-            foreach (var image in ProcessBookImage(bookResult))
             {
-                list.Add(new RemoteImageInfo
-                {
-                    ProviderName = Name,
-                    Url = image
-                });
+                return list;
             }
+
+            list.AddRange(ProcessBookImage(bookResult).Select(image => new RemoteImageInfo
+            {
+                ProviderName = Name,
+                Url = image
+            }));
 
             return list;
         }
@@ -93,18 +92,32 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
         {
             var images = new List<string>();
             if (!string.IsNullOrEmpty(bookResult.volumeInfo.imageLinks?.extraLarge))
+            {
                 images.Add(bookResult.volumeInfo.imageLinks.extraLarge);
+            }
             else if (!string.IsNullOrEmpty(bookResult.volumeInfo.imageLinks?.large))
+            {
                 images.Add(bookResult.volumeInfo.imageLinks.large);
+            }
             else if (!string.IsNullOrEmpty(bookResult.volumeInfo.imageLinks?.medium))
+            {
                 images.Add(bookResult.volumeInfo.imageLinks.medium);
+            }
             else if (!string.IsNullOrEmpty(bookResult.volumeInfo.imageLinks?.small))
+            {
                 images.Add(bookResult.volumeInfo.imageLinks.small);
+            }
+
             // sometimes the thumbnails can be different from the larger images
             if (!string.IsNullOrEmpty(bookResult.volumeInfo.imageLinks?.thumbnail))
+            {
                 images.Add(bookResult.volumeInfo.imageLinks.thumbnail);
+            }
             else if (!string.IsNullOrEmpty(bookResult.volumeInfo.imageLinks?.smallThumbnail))
+            {
                 images.Add(bookResult.volumeInfo.imageLinks.smallThumbnail);
+            }
+
             return images;
         }
 

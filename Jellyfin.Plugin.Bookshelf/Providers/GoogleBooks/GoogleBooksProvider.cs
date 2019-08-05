@@ -27,9 +27,9 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             new Regex(@"(?<name>.*)")
         };
         
-        private static IHttpClient _httpClient;
-        private static IJsonSerializer _jsonSerializer;
-        private static ILogger _logger;
+        private IHttpClient _httpClient;
+        private IJsonSerializer _jsonSerializer;
+        private ILogger _logger;
 
         public GoogleBooksProvider(ILogger logger, IHttpClient httpClient, IJsonSerializer jsonSerializer)
         {
@@ -56,7 +56,10 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
                 var remoteSearchResult = new RemoteSearchResult();
                 remoteSearchResult.Name = result.volumeInfo.title;
                 if (result.volumeInfo.imageLinks?.thumbnail != null)
+                {
                     remoteSearchResult.ImageUrl = result.volumeInfo.imageLinks.thumbnail;
+                }
+
                 list.Add(remoteSearchResult);
             }
 
@@ -73,12 +76,16 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
                 ?? await FetchBookId(item, cancellationToken).ConfigureAwait(false);
 
             if (string.IsNullOrEmpty(googleBookId))
+            {
                 return metadataResult;
+            }
 
             var bookResult = await FetchBookData(googleBookId, cancellationToken);
 
             if (bookResult == null)
+            {
                 return metadataResult;
+            }
 
             metadataResult.Item = ProcessBookData(bookResult, cancellationToken);
             metadataResult.QueriedById = true;
@@ -117,8 +124,10 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             cancellationToken.ThrowIfCancellationRequested();
 
             var searchResults = await GetSearchResultsInternal(item, cancellationToken);
-            if (searchResults == null || searchResults.items == null)
+            if (searchResults?.items == null)
+            {
                 return null;
+            }
 
             var comparableName = GetComparableName(item.Name);
             foreach (var i in searchResults.items)
@@ -205,12 +214,12 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
         private const string Spacers = "/,.:;\\(){}[]+-_=–*";
         private const string Remove = "\"'!`?";
 
-        private static string GetComparableName(string name)
+        private string GetComparableName(string name)
         {
             name = name.ToLower();
             name = name.Normalize(NormalizationForm.FormKD);
 
-            foreach (var pair in ReplaceEndNumerals)
+            foreach (var pair in _replaceEndNumerals)
             {
                 if (name.EndsWith(pair.Key))
                 {
@@ -273,7 +282,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             }
         }
 
-        static readonly Dictionary<string, string> ReplaceEndNumerals = new Dictionary<string, string> {
+        private readonly Dictionary<string, string> _replaceEndNumerals = new Dictionary<string, string> {
             {" i", " 1"},
             {" ii", " 2"},
             {" iii", " 3"},
