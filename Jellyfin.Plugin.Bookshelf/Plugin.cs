@@ -17,6 +17,8 @@ namespace Jellyfin.Plugin.Bookshelf
 
         public override string Name => "Bookshelf";
 
+        public override Guid Id => Guid.Parse("9c4e63f1-031b-4f25-988b-4f7d78a8b53e");
+
         public static Plugin Instance { get; private set; }
 
         public IEnumerable<PluginPageInfo> GetPages()
