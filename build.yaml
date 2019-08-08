@@ -1,0 +1,17 @@
+---
+name: "jellyfin-plugin-bookshelf"
+guid: "9c4e63f1-031b-4f25-988b-4f7d78a8b53e"
+version: "1" # Please increment with each pull request
+jellyfin_version: "10.3.0" # The earliest binary-compatible version
+owner: "jellyfin"
+nicename: "Bookshelf"
+description: "Manage your books"
+overview: >
+  Supports several different metadata providers and options for
+  organizing your collection.
+category: "Metadata"
+artifacts:
+  - "Jellyfin.Plugin.Bookshelf.dll"
+build_type: "dotnet"
+dotnet_configuration: "Release"
+dotnet_framework: "netstandard2.0"

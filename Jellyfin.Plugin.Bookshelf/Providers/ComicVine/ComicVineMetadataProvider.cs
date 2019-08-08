@@ -3,7 +3,6 @@ using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.Logging;
 using MediaBrowser.Model.Providers;
 using MediaBrowser.Model.Serialization;
 using System;
@@ -16,7 +15,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace MBBookshelf.Providers.ComicVine
+namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
 {
     //public class ComicVineMetadataProvider : IRemoteMetadataProvider<Book, BookInfo>
     //{

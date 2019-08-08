@@ -10,7 +10,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace MBBookshelf.Providers.ComicVine
+namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
 {
     //public class ComicVineImageProvider : IRemoteImageProvider
     //{

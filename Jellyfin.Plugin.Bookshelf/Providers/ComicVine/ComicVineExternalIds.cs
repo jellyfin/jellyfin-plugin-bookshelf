@@ -2,7 +2,7 @@
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
 
-namespace MBBookshelf.Providers.ComicVine
+namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
 {
     public class ComicVineVolumeExternalId : IExternalId
     {
