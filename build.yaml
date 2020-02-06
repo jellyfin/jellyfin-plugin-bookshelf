@@ -1,7 +1,7 @@
 ---
 name: "jellyfin-plugin-bookshelf"
 guid: "9c4e63f1-031b-4f25-988b-4f7d78a8b53e"
-version: "1" # Please increment with each pull request
+version: "2" # Please increment with each pull request
 jellyfin_version: "10.3.0" # The earliest binary-compatible version
 owner: "jellyfin"
 nicename: "Bookshelf"
