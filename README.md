@@ -1,13 +1,25 @@
-Emby.Plugins
-====================
+<h1 align="center">Jellyfin Bookshelf Plugin</h1>
+<h3 align="center">Part of the <a href="https://jellyfin.org/">Jellyfin Project</a></h3>
 
-This repository contains many of the plugins that are built and maintained by the Emby community.
+## About
+The Jellyfin Bookshelf plugin enables the collection of eBooks & AudioBooks, with the latter being able to be played through Jellyfin.
+This plugin uses Google Books as a Metadata provider.
 
-Each of the projects has a build event that copies it's output to the programdata/plugins folder. 
+Supported eBook file types:
+- epub
+- mobi
+- pdf
+- cbz
+- cbr
 
-By default this assumes you have the server repository side by side in a folder called 'MediaBrowser'. If this is not the case, or if you've installed the server than you'll need to update the build events manually in order to test code changes.
+## Build & Installation Process
+1. Clone this repository
+2. Ensure you have .NET Core SDK setup and installed
+3. Build the plugin with following command:
+```
+dotnet publish --configuration Release --output bin
+```
+4. Place the resulting `Jellyfin.Plugin.Bookshelf.dll` file in a folder called `plugins/` inside your Jellyfin installation / data directory.
 
-
-## More Information ##
-
-[How to Build a Server Plugin](https://github.com/MediaBrowser/MediaBrowser/wiki/How-to-build-a-Server-Plugin)
+### Screenshot
+<img src=screenshot.png>
