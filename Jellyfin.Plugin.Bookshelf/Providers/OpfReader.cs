@@ -22,35 +22,37 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
         )
         {
             var book = bookResult.Item;
-            
+
+            cancellationToken.ThrowIfCancellationRequested();
+
             var namespaceManager = new XmlNamespaceManager(doc.NameTable);
             namespaceManager.AddNamespace("dc", DcNamespace);
             namespaceManager.AddNamespace("opf", OpfNamespace);
 
             var nameNode = doc.SelectSingleNode("//dc:title", namespaceManager);
 
-            if (nameNode != null)
+            if (!string.IsNullOrEmpty(nameNode?.InnerText))
                 book.Name = nameNode.InnerText;
 
             var overViewNode = doc.SelectSingleNode("//dc:description", namespaceManager);
 
-            if (overViewNode != null)
+            if (!string.IsNullOrEmpty(overViewNode?.InnerText))
                 book.Overview = overViewNode.InnerText;
 
 
             var studioNode = doc.SelectSingleNode("//dc:publisher", namespaceManager);
 
-            if (studioNode != null)
+            if (!string.IsNullOrEmpty(studioNode?.InnerText))
                 book.AddStudio(studioNode.InnerText);
 
             var isbnNode = doc.SelectSingleNode("//dc:identifier[@opf:scheme='ISBN']", namespaceManager);
 
-            if (isbnNode != null)
+            if (!string.IsNullOrEmpty(isbnNode?.InnerText))
                 book.SetProviderId("ISBN", isbnNode.InnerText);
 
             var amazonNode = doc.SelectSingleNode("//dc:identifier[@opf:scheme='AMAZON']", namespaceManager);
 
-            if (amazonNode != null)
+            if (!string.IsNullOrEmpty(amazonNode?.InnerText))
                 book.SetProviderId("Amazon", amazonNode.InnerText);
 
             var genresNodes = doc.SelectNodes("//dc:subject", namespaceManager);
@@ -60,22 +62,22 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
                 foreach (var node in genresNodes.Cast<XmlNode>().Where(node => !book.Tags.Contains(node.InnerText)))
                 {
                     // Adding to tags because we can't be sure the values are all genres
-                    book.Genres.Append(node.InnerText);
+                    book.AddGenre(node.InnerText);
                 }
             }
 
             var authorNode = doc.SelectSingleNode("//dc:creator", namespaceManager);
 
-            if (authorNode != null)
+            if (!string.IsNullOrEmpty(authorNode?.InnerText))
             {
-                var person = new PersonInfo { Name = authorNode.InnerText, Type = "Author" };
+                var person = new PersonInfo {Name = authorNode.InnerText, Type = "Author"};
 
-                bookResult.People.Add(person);
+                bookResult.AddPerson(person);
             }
 
             var seriesIndexNode = doc.SelectSingleNode("//opf:meta[@name='calibre:series_index']", namespaceManager);
 
-            if (seriesIndexNode != null && seriesIndexNode.Attributes != null)
+            if (!string.IsNullOrEmpty(seriesIndexNode?.Attributes?["content"]?.Value))
             {
                 try
                 {
@@ -89,7 +91,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
 
             var seriesNameNode = doc.SelectSingleNode("//opf:meta[@name='calibre:series']", namespaceManager);
 
-            if (seriesNameNode != null && seriesNameNode.Attributes != null)
+            if (!string.IsNullOrEmpty(seriesNameNode?.Attributes?["content"]?.Value))
             {
                 try
                 {
@@ -103,7 +105,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
 
             var ratingNode = doc.SelectSingleNode("//opf:meta[@name='calibre:rating']", namespaceManager);
 
-            if (ratingNode != null && ratingNode.Attributes != null)
+            if (!string.IsNullOrEmpty(ratingNode?.Attributes?["content"]?.Value))
             {
                 try
                 {
@@ -114,7 +116,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
                     logger.LogError("Error parsing Calibre rating node");
                 }
             }
-
         }
     }
 }
