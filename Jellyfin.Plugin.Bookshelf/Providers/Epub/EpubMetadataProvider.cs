@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.IO.Compression;
 using System.Threading;
@@ -32,7 +33,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.Epub
                 return null;
             }
 
-            if (Path.GetExtension(fileInfo.FullName) != ".epub")
+            if (!string.Equals(Path.GetExtension(fileInfo.FullName), ".epub", StringComparison.OrdinalIgnoreCase))
             {
                 return null;
             }
@@ -43,28 +44,33 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.Epub
         private void ReadEpubAsZip(MetadataResult<Book> result, string path, CancellationToken cancellationToken)
         {
             using var epub = ZipFile.OpenRead(path);
-            
+
             var opfFilePath = EpubUtils.ReadContentFilePath(epub);
-            if (opfFilePath == null) return;
-            
+            if (opfFilePath == null)
+            {
+                return;
+            }
+
             var opf = epub.GetEntry(opfFilePath);
-            if (opf == null) return;
-            
+            if (opf == null)
+            {
+                return;
+            }
+
             using var opfStream = opf.Open();
-            
+
             var opfDocument = new XmlDocument();
             opfDocument.Load(opfStream);
-                        
+
             OpfReader.ReadOpfData(result, opfDocument, cancellationToken, _logger);
         }
 
         public Task<MetadataResult<Book>> GetMetadata(
             ItemInfo info,
             IDirectoryService directoryService,
-            CancellationToken cancellationToken
-        )
+            CancellationToken cancellationToken)
         {
-            var path = GetEpubFile(info.Path).FullName;
+            var path = GetEpubFile(info.Path)?.FullName;
             var result = new MetadataResult<Book>();
 
             if (path == null)

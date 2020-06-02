@@ -10,10 +10,13 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.Epub
         public static string ReadContentFilePath(ZipArchive epub)
         {
             var container = epub.GetEntry(Path.Combine("META-INF", "container.xml"));
-            if (container == null) return null;
-            
+            if (container == null)
+            {
+                return null;
+            }
+
             using var containerStream = container.Open();
-            
+
             XNamespace ns = "urn:oasis:names:tc:opendocument:xmlns:container";
             var containerDocument = XDocument.Load(containerStream);
 

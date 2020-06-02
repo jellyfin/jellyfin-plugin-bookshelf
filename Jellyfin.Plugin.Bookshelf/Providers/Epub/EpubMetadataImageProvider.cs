@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -6,9 +7,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
-using MediaBrowser.Model.Drawing;
 using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.MediaInfo;
 using MediaBrowser.Model.Net;
 using Microsoft.Extensions.Logging;
 
@@ -77,20 +76,28 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.Epub
             var coverImagePropertyNode =
                 opf.SelectSingleNode("//opf:item[@properties='cover-image']", namespaceManager);
             var coverImageProperty = ReadManifestItem(coverImagePropertyNode, opfRootDirectory);
-            if (coverImageProperty != null) return coverImageProperty;
+            if (coverImageProperty != null)
+            {
+                return coverImageProperty;
+            }
 
             var coverIdNode =
                 opf.SelectSingleNode("//opf:item[@id='cover']", namespaceManager);
             var coverId = ReadManifestItem(coverIdNode, opfRootDirectory);
-            if (coverId != null) return coverId;
+            if (coverId != null)
+            {
+                return coverId;
+            }
 
             var coverImageIdNode =
                 opf.SelectSingleNode("//opf:item[@id='cover-image']", namespaceManager);
             var coverImageId = ReadManifestItem(coverImageIdNode, opfRootDirectory);
-            if (coverImageId != null) return coverImageId;
+            if (coverImageId != null)
+            {
+                return coverImageId;
+            }
 
-            var metaCoverImage =
-                opf.SelectSingleNode("//opf:meta[@name='cover']", namespaceManager);
+            var metaCoverImage = opf.SelectSingleNode("//opf:meta[@name='cover']", namespaceManager);
             if (metaCoverImage?.Attributes?["content"]?.Value != null)
             {
                 var metaContent = metaCoverImage.Attributes["content"].Value;
@@ -113,11 +120,18 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.Epub
         private Task<DynamicImageResponse> LoadCover(ZipArchive epub, XmlDocument opf, string opfRootDirectory)
         {
             var coverRef = ReadCoverPath(opf, opfRootDirectory);
-            if (coverRef == null) return Task.FromResult(new DynamicImageResponse {HasImage = false});
+            if (coverRef == null)
+            {
+                return Task.FromResult(new DynamicImageResponse {HasImage = false});
+            }
+
             var cover = coverRef.Value;
 
             var coverFile = epub.GetEntry(cover.Path);
-            if (coverFile == null) return Task.FromResult(new DynamicImageResponse {HasImage = false});
+            if (coverFile == null)
+            {
+                return Task.FromResult(new DynamicImageResponse {HasImage = false});
+            }
 
             var memoryStream = new MemoryStream();
             using (var coverStream = coverFile.Open())
@@ -142,11 +156,18 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.Epub
             using var epub = ZipFile.OpenRead(item.Path);
 
             var opfFilePath = EpubUtils.ReadContentFilePath(epub);
-            if (opfFilePath == null) return Task.FromResult(new DynamicImageResponse {HasImage = false});
+            if (opfFilePath == null)
+            {
+                return Task.FromResult(new DynamicImageResponse {HasImage = false});
+            }
+
             var opfRootDirectory = Path.GetDirectoryName(opfFilePath);
 
             var opfFile = epub.GetEntry(opfFilePath);
-            if (opfFile == null) return Task.FromResult(new DynamicImageResponse {HasImage = false});
+            if (opfFile == null)
+            {
+                return Task.FromResult(new DynamicImageResponse {HasImage = false});
+            }
 
             using var opfStream = opfFile.Open();
 
@@ -158,7 +179,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.Epub
 
         public Task<DynamicImageResponse> GetImage(BaseItem item, ImageType type, CancellationToken cancellationToken)
         {
-            if (Path.GetExtension(item.Path) == ".epub")
+            if (string.Equals(Path.GetExtension(item.Path), ".epub", StringComparison.OrdinalIgnoreCase))
             {
                 return GetFromZip(item);
             }
