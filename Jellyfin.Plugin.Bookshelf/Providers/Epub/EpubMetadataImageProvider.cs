@@ -18,9 +18,9 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.Epub
         private const string DcNamespace = @"http://purl.org/dc/elements/1.1/";
         private const string OpfNamespace = @"http://www.idpf.org/2007/opf";
 
-        private readonly ILogger _logger;
+        private readonly ILogger<EpubMetadataImageProvider> _logger;
 
-        public EpubMetadataImageProvider(ILogger logger)
+        public EpubMetadataImageProvider(ILogger<EpubMetadataImageProvider> logger)
         {
             _logger = logger;
         }

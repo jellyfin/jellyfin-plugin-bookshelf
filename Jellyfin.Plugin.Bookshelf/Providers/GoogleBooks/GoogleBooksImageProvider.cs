@@ -16,9 +16,10 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
     {
         private IHttpClient _httpClient;
         private IJsonSerializer _jsonSerializer;
-        private ILogger _logger;
+        private ILogger<GoogleBooksImageProvider> _logger;
 
-        public GoogleBooksImageProvider(ILogger logger, IHttpClient httpClient, IJsonSerializer jsonSerializer)
+        public GoogleBooksImageProvider(ILogger<GoogleBooksImageProvider> logger, IHttpClient httpClient,
+            IJsonSerializer jsonSerializer)
         {
             _httpClient = httpClient;
             _jsonSerializer = jsonSerializer;

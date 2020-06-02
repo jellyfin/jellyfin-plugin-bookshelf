@@ -17,10 +17,10 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
         private const string DcNamespace = @"http://purl.org/dc/elements/1.1/";
         private const string OpfNamespace = @"http://www.idpf.org/2007/opf";
 
-        private readonly ILogger _logger;
+        private readonly ILogger<BookProviderFromOpf> _logger;
         private readonly IFileSystem _fileSystem;
 
-        public BookProviderFromOpf(IFileSystem fileSystem, ILogger logger)
+        public BookProviderFromOpf(IFileSystem fileSystem, ILogger<BookProviderFromOpf> logger)
         {
             _fileSystem = fileSystem;
             _logger = logger;

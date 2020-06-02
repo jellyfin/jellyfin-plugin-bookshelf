@@ -14,11 +14,11 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
         private const string DcNamespace = @"http://purl.org/dc/elements/1.1/";
         private const string OpfNamespace = @"http://www.idpf.org/2007/opf";
 
-        public static void ReadOpfData(
+        public static void ReadOpfData<TCategoryName>(
             MetadataResult<Book> bookResult,
             XmlDocument doc,
             CancellationToken cancellationToken,
-            ILogger logger
+            ILogger<TCategoryName> logger
         )
         {
             var book = bookResult.Item;

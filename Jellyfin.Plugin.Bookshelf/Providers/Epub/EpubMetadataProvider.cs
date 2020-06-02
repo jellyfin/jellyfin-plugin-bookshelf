@@ -13,10 +13,10 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.Epub
 {
     public class EpubMetadataProvider : ILocalMetadataProvider<Book>
     {
-        private readonly ILogger _logger;
+        private readonly ILogger<EpubMetadataProvider> _logger;
         private readonly IFileSystem _fileSystem;
 
-        public EpubMetadataProvider(IFileSystem fileSystem, ILogger logger)
+        public EpubMetadataProvider(IFileSystem fileSystem, ILogger<EpubMetadataProvider> logger)
         {
             _fileSystem = fileSystem;
             _logger = logger;
