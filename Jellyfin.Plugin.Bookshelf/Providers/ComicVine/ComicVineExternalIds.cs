@@ -1,6 +1,7 @@
 ﻿using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.Providers;
 
 namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
 {
@@ -11,7 +12,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
             get { return KeyName; }
         }
 
-        public string Name
+        public string ProviderName
         {
             get { return "Comic Vine Volume"; }
         }
@@ -20,6 +21,9 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
         {
             return item is Book;
         }
+
+        public ExternalIdMediaType? Type
+            => null; // TODO: enum does not yet have the Book type
 
         public string UrlFormatString
         {
