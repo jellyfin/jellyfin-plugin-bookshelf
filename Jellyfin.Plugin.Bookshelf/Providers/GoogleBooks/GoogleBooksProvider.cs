@@ -27,11 +27,11 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             new Regex(@"(?<name>.*)")
         };
         
-        private IHttpClient _httpClient;
-        private IJsonSerializer _jsonSerializer;
-        private ILogger _logger;
+        private readonly IHttpClient _httpClient;
+        private readonly IJsonSerializer _jsonSerializer;
+        private readonly ILogger<GoogleBooksProvider> _logger;
 
-        public GoogleBooksProvider(ILogger logger, IHttpClient httpClient, IJsonSerializer jsonSerializer)
+        public GoogleBooksProvider(ILogger<GoogleBooksProvider> logger, IHttpClient httpClient, IJsonSerializer jsonSerializer)
         {
             _httpClient = httpClient;
             _jsonSerializer = jsonSerializer;

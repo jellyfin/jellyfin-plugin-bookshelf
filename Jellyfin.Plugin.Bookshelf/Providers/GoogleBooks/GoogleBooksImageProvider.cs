@@ -14,11 +14,11 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
 {
     public class GoogleBooksImageProvider : IRemoteImageProvider
     {
-        private IHttpClient _httpClient;
-        private IJsonSerializer _jsonSerializer;
-        private ILogger _logger;
+        private readonly IHttpClient _httpClient;
+        private readonly IJsonSerializer _jsonSerializer;
+        private readonly ILogger<GoogleBooksImageProvider> _logger;
 
-        public GoogleBooksImageProvider(ILogger logger, IHttpClient httpClient, IJsonSerializer jsonSerializer)
+        public GoogleBooksImageProvider(ILogger<GoogleBooksImageProvider> logger, IHttpClient httpClient, IJsonSerializer jsonSerializer)
         {
             _httpClient = httpClient;
             _jsonSerializer = jsonSerializer;
