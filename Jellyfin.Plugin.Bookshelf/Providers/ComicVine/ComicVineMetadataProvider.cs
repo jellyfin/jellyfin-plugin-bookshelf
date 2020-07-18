@@ -34,7 +34,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
 
     //    private readonly CultureInfo _usCulture = new CultureInfo("en-US");
 
-    //    private readonly ILogger _logger;
+    //    private readonly ILogger<ComicVineMetadataProvider> _logger;
     //    private readonly IHttpClient _httpClient;
     //    private readonly IJsonSerializer _jsonSerializer;
     //    private readonly IFileSystem _fileSystem;
@@ -42,7 +42,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
 
     //    public static ComicVineMetadataProvider Current;
 
-    //    public ComicVineMetadataProvider(ILogger logger, IHttpClient httpClient, IJsonSerializer jsonSerializer, IFileSystem fileSystem, IApplicationPaths appPaths)
+    //    public ComicVineMetadataProvider(ILogger<ComicVineMetadataProvider> logger, IHttpClient httpClient, IJsonSerializer jsonSerializer, IFileSystem fileSystem, IApplicationPaths appPaths)
     //    {
     //        _logger = logger;
     //        _httpClient = httpClient;
