@@ -31,7 +31,8 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
         private IJsonSerializer _jsonSerializer;
         private ILogger<GoogleBooksProvider> _logger;
 
-        public GoogleBooksProvider(ILogger<GoogleBooksProvider> logger, IHttpClient httpClient, IJsonSerializer jsonSerializer)
+        public GoogleBooksProvider(ILogger<GoogleBooksProvider> logger, IHttpClient httpClient,
+            IJsonSerializer jsonSerializer)
         {
             _httpClient = httpClient;
             _jsonSerializer = jsonSerializer;
