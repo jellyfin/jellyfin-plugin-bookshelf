@@ -91,7 +91,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
     //    }
 
     //    /// <summary>
-    //    /// 
+    //    ///
     //    /// </summary>
     //    /// <param name="item"></param>
     //    /// <param name="issue"></param>
@@ -130,7 +130,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
     //    }
 
     //    /// <summary>
-    //    /// 
+    //    ///
     //    /// </summary>
     //    /// <param name="item"></param>
     //    /// <param name="cancellationToken"></param>
@@ -201,7 +201,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
     //    }
 
     //    /// <summary>
-    //    /// 
+    //    ///
     //    /// </summary>
     //    /// <param name="volumeId"></param>
     //    /// <param name="issueNumber"></param>
@@ -224,7 +224,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
 
 
     //    /// <summary>
-    //    /// 
+    //    ///
     //    /// </summary>
     //    /// <param name="name"></param>
     //    /// <returns></returns>
@@ -256,7 +256,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
     //    private const string Spacers = "/,.:;\\(){}[]+-_=–*"; // (there are not actually two - they are different char codes)
 
     //    /// <summary>
-    //    /// 
+    //    ///
     //    /// </summary>
     //    /// <param name="name"></param>
     //    /// <returns></returns>
@@ -279,7 +279,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
     //        {
     //            if (c >= 0x2B0 && c <= 0x0333)
     //            {
-    //                // skip char modifier and diacritics 
+    //                // skip char modifier and diacritics
     //            }
     //            else if (Remove.IndexOf(c) > -1)
     //            {
@@ -313,7 +313,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
     //    }
 
     //    /// <summary>
-    //    /// 
+    //    ///
     //    /// </summary>
     //    static readonly Dictionary<string, string> ReplaceEndNumerals = new Dictionary<string, string> {
     //        {" i", " 1"},
@@ -388,7 +388,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
     //        return dataPath;
     //    }
 
-    //    public Task<HttpResponseInfo> GetImageResponse(string url, CancellationToken cancellationToken)
+    //    public Task<HttpResponseMessage> GetImageResponse(string url, CancellationToken cancellationToken)
     //    {
     //        throw new NotImplementedException();
     //    }

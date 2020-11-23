@@ -68,7 +68,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
     //        return images;
     //    }
 
-    //    public Task<HttpResponseInfo> GetImageResponse(string url, CancellationToken cancellationToken)
+    //    public Task<HttpResponseMessage> GetImageResponse(string url, CancellationToken cancellationToken)
     //    {
     //        return _httpClient.GetResponse(new HttpRequestOptions
     //        {

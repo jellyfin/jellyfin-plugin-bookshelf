@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Net.Http;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
@@ -14,14 +15,14 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
 {
     public class GoogleBooksImageProvider : IRemoteImageProvider
     {
-        private IHttpClient _httpClient;
+        private IHttpClientFactory _httpClientFactory;
         private IJsonSerializer _jsonSerializer;
         private ILogger<GoogleBooksImageProvider> _logger;
 
-        public GoogleBooksImageProvider(ILogger<GoogleBooksImageProvider> logger, IHttpClient httpClient,
+        public GoogleBooksImageProvider(ILogger<GoogleBooksImageProvider> logger, IHttpClientFactory httpClientFactory,
             IJsonSerializer jsonSerializer)
         {
-            _httpClient = httpClient;
+            _httpClientFactory = httpClientFactory;
             _jsonSerializer = jsonSerializer;
             _logger = logger;
         }
@@ -72,21 +73,13 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
 
             var url = string.Format(GoogleApiUrls.DetailsUrl, googleBookId);
 
-            var stream = await _httpClient.SendAsync(new HttpRequestOptions
-            {
-                Url = url,
-                CancellationToken = cancellationToken,
-                BufferContent = true,
-                EnableDefaultUserAgent = true
-            }, "GET");
+            var httpClient = _httpClientFactory.CreateClient(NamedClient.Default);
 
-            if (stream == null)
+            using (var response = await httpClient.GetAsync(url).ConfigureAwait(false))
             {
-                _logger.LogInformation("response is null");
-                return null;
+                await using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+                return await _jsonSerializer.DeserializeFromStreamAsync<BookResult>(stream).ConfigureAwait(false);
             }
-
-            return _jsonSerializer.DeserializeFromStream<BookResult>(stream.Content);
         }
 
         private List<string> ProcessBookImage(BookResult bookResult)
@@ -122,13 +115,10 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             return images;
         }
 
-        public Task<HttpResponseInfo> GetImageResponse(string url, CancellationToken cancellationToken)
+        public async Task<HttpResponseMessage> GetImageResponse(string url, CancellationToken cancellationToken)
         {
-            return _httpClient.GetResponse(new HttpRequestOptions
-            {
-                CancellationToken = cancellationToken,
-                Url = url
-            });
+            var httpClient = _httpClientFactory.CreateClient(NamedClient.Default);
+            return await httpClient.GetAsync(url).ConfigureAwait(false);
         }
     }
 }
