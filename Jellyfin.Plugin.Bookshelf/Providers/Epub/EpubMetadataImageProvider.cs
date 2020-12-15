@@ -27,15 +27,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.Epub
 
         public string Name => "Epub Metadata";
 
-        private readonly struct EpubCover
-        {
-            public string MimeType { get; }
-            public string Path { get; }
-
-            public EpubCover(string coverMimeType, string coverPath) =>
-                (this.MimeType, this.Path) = (coverMimeType, coverPath);
-        }
-
         public bool Supports(BaseItem item)
         {
             return item is Book;
@@ -43,7 +34,17 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.Epub
 
         public IEnumerable<ImageType> GetSupportedImages(BaseItem item)
         {
-            return new List<ImageType> {ImageType.Primary};
+            return new List<ImageType> { ImageType.Primary };
+        }
+
+        public Task<DynamicImageResponse> GetImage(BaseItem item, ImageType type, CancellationToken cancellationToken)
+        {
+            if (string.Equals(Path.GetExtension(item.Path), ".epub", StringComparison.OrdinalIgnoreCase))
+            {
+                return GetFromZip(item);
+            }
+
+            return Task.FromResult(new DynamicImageResponse { HasImage = false });
         }
 
         private bool IsValidImage(string mimeType)
@@ -61,10 +62,8 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.Epub
                 var coverPath = Path.Combine(opfRootDirectory, manifestNode.Attributes["href"].Value);
                 return new EpubCover(coverMimeType, coverPath);
             }
-            else
-            {
-                return null;
-            }
+
+            return null;
         }
 
         private EpubCover? ReadCoverPath(XmlDocument opf, string opfRootDirectory)
@@ -122,7 +121,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.Epub
             var coverRef = ReadCoverPath(opf, opfRootDirectory);
             if (coverRef == null)
             {
-                return Task.FromResult(new DynamicImageResponse {HasImage = false});
+                return Task.FromResult(new DynamicImageResponse { HasImage = false });
             }
 
             var cover = coverRef.Value;
@@ -130,7 +129,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.Epub
             var coverFile = epub.GetEntry(cover.Path);
             if (coverFile == null)
             {
-                return Task.FromResult(new DynamicImageResponse {HasImage = false});
+                return Task.FromResult(new DynamicImageResponse { HasImage = false });
             }
 
             var memoryStream = new MemoryStream();
@@ -158,7 +157,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.Epub
             var opfFilePath = EpubUtils.ReadContentFilePath(epub);
             if (opfFilePath == null)
             {
-                return Task.FromResult(new DynamicImageResponse {HasImage = false});
+                return Task.FromResult(new DynamicImageResponse { HasImage = false });
             }
 
             var opfRootDirectory = Path.GetDirectoryName(opfFilePath);
@@ -166,7 +165,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.Epub
             var opfFile = epub.GetEntry(opfFilePath);
             if (opfFile == null)
             {
-                return Task.FromResult(new DynamicImageResponse {HasImage = false});
+                return Task.FromResult(new DynamicImageResponse { HasImage = false });
             }
 
             using var opfStream = opfFile.Open();
@@ -177,16 +176,16 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.Epub
             return LoadCover(epub, opfDocument, opfRootDirectory);
         }
 
-        public Task<DynamicImageResponse> GetImage(BaseItem item, ImageType type, CancellationToken cancellationToken)
+        private readonly struct EpubCover
         {
-            if (string.Equals(Path.GetExtension(item.Path), ".epub", StringComparison.OrdinalIgnoreCase))
+            public EpubCover(string coverMimeType, string coverPath)
             {
-                return GetFromZip(item);
+                (MimeType, Path) = (coverMimeType, coverPath);
             }
-            else
-            {
-                return Task.FromResult(new DynamicImageResponse {HasImage = false});
-            }
+
+            public string MimeType { get; }
+
+            public string Path { get; }
         }
     }
 }

@@ -13,8 +13,8 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.Epub
 {
     public class EpubMetadataProvider : ILocalMetadataProvider<Book>
     {
-        private readonly ILogger<EpubMetadataProvider> _logger;
         private readonly IFileSystem _fileSystem;
+        private readonly ILogger<EpubMetadataProvider> _logger;
 
         public EpubMetadataProvider(IFileSystem fileSystem, ILogger<EpubMetadataProvider> logger)
         {
@@ -23,6 +23,29 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.Epub
         }
 
         public string Name => "Epub Metadata";
+
+        public Task<MetadataResult<Book>> GetMetadata(
+            ItemInfo info,
+            IDirectoryService directoryService,
+            CancellationToken cancellationToken)
+        {
+            var path = GetEpubFile(info.Path)?.FullName;
+            var result = new MetadataResult<Book>();
+
+            if (path == null)
+            {
+                result.HasMetadata = false;
+            }
+            else
+            {
+                var item = new Book();
+                result.HasMetadata = true;
+                result.Item = item;
+                ReadEpubAsZip(result, path, cancellationToken);
+            }
+
+            return Task.FromResult(result);
+        }
 
         private FileSystemMetadata GetEpubFile(string path)
         {
@@ -63,29 +86,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.Epub
             opfDocument.Load(opfStream);
 
             OpfReader.ReadOpfData(result, opfDocument, cancellationToken, _logger);
-        }
-
-        public Task<MetadataResult<Book>> GetMetadata(
-            ItemInfo info,
-            IDirectoryService directoryService,
-            CancellationToken cancellationToken)
-        {
-            var path = GetEpubFile(info.Path)?.FullName;
-            var result = new MetadataResult<Book>();
-
-            if (path == null)
-            {
-                result.HasMetadata = false;
-            }
-            else
-            {
-                var item = new Book();
-                result.HasMetadata = true;
-                result.Item = item;
-                ReadEpubAsZip(result, path, cancellationToken);
-            }
-
-            return Task.FromResult(result);
         }
     }
 }

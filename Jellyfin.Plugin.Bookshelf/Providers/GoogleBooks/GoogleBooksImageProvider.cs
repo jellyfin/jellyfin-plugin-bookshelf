@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Net.Http;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
@@ -15,11 +15,13 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
 {
     public class GoogleBooksImageProvider : IRemoteImageProvider
     {
-        private IHttpClientFactory _httpClientFactory;
-        private IJsonSerializer _jsonSerializer;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IJsonSerializer _jsonSerializer;
         private ILogger<GoogleBooksImageProvider> _logger;
 
-        public GoogleBooksImageProvider(ILogger<GoogleBooksImageProvider> logger, IHttpClientFactory httpClientFactory,
+        public GoogleBooksImageProvider(
+            ILogger<GoogleBooksImageProvider> logger,
+            IHttpClientFactory httpClientFactory,
             IJsonSerializer jsonSerializer)
         {
             _httpClientFactory = httpClientFactory;
@@ -65,6 +67,12 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             }));
 
             return list;
+        }
+
+        public async Task<HttpResponseMessage> GetImageResponse(string url, CancellationToken cancellationToken)
+        {
+            var httpClient = _httpClientFactory.CreateClient(NamedClient.Default);
+            return await httpClient.GetAsync(url).ConfigureAwait(false);
         }
 
         private async Task<BookResult> FetchBookData(string googleBookId, CancellationToken cancellationToken)
@@ -113,12 +121,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             }
 
             return images;
-        }
-
-        public async Task<HttpResponseMessage> GetImageResponse(string url, CancellationToken cancellationToken)
-        {
-            var httpClient = _httpClientFactory.CreateClient(NamedClient.Default);
-            return await httpClient.GetAsync(url).ConfigureAwait(false);
         }
     }
 }

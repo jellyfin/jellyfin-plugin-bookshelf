@@ -1,16 +1,16 @@
-﻿using Jellyfin.Plugin.Bookshelf.Extensions;
-using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Providers;
-using System.IO;
+﻿using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using Jellyfin.Plugin.Bookshelf.Extensions;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.IO;
 
 namespace Jellyfin.Plugin.Bookshelf.Providers
 {
     /// <summary>
-    /// http://wiki.mobileread.com/wiki/CBR/CBZ#Metadata
+    ///     http://wiki.mobileread.com/wiki/CBR/CBZ#Metadata.
     /// </summary>
     public class ComicProviderFromXml : ILocalMetadataProvider<Book>, IHasItemChangeMonitor
     {
@@ -18,6 +18,10 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
 
         private readonly IFileSystem _fileSystem;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ComicProviderFromXml"/> class.
+        /// </summary>
+        /// <param name="fileSystem">Instance of the <see cref="IFileSystem"/> interface.</param>
         public ComicProviderFromXml(IFileSystem fileSystem)
         {
             _fileSystem = fileSystem;
@@ -25,8 +29,35 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
 
         public string Name => "Comic Vine XML";
 
+        public bool HasChanged(BaseItem item, IDirectoryService directoryService)
+        {
+            var file = GetXmlFile(item.Path);
+            return file.Exists && _fileSystem.GetLastWriteTimeUtc(file) > item.DateLastSaved;
+        }
+
+        public Task<MetadataResult<Book>> GetMetadata(ItemInfo info, IDirectoryService directoryService, CancellationToken cancellationToken)
+        {
+            var path = GetXmlFile(info.Path).FullName;
+
+            var result = new MetadataResult<Book>();
+
+            try
+            {
+                var item = new Book();
+                result.HasMetadata = true;
+                result.Item = item;
+                ReadXmlData(result, path, cancellationToken);
+            }
+            catch (FileNotFoundException)
+            {
+                result.HasMetadata = false;
+            }
+
+            return Task.FromResult(result);
+        }
+
         /// <summary>
-        /// Reads the XML data.
+        ///     Reads the XML data.
         /// </summary>
         /// <param name="bookResult">The book result.</param>
         /// <param name="metaFile">The meta file.</param>
@@ -43,12 +74,16 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             var name = doc.SafeGetString("ComicInfo/Title");
 
             if (!string.IsNullOrEmpty(name))
+            {
                 book.Name = name;
+            }
 
             var overview = doc.SafeGetString("ComicInfo/Summary");
 
             if (!string.IsNullOrEmpty(overview))
+            {
                 book.Overview = overview;
+            }
 
             var publisher = doc.SafeGetString("ComicInfo/Publisher");
 
@@ -79,33 +114,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             var file = _fileSystem.GetFileInfo(specificFile);
 
             return file.Exists ? file : _fileSystem.GetFileInfo(Path.Combine(directoryPath, ComicRackMetaFile));
-        }
-
-        public bool HasChanged(BaseItem item, IDirectoryService directoryService)
-        {
-            var file = GetXmlFile(item.Path);
-            return file.Exists && _fileSystem.GetLastWriteTimeUtc(file) > item.DateLastSaved;
-        }
-
-        public Task<MetadataResult<Book>> GetMetadata(ItemInfo info, IDirectoryService directoryService, CancellationToken cancellationToken)
-        {
-            var path = GetXmlFile(info.Path).FullName;
-
-            var result = new MetadataResult<Book>();
-
-            try
-            {
-                var item = new Book();
-                result.HasMetadata = true;
-                result.Item = item;
-                ReadXmlData(result, path, cancellationToken);
-            }
-            catch (FileNotFoundException)
-            {
-                result.HasMetadata = false;
-            }
-
-            return Task.FromResult(result);
         }
     }
 }
