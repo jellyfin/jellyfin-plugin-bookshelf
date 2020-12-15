@@ -5,6 +5,9 @@
     <RootNamespace>Jellyfin.Plugin.Bookshelf</RootNamespace>
     <AssemblyVersion>5.0.0.0</AssemblyVersion>
     <FileVersion>5.0.0.0</FileVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>CS1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,5 +19,15 @@
     <None Remove="Configuration\configPage.html" />
     <EmbeddedResource Include="Configuration\configPage.html" />
   </ItemGroup>
+
+  <!-- Code Analyzers-->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="5.0.0" PrivateAssets="All" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118" PrivateAssets="All" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <CodeAnalysisRuleSet>../jellyfin.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
 
 </Project>

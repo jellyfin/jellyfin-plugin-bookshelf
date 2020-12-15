@@ -19,20 +19,43 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
 {
     public class GoogleBooksProvider : IRemoteMetadataProvider<Book, BookInfo>
     {
+        // convert these characters to whitespace for better matching
+        // there are two dashes with different char codes
+        private const string Spacers = "/,.:;\\(){}[]+-_=–*";
+
+        private const string Remove = "\"'!`?";
+
         // first pattern provides the name and the year
         // alternate option to use series index instead of year
         // last resort matches the whole string as the name
-        private static readonly Regex[] NameMatches = new[] {
+        private static readonly Regex[] NameMatches =
+        {
             new Regex(@"(?<name>.*)\((?<year>\d{4})\)"),
             new Regex(@"(?<index>\d*)\s\-\s(?<name>.*)"),
             new Regex(@"(?<name>.*)")
         };
 
-        private IHttpClientFactory _httpClientFactory;
-        private IJsonSerializer _jsonSerializer;
-        private ILogger<GoogleBooksProvider> _logger;
+        private readonly Dictionary<string, string> _replaceEndNumerals = new ()
+        {
+            { " i", " 1" },
+            { " ii", " 2" },
+            { " iii", " 3" },
+            { " iv", " 4" },
+            { " v", " 5" },
+            { " vi", " 6" },
+            { " vii", " 7" },
+            { " viii", " 8" },
+            { " ix", " 9" },
+            { " x", " 10" }
+        };
 
-        public GoogleBooksProvider(ILogger<GoogleBooksProvider> logger, IHttpClientFactory httpClientFactory,
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IJsonSerializer _jsonSerializer;
+        private readonly ILogger<GoogleBooksProvider> _logger;
+
+        public GoogleBooksProvider(
+            ILogger<GoogleBooksProvider> logger,
+            IHttpClientFactory httpClientFactory,
             IJsonSerializer jsonSerializer)
         {
             _httpClientFactory = httpClientFactory;
@@ -41,11 +64,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
         }
 
         public string Name => "Google Books";
-
-        public bool Supports(BaseItem item)
-        {
-            return item is Book;
-        }
 
         public async Task<IEnumerable<RemoteSearchResult>> GetSearchResults(BookInfo item, CancellationToken cancellationToken)
         {
@@ -71,11 +89,11 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
         public async Task<MetadataResult<Book>> GetMetadata(BookInfo item, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            MetadataResult<Book> metadataResult = new MetadataResult<Book>();
+            var metadataResult = new MetadataResult<Book>();
             metadataResult.HasMetadata = false;
 
             var googleBookId = item.GetProviderId("GoogleBooks")
-                ?? await FetchBookId(item, cancellationToken).ConfigureAwait(false);
+                               ?? await FetchBookId(item, cancellationToken).ConfigureAwait(false);
 
             if (string.IsNullOrEmpty(googleBookId))
             {
@@ -95,6 +113,17 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             return metadataResult;
         }
 
+        public async Task<HttpResponseMessage> GetImageResponse(string url, CancellationToken cancellationToken)
+        {
+            var httpClient = _httpClientFactory.CreateClient(NamedClient.Default);
+            return await httpClient.GetAsync(url).ConfigureAwait(false);
+        }
+
+        public bool Supports(BaseItem item)
+        {
+            return item is Book;
+        }
+
         private async Task<SearchResult> GetSearchResultsInternal(BookInfo item, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -112,7 +141,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
                 await using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
                 return await _jsonSerializer.DeserializeFromStreamAsync<SearchResult>(stream).ConfigureAwait(false);
             }
-
         }
 
         private async Task<string> FetchBookId(BookInfo item, CancellationToken cancellationToken)
@@ -129,14 +157,23 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             foreach (var i in searchResults.items)
             {
                 // no match so move on to the next item
-                if (!GetComparableName(i.volumeInfo.title).Equals(comparableName)) continue;
+                if (!GetComparableName(i.volumeInfo.title).Equals(comparableName))
+                {
+                    continue;
+                }
 
                 // adjust for google yyyy-mm-dd format
-                var resultYear = i.volumeInfo.publishedDate.Length > 4 ? i.volumeInfo.publishedDate.Substring(0,4) : i.volumeInfo.publishedDate;
-                if (!int.TryParse(resultYear, out var bookReleaseYear)) continue;
+                var resultYear = i.volumeInfo.publishedDate.Length > 4 ? i.volumeInfo.publishedDate.Substring(0, 4) : i.volumeInfo.publishedDate;
+                if (!int.TryParse(resultYear, out var bookReleaseYear))
+                {
+                    continue;
+                }
 
                 // allow a one year variance
-                if (Math.Abs(bookReleaseYear - item.Year ?? 0) > 1) continue;
+                if (Math.Abs(bookReleaseYear - item.Year ?? 0) > 1)
+                {
+                    continue;
+                }
 
                 return i.id;
             }
@@ -178,30 +215,33 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             }
 
             if (!string.IsNullOrEmpty(bookResult.volumeInfo.publisher))
+            {
                 book.Studios.Append(bookResult.volumeInfo.publisher);
+            }
 
             if (!string.IsNullOrEmpty(bookResult.volumeInfo.mainCatagory))
+            {
                 book.Tags.Append(bookResult.volumeInfo.mainCatagory);
+            }
 
             if (bookResult.volumeInfo.catagories != null && bookResult.volumeInfo.catagories.Count > 0)
             {
                 foreach (var category in bookResult.volumeInfo.catagories)
+                {
                     book.Tags.Append(category);
+                }
             }
 
             // google rates out of five so convert to ten
             book.CommunityRating = bookResult.volumeInfo.averageRating * 2;
 
             if (!string.IsNullOrEmpty(bookResult.id))
+            {
                 book.SetProviderId("GoogleBooks", bookResult.id);
+            }
 
             return book;
         }
-
-        // convert these characters to whitespace for better matching
-        // there are two dashes with different char codes
-        private const string Spacers = "/,.:;\\(){}[]+-_=–*";
-        private const string Remove = "\"'!`?";
 
         private string GetComparableName(string name)
         {
@@ -241,11 +281,12 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
                     sb.Append(c);
                 }
             }
+
             name = sb.ToString();
             name = name.Replace("the", " ");
             name = name.Replace(" - ", ": ");
 
-            Regex regex = new Regex(@"\s+");
+            var regex = new Regex(@"\s+");
             name = regex.Replace(name, " ");
 
             return name.Trim();
@@ -256,38 +297,28 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             foreach (var regex in NameMatches)
             {
                 var match = regex.Match(item.Name);
-                if (!match.Success) continue;
+                if (!match.Success)
+                {
+                    continue;
+                }
 
                 // catch return value because user may want to index books from zero
                 // but zero is also the return value from int.TryParse failure
                 var result = int.TryParse(match.Groups["index"]?.Value, out var index);
-                if (result) item.IndexNumber = index;
+                if (result)
+                {
+                    item.IndexNumber = index;
+                }
 
                 item.Name = match.Groups["name"].Value.Trim();
 
                 // might as well catch the return value here as well
                 result = int.TryParse(match.Groups["year"]?.Value, out var year);
-                if (result) item.Year = year;
+                if (result)
+                {
+                    item.Year = year;
+                }
             }
-        }
-
-        private readonly Dictionary<string, string> _replaceEndNumerals = new Dictionary<string, string> {
-            {" i", " 1"},
-            {" ii", " 2"},
-            {" iii", " 3"},
-            {" iv", " 4"},
-            {" v", " 5"},
-            {" vi", " 6"},
-            {" vii", " 7"},
-            {" viii", " 8"},
-            {" ix", " 9"},
-            {" x", " 10"}
-        };
-
-        public async Task<HttpResponseMessage> GetImageResponse(string url, CancellationToken cancellationToken)
-        {
-            var httpClient = _httpClientFactory.CreateClient(NamedClient.Default);
-            return await httpClient.GetAsync(url).ConfigureAwait(false);
         }
     }
 }

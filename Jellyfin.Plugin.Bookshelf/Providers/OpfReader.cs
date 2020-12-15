@@ -18,8 +18,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             MetadataResult<Book> bookResult,
             XmlDocument doc,
             CancellationToken cancellationToken,
-            ILogger<TCategoryName> logger
-        )
+            ILogger<TCategoryName> logger)
         {
             var book = bookResult.Item;
 
@@ -32,28 +31,37 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             var nameNode = doc.SelectSingleNode("//dc:title", namespaceManager);
 
             if (!string.IsNullOrEmpty(nameNode?.InnerText))
+            {
                 book.Name = nameNode.InnerText;
+            }
 
             var overViewNode = doc.SelectSingleNode("//dc:description", namespaceManager);
 
             if (!string.IsNullOrEmpty(overViewNode?.InnerText))
+            {
                 book.Overview = overViewNode.InnerText;
-
+            }
 
             var studioNode = doc.SelectSingleNode("//dc:publisher", namespaceManager);
 
             if (!string.IsNullOrEmpty(studioNode?.InnerText))
+            {
                 book.AddStudio(studioNode.InnerText);
+            }
 
             var isbnNode = doc.SelectSingleNode("//dc:identifier[@opf:scheme='ISBN']", namespaceManager);
 
             if (!string.IsNullOrEmpty(isbnNode?.InnerText))
+            {
                 book.SetProviderId("ISBN", isbnNode.InnerText);
+            }
 
             var amazonNode = doc.SelectSingleNode("//dc:identifier[@opf:scheme='AMAZON']", namespaceManager);
 
             if (!string.IsNullOrEmpty(amazonNode?.InnerText))
+            {
                 book.SetProviderId("Amazon", amazonNode.InnerText);
+            }
 
             var genresNodes = doc.SelectNodes("//dc:subject", namespaceManager);
 
@@ -70,7 +78,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
 
             if (!string.IsNullOrEmpty(authorNode?.InnerText))
             {
-                var person = new PersonInfo {Name = authorNode.InnerText, Type = "Author"};
+                var person = new PersonInfo { Name = authorNode.InnerText, Type = "Author" };
 
                 bookResult.AddPerson(person);
             }

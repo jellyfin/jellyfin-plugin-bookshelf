@@ -1,9 +1,9 @@
-﻿using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Providers;
-using System.IO;
+﻿using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.IO;
 using Microsoft.Extensions.Logging;
 
@@ -16,9 +16,9 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
 
         private const string DcNamespace = @"http://purl.org/dc/elements/1.1/";
         private const string OpfNamespace = @"http://www.idpf.org/2007/opf";
+        private readonly IFileSystem _fileSystem;
 
         private readonly ILogger<BookProviderFromOpf> _logger;
-        private readonly IFileSystem _fileSystem;
 
         public BookProviderFromOpf(IFileSystem fileSystem, ILogger<BookProviderFromOpf> logger)
         {
@@ -27,28 +27,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
         }
 
         public string Name => "Open Packaging Format";
-
-        private FileSystemMetadata GetXmlFile(string path)
-        {
-            var fileInfo = _fileSystem.GetFileSystemInfo(path);
-
-            var directoryInfo = fileInfo.IsDirectory ? fileInfo : _fileSystem.GetDirectoryInfo(Path.GetDirectoryName(path));
-
-            var directoryPath = directoryInfo.FullName;
-
-            var specificFile = Path.Combine(directoryPath, Path.GetFileNameWithoutExtension(path) + ".opf");
-
-            var file = _fileSystem.GetFileInfo(specificFile);
-
-            if (file.Exists)
-            {
-                return file;
-            }
-
-            file = _fileSystem.GetFileInfo(Path.Combine(directoryPath, StandardOpfFile));
-
-            return file.Exists ? file : _fileSystem.GetFileInfo(Path.Combine(directoryPath, CalibreOpfFile));
-        }
 
         public bool HasChanged(BaseItem item, IDirectoryService directoryService)
         {
@@ -74,6 +52,28 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             }
 
             return Task.FromResult(result);
+        }
+
+        private FileSystemMetadata GetXmlFile(string path)
+        {
+            var fileInfo = _fileSystem.GetFileSystemInfo(path);
+
+            var directoryInfo = fileInfo.IsDirectory ? fileInfo : _fileSystem.GetDirectoryInfo(Path.GetDirectoryName(path));
+
+            var directoryPath = directoryInfo.FullName;
+
+            var specificFile = Path.Combine(directoryPath, Path.GetFileNameWithoutExtension(path) + ".opf");
+
+            var file = _fileSystem.GetFileInfo(specificFile);
+
+            if (file.Exists)
+            {
+                return file;
+            }
+
+            file = _fileSystem.GetFileInfo(Path.Combine(directoryPath, StandardOpfFile));
+
+            return file.Exists ? file : _fileSystem.GetFileInfo(Path.Combine(directoryPath, CalibreOpfFile));
         }
 
         private void ReadOpfData(MetadataResult<Book> bookResult, string metaFile, CancellationToken cancellationToken)
