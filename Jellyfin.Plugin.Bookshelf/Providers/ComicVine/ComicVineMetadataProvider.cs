@@ -36,17 +36,15 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
 
     //    private readonly ILogger<ComicVineMetadataProvider> _logger;
     //    private readonly IHttpClient _httpClient;
-    //    private readonly IJsonSerializer _jsonSerializer;
     //    private readonly IFileSystem _fileSystem;
     //    private readonly IApplicationPaths _appPaths;
 
     //    public static ComicVineMetadataProvider Current;
 
-    //    public ComicVineMetadataProvider(ILogger<ComicVineMetadataProvider> logger, IHttpClient httpClient, IJsonSerializer jsonSerializer, IFileSystem fileSystem, IApplicationPaths appPaths)
+    //    public ComicVineMetadataProvider(ILogger<ComicVineMetadataProvider> logger, IHttpClient httpClient, IFileSystem fileSystem, IApplicationPaths appPaths)
     //    {
     //        _logger = logger;
     //        _httpClient = httpClient;
-    //        _jsonSerializer = jsonSerializer;
     //        _fileSystem = fileSystem;
     //        _appPaths = appPaths;
     //        Current = this;
@@ -72,6 +70,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
 
     //        try
     //        {
+    //            // TODO: use System.Text.Json as JsonSerializer  
     //            var issueInfo = _jsonSerializer.DeserializeFromFile<SearchResult>(cachePath);
 
     //            result.Item = new Book();

@@ -4,15 +4,16 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using MediaBrowser.Common.Json;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Providers;
-using MediaBrowser.Model.Serialization;
 using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
@@ -29,14 +30,11 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
         };
 
         private IHttpClientFactory _httpClientFactory;
-        private IJsonSerializer _jsonSerializer;
         private ILogger<GoogleBooksProvider> _logger;
 
-        public GoogleBooksProvider(ILogger<GoogleBooksProvider> logger, IHttpClientFactory httpClientFactory,
-            IJsonSerializer jsonSerializer)
+        public GoogleBooksProvider(ILogger<GoogleBooksProvider> logger, IHttpClientFactory httpClientFactory)
         {
             _httpClientFactory = httpClientFactory;
-            _jsonSerializer = jsonSerializer;
             _logger = logger;
         }
 
@@ -110,7 +108,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             using (var response = await httpClient.GetAsync(url).ConfigureAwait(false))
             {
                 await using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-                return await _jsonSerializer.DeserializeFromStreamAsync<SearchResult>(stream).ConfigureAwait(false);
+                return await JsonSerializer.DeserializeAsync<SearchResult>(stream, JsonDefaults.GetOptions()).ConfigureAwait(false);
             }
 
         }
@@ -155,7 +153,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             using (var response = await httpClient.GetAsync(url).ConfigureAwait(false))
             {
                 await using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-                return await _jsonSerializer.DeserializeFromStreamAsync<BookResult>(stream).ConfigureAwait(false);
+                return await JsonSerializer.DeserializeAsync<BookResult>(stream, JsonDefaults.GetOptions()).ConfigureAwait(false);
             }
         }
 
