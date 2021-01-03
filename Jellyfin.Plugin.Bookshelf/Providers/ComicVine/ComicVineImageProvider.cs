@@ -16,14 +16,13 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
     //{
     //    private readonly IHttpClient _httpClient;
 
-    //    public ComicVineImageProvider(IHttpClient httpClient, IJsonSerializer jsonSerializer)
+    //    public ComicVineImageProvider(IHttpClient httpClient)
     //    {
     //        _httpClient = httpClient;
     //        _jsonSerializer = jsonSerializer;
     //    }
 
     //    private readonly CultureInfo _usCulture = new CultureInfo("en-US");
-    //    private readonly IJsonSerializer _jsonSerializer;
 
     //    public async Task<IEnumerable<RemoteImageInfo>> GetImages(IHasMetadata item, CancellationToken cancellationToken)
     //    {
@@ -41,6 +40,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
 
     //            try
     //            {
+    //                // TODO: use System.Text.Json as JsonSerializer
     //                var issueInfo = _jsonSerializer.DeserializeFromFile<SearchResult>(cachePath);
 
     //                if (issueInfo.results.Count > 0)
