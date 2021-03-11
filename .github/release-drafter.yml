@@ -2,7 +2,7 @@ _extends: jellyfin-meta-plugins
 
 template: |
   <!-- Optional: add a release summary here -->
-  [Plugin build can be downloaded here](https://repo.jellyfin.org/releases/plugin/jellyfin-plugin-bookshelf/jellyfin-plugin-bookshelf_$NEXT_MAJOR_VERSION.0.0.0.zip).
+  [Plugin build can be downloaded here](https://repo.jellyfin.org/releases/plugin/bookshelf/bookshelf_$NEXT_MAJOR_VERSION.0.0.0.zip).
 
   ## :sparkles: What's New
 
