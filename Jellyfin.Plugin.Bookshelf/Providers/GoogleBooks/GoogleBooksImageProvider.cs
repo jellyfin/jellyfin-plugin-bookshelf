@@ -8,24 +8,20 @@ using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Providers;
-using MediaBrowser.Model.Serialization;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
+using MediaBrowser.Common.Json;
 
 namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
 {
     public class GoogleBooksImageProvider : IRemoteImageProvider
     {
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly IJsonSerializer _jsonSerializer;
         private ILogger<GoogleBooksImageProvider> _logger;
 
-        public GoogleBooksImageProvider(
-            ILogger<GoogleBooksImageProvider> logger,
-            IHttpClientFactory httpClientFactory,
-            IJsonSerializer jsonSerializer)
+        public GoogleBooksImageProvider(ILogger<GoogleBooksImageProvider> logger, IHttpClientFactory httpClientFactory)
         {
             _httpClientFactory = httpClientFactory;
-            _jsonSerializer = jsonSerializer;
             _logger = logger;
         }
 
@@ -86,7 +82,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             using (var response = await httpClient.GetAsync(url).ConfigureAwait(false))
             {
                 await using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-                return await _jsonSerializer.DeserializeFromStreamAsync<BookResult>(stream).ConfigureAwait(false);
+                return await JsonSerializer.DeserializeAsync<BookResult>(stream, JsonDefaults.GetOptions()).ConfigureAwait(false);
             }
         }
 
