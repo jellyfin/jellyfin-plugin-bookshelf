@@ -17,6 +17,7 @@ namespace Jellyfin.Plugin.Bookshelf
 
             // register the actual implementations of the local metadata provider for comic files
             serviceCollection.AddSingleton<IComicFileProvider, ExternalComicInfoProvider>();
+            serviceCollection.AddSingleton<IComicFileProvider, InternalComicInfoProvider>();
         }
     }
 }
