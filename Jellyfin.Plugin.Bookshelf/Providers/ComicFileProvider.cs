@@ -14,7 +14,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
         protected readonly ILogger<ComicFileProvider> _logger;
 
         private readonly IFileSystem _fileSystem;
-        private IEnumerable<IComicFileProvider> _iComicFileProviders;
+        private readonly IEnumerable<IComicFileProvider> _iComicFileProviders;
 
         public string Name => "Comic Provider";
 

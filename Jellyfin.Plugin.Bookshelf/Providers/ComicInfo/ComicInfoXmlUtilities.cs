@@ -12,8 +12,12 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
 {
     public class ComicInfoXmlUtilities : IComicInfoXmlUtilities
     {
+        /// <summary>
         /// Read all metadata for the Jellyfin book about the comic itself,
         /// returns null if nothing was found.
+        /// </summary>
+        /// <param name="xml"> The xml document to read from</param>
+        /// <returns></returns>
         public Book? ReadComicBookMetadata(XDocument xml)
         {
             var book = new Book();
@@ -45,7 +49,11 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
             }
         }
 
+        /// <summary>
         /// Read all people related metadata about the comic itself.
+        /// </summary>
+        /// <param name="xdocument">The xml document to read from</param>
+        /// <param name="metadataResult">The metadata result to write the values into</param>
         public void ReadPeopleMetadata(XDocument xdocument, MetadataResult<Book> metadataResult)
         {
             ReadCommaSeperatedStringsInto(xdocument, "ComicInfo/Writer", (authors) =>
@@ -98,6 +106,13 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
             });
         }
 
+        /// <summary>
+        /// Read language culture information and commit the result.
+        /// </summary>
+        /// <param name="xml">The xml document to read from</param>
+        /// <param name="xPath">The xml tag to read the information from</param>
+        /// <param name="commitResult">What to do with the result</param>
+        /// <returns></returns>
         public bool ReadCultureInfoInto(XDocument xml, string xPath, Action<CultureInfo> commitResult)
         {
             string? culture = null;

@@ -14,9 +14,11 @@ using Microsoft.Extensions.Logging;
 #nullable enable
 namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
 {
+    /// <summary>
     /// The ComicBookImageProvider tries find either a image named "cover" or,
     /// in case that fails, just takes the first image inside the archive,
     /// hoping that it is the cover.
+    /// </summary>
     public class ComicBookImageProvider : IDynamicImageProvider
     {
         private readonly ILogger<ComicBookImageProvider> _logger;

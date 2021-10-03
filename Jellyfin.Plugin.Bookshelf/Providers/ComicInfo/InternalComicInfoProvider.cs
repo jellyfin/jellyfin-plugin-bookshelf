@@ -20,7 +20,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
 
         private readonly ILogger<InternalComicInfoProvider> _logger;
 
-        private ComicInfoXmlUtilities _utilities = new ComicInfoXmlUtilities();
+        private readonly ComicInfoXmlUtilities _utilities = new ComicInfoXmlUtilities();
 
         public InternalComicInfoProvider(IFileSystem fileSystem, ILogger<InternalComicInfoProvider> logger)
         {
