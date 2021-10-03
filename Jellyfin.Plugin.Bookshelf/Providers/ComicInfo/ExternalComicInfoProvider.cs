@@ -24,7 +24,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
 
         private const string ComicRackMetaFile = "ComicInfo.xml";
 
-        private ComicInfoXmlUtilities _utilities = new ComicInfoXmlUtilities();
+        private readonly ComicInfoXmlUtilities _utilities = new ComicInfoXmlUtilities();
 
         public ExternalComicInfoProvider(IFileSystem fileSystem, ILogger<ExternalComicInfoProvider> logger)
         {
@@ -79,10 +79,12 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
             try
             {
                 // Open the xml
-                var reader = XmlReader.Create(path, new XmlReaderSettings { Async = true });
-                var comicInfoXml = XDocument.LoadAsync(reader, LoadOptions.None, cancellationToken);
-                // Read data from XML
-                return await comicInfoXml;
+                using (var reader = XmlReader.Create(path, new XmlReaderSettings { Async = true }))
+                {
+                    var comicInfoXml = XDocument.LoadAsync(reader, LoadOptions.None, cancellationToken);
+                    // Read data from XML
+                    return await comicInfoXml;
+                }
             }
             catch (Exception e)
             {
