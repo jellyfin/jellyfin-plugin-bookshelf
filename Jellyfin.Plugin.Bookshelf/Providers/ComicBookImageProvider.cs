@@ -71,7 +71,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
                 using var archive = ZipFile.OpenRead(item.Path);
 
                 //If no cover is found, throw exception to log results
-                var (cover, imageFormat) = FindCoverEntryInZip(archive) ?? throw new InvalidOperationException($"No supported cover found!");
+                var (cover, imageFormat) = FindCoverEntryInZip(archive) ?? throw new InvalidOperationException("No supported cover found");
 
                 //Copy our cover to memory stream
                 await cover.Open().CopyToAsync(memoryStream);
@@ -90,7 +90,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
             catch (Exception e)
             {
                 //Log and return nothing
-                _logger.LogError(e, $"Failed to load cover from {item.Path}.");
+                _logger.LogError(e, "Failed to load cover from {0}", item.Path);
                 return new DynamicImageResponse { HasImage = false };
             }
         }
