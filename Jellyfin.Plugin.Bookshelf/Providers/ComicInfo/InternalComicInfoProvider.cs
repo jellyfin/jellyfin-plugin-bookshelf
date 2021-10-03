@@ -34,7 +34,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
 
             if (comicInfoXml is null)
             {
-                this._logger.LogInformation($"Could not load ComicInfo metadata for ${info.Path} from XML file. No internal XML in comic archive.");
+                this._logger.LogInformation("Could not load ComicInfo metadata for {0} from XML file. No internal XML in comic archive", info.Path);
                 return new MetadataResult<Book> { HasMetadata = false };
             }
 
@@ -100,7 +100,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
             }
             catch (Exception e)
             {
-                this._logger.LogError(e, $"Could not load internal xml from {path}", null);
+                this._logger.LogError(e, "Could not load internal xml from {0}", path);
                 return null;
             }
         }
@@ -115,7 +115,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
             }
 
             // Only parse files that are known to have internal metadata
-            if (fileInfo.Extension != ".cbz")
+            if (!string.Equals(fileInfo.Extension, ".cbz", StringComparison.OrdinalIgnoreCase))
             {
                 return null;
             }
