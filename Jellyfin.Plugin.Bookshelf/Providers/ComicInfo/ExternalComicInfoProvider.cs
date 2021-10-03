@@ -79,12 +79,11 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
             try
             {
                 // Open the xml
-                using (var reader = XmlReader.Create(path, new XmlReaderSettings { Async = true }))
-                {
-                    var comicInfoXml = XDocument.LoadAsync(reader, LoadOptions.None, cancellationToken);
-                    // Read data from XML
-                    return await comicInfoXml;
-                }
+                using var reader = XmlReader.Create(path, new XmlReaderSettings { Async = true });
+
+                var comicInfoXml = XDocument.LoadAsync(reader, LoadOptions.None, cancellationToken);
+                // Read data from XML
+                return await comicInfoXml;
             }
             catch (Exception e)
             {
