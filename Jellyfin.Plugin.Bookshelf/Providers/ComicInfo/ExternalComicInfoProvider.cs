@@ -38,7 +38,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
 
             if (comicInfoXml is null)
             {
-                this._logger.LogInformation("Could not load ComicInfo metadata for {0} from XML file", info.Path);
+                this._logger.LogInformation("Could not load ComicInfo metadata for {Path} from XML file", info.Path);
                 return new MetadataResult<Book> { HasMetadata = false };
             }
 
@@ -87,7 +87,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
             }
             catch (Exception e)
             {
-                _logger.LogInformation(e, "Could not load external xml from {0}. This could mean there is no separate ComicInfo metadata file for this comic. Maybe the metadata is bundled within the comic", path);
+                _logger.LogInformation(e, "Could not load external xml from {Path}. This could mean there is no separate ComicInfo metadata file for this comic. Maybe the metadata is bundled within the comic", path);
                 return null;
             }
         }
