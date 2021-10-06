@@ -25,7 +25,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
 
         private const string CBZ_FILE_EXTENSION = ".cbz";
 
-        public string Name => "Comic book archive";
+        public string Name => "Comic Book Zip Archive Cover Extractor";
 
         public ComicBookImageProvider(ILogger<ComicBookImageProvider> logger)
         {
