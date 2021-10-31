@@ -15,21 +15,19 @@ using Microsoft.Extensions.Logging;
 #nullable enable
 namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
 {
-    public class ComicBookInfoProvider : ILocalMetadataProvider<Book>, IHasItemChangeMonitor
+    public class ComicBookInfoProvider : IComicFileProvider
     {
         private readonly ILogger<ComicBookInfoProvider> _logger;
 
         private readonly IFileSystem _fileSystem;
 
-        public string Name => "ComicBookInfo";
-
-        protected ComicBookInfoProvider(IFileSystem fileSystem, ILogger<ComicBookInfoProvider> logger)
+        public ComicBookInfoProvider(IFileSystem fileSystem, ILogger<ComicBookInfoProvider> logger)
         {
             _fileSystem = fileSystem;
             _logger = logger;
         }
 
-        public async Task<MetadataResult<Book>> GetMetadata(ItemInfo info, IDirectoryService directoryService, CancellationToken cancellationToken)
+        public async Task<MetadataResult<Book>> ReadMetadata(ItemInfo info, IDirectoryService directoryService, CancellationToken cancellationToken)
         {
             var path = GetComicBookFile(info.Path)?.FullName;
 
@@ -62,7 +60,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
                             return new MetadataResult<Book> { HasMetadata = false };
                         }
 
-                        return ReadMetadata(comicBookMetadata);
+                        return SaveMetadata(comicBookMetadata);
                     }
                     else
                     {
@@ -80,7 +78,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
             }
         }
 
-        public bool HasChanged(BaseItem item, IDirectoryService directoryService)
+        public bool HasItemChanged(BaseItem item, IDirectoryService directoryService)
         {
             var file = GetComicBookFile(item.Path);
 
@@ -92,7 +90,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
             return file.Exists && _fileSystem.GetLastWriteTimeUtc(file) > item.DateLastSaved;
         }
 
-        private MetadataResult<Book> ReadMetadata(ComicBookInfoFormat comic)
+        private MetadataResult<Book> SaveMetadata(ComicBookInfoFormat comic)
         {
             var book = new Book
             {
@@ -165,8 +163,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
             {
                 return null;
             }
-
-
         }
     }
 }
