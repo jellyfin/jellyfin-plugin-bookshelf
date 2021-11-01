@@ -29,6 +29,12 @@ Supported eBook file types:
 - cbz
 - cbr
 
+The following **limitations** apply:
+- .cbr Comics tagged with ComicRacks ComicInfo format are partially supported. Any metadata within the comic book itself will be ignored while external metadata within a ComicInfo.xml file can be read.
+- The _[Advanced Comic Book Format](https://launchpad.net/acbf)_ is not supported.
+- The _[ComicBookInfo](https://code.google.com/archive/p/comicbookinfo/)_ format is not supported. (Not to be confused with the ComicInfo.xml format from ComicRack)
+
+
 ## Build & Installation Process
 
 1. Clone this repository

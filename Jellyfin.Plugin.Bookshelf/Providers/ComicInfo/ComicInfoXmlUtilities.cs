@@ -1,0 +1,225 @@
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Xml.Linq;
+using System.Xml.XPath;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Providers;
+
+#nullable enable
+namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
+{
+    public class ComicInfoXmlUtilities : IComicInfoXmlUtilities
+    {
+        /// <summary>
+        /// Read all metadata for the Jellyfin book about the comic itself,
+        /// returns null if nothing was found.
+        /// </summary>
+        /// <param name="xml"> The xml document to read from</param>
+        /// <returns></returns>
+        public Book? ReadComicBookMetadata(XDocument xml)
+        {
+            var book = new Book();
+            var hasFoundMetadata = false;
+
+            hasFoundMetadata |= ReadStringInto(xml, "ComicInfo/Title", (title) => book.Name = title);
+            hasFoundMetadata |= ReadStringInto(xml, "ComicInfo/AlternateSeries", (title) => book.OriginalTitle = title);
+            hasFoundMetadata |= ReadStringInto(xml, "ComicInfo/Series", (series) => book.SeriesName = series);
+            hasFoundMetadata |= ReadIntInto(xml, "ComicInfo/Number", (issue) => book.IndexNumber = issue);
+            hasFoundMetadata |= ReadStringInto(xml, "ComicInfo/Summary", (summary) => book.Overview = summary);
+            hasFoundMetadata |= ReadIntInto(xml, "ComicInfo/Year", (year) => book.ProductionYear = year);
+            hasFoundMetadata |= ReadThreePartDateInto(xml, "ComicInfo/Year", "ComicInfo/Month", "ComicInfo/Day", (dateTime) => book.PremiereDate = dateTime);
+            hasFoundMetadata |= ReadCommaSeperatedStringsInto(xml, "ComicInfo/Genre", (generes) =>
+            {
+                foreach (var genere in generes)
+                {
+                    book.AddGenre(genere);
+                }
+            });
+            hasFoundMetadata |= ReadStringInto(xml, "ComicInfo/Publisher", (publisher) => book.SetStudios(new[] { publisher }));
+
+            if (hasFoundMetadata)
+            {
+                return book;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Read all people related metadata about the comic itself.
+        /// </summary>
+        /// <param name="xdocument">The xml document to read from</param>
+        /// <param name="metadataResult">The metadata result to write the values into</param>
+        public void ReadPeopleMetadata(XDocument xdocument, MetadataResult<Book> metadataResult)
+        {
+            ReadCommaSeperatedStringsInto(xdocument, "ComicInfo/Writer", (authors) =>
+            {
+                foreach (var author in authors)
+                {
+                    var person = new PersonInfo { Name = author, Type = "Author" };
+                    metadataResult.AddPerson(person);
+                }
+            });
+            ReadCommaSeperatedStringsInto(xdocument, "ComicInfo/Penciller", (pencilers) =>
+            {
+                foreach (var penciller in pencilers)
+                {
+                    var person = new PersonInfo { Name = penciller, Type = "Penciller" };
+                    metadataResult.AddPerson(person);
+                }
+            });
+            ReadCommaSeperatedStringsInto(xdocument, "ComicInfo/Inker", (inkers) =>
+            {
+                foreach (var inker in inkers)
+                {
+                    var person = new PersonInfo { Name = inker, Type = "Inker" };
+                    metadataResult.AddPerson(person);
+                }
+            });
+            ReadCommaSeperatedStringsInto(xdocument, "ComicInfo/Letterer", (letterers) =>
+            {
+                foreach (var letterer in letterers)
+                {
+                    var person = new PersonInfo { Name = letterer, Type = "Letterer" };
+                    metadataResult.AddPerson(person);
+                }
+            });
+            ReadCommaSeperatedStringsInto(xdocument, "ComicInfo/CoverArtist", (coverartists) =>
+            {
+                foreach (var coverartist in coverartists)
+                {
+                    var person = new PersonInfo { Name = coverartist, Type = "Cover Artist" };
+                    metadataResult.AddPerson(person);
+                }
+            });
+            ReadCommaSeperatedStringsInto(xdocument, "ComicInfo/Colourist", (colourists) =>
+            {
+                foreach (var colourist in colourists)
+                {
+                    var person = new PersonInfo { Name = colourist, Type = "Colourist" };
+                    metadataResult.AddPerson(person);
+                }
+            });
+        }
+
+        /// <summary>
+        /// Read language culture information and commit the result.
+        /// </summary>
+        /// <param name="xml">The xml document to read from</param>
+        /// <param name="xPath">The xml tag to read the information from</param>
+        /// <param name="commitResult">What to do with the result</param>
+        /// <returns></returns>
+        public bool ReadCultureInfoInto(XDocument xml, string xPath, Action<CultureInfo> commitResult)
+        {
+            string? culture = null;
+
+            //Try to read into culture string
+            if (!ReadStringInto(xml, xPath, (value) => culture = value)) return false;
+
+            try
+            {
+                //Culture cannot be null here as the method would have returned earlier
+                commitResult(new CultureInfo(culture!));
+                return true;
+            }
+            catch (Exception)
+            {
+                //Ignored
+                return false;
+            }
+        }
+
+        private bool ReadStringInto(XDocument xml, string xPath, Action<string> commitResult)
+        {
+            var resultElement = xml.XPathSelectElement(xPath);
+            if (resultElement is not null && !string.IsNullOrWhiteSpace(resultElement.Value))
+            {
+                commitResult(resultElement.Value);
+                return true;
+            }
+            return false;
+        }
+
+        private bool ReadCommaSeperatedStringsInto(XDocument xml, string xPath, Action<IEnumerable<string>> commitResult)
+        {
+            var resultElement = xml.XPathSelectElement(xPath);
+            if (resultElement is not null && !string.IsNullOrWhiteSpace(resultElement.Value))
+            {
+                try
+                {
+                    var splits = resultElement.Value.Split(",").Select(p => p.Trim()).ToArray();
+                    if (splits is null || splits.Length < 1)
+                    {
+                        return false;
+                    }
+
+                    commitResult(splits);
+
+                    return true;
+                }
+                catch (Exception)
+                {
+                    //Nothing to do here except acknowledging
+                    return false;
+                }
+            }
+            return false;
+        }
+
+        private bool ReadIntInto(XDocument xml, string xPath, Action<int> commitResult)
+        {
+            var resultElement = xml.XPathSelectElement(xPath);
+            if (resultElement is not null && !string.IsNullOrWhiteSpace(resultElement.Value))
+            {
+                return ParseInt(resultElement.Value, commitResult);
+            }
+            return false;
+        }
+
+        private bool ReadThreePartDateInto(XDocument xml, string yearXPath, string monthXPath, string dayXPath, Action<DateTime> commitResult)
+        {
+            int year = 0;
+            int month = 0;
+            int day = 0;
+            var parsed = false;
+
+            parsed |= ReadIntInto(xml, yearXPath, (num) => year = num);
+            parsed |= ReadIntInto(xml, monthXPath, (num) => month = num);
+            parsed |= ReadIntInto(xml, dayXPath, (num) => day = num);
+
+            //Apparently there were some values inside if this does not return
+            if (!parsed) return false;
+            DateTime? dateTime = null;
+
+            //Try-Catch because DateTime actually wants a real date, how boring
+            try
+            {
+                dateTime = new DateTime(year, month, day);
+                commitResult(dateTime.Value);
+                return true;
+            }
+            catch (Exception)
+            {
+                //Nothing to do here except acknowledging
+                return false;
+            }
+        }
+
+        private bool ParseInt(string input, Action<int> commitResult)
+        {
+            if (int.TryParse(input, out var parsed))
+            {
+                commitResult(parsed);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+    }
+}
