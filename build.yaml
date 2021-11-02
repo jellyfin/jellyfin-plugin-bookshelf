@@ -1,22 +1,16 @@
 ---
 name: "Bookshelf"
 guid: "9c4e63f1-031b-4f25-988b-4f7d78a8b53e"
-version: "6"
-targetAbi: "10.7.7.0"
-framework: "net5.0"
+version: "7"
+targetAbi: "10.8.0.0"
+framework: "net6.0"
 owner: "jellyfin"
 overview: "Manage your books"
 description: >
-  Supports several different metadata providers and options for
-  organizing your collection.
+  Supports several different metadata providers and options for organizing your collection.
+
 category: "Metadata"
 artifacts:
-- "Jellyfin.Plugin.Bookshelf.dll"
-changelog: >
-  ### New features and improvements ###
-  - Expand ComicInfo support and add support for comic covers (#34) @MinecraftPlaye
-  - Use System.Text.Json (#29) @daullmer
-  ### Dependency updates ###
-  - chore(deps): bump release-drafter/release-drafter from v5.14.0 to v5.15.0 (#32) @dependabot
-  ### CI & build changes ###
-  - chore(ci): builds, releas drafter and more (#31) @h1dden-da3m0n
+  - "Jellyfin.Plugin.Bookshelf.dll"
+changelog: |-
+  - 10.8 support (#33) @crobibero

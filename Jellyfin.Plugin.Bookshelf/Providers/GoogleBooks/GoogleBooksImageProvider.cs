@@ -10,7 +10,7 @@ using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Providers;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
-using MediaBrowser.Common.Json;
+using Jellyfin.Extensions.Json;
 
 namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
 {
@@ -76,7 +76,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             using (var response = await httpClient.GetAsync(url).ConfigureAwait(false))
             {
                 await using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-                return await JsonSerializer.DeserializeAsync<BookResult>(stream, JsonDefaults.GetOptions()).ConfigureAwait(false);
+                return await JsonSerializer.DeserializeAsync<BookResult>(stream, JsonDefaults.Options).ConfigureAwait(false);
             }
         }
 
