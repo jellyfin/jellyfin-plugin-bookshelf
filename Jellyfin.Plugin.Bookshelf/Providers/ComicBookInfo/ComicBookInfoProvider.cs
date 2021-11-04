@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using SharpCompress.Archives.Zip;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.IO;
@@ -41,7 +42,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
             {
                 using Stream stream = File.OpenRead(path);
                 // not yet async: https://github.com/adamhathcock/sharpcompress/pull/565
-                using var archive = SharpCompress.Archives.Zip.ZipArchive.Open(stream);
+                using var archive = ZipArchive.Open(stream);
 
                 if (archive.IsComplete)
                 {
@@ -92,41 +93,95 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
 
         private MetadataResult<Book> SaveMetadata(ComicBookInfoFormat comic)
         {
-            var book = new Book
+            if (comic.Metadata is null)
             {
-                Name = comic.Metadata.Title,
-                SeriesName = comic.Metadata.Series,
-                ProductionYear = comic.Metadata.PublicationYear,
-                IndexNumber = comic.Metadata.Issue,
-                Tags = comic.Metadata.Tags
-            };
+                return new MetadataResult<Book> { HasMetadata = false };
+            }
 
-            book.SetStudios(new[] { comic.Metadata.Series });
-            book.PremiereDate = ReadTwoPartDateInto(comic.Metadata.PublicationYear, comic.Metadata.PublicationMonth);
-            book.AddGenre(comic.Metadata.Genre);
+            var book = ReadComicBookMetadata(comic.Metadata);
+
+            if (book is null)
+            {
+                return new MetadataResult<Book> { HasMetadata = false };
+            }
 
             var metadataResult = new MetadataResult<Book> { Item = book, HasMetadata = true };
-            metadataResult.ResultLanguage = ReadCultureInfoAsThreeLetterIsoInto(comic.Metadata.Language);
-            foreach (var person in comic.Metadata.Credits)
+
+            if (comic.Metadata.Language is not null)
             {
-                var personInfo = new PersonInfo { Name = person.Person, Type = person.Role };
-                metadataResult.AddPerson(personInfo);
+                metadataResult.ResultLanguage = ReadCultureInfoAsThreeLetterIsoInto(comic.Metadata.Language);
+            }
+
+            if (comic.Metadata.Credits is not null && comic.Metadata.Credits.Length > 0)
+            {
+                foreach (var person in comic.Metadata.Credits)
+                {
+                    if (person.Person is null || person.Role is null)
+                    {
+                        continue;
+                    }
+
+                    var personInfo = new PersonInfo { Name = person.Person, Type = person.Role };
+                    metadataResult.AddPerson(personInfo);
+                }
             }
 
             return metadataResult;
         }
 
-        private string? ReadCultureInfoAsThreeLetterIsoInto(string language)
+        private Book? ReadComicBookMetadata(ComicBookInfoMetadata comic)
         {
-            try
+            var book = new Book();
+            var hasFoundMetadata = false;
+
+            hasFoundMetadata |= ReadStringInto(comic.Title, (title) => book.Name = title);
+            hasFoundMetadata |= ReadStringInto(comic.Series, (series) => book.SeriesName = series);
+            hasFoundMetadata |= ReadStringInto(comic.Genre, (genre) => book.AddGenre(genre));
+            hasFoundMetadata |= ReadStringInto(comic.Comments, (overview) => book.Overview = overview);
+            hasFoundMetadata |= ReadStringInto(comic.Publisher, (publisher) => book.SetStudios(new[] { publisher }));
+
+            if (comic.PublicationYear is not null)
             {
-                return new CultureInfo(language).ThreeLetterISOLanguageName;
+                book.ProductionYear = comic.PublicationYear;
+                hasFoundMetadata |= true;
             }
-            catch (Exception)
+
+            if (comic.Issue is not null)
             {
-                //Ignored
+                book.IndexNumber = comic.Issue;
+                hasFoundMetadata |= true;
+            }
+
+            if (comic.Tags is not null && comic.Tags.Length > 0)
+            {
+                book.Tags = comic.Tags;
+                hasFoundMetadata |= true;
+            }
+
+            if (comic.PublicationYear is not null && comic.PublicationMonth is not null)
+            {
+                book.PremiereDate = ReadTwoPartDateInto(comic.PublicationYear.Value, comic.PublicationMonth.Value);
+                hasFoundMetadata |= true;
+            }
+
+            if (hasFoundMetadata)
+            {
+                return book;
+            }
+            else
+            {
                 return null;
             }
+        }
+
+        private bool ReadStringInto(string? data, Action<string> commitResult)
+        {
+            if (!string.IsNullOrWhiteSpace(data))
+            {
+                commitResult(data);
+                return true;
+            }
+            return false;
         }
 
         private DateTime? ReadTwoPartDateInto(int year, int month)
@@ -141,6 +196,19 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
             catch (Exception)
             {
                 //Nothing to do here
+                return null;
+            }
+        }
+
+        private string? ReadCultureInfoAsThreeLetterIsoInto(string language)
+        {
+            try
+            {
+                return new CultureInfo(language).ThreeLetterISOLanguageName;
+            }
+            catch (Exception)
+            {
+                //Ignored
                 return null;
             }
         }
