@@ -49,7 +49,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
                     var volume = archive.Volumes.First();
                     if (volume.Comment != null)
                     {
-                        var jsonStream = new MemoryStream(Encoding.UTF8.GetBytes(volume.Comment));
+                        using var jsonStream = new MemoryStream(Encoding.UTF8.GetBytes(volume.Comment));
                         var comicBookMetadata = await JsonSerializer.DeserializeAsync<ComicBookInfoFormat>(jsonStream, new JsonSerializerOptions()
                         {
                             NumberHandling = JsonNumberHandling.AllowReadingFromString
