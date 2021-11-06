@@ -8,7 +8,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Common.Json;
+using Jellyfin.Extensions.Json;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
@@ -137,7 +137,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             using (var response = await httpClient.GetAsync(url).ConfigureAwait(false))
             {
                 await using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-                return await JsonSerializer.DeserializeAsync<SearchResult>(stream, JsonDefaults.GetOptions()).ConfigureAwait(false);
+                return await JsonSerializer.DeserializeAsync<SearchResult>(stream, JsonDefaults.Options).ConfigureAwait(false);
             }
         }
 
@@ -190,7 +190,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             using (var response = await httpClient.GetAsync(url).ConfigureAwait(false))
             {
                 await using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-                return await JsonSerializer.DeserializeAsync<BookResult>(stream, JsonDefaults.GetOptions()).ConfigureAwait(false);
+                return await JsonSerializer.DeserializeAsync<BookResult>(stream, JsonDefaults.Options).ConfigureAwait(false);
             }
         }
 

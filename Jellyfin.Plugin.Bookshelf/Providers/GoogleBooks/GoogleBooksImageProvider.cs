@@ -1,22 +1,22 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using MediaBrowser.Common.Json;
+using System.Net.Http;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Providers;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
+using Jellyfin.Extensions.Json;
 
 namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
 {
     public class GoogleBooksImageProvider : IRemoteImageProvider
     {
-        private readonly IHttpClientFactory _httpClientFactory;
+        private IHttpClientFactory _httpClientFactory;
         private ILogger<GoogleBooksImageProvider> _logger;
 
         public GoogleBooksImageProvider(ILogger<GoogleBooksImageProvider> logger, IHttpClientFactory httpClientFactory)
@@ -65,12 +65,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             return list;
         }
 
-        public async Task<HttpResponseMessage> GetImageResponse(string url, CancellationToken cancellationToken)
-        {
-            var httpClient = _httpClientFactory.CreateClient(NamedClient.Default);
-            return await httpClient.GetAsync(url).ConfigureAwait(false);
-        }
-
         private async Task<BookResult> FetchBookData(string googleBookId, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -82,7 +76,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             using (var response = await httpClient.GetAsync(url).ConfigureAwait(false))
             {
                 await using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-                return await JsonSerializer.DeserializeAsync<BookResult>(stream, JsonDefaults.GetOptions()).ConfigureAwait(false);
+                return await JsonSerializer.DeserializeAsync<BookResult>(stream, JsonDefaults.Options).ConfigureAwait(false);
             }
         }
 
@@ -117,6 +111,12 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             }
 
             return images;
+        }
+
+        public async Task<HttpResponseMessage> GetImageResponse(string url, CancellationToken cancellationToken)
+        {
+            var httpClient = _httpClientFactory.CreateClient(NamedClient.Default);
+            return await httpClient.GetAsync(url).ConfigureAwait(false);
         }
     }
 }

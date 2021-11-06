@@ -1,16 +1,16 @@
 ---
 name: "Bookshelf"
 guid: "9c4e63f1-031b-4f25-988b-4f7d78a8b53e"
-version: "5.0.0.0"
-targetAbi: "10.7.0.0"
-framework: "net5.0"
+version: "7"
+targetAbi: "10.8.0.0"
+framework: "net6.0"
 owner: "jellyfin"
 overview: "Manage your books"
 description: >
-  Supports several different metadata providers and options for
-  organizing your collection.
+  Supports several different metadata providers and options for organizing your collection.
+
 category: "Metadata"
 artifacts:
-- "Jellyfin.Plugin.Bookshelf.dll"
-changelog: >
-  changelog
+  - "Jellyfin.Plugin.Bookshelf.dll"
+changelog: |-
+  - 10.8 support (#33) @crobibero
