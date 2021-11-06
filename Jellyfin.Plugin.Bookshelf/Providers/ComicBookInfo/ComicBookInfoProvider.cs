@@ -12,6 +12,7 @@ using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.IO;
 using Microsoft.Extensions.Logging;
+using Jellyfin.Extensions.Json;
 
 #nullable enable
 namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
@@ -47,13 +48,10 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
                 if (archive.IsComplete)
                 {
                     var volume = archive.Volumes.First();
-                    if (volume.Comment != null)
+                    if (volume.Comment is not null)
                     {
                         using var jsonStream = new MemoryStream(Encoding.UTF8.GetBytes(volume.Comment));
-                        var comicBookMetadata = await JsonSerializer.DeserializeAsync<ComicBookInfoFormat>(jsonStream, new JsonSerializerOptions()
-                        {
-                            NumberHandling = JsonNumberHandling.AllowReadingFromString
-                        }, cancellationToken);
+                        var comicBookMetadata = await JsonSerializer.DeserializeAsync<ComicBookInfoFormat>(jsonStream, JsonDefaults.Options, cancellationToken);
 
                         if (comicBookMetadata is null)
                         {
