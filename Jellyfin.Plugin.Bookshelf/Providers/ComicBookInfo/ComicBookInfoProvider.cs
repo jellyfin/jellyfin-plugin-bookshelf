@@ -4,32 +4,39 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using SharpCompress.Archives.Zip;
+using Jellyfin.Extensions.Json;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.IO;
 using Microsoft.Extensions.Logging;
-using Jellyfin.Extensions.Json;
+using SharpCompress.Archives.Zip;
 
-#nullable enable
 namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
 {
+    /// <summary>
+    /// Comic book info provider.
+    /// </summary>
     public class ComicBookInfoProvider : IComicFileProvider
     {
         private readonly ILogger<ComicBookInfoProvider> _logger;
 
         private readonly IFileSystem _fileSystem;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ComicBookInfoProvider"/> class.
+        /// </summary>
+        /// <param name="fileSystem">Instance of the <see cref="IFileSystem"/> interface.</param>
+        /// <param name="logger">Instance of the <see cref="ILogger{ComicBookInfoProvider}"/> interface.</param>
         public ComicBookInfoProvider(IFileSystem fileSystem, ILogger<ComicBookInfoProvider> logger)
         {
             _fileSystem = fileSystem;
             _logger = logger;
         }
 
-        public async Task<MetadataResult<Book>> ReadMetadata(ItemInfo info, IDirectoryService directoryService, CancellationToken cancellationToken)
+        /// <inheritdoc />
+        public async ValueTask<MetadataResult<Book>> ReadMetadata(ItemInfo info, IDirectoryService directoryService, CancellationToken cancellationToken)
         {
             var path = GetComicBookFile(info.Path)?.FullName;
 
@@ -41,7 +48,8 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
 
             try
             {
-                using Stream stream = File.OpenRead(path);
+                await using Stream stream = File.OpenRead(path);
+
                 // not yet async: https://github.com/adamhathcock/sharpcompress/pull/565
                 using var archive = ZipArchive.Open(stream);
 
@@ -50,7 +58,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
                     var volume = archive.Volumes.First();
                     if (volume.Comment is not null)
                     {
-                        using var jsonStream = new MemoryStream(Encoding.UTF8.GetBytes(volume.Comment));
+                        await using var jsonStream = new MemoryStream(Encoding.UTF8.GetBytes(volume.Comment));
                         var comicBookMetadata = await JsonSerializer.DeserializeAsync<ComicBookInfoFormat>(jsonStream, JsonDefaults.Options, cancellationToken);
 
                         if (comicBookMetadata is null)
@@ -67,6 +75,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
                         return new MetadataResult<Book> { HasMetadata = false };
                     }
                 }
+
                 _logger.LogError("Could not load ComicBookInfo metadata for {Path}", info.Path);
                 return new MetadataResult<Book> { HasMetadata = false };
             }
@@ -77,7 +86,8 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
             }
         }
 
-        public bool HasItemChanged(BaseItem item, IDirectoryService directoryService)
+        /// <inheritdoc />
+        public bool HasItemChanged(BaseItem item)
         {
             var file = GetComicBookFile(item.Path);
 
@@ -110,7 +120,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
                 metadataResult.ResultLanguage = ReadCultureInfoAsThreeLetterIsoInto(comic.Metadata.Language);
             }
 
-            if (comic.Metadata.Credits is not null && comic.Metadata.Credits.Length > 0)
+            if (comic.Metadata.Credits.Length > 0)
             {
                 foreach (var person in comic.Metadata.Credits)
                 {
@@ -132,11 +142,11 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
             var book = new Book();
             var hasFoundMetadata = false;
 
-            hasFoundMetadata |= ReadStringInto(comic.Title, (title) => book.Name = title);
-            hasFoundMetadata |= ReadStringInto(comic.Series, (series) => book.SeriesName = series);
-            hasFoundMetadata |= ReadStringInto(comic.Genre, (genre) => book.AddGenre(genre));
-            hasFoundMetadata |= ReadStringInto(comic.Comments, (overview) => book.Overview = overview);
-            hasFoundMetadata |= ReadStringInto(comic.Publisher, (publisher) => book.SetStudios(new[] { publisher }));
+            hasFoundMetadata |= ReadStringInto(comic.Title, title => book.Name = title);
+            hasFoundMetadata |= ReadStringInto(comic.Series, series => book.SeriesName = series);
+            hasFoundMetadata |= ReadStringInto(comic.Genre, genre => book.AddGenre(genre));
+            hasFoundMetadata |= ReadStringInto(comic.Comments, overview => book.Overview = overview);
+            hasFoundMetadata |= ReadStringInto(comic.Publisher, publisher => book.SetStudios(new[] { publisher }));
 
             if (comic.PublicationYear is not null)
             {
@@ -179,21 +189,22 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
                 commitResult(data);
                 return true;
             }
+
             return false;
         }
 
         private DateTime? ReadTwoPartDateInto(int year, int month)
         {
-            //Try-Catch because DateTime actually wants a real date, how boring
+            // Try-Catch because DateTime actually wants a real date, how boring
             try
             {
-                //The format does not provide a day, set it to be always the first day of the month
+                // The format does not provide a day, set it to be always the first day of the month
                 var dateTime = new DateTime(year, month, 1);
                 return dateTime;
             }
             catch (Exception)
             {
-                //Nothing to do here
+                // Nothing to do here
                 return null;
             }
         }
@@ -206,7 +217,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
             }
             catch (Exception)
             {
-                //Ignored
+                // Ignored
                 return null;
             }
         }
@@ -221,14 +232,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
             }
 
             // Only parse files that are known to have internal metadata
-            if (fileInfo.Extension.Equals(".cbz", StringComparison.OrdinalIgnoreCase))
-            {
-                return fileInfo;
-            }
-            else
-            {
-                return null;
-            }
+            return fileInfo.Extension.Equals(".cbz", StringComparison.OrdinalIgnoreCase) ? fileInfo : null;
         }
     }
 }

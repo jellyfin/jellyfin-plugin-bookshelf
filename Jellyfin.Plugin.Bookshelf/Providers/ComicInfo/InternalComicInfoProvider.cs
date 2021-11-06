@@ -8,8 +8,7 @@ using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.IO;
 using Microsoft.Extensions.Logging;
 
-#nullable enable
-namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
+namespace Jellyfin.Plugin.Bookshelf.Providers.ComicInfo
 {
     /// <summary>
     /// Handles metadata for comics which is saved as an XML document inside of the comic itself.
@@ -17,30 +16,34 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
     public class InternalComicInfoProvider : IComicFileProvider
     {
         private readonly IFileSystem _fileSystem;
-
         private readonly ILogger<InternalComicInfoProvider> _logger;
+        private readonly IComicInfoXmlUtilities _utilities = new ComicInfoXmlUtilities();
 
-        private readonly ComicInfoXmlUtilities _utilities = new ComicInfoXmlUtilities();
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="InternalComicInfoProvider"/> class.
+        /// </summary>
+        /// <param name="fileSystem">Instance of the <see cref="IFileSystem"/> interface.</param>
+        /// <param name="logger">Instance of the <see cref="ILogger{InternalComicInfoProvider}"/> interface.</param>
         public InternalComicInfoProvider(IFileSystem fileSystem, ILogger<InternalComicInfoProvider> logger)
         {
-            this._logger = logger;
-            this._fileSystem = fileSystem;
+            _logger = logger;
+            _fileSystem = fileSystem;
         }
 
-        public async Task<MetadataResult<Book>> ReadMetadata(ItemInfo info, IDirectoryService directoryService, CancellationToken cancellationToken)
+        /// <inheritdoc />
+        public async ValueTask<MetadataResult<Book>> ReadMetadata(ItemInfo info, IDirectoryService directoryService, CancellationToken cancellationToken)
         {
-            var comicInfoXml = await this.LoadXml(info, directoryService, cancellationToken);
+            var comicInfoXml = await LoadXml(info, directoryService, cancellationToken);
 
             if (comicInfoXml is null)
             {
-                this._logger.LogInformation("Could not load ComicInfo metadata for {Path} from XML file. No internal XML in comic archive", info.Path);
+                _logger.LogInformation("Could not load ComicInfo metadata for {Path} from XML file. No internal XML in comic archive", info.Path);
                 return new MetadataResult<Book> { HasMetadata = false };
             }
 
-            var book = this._utilities.ReadComicBookMetadata(comicInfoXml);
+            var book = _utilities.ReadComicBookMetadata(comicInfoXml);
 
-            //If we found no metadata about the book itself, abort mission
+            // If we found no metadata about the book itself, abort mission
             if (book is null)
             {
                 return new MetadataResult<Book> { HasMetadata = false };
@@ -48,30 +51,31 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
 
             var metadataResult = new MetadataResult<Book> { Item = book, HasMetadata = true };
 
-            //We have found metadata like the title
-            //let's search for the people like the author and save the found metadata
-            this._utilities.ReadPeopleMetadata(comicInfoXml, metadataResult);
+            // We have found metadata like the title
+            // let's search for the people like the author and save the found metadata
+            _utilities.ReadPeopleMetadata(comicInfoXml, metadataResult);
 
-            this._utilities.ReadCultureInfoInto(comicInfoXml, "ComicInfo/LanguageISO", (cultureInfo) => metadataResult.ResultLanguage = cultureInfo.ThreeLetterISOLanguageName);
+            _utilities.ReadCultureInfoInto(comicInfoXml, "ComicInfo/LanguageISO", cultureInfo => metadataResult.ResultLanguage = cultureInfo.ThreeLetterISOLanguageName);
 
             return metadataResult;
         }
 
-        public bool HasItemChanged(BaseItem item, IDirectoryService directoryService)
+        /// <inheritdoc />
+        public bool HasItemChanged(BaseItem item)
         {
-            var file = this.GetComicBookFile(item.Path);
+            var file = GetComicBookFile(item.Path);
 
             if (file is null)
             {
                 return false;
             }
 
-            return file.Exists && this._fileSystem.GetLastWriteTimeUtc(file) > item.DateLastSaved;
+            return file.Exists && _fileSystem.GetLastWriteTimeUtc(file) > item.DateLastSaved;
         }
 
-        protected async Task<XDocument?> LoadXml(ItemInfo info, IDirectoryService directoryService, CancellationToken cancellationToken)
+        private async Task<XDocument?> LoadXml(ItemInfo info, IDirectoryService directoryService, CancellationToken cancellationToken)
         {
-            var path = this.GetComicBookFile(info.Path)?.FullName;
+            var path = GetComicBookFile(info.Path)?.FullName;
 
             if (path is null)
             {
@@ -92,7 +96,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
                 }
 
                 // Open the xml
-                using var containerStream = container.Open();
+                await using var containerStream = container.Open();
                 var comicInfoXml = XDocument.LoadAsync(containerStream, LoadOptions.None, cancellationToken);
 
                 // Read data from XML
@@ -100,14 +104,14 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
             }
             catch (Exception e)
             {
-                this._logger.LogError(e, "Could not load internal xml from {Path}", path);
+                _logger.LogError(e, "Could not load internal xml from {Path}", path);
                 return null;
             }
         }
 
         private FileSystemMetadata? GetComicBookFile(string path)
         {
-            var fileInfo = this._fileSystem.GetFileSystemInfo(path);
+            var fileInfo = _fileSystem.GetFileSystemInfo(path);
 
             if (fileInfo.IsDirectory)
             {

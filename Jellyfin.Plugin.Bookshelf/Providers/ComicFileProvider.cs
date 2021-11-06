@@ -1,34 +1,34 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
-using MediaBrowser.Model.IO;
-using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
 
-#nullable enable
 namespace Jellyfin.Plugin.Bookshelf.Providers
 {
+    /// <summary>
+    /// Comic file provider.
+    /// </summary>
     public class ComicFileProvider : ILocalMetadataProvider<Book>, IHasItemChangeMonitor
     {
-        protected readonly ILogger<ComicFileProvider> _logger;
+        private readonly IEnumerable<IComicFileProvider> _comicFileProviders;
 
-        private readonly IFileSystem _fileSystem;
-        private readonly IEnumerable<IComicFileProvider> _iComicFileProviders;
-
-        public string Name => "Comic Provider";
-
-        public ComicFileProvider(IFileSystem fileSystem, ILogger<ComicFileProvider> logger, IEnumerable<IComicFileProvider> iComicFileProviders)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ComicFileProvider"/> class.
+        /// </summary>
+        /// <param name="comicFileProviders">The list of comic file providers.</param>
+        public ComicFileProvider(IEnumerable<IComicFileProvider> comicFileProviders)
         {
-            this._fileSystem = fileSystem;
-            this._logger = logger;
-
-            this._iComicFileProviders = iComicFileProviders;
+            _comicFileProviders = comicFileProviders;
         }
 
+        /// <inheritdoc />
+        public string Name => "Comic Provider";
+
+        /// <inheritdoc />
         public async Task<MetadataResult<Book>> GetMetadata(ItemInfo info, IDirectoryService directoryService, CancellationToken cancellationToken)
         {
-            foreach (IComicFileProvider iComicFileProvider in _iComicFileProviders)
+            foreach (IComicFileProvider iComicFileProvider in _comicFileProviders)
             {
                 var metadata = await iComicFileProvider.ReadMetadata(info, directoryService, cancellationToken);
 
@@ -37,20 +37,22 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
                     return metadata;
                 }
             }
+
             return new MetadataResult<Book> { HasMetadata = false };
         }
 
-        public bool HasChanged(BaseItem item, IDirectoryService directoryService)
+        bool IHasItemChangeMonitor.HasChanged(BaseItem item, IDirectoryService directoryService)
         {
-            foreach (IComicFileProvider iComicFileProvider in _iComicFileProviders)
+            foreach (IComicFileProvider iComicFileProvider in _comicFileProviders)
             {
-                var fileChanged = iComicFileProvider.HasItemChanged(item, directoryService);
+                var fileChanged = iComicFileProvider.HasItemChanged(item);
 
                 if (fileChanged)
                 {
                     return fileChanged;
                 }
             }
+
             return false;
         }
     }

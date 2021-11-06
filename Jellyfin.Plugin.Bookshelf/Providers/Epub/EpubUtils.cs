@@ -5,9 +5,17 @@ using System.Xml.Linq;
 
 namespace Jellyfin.Plugin.Bookshelf.Providers.Epub
 {
+    /// <summary>
+    /// Epub utils.
+    /// </summary>
     public static class EpubUtils
     {
-        public static string ReadContentFilePath(ZipArchive epub)
+        /// <summary>
+        /// Attempt to read content from zip archive.
+        /// </summary>
+        /// <param name="epub">The zip archive.</param>
+        /// <returns>The content file path.</returns>
+        public static string? ReadContentFilePath(ZipArchive epub)
         {
             var container = epub.GetEntry(Path.Combine("META-INF", "container.xml"));
             if (container == null)
