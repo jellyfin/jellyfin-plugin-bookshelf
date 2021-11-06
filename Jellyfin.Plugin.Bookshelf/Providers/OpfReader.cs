@@ -9,11 +9,22 @@ using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.Bookshelf.Providers
 {
+    /// <summary>
+    /// OPF reader.
+    /// </summary>
     public static class OpfReader
     {
         private const string DcNamespace = @"http://purl.org/dc/elements/1.1/";
         private const string OpfNamespace = @"http://www.idpf.org/2007/opf";
 
+        /// <summary>
+        /// Read opf data.
+        /// </summary>
+        /// <param name="bookResult">The metadata result to update.</param>
+        /// <param name="doc">The xdocument to parse.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <param name="logger">Instance of the <see cref="ILogger{TCategoryName}"/> interface.</param>
+        /// <typeparam name="TCategoryName">The type of category.</typeparam>
         public static void ReadOpfData<TCategoryName>(
             MetadataResult<Book> bookResult,
             XmlDocument doc,
@@ -89,7 +100,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             {
                 try
                 {
-                    book.IndexNumber = Convert.ToInt32(seriesIndexNode.Attributes["content"].Value);
+                    book.IndexNumber = Convert.ToInt32(seriesIndexNode.Attributes["content"]?.Value);
                 }
                 catch (Exception)
                 {
@@ -103,7 +114,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             {
                 try
                 {
-                    book.SeriesName = seriesNameNode.Attributes["content"].Value;
+                    book.SeriesName = seriesNameNode.Attributes["content"]?.Value;
                 }
                 catch (Exception)
                 {
@@ -117,7 +128,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             {
                 try
                 {
-                    book.CommunityRating = Convert.ToInt32(ratingNode.Attributes["content"].Value);
+                    book.CommunityRating = Convert.ToInt32(ratingNode.Attributes["content"]?.Value);
                 }
                 catch (Exception)
                 {

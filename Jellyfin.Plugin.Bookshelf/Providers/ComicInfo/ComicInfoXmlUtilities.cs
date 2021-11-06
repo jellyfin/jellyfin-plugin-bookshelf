@@ -7,56 +7,42 @@ using System.Xml.XPath;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 
-#nullable enable
-namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
+namespace Jellyfin.Plugin.Bookshelf.Providers.ComicInfo
 {
+    /// <summary>
+    /// Comic info xml utilities.
+    /// </summary>
     public class ComicInfoXmlUtilities : IComicInfoXmlUtilities
     {
-        /// <summary>
-        /// Read all metadata for the Jellyfin book about the comic itself,
-        /// returns null if nothing was found.
-        /// </summary>
-        /// <param name="xml"> The xml document to read from</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public Book? ReadComicBookMetadata(XDocument xml)
         {
             var book = new Book();
             var hasFoundMetadata = false;
 
-            hasFoundMetadata |= ReadStringInto(xml, "ComicInfo/Title", (title) => book.Name = title);
-            hasFoundMetadata |= ReadStringInto(xml, "ComicInfo/AlternateSeries", (title) => book.OriginalTitle = title);
-            hasFoundMetadata |= ReadStringInto(xml, "ComicInfo/Series", (series) => book.SeriesName = series);
-            hasFoundMetadata |= ReadIntInto(xml, "ComicInfo/Number", (issue) => book.IndexNumber = issue);
-            hasFoundMetadata |= ReadStringInto(xml, "ComicInfo/Summary", (summary) => book.Overview = summary);
-            hasFoundMetadata |= ReadIntInto(xml, "ComicInfo/Year", (year) => book.ProductionYear = year);
-            hasFoundMetadata |= ReadThreePartDateInto(xml, "ComicInfo/Year", "ComicInfo/Month", "ComicInfo/Day", (dateTime) => book.PremiereDate = dateTime);
-            hasFoundMetadata |= ReadCommaSeperatedStringsInto(xml, "ComicInfo/Genre", (generes) =>
+            hasFoundMetadata |= ReadStringInto(xml, "ComicInfo/Title", title => book.Name = title);
+            hasFoundMetadata |= ReadStringInto(xml, "ComicInfo/AlternateSeries", title => book.OriginalTitle = title);
+            hasFoundMetadata |= ReadStringInto(xml, "ComicInfo/Series", series => book.SeriesName = series);
+            hasFoundMetadata |= ReadIntInto(xml, "ComicInfo/Number", issue => book.IndexNumber = issue);
+            hasFoundMetadata |= ReadStringInto(xml, "ComicInfo/Summary", summary => book.Overview = summary);
+            hasFoundMetadata |= ReadIntInto(xml, "ComicInfo/Year", year => book.ProductionYear = year);
+            hasFoundMetadata |= ReadThreePartDateInto(xml, "ComicInfo/Year", "ComicInfo/Month", "ComicInfo/Day", dateTime => book.PremiereDate = dateTime);
+            hasFoundMetadata |= ReadCommaSeperatedStringsInto(xml, "ComicInfo/Genre", genres =>
             {
-                foreach (var genere in generes)
+                foreach (var genre in genres)
                 {
-                    book.AddGenre(genere);
+                    book.AddGenre(genre);
                 }
             });
-            hasFoundMetadata |= ReadStringInto(xml, "ComicInfo/Publisher", (publisher) => book.SetStudios(new[] { publisher }));
+            hasFoundMetadata |= ReadStringInto(xml, "ComicInfo/Publisher", publisher => book.SetStudios(new[] { publisher }));
 
-            if (hasFoundMetadata)
-            {
-                return book;
-            }
-            else
-            {
-                return null;
-            }
+            return hasFoundMetadata ? book : null;
         }
 
-        /// <summary>
-        /// Read all people related metadata about the comic itself.
-        /// </summary>
-        /// <param name="xdocument">The xml document to read from</param>
-        /// <param name="metadataResult">The metadata result to write the values into</param>
+        /// <inheritdoc />
         public void ReadPeopleMetadata(XDocument xdocument, MetadataResult<Book> metadataResult)
         {
-            ReadCommaSeperatedStringsInto(xdocument, "ComicInfo/Writer", (authors) =>
+            ReadCommaSeperatedStringsInto(xdocument, "ComicInfo/Writer", authors =>
             {
                 foreach (var author in authors)
                 {
@@ -64,7 +50,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
                     metadataResult.AddPerson(person);
                 }
             });
-            ReadCommaSeperatedStringsInto(xdocument, "ComicInfo/Penciller", (pencilers) =>
+            ReadCommaSeperatedStringsInto(xdocument, "ComicInfo/Penciller", pencilers =>
             {
                 foreach (var penciller in pencilers)
                 {
@@ -72,7 +58,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
                     metadataResult.AddPerson(person);
                 }
             });
-            ReadCommaSeperatedStringsInto(xdocument, "ComicInfo/Inker", (inkers) =>
+            ReadCommaSeperatedStringsInto(xdocument, "ComicInfo/Inker", inkers =>
             {
                 foreach (var inker in inkers)
                 {
@@ -80,7 +66,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
                     metadataResult.AddPerson(person);
                 }
             });
-            ReadCommaSeperatedStringsInto(xdocument, "ComicInfo/Letterer", (letterers) =>
+            ReadCommaSeperatedStringsInto(xdocument, "ComicInfo/Letterer", letterers =>
             {
                 foreach (var letterer in letterers)
                 {
@@ -88,7 +74,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
                     metadataResult.AddPerson(person);
                 }
             });
-            ReadCommaSeperatedStringsInto(xdocument, "ComicInfo/CoverArtist", (coverartists) =>
+            ReadCommaSeperatedStringsInto(xdocument, "ComicInfo/CoverArtist", coverartists =>
             {
                 foreach (var coverartist in coverartists)
                 {
@@ -96,7 +82,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
                     metadataResult.AddPerson(person);
                 }
             });
-            ReadCommaSeperatedStringsInto(xdocument, "ComicInfo/Colourist", (colourists) =>
+            ReadCommaSeperatedStringsInto(xdocument, "ComicInfo/Colourist", colourists =>
             {
                 foreach (var colourist in colourists)
                 {
@@ -106,29 +92,26 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
             });
         }
 
-        /// <summary>
-        /// Read language culture information and commit the result.
-        /// </summary>
-        /// <param name="xml">The xml document to read from</param>
-        /// <param name="xPath">The xml tag to read the information from</param>
-        /// <param name="commitResult">What to do with the result</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public bool ReadCultureInfoInto(XDocument xml, string xPath, Action<CultureInfo> commitResult)
         {
             string? culture = null;
 
-            //Try to read into culture string
-            if (!ReadStringInto(xml, xPath, (value) => culture = value)) return false;
+            // Try to read into culture string
+            if (!ReadStringInto(xml, xPath, value => culture = value))
+            {
+                return false;
+            }
 
             try
             {
-                //Culture cannot be null here as the method would have returned earlier
+                // Culture cannot be null here as the method would have returned earlier
                 commitResult(new CultureInfo(culture!));
                 return true;
             }
             catch (Exception)
             {
-                //Ignored
+                // Ignored
                 return false;
             }
         }
@@ -141,6 +124,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
                 commitResult(resultElement.Value);
                 return true;
             }
+
             return false;
         }
 
@@ -163,10 +147,11 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
                 }
                 catch (Exception)
                 {
-                    //Nothing to do here except acknowledging
+                    // Nothing to do here except acknowledging
                     return false;
                 }
             }
+
             return false;
         }
 
@@ -177,6 +162,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
             {
                 return ParseInt(resultElement.Value, commitResult);
             }
+
             return false;
         }
 
@@ -187,24 +173,26 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
             int day = 0;
             var parsed = false;
 
-            parsed |= ReadIntInto(xml, yearXPath, (num) => year = num);
-            parsed |= ReadIntInto(xml, monthXPath, (num) => month = num);
-            parsed |= ReadIntInto(xml, dayXPath, (num) => day = num);
+            parsed |= ReadIntInto(xml, yearXPath, num => year = num);
+            parsed |= ReadIntInto(xml, monthXPath, num => month = num);
+            parsed |= ReadIntInto(xml, dayXPath, num => day = num);
 
-            //Apparently there were some values inside if this does not return
-            if (!parsed) return false;
-            DateTime? dateTime = null;
+            // Apparently there were some values inside if this does not return
+            if (!parsed)
+            {
+                return false;
+            }
 
-            //Try-Catch because DateTime actually wants a real date, how boring
+            // Try-Catch because DateTime actually wants a real date, how boring
             try
             {
-                dateTime = new DateTime(year, month, day);
-                commitResult(dateTime.Value);
+                var dateTime = new DateTime(year, month, day);
+                commitResult(dateTime);
                 return true;
             }
             catch (Exception)
             {
-                //Nothing to do here except acknowledging
+                // Nothing to do here except acknowledging
                 return false;
             }
         }

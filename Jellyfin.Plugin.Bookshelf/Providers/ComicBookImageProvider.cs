@@ -11,8 +11,7 @@ using MediaBrowser.Model.Drawing;
 using MediaBrowser.Model.Entities;
 using Microsoft.Extensions.Logging;
 
-#nullable enable
-namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
+namespace Jellyfin.Plugin.Bookshelf.Providers
 {
     /// <summary>
     /// The ComicBookImageProvider tries find either a image named "cover" or,
@@ -21,22 +20,28 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
     /// </summary>
     public class ComicBookImageProvider : IDynamicImageProvider
     {
+        private const string CbzFileExtension = ".cbz";
+
         private readonly ILogger<ComicBookImageProvider> _logger;
 
-        private const string CBZ_FILE_EXTENSION = ".cbz";
-
-        public string Name => "Comic Book Zip Archive Cover Extractor";
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ComicBookImageProvider"/> class.
+        /// </summary>
+        /// <param name="logger">Instance of the <see cref="ILogger{ComicBookImageProvider}"/> interface.</param>
         public ComicBookImageProvider(ILogger<ComicBookImageProvider> logger)
         {
             _logger = logger;
         }
 
+        /// <inheritdoc />
+        public string Name => "Comic Book Zip Archive Cover Extractor";
+
+        /// <inheritdoc />
         public async Task<DynamicImageResponse> GetImage(BaseItem item, ImageType type, CancellationToken cancellationToken)
         {
-            //Check if the file is a .cbz file
+            // Check if the file is a .cbz file
             var extension = Path.GetExtension(item.Path);
-            if (string.Equals(extension, CBZ_FILE_EXTENSION, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(extension, CbzFileExtension, StringComparison.OrdinalIgnoreCase))
             {
                 return await LoadCover(item);
             }
@@ -46,11 +51,13 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
             }
         }
 
+        /// <inheritdoc />
         public IEnumerable<ImageType> GetSupportedImages(BaseItem item)
         {
-            return new List<ImageType> { ImageType.Primary };
+            yield return ImageType.Primary;
         }
 
+        /// <inheritdoc />
         public bool Supports(BaseItem item)
         {
             return item is Book;
@@ -60,28 +67,27 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
         /// Tries to load a cover from the .cbz archive. Returns a response
         /// with no image if nothing is found.
         /// </summary>
-        /// <param name="BaseItem">Item to load a cover for.</param>
+        /// <param name="item">Item to load a cover for.</param>
         private async Task<DynamicImageResponse> LoadCover(BaseItem item)
         {
-
-            //The image will be loaded into memory, create stream
+            // The image will be loaded into memory, create stream
             var memoryStream = new MemoryStream();
             try
             {
-                //Open the .cbz
-                //This should return a valid reference or throw
+                // Open the .cbz
+                // This should return a valid reference or throw
                 using var archive = ZipFile.OpenRead(item.Path);
 
-                //If no cover is found, throw exception to log results
+                // If no cover is found, throw exception to log results
                 var (cover, imageFormat) = FindCoverEntryInZip(archive) ?? throw new InvalidOperationException("No supported cover found");
 
-                //Copy our cover to memory stream
+                // Copy our cover to memory stream
                 await cover.Open().CopyToAsync(memoryStream);
 
-                //Reset stream position after copying
+                // Reset stream position after copying
                 memoryStream.Position = 0;
 
-                //Return the response
+                // Return the response
                 return new DynamicImageResponse
                 {
                     HasImage = true,
@@ -91,13 +97,17 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
             }
             catch (Exception e)
             {
-                //Log and return nothing
-                _logger.LogError(e, "Failed to load cover from {0}", item.Path);
+                // Log and return nothing
+                _logger.LogError(e, "Failed to load cover from {Path}", item.Path);
                 return new DynamicImageResponse { HasImage = false };
             }
         }
 
+        /// <summary>
         /// Tries to find the entry containing the cover.
+        /// </summary>
+        /// <param name="archive">The archive to search.</param>
+        /// <returns>The search result.</returns>
         private (ZipArchiveEntry coverEntry, ImageFormat imageFormat)? FindCoverEntryInZip(ZipArchive archive)
         {
             foreach (ImageFormat imageFormat in Enum.GetValues(typeof(ImageFormat)))
@@ -109,7 +119,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBook
                 // that it is the first jpeg entry (and page)
                 var cover = archive.GetEntry("cover" + extension) ?? archive.Entries.OrderBy(x => x.Name).FirstOrDefault(x => x.Name.EndsWith(extension));
 
-                //If we have found something, return immideatly
+                // If we have found something, return immediately
                 if (cover is not null)
                 {
                     return (cover, imageFormat);

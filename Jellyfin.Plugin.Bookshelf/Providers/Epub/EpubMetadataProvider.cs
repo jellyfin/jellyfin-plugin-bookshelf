@@ -11,19 +11,29 @@ using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.Bookshelf.Providers.Epub
 {
+    /// <summary>
+    /// Epub metadata provider.
+    /// </summary>
     public class EpubMetadataProvider : ILocalMetadataProvider<Book>
     {
         private readonly IFileSystem _fileSystem;
         private readonly ILogger<EpubMetadataProvider> _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EpubMetadataProvider"/> class.
+        /// </summary>
+        /// <param name="fileSystem">Instance of the <see cref="IFileSystem"/> interface.</param>
+        /// <param name="logger">Instance of the <see cref="ILogger{EpubMetadataProvider}"/> interface.</param>
         public EpubMetadataProvider(IFileSystem fileSystem, ILogger<EpubMetadataProvider> logger)
         {
             _fileSystem = fileSystem;
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public string Name => "Epub Metadata";
 
+        /// <inheritdoc />
         public Task<MetadataResult<Book>> GetMetadata(
             ItemInfo info,
             IDirectoryService directoryService,
@@ -47,7 +57,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.Epub
             return Task.FromResult(result);
         }
 
-        private FileSystemMetadata GetEpubFile(string path)
+        private FileSystemMetadata? GetEpubFile(string path)
         {
             var fileInfo = _fileSystem.GetFileSystemInfo(path);
 

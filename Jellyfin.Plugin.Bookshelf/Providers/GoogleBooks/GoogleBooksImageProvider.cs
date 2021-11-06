@@ -1,42 +1,50 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Net.Http;
+using Jellyfin.Extensions.Json;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Providers;
-using Microsoft.Extensions.Logging;
-using System.Text.Json;
-using Jellyfin.Extensions.Json;
 
 namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
 {
+    /// <summary>
+    /// Google books image provider.
+    /// </summary>
     public class GoogleBooksImageProvider : IRemoteImageProvider
     {
-        private IHttpClientFactory _httpClientFactory;
-        private ILogger<GoogleBooksImageProvider> _logger;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public GoogleBooksImageProvider(ILogger<GoogleBooksImageProvider> logger, IHttpClientFactory httpClientFactory)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GoogleBooksImageProvider"/> class.
+        /// </summary>
+        /// <param name="httpClientFactory">Instance of the <see cref="IHttpClientFactory"/> interface.</param>
+        public GoogleBooksImageProvider(IHttpClientFactory httpClientFactory)
         {
             _httpClientFactory = httpClientFactory;
-            _logger = logger;
         }
 
+        /// <inheritdoc />
         public string Name => "Google Books";
 
+        /// <inheritdoc />
         public bool Supports(BaseItem item)
         {
             return item is Book;
         }
 
+        /// <inheritdoc />
         public IEnumerable<ImageType> GetSupportedImages(BaseItem item)
         {
             yield return ImageType.Primary;
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<RemoteImageInfo>> GetImages(BaseItem item, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -65,7 +73,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             return list;
         }
 
-        private async Task<BookResult> FetchBookData(string googleBookId, CancellationToken cancellationToken)
+        private async Task<BookResult?> FetchBookData(string googleBookId, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -73,50 +81,54 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
 
             var httpClient = _httpClientFactory.CreateClient(NamedClient.Default);
 
-            using (var response = await httpClient.GetAsync(url).ConfigureAwait(false))
-            {
-                await using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-                return await JsonSerializer.DeserializeAsync<BookResult>(stream, JsonDefaults.Options).ConfigureAwait(false);
-            }
+            using var response = await httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
+            await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+            return await JsonSerializer.DeserializeAsync<BookResult>(stream, JsonDefaults.Options, cancellationToken).ConfigureAwait(false);
         }
 
         private List<string> ProcessBookImage(BookResult bookResult)
         {
             var images = new List<string>();
-            if (!string.IsNullOrEmpty(bookResult.volumeInfo.imageLinks?.extraLarge))
+            if (bookResult.VolumeInfo is null)
             {
-                images.Add(bookResult.volumeInfo.imageLinks.extraLarge);
+                return images;
             }
-            else if (!string.IsNullOrEmpty(bookResult.volumeInfo.imageLinks?.large))
+
+            if (!string.IsNullOrEmpty(bookResult.VolumeInfo.ImageLinks?.ExtraLarge))
             {
-                images.Add(bookResult.volumeInfo.imageLinks.large);
+                images.Add(bookResult.VolumeInfo.ImageLinks.ExtraLarge);
             }
-            else if (!string.IsNullOrEmpty(bookResult.volumeInfo.imageLinks?.medium))
+            else if (!string.IsNullOrEmpty(bookResult.VolumeInfo.ImageLinks?.Large))
             {
-                images.Add(bookResult.volumeInfo.imageLinks.medium);
+                images.Add(bookResult.VolumeInfo.ImageLinks.Large);
             }
-            else if (!string.IsNullOrEmpty(bookResult.volumeInfo.imageLinks?.small))
+            else if (!string.IsNullOrEmpty(bookResult.VolumeInfo.ImageLinks?.Medium))
             {
-                images.Add(bookResult.volumeInfo.imageLinks.small);
+                images.Add(bookResult.VolumeInfo.ImageLinks.Medium);
+            }
+            else if (!string.IsNullOrEmpty(bookResult.VolumeInfo.ImageLinks?.Small))
+            {
+                images.Add(bookResult.VolumeInfo.ImageLinks.Small);
             }
 
             // sometimes the thumbnails can be different from the larger images
-            if (!string.IsNullOrEmpty(bookResult.volumeInfo.imageLinks?.thumbnail))
+            if (!string.IsNullOrEmpty(bookResult.VolumeInfo.ImageLinks?.Thumbnail))
             {
-                images.Add(bookResult.volumeInfo.imageLinks.thumbnail);
+                images.Add(bookResult.VolumeInfo.ImageLinks.Thumbnail);
             }
-            else if (!string.IsNullOrEmpty(bookResult.volumeInfo.imageLinks?.smallThumbnail))
+            else if (!string.IsNullOrEmpty(bookResult.VolumeInfo.ImageLinks?.SmallThumbnail))
             {
-                images.Add(bookResult.volumeInfo.imageLinks.smallThumbnail);
+                images.Add(bookResult.VolumeInfo.ImageLinks.SmallThumbnail);
             }
 
             return images;
         }
 
+        /// <inheritdoc />
         public async Task<HttpResponseMessage> GetImageResponse(string url, CancellationToken cancellationToken)
         {
             var httpClient = _httpClientFactory.CreateClient(NamedClient.Default);
-            return await httpClient.GetAsync(url).ConfigureAwait(false);
+            return await httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
         }
     }
 }

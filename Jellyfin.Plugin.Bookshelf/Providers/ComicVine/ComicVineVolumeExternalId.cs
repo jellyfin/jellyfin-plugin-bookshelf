@@ -5,22 +5,25 @@ using MediaBrowser.Model.Providers;
 
 namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
 {
+    /// <summary>
+    /// Comic vine volume external id.
+    /// </summary>
     public class ComicVineVolumeExternalId : IExternalId
     {
-        public static string KeyName => "ComicVineVolume";
+        /// <inheritdoc />
+        public string Key => "ComicVineVolume";
 
-        public string Key => KeyName;
-
+        /// <inheritdoc />
         public string ProviderName => "Comic Vine Volume";
 
+        /// <inheritdoc />
         public ExternalIdMediaType? Type
             => null; // TODO: enum does not yet have the Book type
 
-        // TODO: Is there a url?
-        public string UrlFormatString =>
+        /// <inheritdoc />
+        public string UrlFormatString => string.Empty;
 
-            null;
-
+        /// <inheritdoc />
         public bool Supports(IHasProviderIds item)
         {
             return item is Book;
