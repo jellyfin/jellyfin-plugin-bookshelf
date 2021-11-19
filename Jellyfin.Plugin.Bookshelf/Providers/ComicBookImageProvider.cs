@@ -37,17 +37,17 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
         public string Name => "Comic Book Zip Archive Cover Extractor";
 
         /// <inheritdoc />
-        public async Task<DynamicImageResponse> GetImage(BaseItem item, ImageType type, CancellationToken cancellationToken)
+        public Task<DynamicImageResponse> GetImage(BaseItem item, ImageType type, CancellationToken cancellationToken)
         {
             // Check if the file is a .cbz file
             var extension = Path.GetExtension(item.Path);
             if (string.Equals(extension, CbzFileExtension, StringComparison.OrdinalIgnoreCase))
             {
-                return await LoadCover(item).ConfigureAwait(false);
+                return LoadCover(item);
             }
             else
             {
-                return new DynamicImageResponse { HasImage = false };
+                return Task.FromResult(new DynamicImageResponse { HasImage = false });
             }
         }
 
