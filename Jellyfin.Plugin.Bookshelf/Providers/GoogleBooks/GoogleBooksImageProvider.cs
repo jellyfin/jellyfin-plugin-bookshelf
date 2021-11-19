@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
@@ -57,7 +58,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
                 return list;
             }
 
-            var bookResult = await FetchBookData(googleBookId, cancellationToken);
+            var bookResult = await FetchBookData(googleBookId, cancellationToken).ConfigureAwait(false);
 
             if (bookResult == null)
             {
@@ -77,12 +78,16 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var url = string.Format(GoogleApiUrls.DetailsUrl, googleBookId);
+            var url = string.Format(CultureInfo.InvariantCulture, GoogleApiUrls.DetailsUrl, googleBookId);
 
             var httpClient = _httpClientFactory.CreateClient(NamedClient.Default);
 
             using var response = await httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
+
+            #pragma warning disable CA2007
             await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+            #pragma warning restore CA2007
+
             return await JsonSerializer.DeserializeAsync<BookResult>(stream, JsonDefaults.Options, cancellationToken).ConfigureAwait(false);
         }
 

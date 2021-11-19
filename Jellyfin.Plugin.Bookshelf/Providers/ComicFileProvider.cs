@@ -30,7 +30,8 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
         {
             foreach (IComicFileProvider iComicFileProvider in _comicFileProviders)
             {
-                var metadata = await iComicFileProvider.ReadMetadata(info, directoryService, cancellationToken);
+                var metadata = await iComicFileProvider.ReadMetadata(info, directoryService, cancellationToken)
+                    .ConfigureAwait(false);
 
                 if (metadata.HasMetadata)
                 {
@@ -41,7 +42,8 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             return new MetadataResult<Book> { HasMetadata = false };
         }
 
-        bool IHasItemChangeMonitor.HasChanged(BaseItem item, IDirectoryService directoryService)
+        /// <inheritdoc />
+        public bool HasChanged(BaseItem item, IDirectoryService directoryService)
         {
             foreach (IComicFileProvider iComicFileProvider in _comicFileProviders)
             {

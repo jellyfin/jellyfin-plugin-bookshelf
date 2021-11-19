@@ -37,17 +37,17 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
         public string Name => "Comic Book Zip Archive Cover Extractor";
 
         /// <inheritdoc />
-        public async Task<DynamicImageResponse> GetImage(BaseItem item, ImageType type, CancellationToken cancellationToken)
+        public Task<DynamicImageResponse> GetImage(BaseItem item, ImageType type, CancellationToken cancellationToken)
         {
             // Check if the file is a .cbz file
             var extension = Path.GetExtension(item.Path);
             if (string.Equals(extension, CbzFileExtension, StringComparison.OrdinalIgnoreCase))
             {
-                return await LoadCover(item);
+                return LoadCover(item);
             }
             else
             {
-                return new DynamicImageResponse { HasImage = false };
+                return Task.FromResult(new DynamicImageResponse { HasImage = false });
             }
         }
 
@@ -82,7 +82,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
                 var (cover, imageFormat) = FindCoverEntryInZip(archive) ?? throw new InvalidOperationException("No supported cover found");
 
                 // Copy our cover to memory stream
-                await cover.Open().CopyToAsync(memoryStream);
+                await cover.Open().CopyToAsync(memoryStream).ConfigureAwait(false);
 
                 // Reset stream position after copying
                 memoryStream.Position = 0;
@@ -117,7 +117,10 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
                 // There are comics with a cover file, but others with varying names for the cover
                 // e.g. attackontitan_vol1_Page_001 with no indication that this is the cover except
                 // that it is the first jpeg entry (and page)
-                var cover = archive.GetEntry("cover" + extension) ?? archive.Entries.OrderBy(x => x.Name).FirstOrDefault(x => x.Name.EndsWith(extension));
+                var cover = archive.GetEntry("cover" + extension)
+                            ?? archive.Entries
+                                .OrderBy(x => x.Name)
+                                .FirstOrDefault(x => x.Name.EndsWith(extension, StringComparison.OrdinalIgnoreCase));
 
                 // If we have found something, return immediately
                 if (cover is not null)

@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Xml;
@@ -22,14 +23,14 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
         /// </summary>
         /// <param name="bookResult">The metadata result to update.</param>
         /// <param name="doc">The xdocument to parse.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
         /// <param name="logger">Instance of the <see cref="ILogger{TCategoryName}"/> interface.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <typeparam name="TCategoryName">The type of category.</typeparam>
         public static void ReadOpfData<TCategoryName>(
             MetadataResult<Book> bookResult,
             XmlDocument doc,
-            CancellationToken cancellationToken,
-            ILogger<TCategoryName> logger)
+            ILogger<TCategoryName> logger,
+            CancellationToken cancellationToken)
         {
             var book = bookResult.Item;
 
@@ -100,7 +101,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             {
                 try
                 {
-                    book.IndexNumber = Convert.ToInt32(seriesIndexNode.Attributes["content"]?.Value);
+                    book.IndexNumber = Convert.ToInt32(seriesIndexNode.Attributes["content"]?.Value, CultureInfo.InvariantCulture);
                 }
                 catch (Exception)
                 {
@@ -128,7 +129,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             {
                 try
                 {
-                    book.CommunityRating = Convert.ToInt32(ratingNode.Attributes["content"]?.Value);
+                    book.CommunityRating = Convert.ToInt32(ratingNode.Attributes["content"]?.Value, CultureInfo.InvariantCulture);
                 }
                 catch (Exception)
                 {

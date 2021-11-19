@@ -48,7 +48,9 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
 
             try
             {
+                #pragma warning disable CA2007
                 await using Stream stream = File.OpenRead(path);
+                #pragma warning restore CA2007
 
                 // not yet async: https://github.com/adamhathcock/sharpcompress/pull/565
                 using var archive = ZipArchive.Open(stream);
@@ -58,8 +60,12 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
                     var volume = archive.Volumes.First();
                     if (volume.Comment is not null)
                     {
+                        #pragma warning disable CA2007
                         await using var jsonStream = new MemoryStream(Encoding.UTF8.GetBytes(volume.Comment));
-                        var comicBookMetadata = await JsonSerializer.DeserializeAsync<ComicBookInfoFormat>(jsonStream, JsonDefaults.Options, cancellationToken);
+                        #pragma warning restore CA2007
+
+                        var comicBookMetadata = await JsonSerializer.DeserializeAsync<ComicBookInfoFormat>(jsonStream, JsonDefaults.Options, cancellationToken)
+                            .ConfigureAwait(false);
 
                         if (comicBookMetadata is null)
                         {
@@ -120,7 +126,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
                 metadataResult.ResultLanguage = ReadCultureInfoAsThreeLetterIsoInto(comic.Metadata.Language);
             }
 
-            if (comic.Metadata.Credits.Length > 0)
+            if (comic.Metadata.Credits.Count > 0)
             {
                 foreach (var person in comic.Metadata.Credits)
                 {
@@ -151,25 +157,25 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
             if (comic.PublicationYear is not null)
             {
                 book.ProductionYear = comic.PublicationYear;
-                hasFoundMetadata |= true;
+                hasFoundMetadata = true;
             }
 
             if (comic.Issue is not null)
             {
                 book.IndexNumber = comic.Issue;
-                hasFoundMetadata |= true;
+                hasFoundMetadata = true;
             }
 
-            if (comic.Tags is not null && comic.Tags.Length > 0)
+            if (comic.Tags.Count > 0)
             {
-                book.Tags = comic.Tags;
-                hasFoundMetadata |= true;
+                book.Tags = comic.Tags.ToArray();
+                hasFoundMetadata = true;
             }
 
             if (comic.PublicationYear is not null && comic.PublicationMonth is not null)
             {
                 book.PremiereDate = ReadTwoPartDateInto(comic.PublicationYear.Value, comic.PublicationMonth.Value);
-                hasFoundMetadata |= true;
+                hasFoundMetadata = true;
             }
 
             if (hasFoundMetadata)

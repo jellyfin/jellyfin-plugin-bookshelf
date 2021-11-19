@@ -95,7 +95,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.Epub
             var opfDocument = new XmlDocument();
             opfDocument.Load(opfStream);
 
-            OpfReader.ReadOpfData(result, opfDocument, cancellationToken, _logger);
+            OpfReader.ReadOpfData(result, opfDocument, _logger, cancellationToken);
         }
     }
 }

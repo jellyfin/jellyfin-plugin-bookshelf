@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
@@ -18,7 +19,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
         /// Gets or sets the list of authors.
         /// </summary>
         [JsonPropertyName("authors")]
-        public string[] Authors { get; set; } = Array.Empty<string>();
+        public IReadOnlyList<string> Authors { get; set; } = Array.Empty<string>();
 
         /// <summary>
         /// Gets or sets the published date.
@@ -54,7 +55,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
         /// Gets or sets the list of categories.
         /// </summary>
         [JsonPropertyName("categories")]
-        public string[] Categories { get; set; } = Array.Empty<string>();
+        public IReadOnlyList<string> Categories { get; set; } = Array.Empty<string>();
 
         /// <summary>
         /// Gets or sets the average rating.

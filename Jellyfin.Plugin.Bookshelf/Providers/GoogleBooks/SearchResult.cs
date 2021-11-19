@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
@@ -24,6 +25,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
         /// Gets or sets the list of items.
         /// </summary>
         [JsonPropertyName("items")]
-        public BookResult[] Items { get; set; } = Array.Empty<BookResult>();
+        public IReadOnlyList<BookResult> Items { get; set; } = Array.Empty<BookResult>();
     }
 }
