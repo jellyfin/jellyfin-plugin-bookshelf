@@ -129,12 +129,12 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.Epub
             return null;
         }
 
-        private Task<DynamicImageResponse> LoadCover(ZipArchive epub, XmlDocument opf, string opfRootDirectory)
+        private async Task<DynamicImageResponse> LoadCover(ZipArchive epub, XmlDocument opf, string opfRootDirectory)
         {
             var coverRef = ReadCoverPath(opf, opfRootDirectory);
             if (coverRef == null)
             {
-                return Task.FromResult(new DynamicImageResponse { HasImage = false });
+                return new DynamicImageResponse { HasImage = false };
             }
 
             var cover = coverRef.Value;
@@ -142,13 +142,14 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.Epub
             var coverFile = epub.GetEntry(cover.Path);
             if (coverFile == null)
             {
-                return Task.FromResult(new DynamicImageResponse { HasImage = false });
+                return new DynamicImageResponse { HasImage = false };
             }
 
             var memoryStream = new MemoryStream();
             using (var coverStream = coverFile.Open())
             {
-                coverStream.CopyTo(memoryStream);
+                await coverStream.CopyToAsync(memoryStream)
+                    .ConfigureAwait(false);
             }
 
             memoryStream.Position = 0;
@@ -160,7 +161,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.Epub
             };
             response.SetFormatFromMimeType(cover.MimeType);
 
-            return Task.FromResult(response);
+            return response;
         }
 
         private Task<DynamicImageResponse> GetFromZip(BaseItem item)

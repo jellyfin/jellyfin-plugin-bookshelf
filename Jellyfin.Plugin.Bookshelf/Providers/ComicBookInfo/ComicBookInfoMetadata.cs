@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
@@ -90,13 +91,13 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
         /// Gets or sets the list of credits.
         /// </summary>
         [JsonPropertyName("credits")]
-        public ComicBookInfoCredit[] Credits { get; set; } = Array.Empty<ComicBookInfoCredit>();
+        public IReadOnlyList<ComicBookInfoCredit> Credits { get; set; } = Array.Empty<ComicBookInfoCredit>();
 
         /// <summary>
         /// Gets or sets the list of tags.
         /// </summary>
         [JsonPropertyName("tags")]
-        public string[] Tags { get; set; } = Array.Empty<string>();
+        public IReadOnlyList<string> Tags { get; set; } = Array.Empty<string>();
 
         /// <summary>
         /// Gets or sets the comments.

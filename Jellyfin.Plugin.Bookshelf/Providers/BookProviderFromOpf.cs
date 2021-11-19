@@ -17,8 +17,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
         private const string StandardOpfFile = "content.opf";
         private const string CalibreOpfFile = "metadata.opf";
 
-        private const string DcNamespace = @"http://purl.org/dc/elements/1.1/";
-        private const string OpfNamespace = @"http://www.idpf.org/2007/opf";
         private readonly IFileSystem _fileSystem;
 
         private readonly ILogger<BookProviderFromOpf> _logger;
@@ -94,7 +92,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             var doc = new XmlDocument();
             doc.Load(metaFile);
 
-            OpfReader.ReadOpfData(bookResult, doc, cancellationToken, _logger);
+            OpfReader.ReadOpfData(bookResult, doc, _logger, cancellationToken);
         }
     }
 }

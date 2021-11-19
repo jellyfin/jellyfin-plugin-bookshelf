@@ -33,7 +33,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicInfo
         /// <inheritdoc />
         public async ValueTask<MetadataResult<Book>> ReadMetadata(ItemInfo info, IDirectoryService directoryService, CancellationToken cancellationToken)
         {
-            var comicInfoXml = await LoadXml(info, directoryService, cancellationToken);
+            var comicInfoXml = await LoadXml(info, directoryService, cancellationToken).ConfigureAwait(false);
 
             if (comicInfoXml is null)
             {
@@ -96,11 +96,14 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicInfo
                 }
 
                 // Open the xml
+                #pragma warning disable CA2007
                 await using var containerStream = container.Open();
+                #pragma warning restore CA2007
+
                 var comicInfoXml = XDocument.LoadAsync(containerStream, LoadOptions.None, cancellationToken);
 
                 // Read data from XML
-                return await comicInfoXml;
+                return await comicInfoXml.ConfigureAwait(false);
             }
             catch (Exception e)
             {

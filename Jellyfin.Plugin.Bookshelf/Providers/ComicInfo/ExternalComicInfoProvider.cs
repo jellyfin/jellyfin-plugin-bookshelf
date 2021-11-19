@@ -37,7 +37,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicInfo
         /// <inheritdoc />
         public async ValueTask<MetadataResult<Book>> ReadMetadata(ItemInfo info, IDirectoryService directoryService, CancellationToken cancellationToken)
         {
-            var comicInfoXml = await LoadXml(info, directoryService, cancellationToken);
+            var comicInfoXml = await LoadXml(info, directoryService, cancellationToken).ConfigureAwait(false);
 
             if (comicInfoXml is null)
             {
@@ -88,7 +88,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicInfo
                 var comicInfoXml = XDocument.LoadAsync(reader, LoadOptions.None, cancellationToken);
 
                 // Read data from XML
-                return await comicInfoXml;
+                return await comicInfoXml.ConfigureAwait(false);
             }
             catch (Exception e)
             {
