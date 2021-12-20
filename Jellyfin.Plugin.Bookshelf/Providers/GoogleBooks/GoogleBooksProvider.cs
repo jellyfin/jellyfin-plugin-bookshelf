@@ -295,7 +295,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             }
 
             name = name.ToLower(CultureInfo.InvariantCulture);
-            name = name.Normalize(NormalizationForm.FormKD);
+            name = name.Normalize(NormalizationForm.FormC);
 
             foreach (var pair in _replaceEndNumerals)
             {

@@ -246,7 +246,7 @@
         internal static string GetComparableName(string name)
         {
             name = name.ToLower();
-            name = name.Normalize(NormalizationForm.FormKD);
+            name = name.Normalize(NormalizationForm.FormC);
 
             foreach (var pair in ReplaceEndNumerals)
             {
