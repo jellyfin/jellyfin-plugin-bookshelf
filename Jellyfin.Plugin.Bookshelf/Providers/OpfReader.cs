@@ -109,6 +109,8 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
                 bookResult.AddPerson(person);
             });
 
+            ReadStringInto("//dc:language", language => bookResult.ResultLanguage = language);
+
             return bookResult;
         }
 
@@ -121,6 +123,20 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             ReadStringInto("//dc:publisher", publisher => book.AddStudio(publisher));
             ReadStringInto("//dc:identifier[@opf:scheme='ISBN']", isbn => book.SetProviderId("ISBN", isbn));
             ReadStringInto("//dc:identifier[@opf:scheme='AMAZON']", amazon => book.SetProviderId("Amazon", amazon));
+
+            ReadStringInto("//dc:date", date =>
+            {
+                try
+                {
+                    var dateTime = DateTime.Parse(date, DateTimeFormatInfo.InvariantInfo);
+                    book.PremiereDate = dateTime.Date;
+                    book.ProductionYear = dateTime.Date.Year;
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Error reading date");
+                }
+            });
 
             var genresNodes = _document.SelectNodes("//dc:subject", _namespaceManager);
 
