@@ -46,21 +46,24 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
         public Task<MetadataResult<Book>> GetMetadata(ItemInfo info, IDirectoryService directoryService, CancellationToken cancellationToken)
         {
             var path = GetXmlFile(info.Path).FullName;
-            var result = new MetadataResult<Book>();
 
             try
             {
-                var item = new Book();
-                result.HasMetadata = true;
-                result.Item = item;
-                ReadOpfData(result, path, cancellationToken);
+                var result = ReadOpfData(path, cancellationToken);
+
+                if (result is null)
+                {
+                    return Task.FromResult(new MetadataResult<Book> { HasMetadata = false });
+                }
+                else
+                {
+                    return Task.FromResult(result);
+                }
             }
             catch (FileNotFoundException)
             {
-                result.HasMetadata = false;
+                return Task.FromResult(new MetadataResult<Book> { HasMetadata = false });
             }
-
-            return Task.FromResult(result);
         }
 
         private FileSystemMetadata GetXmlFile(string path)
@@ -85,14 +88,15 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             return file.Exists ? file : _fileSystem.GetFileInfo(Path.Combine(directoryPath, CalibreOpfFile));
         }
 
-        private void ReadOpfData(MetadataResult<Book> bookResult, string metaFile, CancellationToken cancellationToken)
+        private MetadataResult<Book> ReadOpfData(string metaFile, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             var doc = new XmlDocument();
             doc.Load(metaFile);
 
-            OpfReader.ReadOpfData(bookResult, doc, _logger, cancellationToken);
+            var utilities = new OpfReader<BookProviderFromOpf>(doc, _logger);
+            return utilities.ReadOpfData(cancellationToken);
         }
     }
 }

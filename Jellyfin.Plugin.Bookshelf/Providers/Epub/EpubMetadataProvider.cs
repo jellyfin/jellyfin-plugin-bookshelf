@@ -40,21 +40,22 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.Epub
             CancellationToken cancellationToken)
         {
             var path = GetEpubFile(info.Path)?.FullName;
-            var result = new MetadataResult<Book>();
 
-            if (path == null)
+            if (path is null)
             {
-                result.HasMetadata = false;
+                return Task.FromResult(new MetadataResult<Book> { HasMetadata = false });
+            }
+
+            var result = ReadEpubAsZip(path, cancellationToken);
+
+            if (result is null)
+            {
+                return Task.FromResult(new MetadataResult<Book> { HasMetadata = false });
             }
             else
             {
-                var item = new Book();
-                result.HasMetadata = true;
-                result.Item = item;
-                ReadEpubAsZip(result, path, cancellationToken);
+                return Task.FromResult(result);
             }
-
-            return Task.FromResult(result);
         }
 
         private FileSystemMetadata? GetEpubFile(string path)
@@ -74,20 +75,20 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.Epub
             return fileInfo;
         }
 
-        private void ReadEpubAsZip(MetadataResult<Book> result, string path, CancellationToken cancellationToken)
+        private MetadataResult<Book>? ReadEpubAsZip(string path, CancellationToken cancellationToken)
         {
             using var epub = ZipFile.OpenRead(path);
 
             var opfFilePath = EpubUtils.ReadContentFilePath(epub);
             if (opfFilePath == null)
             {
-                return;
+                return null;
             }
 
             var opf = epub.GetEntry(opfFilePath);
             if (opf == null)
             {
-                return;
+                return null;
             }
 
             using var opfStream = opf.Open();
@@ -95,7 +96,8 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.Epub
             var opfDocument = new XmlDocument();
             opfDocument.Load(opfStream);
 
-            OpfReader.ReadOpfData(result, opfDocument, _logger, cancellationToken);
+            var utilities = new OpfReader<EpubMetadataProvider>(opfDocument, _logger);
+            return utilities.ReadOpfData(cancellationToken);
         }
     }
 }
