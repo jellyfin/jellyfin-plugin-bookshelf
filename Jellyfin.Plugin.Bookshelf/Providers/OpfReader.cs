@@ -126,8 +126,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
 
             ReadStringInto("//dc:date", date =>
             {
-                DateTime dateValue;
-                if (DateTime.TryParse(date, out dateValue))
+                if (DateTime.TryParse(date, out var dateValue))
                 {
                     book.PremiereDate = dateValue.Date;
                     book.ProductionYear = dateValue.Date.Year;
