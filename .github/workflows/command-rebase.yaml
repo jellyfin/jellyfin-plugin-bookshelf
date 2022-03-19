@@ -1,4 +1,4 @@
-name: PR Rebase Command
+name: '🔀 PR Rebase Command'
 
 on:
   repository_dispatch:
@@ -6,29 +6,11 @@ on:
       - rebase-command
 
 jobs:
-  rebase:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Rebase PR
-        uses: peter-evans/rebase@v1
-        id: rebase
-        with:
-          head: ${{ github.event.client_payload.pull_request.head.label }}
-
-      - name: Add Success Reaction
-        if: ${{ steps.rebase.outputs.rebased-count == 1 }}
-        uses: peter-evans/create-or-update-comment@v1
-        with:
-          token: ${{ secrets.JF_BOT_TOKEN }}
-          repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
-          comment-id: ${{ github.event.client_payload.github.payload.comment.id }}
-          reaction-type: hooray
-
-      - name: Add Failure Reaction
-        if: ${{ steps.rebase.outputs.rebased-count == 0 || failure() }}
-        uses: peter-evans/create-or-update-comment@v1
-        with:
-          token: ${{ secrets.JF_BOT_TOKEN }}
-          repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
-          comment-id: ${{ github.event.client_payload.github.payload.comment.id }}
-          reaction-type: confused, -1
+  call:
+    uses: jellyfin/jellyfin-meta-plugins/.github/workflows/command-rebase.yaml@master
+    with:
+      rebase-head: ${{ github.event.client_payload.pull_request.head.label }}
+      repository-full-name: ${{ github.event.client_payload.github.payload.repository.full_name }}
+      comment-id: ${{ github.event.client_payload.github.payload.comment.id }}
+    secrets:
+      token: ${{ secrets.JF_BOT_TOKEN }}
