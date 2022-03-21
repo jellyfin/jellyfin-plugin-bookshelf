@@ -19,9 +19,9 @@
 
 ## About
 
-The Jellyfin Bookshelf plugin enables the collection of eBooks & AudioBooks, with the latter being able to be played through Jellyfin. This plugin uses Google Books as a Metadata provider.
+The Jellyfin Bookshelf plugin enables the collection of eBooks & AudioBooks, with the latter being able to be played through Jellyfin.
 
-Supported eBook file types:
+### Supported eBook file types:
 
 - epub
 - mobi
@@ -29,10 +29,34 @@ Supported eBook file types:
 - cbz
 - cbr
 
+### Supported audio book file types:
+
+Please take in mind that his is not a complete list and represents some of the most commonly used formats.
+
+- mp3
+- m4a
+- m4b
+- flac
+
+### Offline Metadata providers:
+
+This plugin supports the following offline Metadata providers. These will check the local files for metadata.
+
+- [Open Packaging Format (OPF)](http://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm)
+- Calibre OPF
+- [ComicInfo](https://github.com/anansi-project/comicinfo)
+- [ComicBookInfo](https://code.google.com/archive/p/comicbookinfo/)
+
 The following **limitations** apply:
 - .cbr Comics tagged with ComicRacks ComicInfo format are partially supported. Any metadata within the comic book itself will be ignored while external metadata within a ComicInfo.xml file can be read.
 - The _[Advanced Comic Book Format](https://launchpad.net/acbf)_ is not supported.
-- The _[ComicBookInfo](https://code.google.com/archive/p/comicbookinfo/)_ format is not supported. (Not to be confused with the ComicInfo.xml format from ComicRack)
+- The _[CoMet](https://www.denvog.com/comet/comet-specification/)_ format is not supported.
+
+### Online Metadata providers:
+
+These Metadata providers will check online services for metadata.
+
+- Google Books
 
 
 ## Build & Installation Process
