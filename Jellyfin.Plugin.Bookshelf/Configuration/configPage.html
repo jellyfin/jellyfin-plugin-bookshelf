@@ -11,25 +11,36 @@
             <div class="content-primary">
                 <h1>Bookshelf</h1>
                 <p>To set up Bookshelf, just add a media library in the server configuration and set the content type to
-                    books. This plugin supports standard OPF as well as Calibre OPF if you'd like to import the metadata
-                    from another program. If you want to see support for a specific provider we always welcome code
+                    books. If you want to see support for a specific provider we always welcome code
                     contributions!
                 </p>
                 <h1>Supported Formats</h1>
+                Please take in mind that his is not a complete list.
                 <ul>
                     <li>epub</li>
                     <li>mobi</li>
                     <li>pdf</li>
                     <li>cbz</li>
                     <li>cbr</li>
+                    <li>mp3</li>
+                    <li>m4a</li>
+                    <li>m4b</li>
+                    <li>flac</li>
                 </ul>
 
+                <h1>Offline Metadata providers</h1>
+                <ul>
+                    <li>Open Packaging Format (OPF)</li>
+                    <li>Calibre OPF</li>
+                    <li>ComicInfo</li>
+                    <li>ComicBookInfo</li>
+                </ul>
                 The following <b>limitations</b> apply:
                 <ul>
                     <li>
                         .cbr Comics tagged with ComicRack's ComicInfo format
                         are partially supported. Any metadata bundled with the
-                        comic book itself will be ignored.
+                        comic book itself will be ignored. External files will be read.
                     </li>
                     <li>
                         The
@@ -41,6 +52,11 @@
                         <a href="https://www.denvog.com/comet/comet-specification/">CoMet</a>
                         format is not supported.
                     </li>
+                </ul>
+
+                <h1>Online Metadata providers</h1>
+                <ul>
+                    <li>Google Books</li>
                 </ul>
             </div>
         </div>
