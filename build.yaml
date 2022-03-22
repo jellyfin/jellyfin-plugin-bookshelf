@@ -2,7 +2,7 @@
 name: "Bookshelf"
 guid: "9c4e63f1-031b-4f25-988b-4f7d78a8b53e"
 version: "8"
-targetAbi: "10.8.0.0"
+targetAbi: "10.7.7.0"
 framework: "net6.0"
 owner: "jellyfin"
 overview: "Manage your books"
@@ -13,4 +13,25 @@ category: "Metadata"
 artifacts:
   - "Jellyfin.Plugin.Bookshelf.dll"
 changelog: |-
-  - 10.8 support (#33) @crobibero
+  - chore(deps): bump release-drafter/release-drafter from 5.15.0 to 5.17.5 (#46) @dependabot
+  - chore(deps): bump sharpcompress from 0.30.0 to 0.30.1 (#43) @dependabot
+  - Add analyzers to project (#28) @crobibero
+
+  ### New features and improvements ###
+  - Read date and language information from opf (#47) @MinecraftPlaye
+  - Add ComicBookInfo metadata provider (#38) @MinecraftPlaye
+
+  ### Bug Fixes ###
+  - Use proper NormalziationForm (#44) @crobibero
+
+  ### Code or Repo Maintenance ###
+  - Update supported metadata providers and file types (#55) @MinecraftPlaye
+  - Use meta ci (#54) @crobibero
+  - Refactor opf metadata reader for readability (#45) @MinecraftPlaye
+  - Update ruleset and fix build (#42) @crobibero
+
+  ### Documentation updates ###
+  - Update supported metadata providers and file types (#55) @MinecraftPlaye
+
+  ### CI & build changes ###
+  - Use meta ci (#54) @crobibero
