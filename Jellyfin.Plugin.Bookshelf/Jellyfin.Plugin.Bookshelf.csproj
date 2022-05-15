@@ -3,8 +3,6 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>Jellyfin.Plugin.Bookshelf</RootNamespace>
-    <AssemblyVersion>5.0.0.0</AssemblyVersion>
-    <FileVersion>5.0.0.0</FileVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AnalysisMode>AllEnabledByDefault</AnalysisMode>
