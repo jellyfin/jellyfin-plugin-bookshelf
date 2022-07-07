@@ -1,0 +1,28 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": ".NET Core Launch (console)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-and-copy",
+            "program": "${config:jellyfinDir}/bin/Debug/net6.0/jellyfin.dll",
+            "args": [
+                //"--nowebclient"
+                "--webdir",
+                "${config:jellyfinWebDir}/dist/"
+            ],
+            "cwd": "${config:jellyfinDir}",
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "internalConsoleOptions": "openOnSessionStart",
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "Overriding address\\(es\\) \\'(https?:\\S+)\\'",
+            },
+        }
+    ]
+}
