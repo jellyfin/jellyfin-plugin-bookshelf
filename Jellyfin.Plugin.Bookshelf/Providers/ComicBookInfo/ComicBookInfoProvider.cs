@@ -48,25 +48,20 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
 
             try
             {
-                #pragma warning disable CA2007
-                await using Stream stream = File.OpenRead(path);
-                #pragma warning restore CA2007
-
-                // not yet async: https://github.com/adamhathcock/sharpcompress/pull/565
-                using var archive = ZipArchive.Open(stream);
-
-                if (archive.IsComplete)
+                Stream stream = File.OpenRead(path);
+                await using (stream.ConfigureAwait(false))
+                using (var archive = ZipArchive.Open(stream)) // not yet async: https://github.com/adamhathcock/sharpcompress/pull/565
                 {
-                    var volume = archive.Volumes.First();
-                    if (volume.Comment is not null)
+                    if (archive.IsComplete)
                     {
-                        #pragma warning disable CA2007
-                        await using var jsonStream = new MemoryStream(Encoding.UTF8.GetBytes(volume.Comment));
-                        #pragma warning restore CA2007
+                        var volume = archive.Volumes.First();
+                        if (volume.Comment is null)
+                        {
+                            _logger.LogInformation("{Path} does not contain any ComicBookInfo metadata", info.Path);
+                            return new MetadataResult<Book> { HasMetadata = false };
+                        }
 
-                        var comicBookMetadata = await JsonSerializer.DeserializeAsync<ComicBookInfoFormat>(jsonStream, JsonDefaults.Options, cancellationToken)
-                            .ConfigureAwait(false);
-
+                        var comicBookMetadata = JsonSerializer.Deserialize<ComicBookInfoFormat>(volume.Comment, JsonDefaults.Options);
                         if (comicBookMetadata is null)
                         {
                             _logger.LogError("Failed to load ComicBookInfo metadata from archive comment for {Path}", info.Path);
@@ -75,15 +70,10 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
 
                         return SaveMetadata(comicBookMetadata);
                     }
-                    else
-                    {
-                        _logger.LogInformation("{Path} does not contain any ComicBookInfo metadata", info.Path);
-                        return new MetadataResult<Book> { HasMetadata = false };
-                    }
-                }
 
-                _logger.LogError("Could not load ComicBookInfo metadata for {Path}", info.Path);
-                return new MetadataResult<Book> { HasMetadata = false };
+                    _logger.LogError("Could not load ComicBookInfo metadata for {Path}", info.Path);
+                    return new MetadataResult<Book> { HasMetadata = false };
+                }
             }
             catch (Exception)
             {
