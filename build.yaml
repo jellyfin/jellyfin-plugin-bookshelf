@@ -1,8 +1,8 @@
 ---
 name: "Bookshelf"
 guid: "9c4e63f1-031b-4f25-988b-4f7d78a8b53e"
-version: "8"
-targetAbi: "10.8.0.0"
+version: 9
+targetAbi: "10.8.3.0"
 framework: "net6.0"
 owner: "jellyfin"
 overview: "Manage your books"
@@ -12,26 +12,14 @@ description: >
 category: "Metadata"
 artifacts:
   - "Jellyfin.Plugin.Bookshelf.dll"
-changelog: |-
-  - chore(deps): bump release-drafter/release-drafter from 5.15.0 to 5.17.5 (#46) @dependabot
-  - chore(deps): bump sharpcompress from 0.30.0 to 0.30.1 (#43) @dependabot
-  - Add analyzers to project (#28) @crobibero
-
-  ### New features and improvements ###
-  - Read date and language information from opf (#47) @MinecraftPlaye
-  - Add ComicBookInfo metadata provider (#38) @MinecraftPlaye
-
-  ### Bug Fixes ###
-  - Use proper NormalziationForm (#44) @crobibero
-
+changelog: |2-
   ### Code or Repo Maintenance ###
-  - Update supported metadata providers and file types (#55) @MinecraftPlaye
-  - Use meta ci (#54) @crobibero
-  - Refactor opf metadata reader for readability (#45) @MinecraftPlaye
-  - Update ruleset and fix build (#42) @crobibero
+  - Add development setup for Visual Studio Code (#64) @MinecraftPlaye
+  - Use JsonSerializer.Deserialize overload that accepts a string (#65) @Bond-009
 
-  ### Documentation updates ###
-  - Update supported metadata providers and file types (#55) @MinecraftPlaye
+  ### Dependency updates ###
+  - chore(deps): update dependency sharpcompress to v0.32.2 (#62) @renovate
+  - chore(deps): update dependency sharpcompress to v0.32.0 (#61) @renovate
 
   ### CI & build changes ###
-  - Use meta ci (#54) @crobibero
+  - fix: meta ci workflows (#58) @h1dden-da3m0n
