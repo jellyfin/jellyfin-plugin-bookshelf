@@ -179,6 +179,12 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
                     continue;
                 }
 
+                if (person.Person.Contains(',', StringComparison.InvariantCultureIgnoreCase))
+                {
+                    var name = person.Person.Split(',');
+                    person.Person = name[1].Trim(' ') + " " + name[0].Trim(' ');
+                }
+
                 var personInfo = new PersonInfo { Name = person.Person, Type = person.Role };
                 metadataResult.AddPerson(personInfo);
             }
