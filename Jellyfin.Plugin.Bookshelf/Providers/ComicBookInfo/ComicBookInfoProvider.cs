@@ -2,7 +2,6 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +17,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
     /// <summary>
     /// Comic book info provider.
     /// </summary>
-    public class ComicBookInfoProvider : IComicFileProvider
+    public class ComicBookInfoProvider : IComicFileProvider, IComicBookInfoUtilities
     {
         private readonly ILogger<ComicBookInfoProvider> _logger;
 
@@ -118,22 +117,14 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
 
             if (comic.Metadata.Credits.Count > 0)
             {
-                foreach (var person in comic.Metadata.Credits)
-                {
-                    if (person.Person is null || person.Role is null)
-                    {
-                        continue;
-                    }
-
-                    var personInfo = new PersonInfo { Name = person.Person, Type = person.Role };
-                    metadataResult.AddPerson(personInfo);
-                }
+                ReadPeopleMetadata(comic.Metadata, metadataResult);
             }
 
             return metadataResult;
         }
 
-        private Book? ReadComicBookMetadata(ComicBookInfoMetadata comic)
+        /// <inheritdoc />
+        public Book? ReadComicBookMetadata(ComicBookInfoMetadata comic)
         {
             var book = new Book();
             var hasFoundMetadata = false;
@@ -178,6 +169,35 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
             }
         }
 
+        /// <inheritdoc />
+        public void ReadPeopleMetadata(ComicBookInfoMetadata comic, MetadataResult<Book> metadataResult)
+        {
+            foreach (var person in comic.Credits)
+            {
+                if (person.Person is null || person.Role is null)
+                {
+                    continue;
+                }
+
+                var personInfo = new PersonInfo { Name = person.Person, Type = person.Role };
+                metadataResult.AddPerson(personInfo);
+            }
+        }
+
+        /// <inheritdoc />
+        public string? ReadCultureInfoAsThreeLetterIsoInto(string language)
+        {
+            try
+            {
+                return new CultureInfo(language).ThreeLetterISOLanguageName;
+            }
+            catch (Exception)
+            {
+                // Ignored
+                return null;
+            }
+        }
+
         private bool ReadStringInto(string? data, Action<string> commitResult)
         {
             if (!string.IsNullOrWhiteSpace(data))
@@ -201,19 +221,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
             catch (Exception)
             {
                 // Nothing to do here
-                return null;
-            }
-        }
-
-        private string? ReadCultureInfoAsThreeLetterIsoInto(string language)
-        {
-            try
-            {
-                return new CultureInfo(language).ThreeLetterISOLanguageName;
-            }
-            catch (Exception)
-            {
-                // Ignored
                 return null;
             }
         }
