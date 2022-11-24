@@ -36,7 +36,7 @@ public class ComicInfoXmlUtilitiesTest
         // story arcs. This field is used to specify an alternate series
         // https://anansi-project.github.io/docs/comicinfo/documentation#alternateseries--alternatenumber--alternatecount
         // However, software like ComicTagger (https://github.com/comictagger/comictagger) uses
-        // this field for the original language name when tagging manga
+        // this field for the series name in the original language when tagging manga
         var actual = _uut.ReadComicBookMetadata(_document);
         Assert.NotNull(actual);
         Assert.Equal("進撃の巨人", actual!.OriginalTitle);

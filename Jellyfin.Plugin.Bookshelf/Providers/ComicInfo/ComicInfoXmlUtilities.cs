@@ -37,7 +37,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicInfo
                 if (isManga)
                 {
                     // Software like ComicTagger (https://github.com/comictagger/comictagger) uses
-                    // this field for the original language name when tagging manga
+                    // this field for the series name in the original language when tagging manga
                     book.OriginalTitle = title;
                 }
                 else
