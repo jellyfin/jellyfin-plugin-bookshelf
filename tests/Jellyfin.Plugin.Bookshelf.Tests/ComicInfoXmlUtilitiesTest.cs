@@ -32,6 +32,11 @@ public class ComicInfoXmlUtilitiesTest
     [Fact]
     public void ReadAlternativeSeries_Success()
     {
+        // Based on the The Anansi Project, some US comics can be part of cross-over
+        // story arcs. This field is used to specify an alternate series
+        // https://anansi-project.github.io/docs/comicinfo/documentation#alternateseries--alternatenumber--alternatecount
+        // However, software like ComicTagger (https://github.com/comictagger/comictagger) uses
+        // this field for the original language name when tagging manga
         var actual = _uut.ReadComicBookMetadata(_document);
         Assert.NotNull(actual);
         Assert.Equal("進撃の巨人", actual!.OriginalTitle);
