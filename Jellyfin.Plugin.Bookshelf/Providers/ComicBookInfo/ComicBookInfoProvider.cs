@@ -112,7 +112,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
 
             if (comic.Metadata.Language is not null)
             {
-                metadataResult.ResultLanguage = ReadCultureInfoAsThreeLetterIsoInto(comic.Metadata.Language);
+                metadataResult.ResultLanguage = ReadCultureInfoInto(comic.Metadata.Language);
             }
 
             if (comic.Metadata.Credits.Count > 0)
@@ -191,11 +191,11 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
         }
 
         /// <inheritdoc />
-        public string? ReadCultureInfoAsThreeLetterIsoInto(string language)
+        public string? ReadCultureInfoInto(string language)
         {
             try
             {
-                return new CultureInfo(language).ThreeLetterISOLanguageName;
+                return new CultureInfo(language).DisplayName;
             }
             catch (Exception)
             {

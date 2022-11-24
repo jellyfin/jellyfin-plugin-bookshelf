@@ -23,10 +23,10 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
         void ReadPeopleMetadata(ComicBookInfoMetadata comic, MetadataResult<Book> metadataResult);
 
         /// <summary>
-        /// Converts a language to the three letter iso name of the language.
+        /// Returns the language display name of a given language.
         /// </summary>
         /// <param name="language">The language to convert.</param>
-        /// <returns>The language represented by an three letter iso name.</returns>
-        string? ReadCultureInfoAsThreeLetterIsoInto(string language);
+        /// <returns>The language display name.</returns>
+        string? ReadCultureInfoInto(string language);
     }
 }

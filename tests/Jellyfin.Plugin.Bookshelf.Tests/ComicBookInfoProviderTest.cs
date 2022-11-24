@@ -193,19 +193,16 @@ public class ComicBookInfoProviderTest
             tag2 => Assert.Equal(tags[2], tag2));
     }
 
-    // [Fact]
-    // public void ReadCultureInfoInto_Success()
-    // {
-    // Assert.NotNull(_comicBookInfoFormat.Metadata);
-    // Assert.NotNull(_comicBookInfoFormat.Metadata!.Language);
-    // var actualCultureInfo = _uut.ReadCultureInfoAsThreeLetterIsoInto(_comicBookInfoFormat.Metadata!.Language!);
+    [Fact]
+    public void ReadCultureInfoInto_Success()
+    {
+        Assert.NotNull(_comicBookInfoFormat.Metadata);
+        Assert.NotNull(_comicBookInfoFormat.Metadata!.Language);
+        var actualCultureInfo = _uut.ReadCultureInfoInto(_comicBookInfoFormat.Metadata!.Language!);
 
-    // Assert.NotNull(actualCultureInfo);
-    // Console.WriteLine("language name: " + new CultureInfo("English").DisplayName);
-    // Console.WriteLine("two letter name: " + new CultureInfo("English").Get.TwoLetterISOLanguageName);
-    // Console.WriteLine("{0,-31}{1,-47}{2,-25}", "ThreeLetterISOLanguageName", new CultureInfo("English").ThreeLetterISOLanguageName, new CultureInfo("English").ThreeLetterISOLanguageName);
-    // Assert.Equal("en", actualCultureInfo);
-    // }
+        Assert.NotNull(actualCultureInfo);
+        Assert.Equal("english", actualCultureInfo);
+    }
 
     public ComicBookInfoFormat GenerateTestData()
     {
