@@ -125,7 +125,7 @@ public class ComicInfoXmlUtilitiesTest
         var coverArtist1 = new PersonInfo { Name = "Takashi Shimoyama", Type = "Cover Artist" };
         var colourist = new PersonInfo { Name = "An Colourist", Type = "Colourist" };
 
-        Assert.Collection(metadataResult.People, _author =>
+        Assert.Collection(metadataResult.People, authorActual =>
             {
                 Assert.Equal(author.Name, authorActual.Name);
                 Assert.Equal(author.Type, authorActual.Type);
