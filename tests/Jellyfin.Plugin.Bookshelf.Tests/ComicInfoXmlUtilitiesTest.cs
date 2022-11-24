@@ -219,10 +219,12 @@ public class ComicInfoXmlUtilitiesTest
         // add the cover page and example pages
         XElement pages = new XElement("Pages");
         comicInfo.Add(pages);
+        // image size is arbitary chosen instead of using a real image size (in bytes) for each page
         pages.Add(new XElement("Page", new XAttribute("Image", "0"), new XAttribute("Type", "FrontCover"), new XAttribute("ImageSize", "41911")));
         // add the remaining 209 pages, starting from 1, as page 0 has already been added
         for (int i = 1; i <= 210; i++)
         {
+            // image size is arbitary chosen instead of using a real image size (in bytes) for each page
             pages.Add(new XElement("Page", new XAttribute("Image", i), new XAttribute("ImageSize", "14922")));
         }
 
