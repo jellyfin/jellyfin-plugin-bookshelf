@@ -118,7 +118,9 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
         {
             var book = new Book();
 
-            ReadStringInto("//dc:title", title => book.Name = title);
+            book.Name = FindMainTitle();
+            book.ForcedSortName = FindSortTitle();
+
             ReadStringInto("//dc:description", summary => book.Overview = summary);
             ReadStringInto("//dc:publisher", publisher => book.AddStudio(publisher));
             ReadStringInto("//dc:identifier[@opf:scheme='ISBN']", isbn => book.SetProviderId("ISBN", isbn));
@@ -162,6 +164,61 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             }
 
             return book;
+        }
+
+        private string FindMainTitle()
+        {
+            string title = string.Empty;
+            var titleTypes = _document.SelectNodes("//opf:meta[@property='title-type']", _namespaceManager);
+
+            if (titleTypes is not null && titleTypes.Count > 0)
+            {
+                foreach (XmlElement titleNode in titleTypes)
+                {
+                    string refines = titleNode.GetAttribute("refines").TrimStart('#');
+                    string titleType = titleNode.InnerText;
+
+                    var titleElement = _document.SelectSingleNode($"//dc:title[@id='{refines}']", _namespaceManager);
+                    if (titleElement is not null && titleType is "main")
+                    {
+                        title = titleElement.InnerText;
+                    }
+                }
+            }
+
+            // fallback in case there is no main title definition
+            if (string.IsNullOrEmpty(title))
+            {
+                ReadStringInto("//dc:title", titleStr => title = titleStr);
+            }
+
+            return title;
+        }
+
+        private string? FindSortTitle()
+        {
+            var titleTypes = _document.SelectNodes("//opf:meta[@property='file-as']", _namespaceManager);
+
+            if (titleTypes is not null && titleTypes.Count > 0)
+            {
+                foreach (XmlElement titleNode in titleTypes)
+                {
+                    string refines = titleNode.GetAttribute("refines").TrimStart('#');
+                    string sortTitle = titleNode.InnerText;
+
+                    var titleElement = _document.SelectSingleNode($"//dc:title[@id='{refines}']", _namespaceManager);
+                    if (titleElement is not null)
+                    {
+                        return sortTitle;
+                    }
+                }
+            }
+
+            // look for OPF 2.0 style title_sort
+            var resultElement = _document.SelectSingleNode("//opf:meta[@name='calibre:title_sort']", _namespaceManager);
+            var titleSort = resultElement?.Attributes?["content"]?.Value;
+
+            return titleSort;
         }
 
         private void ReadStringInto(string xPath, Action<string> commitResult)
