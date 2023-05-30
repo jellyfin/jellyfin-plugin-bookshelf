@@ -179,7 +179,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
                     string titleType = titleNode.InnerText;
 
                     var titleElement = _document.SelectSingleNode($"//dc:title[@id='{refines}']", _namespaceManager);
-                    if (titleElement is not null && titleType is "main")
+                    if (titleElement is not null && string.Equals(titleType, "main", StringComparison.OrdinalIgnoreCase))
                     {
                         title = titleElement.InnerText;
                     }
