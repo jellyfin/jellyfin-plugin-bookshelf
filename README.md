@@ -21,7 +21,7 @@
 
 The Jellyfin Bookshelf plugin enables the collection of eBooks & AudioBooks, with the latter being able to be played through Jellyfin.
 
-### Supported eBook file types:
+### Supported eBook file types
 
 - epub
 - mobi
@@ -29,16 +29,16 @@ The Jellyfin Bookshelf plugin enables the collection of eBooks & AudioBooks, wit
 - cbz
 - cbr
 
-### Supported audio book file types:
+### Supported audio book file types
 
-Please take in mind that his is not a complete list and represents some of the most commonly used formats.
+Please take in mind that this is not a complete list and represents some of the most commonly used formats.
 
 - mp3
 - m4a
 - m4b
 - flac
 
-### Offline Metadata providers:
+### Offline Metadata providers
 
 This plugin supports the following offline Metadata providers. These will check the local files for metadata.
 
@@ -48,16 +48,16 @@ This plugin supports the following offline Metadata providers. These will check 
 - [ComicBookInfo](https://code.google.com/archive/p/comicbookinfo/)
 
 The following **limitations** apply:
+
 - .cbr Comics tagged with ComicRacks ComicInfo format are partially supported. Any metadata within the comic book itself will be ignored while external metadata within a ComicInfo.xml file can be read.
 - The _[Advanced Comic Book Format](https://launchpad.net/acbf)_ is not supported.
 - The _[CoMet](https://www.denvog.com/comet/comet-specification/)_ format is not supported.
 
-### Online Metadata providers:
+### Online Metadata providers
 
 These Metadata providers will check online services for metadata.
 
 - Google Books
-
 
 ## Build & Installation Process
 
@@ -67,7 +67,7 @@ These Metadata providers will check online services for metadata.
 
 3. Build the plugin with following command:
 
-```
+```bash
 dotnet publish --configuration Release --output bin
 ```
 
