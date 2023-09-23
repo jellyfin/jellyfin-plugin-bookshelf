@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -29,6 +30,18 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Jellyfin.Plugin.Bookshelf\Jellyfin.Plugin.Bookshelf.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Fixtures\google-books-single-volume-en.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Fixtures\google-books-single-volume-fr.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Fixtures\google-books-volume-search.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

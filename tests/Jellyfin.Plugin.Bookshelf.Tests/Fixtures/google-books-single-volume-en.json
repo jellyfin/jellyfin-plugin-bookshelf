@@ -1,0 +1,82 @@
+﻿{
+    "kind": "books#volume",
+    "id": "49T5twEACAAJ",
+    "etag": "erLq86KB0Vg",
+    "selfLink": "https://www.googleapis.com/books/v1/volumes/49T5twEACAAJ",
+    "volumeInfo": {
+        "title": "Children of Time",
+        "authors": [
+            "Adrian Tchaikovsky"
+        ],
+        "publisher": "Orbit",
+        "publishedDate": "2018-12-11",
+        "description": "\u003cb\u003eAdrian Tchaikovksy's award-winning novel \u003ci\u003eChildren of Time\u003c/i\u003e, is the epic story of humanity's battle for survival on a terraformed planet.\u003c/b\u003e\u003cb\u003e\u003cbr\u003e\u003c/b\u003eWho will inherit this new Earth?\u003cbr\u003e\u003cbr\u003eThe last remnants of the human race left a dying Earth, desperate to find a new home among the stars. Following in the footsteps of their ancestors, they discover the greatest treasure of the past age - a world terraformed and prepared for human life.\u003cbr\u003e\u003cbr\u003eBut all is not right in this new Eden. In the long years since the planet was abandoned, the work of its architects has borne disastrous fruit. The planet is not waiting for them, pristine and unoccupied. New masters have turned it from a refuge into mankind's worst nightmare.\u003cbr\u003e\u003cbr\u003eNow two civilizations are on a collision course, both testing the boundaries of what they will do to survive. As the fate of humanity hangs in the balance, who are the true heirs of this new Earth?span",
+        "industryIdentifiers": [
+            {
+                "type": "ISBN_10",
+                "identifier": "0316452505"
+            },
+            {
+                "type": "ISBN_13",
+                "identifier": "9780316452502"
+            }
+        ],
+        "readingModes": {
+            "text": false,
+            "image": false
+        },
+        "pageCount": 640,
+        "printedPageCount": 640,
+        "dimensions": {
+            "height": "21.00 cm",
+            "width": "14.00 cm",
+            "thickness": "4.10 cm"
+        },
+        "printType": "BOOK",
+        "categories": [
+            "Fiction / Science Fiction / Alien Contact",
+            "Fiction / Science Fiction / Genetic Engineering",
+            "Fiction / Science Fiction / Hard Science Fiction",
+            "Fiction / Science Fiction / Space Exploration",
+            "Fiction / Science Fiction / Space Opera"
+        ],
+        "averageRating": 4,
+        "ratingsCount": 49,
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": false,
+        "contentVersion": "preview-1.0.0",
+        "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+        },
+        "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/content?id=49T5twEACAAJ&printsec=frontcover&img=1&zoom=5&imgtk=AFLRE73LHhsrURPw3qT1X-4OnfxY0-tUYmAUe4Z2GQR2R0X2Z2xMc28QU4T77PPDOHIwIk0WUy_MhXUCJH3k8TNZQEjJONM82_3R7fA1CkL57Idz9KmnDEYRLdRh5dyk0F0dgO8US2cN&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/content?id=49T5twEACAAJ&printsec=frontcover&img=1&zoom=1&imgtk=AFLRE70U9t4z91EAYhiD2AYOR9pzNu86QDKZebNLQo4K3jMaJ748TC5LvCoZGt9ON4pZ54H8RoIRyCB5IveVDmt49QjeJlbJtWLlZoksRHXInrEVmo2476WXKcLhZOjp41Vu_5Lb05oJ&source=gbs_api"
+        },
+        "language": "en",
+        "previewLink": "http://books.google.fr/books?id=49T5twEACAAJ&hl=&source=gbs_api",
+        "infoLink": "https://play.google.com/store/books/details?id=49T5twEACAAJ&source=gbs_api",
+        "canonicalVolumeLink": "https://play.google.com/store/books/details?id=49T5twEACAAJ"
+    },
+    "saleInfo": {
+        "country": "FR",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+    },
+    "accessInfo": {
+        "country": "FR",
+        "viewability": "NO_PAGES",
+        "embeddable": false,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+            "isAvailable": false
+        },
+        "pdf": {
+            "isAvailable": false
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=49T5twEACAAJ&hl=&source=gbs_api",
+        "accessViewStatus": "NONE",
+        "quoteSharingAllowed": false
+    }
+}

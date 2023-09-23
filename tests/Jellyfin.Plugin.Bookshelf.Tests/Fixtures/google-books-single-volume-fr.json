@@ -1,0 +1,85 @@
+﻿{
+    "kind": "books#volume",
+    "id": "G7utDwAAQBAJ",
+    "etag": "CFZojkd8PV4",
+    "selfLink": "https://www.googleapis.com/books/v1/volumes/G7utDwAAQBAJ",
+    "volumeInfo": {
+        "title": "Dans la toile du temps",
+        "authors": [
+            "Adrian Tchaikovsky"
+        ],
+        "publisher": "Editions Gallimard",
+        "publishedDate": "2019-10-03T00:00:00+02:00",
+        "description": "La Terre est au plus mal... Ses derniers habitants n’ont plus qu’un seul espoir : coloniser le \"Monde de Kern\", une planète lointaine, spécialement terraformée pour l’espèce humaine. Mais sur ce \"monde vert\" paradisiaque, tout ne s’est pas déroulé comme les scientifiques s’y attendaient. Une autre espèce que celle qui était prévue, aidée par un nanovirus, s’est parfaitement adaptée à ce nouvel environnement et elle n’a pas du tout l’intention de laisser sa place. Le choc de deux civilisations aussi différentes que possible semble inévitable. Qui seront donc les héritiers de l’ancienne Terre ? Qui sortira vainqueur du piège tendu par la toile du temps ? Premier roman de l’auteur paru en France, Dans la toile du temps s’inscrit dans la lignée du cycle Élévation de David Brin. Il nous fait découvrir l’évolution d’une civilisation radicalement autre et sa confrontation inévitable avec l’espèce humaine. Le roman a reçu le prix Arthur C. Clarke en 2016",
+        "industryIdentifiers": [
+            {
+                "type": "ISBN_10",
+                "identifier": "2072853311"
+            },
+            {
+                "type": "ISBN_13",
+                "identifier": "9782072853319"
+            }
+        ],
+        "readingModes": {
+            "text": true,
+            "image": true
+        },
+        "pageCount": 704,
+        "printedPageCount": 478,
+        "printType": "BOOK",
+        "categories": [
+            "Fiction / Science Fiction / General"
+        ],
+        "maturityRating": "NOT_MATURE",
+        "allowAnonLogging": true,
+        "contentVersion": "1.1.1.0.preview.3",
+        "panelizationSummary": {
+            "containsEpubBubbles": false,
+            "containsImageBubbles": false
+        },
+        "imageLinks": {
+            "smallThumbnail": "http://books.google.com/books/publisher/content?id=G7utDwAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&imgtk=AFLRE71Zhj6v9aMLeOtTnqEjCcUstOUtv8pU3R3ipmb2zOe8ga2XZcKEUNYKzKQhSjwhdXCCWH8j0357XzhN2xCGo4X44XVZ6QadsAKgv-I8bNBmRbie1tmcIKn8huVrjJLGh3ytd5iO&source=gbs_api",
+            "thumbnail": "http://books.google.com/books/publisher/content?id=G7utDwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&imgtk=AFLRE73iXAAA6Bipi-q6HwR1kz5-XegugreP1A2Mbu63gh2TQKdI1lOCoRg9EuW7sFt2RjQgDbAXaHQlBPe8TBY2mo0i2ngWotY1eAvIusIEaCLRD18wl0baMruHUs4b3QvBF56gznpu&source=gbs_api",
+            "small": "http://books.google.com/books/publisher/content?id=G7utDwAAQBAJ&printsec=frontcover&img=1&zoom=2&edge=curl&imgtk=AFLRE71Xief9ehNn38lxcE4zm0gkG9A2v_B7DVXF-dG4rm9ZWM7eZLLbt7hKOikmOBnt_2yClMeKTcTRawMX1Vyk0aK3wn5ynUUpMf9NF39gN-HQvGgI_zCOTHI666iNvDfhUyZL8sIB&source=gbs_api",
+            "medium": "http://books.google.com/books/publisher/content?id=G7utDwAAQBAJ&printsec=frontcover&img=1&zoom=3&edge=curl&imgtk=AFLRE70WLksH5tj5q8gFMNUenY-rFrrr5Ff3r5TDt9Uhx6fiPQxm8lE2rhwr-HxUvbIMtXP-CHpV5JAagggBeyO8UjEjuRNZDSkIfABBLneNh9eLdIcBXS-esCeTXc-AyI76tQ0PAsPS&source=gbs_api",
+            "large": "http://books.google.com/books/publisher/content?id=G7utDwAAQBAJ&printsec=frontcover&img=1&zoom=4&edge=curl&imgtk=AFLRE701An2VOoqqEQ7XZre802y67seosY2vxTgZtotvslfTUGuq6Z1zb_HtCnezKKh2PZuonHdeOjLCIpNn6Ns8GtwGgEdQPeLUoZhL-AZqqJShKvVyc5CVRXjeE9cl1oubIT7c_Tis&source=gbs_api",
+            "extraLarge": "http://books.google.com/books/publisher/content?id=G7utDwAAQBAJ&printsec=frontcover&img=1&zoom=6&edge=curl&imgtk=AFLRE70zvRYbN6L3AM1H-SFdT_b8RDDGh6SfKIC_erPvfkI3QnpI_sFSIyOjXKgLJqbxVttwKVw12OUkxkPGjlAekXU7tTbpS7OcUQ_XbxhKaIsoC6ekr32GtMzZ5WkHbGu6rRpdIYVQ&source=gbs_api"
+        },
+        "language": "fr",
+        "previewLink": "http://books.google.fr/books?id=G7utDwAAQBAJ&hl=&source=gbs_api",
+        "infoLink": "https://play.google.com/store/books/details?id=G7utDwAAQBAJ&source=gbs_api",
+        "canonicalVolumeLink": "https://play.google.com/store/books/details?id=G7utDwAAQBAJ"
+    },
+    "layerInfo": {
+        "layers": [
+            {
+                "layerId": "geo",
+                "volumeAnnotationsVersion": "3"
+            }
+        ]
+    },
+    "saleInfo": {
+        "country": "FR",
+        "saleability": "NOT_FOR_SALE",
+        "isEbook": false
+    },
+    "accessInfo": {
+        "country": "FR",
+        "viewability": "PARTIAL",
+        "embeddable": true,
+        "publicDomain": false,
+        "textToSpeechPermission": "ALLOWED",
+        "epub": {
+            "isAvailable": true,
+            "acsTokenLink": "http://books.google.fr/books/download/Dans_la_toile_du_temps-sample-epub.acsm?id=G7utDwAAQBAJ&format=epub&output=acs4_fulfillment_token&dl_type=sample&source=gbs_api"
+        },
+        "pdf": {
+            "isAvailable": true,
+            "acsTokenLink": "http://books.google.fr/books/download/Dans_la_toile_du_temps-sample-pdf.acsm?id=G7utDwAAQBAJ&format=pdf&output=acs4_fulfillment_token&dl_type=sample&source=gbs_api"
+        },
+        "webReaderLink": "http://play.google.com/books/reader?id=G7utDwAAQBAJ&hl=&source=gbs_api",
+        "accessViewStatus": "SAMPLE",
+        "quoteSharingAllowed": false
+    }
+}

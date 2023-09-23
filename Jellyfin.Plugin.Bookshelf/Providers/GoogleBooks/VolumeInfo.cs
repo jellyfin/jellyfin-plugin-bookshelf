@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
@@ -61,6 +61,12 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
         /// Gets or sets the average rating.
         /// </summary>
         [JsonPropertyName("averageRating")]
-        public float AverageRating { get; set; }
+        public float? AverageRating { get; set; }
+
+        /// <summary>
+        /// Gets or sets the language.
+        /// </summary>
+        [JsonPropertyName("language")]
+        public string? Language { get; set; }
     }
 }

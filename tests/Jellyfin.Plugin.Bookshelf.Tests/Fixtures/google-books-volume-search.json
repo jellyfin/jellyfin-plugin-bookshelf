@@ -1,0 +1,156 @@
+﻿{
+    "kind": "books#volumes",
+    "totalItems": 1499,
+    "items": [
+        {
+            "kind": "books#volume",
+            "id": "49T5twEACAAJ",
+            "etag": "xf91z5Lu3rE",
+            "selfLink": "https://www.googleapis.com/books/v1/volumes/49T5twEACAAJ",
+            "volumeInfo": {
+                "title": "Children of Time",
+                "authors": [
+                    "Adrian Tchaikovsky"
+                ],
+                "publisher": "Orbit",
+                "publishedDate": "2018-12-11",
+                "description": "Adrian Tchaikovksy's award-winning novel Children of Time, is the epic story of humanity's battle for survival on a terraformed planet. Who will inherit this new Earth? The last remnants of the human race left a dying Earth, desperate to find a new home among the stars. Following in the footsteps of their ancestors, they discover the greatest treasure of the past age - a world terraformed and prepared for human life. But all is not right in this new Eden. In the long years since the planet was abandoned, the work of its architects has borne disastrous fruit. The planet is not waiting for them, pristine and unoccupied. New masters have turned it from a refuge into mankind's worst nightmare. Now two civilizations are on a collision course, both testing the boundaries of what they will do to survive. As the fate of humanity hangs in the balance, who are the true heirs of this new Earth?span",
+                "industryIdentifiers": [
+                    {
+                        "type": "ISBN_10",
+                        "identifier": "0316452505"
+                    },
+                    {
+                        "type": "ISBN_13",
+                        "identifier": "9780316452502"
+                    }
+                ],
+                "readingModes": {
+                    "text": false,
+                    "image": false
+                },
+                "pageCount": 0,
+                "printType": "BOOK",
+                "categories": [
+                    "Fiction"
+                ],
+                "averageRating": 4,
+                "ratingsCount": 49,
+                "maturityRating": "NOT_MATURE",
+                "allowAnonLogging": false,
+                "contentVersion": "preview-1.0.0",
+                "panelizationSummary": {
+                    "containsEpubBubbles": false,
+                    "containsImageBubbles": false
+                },
+                "imageLinks": {
+                    "smallThumbnail": "http://books.google.com/books/content?id=49T5twEACAAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api",
+                    "thumbnail": "http://books.google.com/books/content?id=49T5twEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+                },
+                "language": "en",
+                "previewLink": "http://books.google.fr/books?id=49T5twEACAAJ&dq=children+of+time+2015&hl=&cd=1&source=gbs_api",
+                "infoLink": "http://books.google.fr/books?id=49T5twEACAAJ&dq=children+of+time+2015&hl=&source=gbs_api",
+                "canonicalVolumeLink": "https://books.google.com/books/about/Children_of_Time.html?hl=&id=49T5twEACAAJ"
+            },
+            "saleInfo": {
+                "country": "FR",
+                "saleability": "NOT_FOR_SALE",
+                "isEbook": false
+            },
+            "accessInfo": {
+                "country": "FR",
+                "viewability": "NO_PAGES",
+                "embeddable": false,
+                "publicDomain": false,
+                "textToSpeechPermission": "ALLOWED",
+                "epub": {
+                    "isAvailable": false
+                },
+                "pdf": {
+                    "isAvailable": false
+                },
+                "webReaderLink": "http://play.google.com/books/reader?id=49T5twEACAAJ&hl=&source=gbs_api",
+                "accessViewStatus": "NONE",
+                "quoteSharingAllowed": false
+            },
+            "searchInfo": {
+                "textSnippet": "Adrian Tchaikovksy&#39;s award-winning novel Children of Time, is the epic story of humanity&#39;s battle for survival on a terraformed planet."
+            }
+        },
+        {
+            "kind": "books#volume",
+            "id": "G7utDwAAQBAJ",
+            "etag": "CD3eFflJQF0",
+            "selfLink": "https://www.googleapis.com/books/v1/volumes/G7utDwAAQBAJ",
+            "volumeInfo": {
+                "title": "Dans la toile du temps",
+                "authors": [
+                    "Adrian Tchaikovsky"
+                ],
+                "publisher": "Editions Gallimard",
+                "publishedDate": "2019-10-03T00:00:00+02:00",
+                "description": "La Terre est au plus mal... Ses derniers habitants n’ont plus qu’un seul espoir : coloniser le \"Monde de Kern\", une planète lointaine, spécialement terraformée pour l’espèce humaine. Mais sur ce \"monde vert\" paradisiaque, tout ne s’est pas déroulé comme les scientifiques s’y attendaient. Une autre espèce que celle qui était prévue, aidée par un nanovirus, s’est parfaitement adaptée à ce nouvel environnement et elle n’a pas du tout l’intention de laisser sa place. Le choc de deux civilisations aussi différentes que possible semble inévitable. Qui seront donc les héritiers de l’ancienne Terre ? Qui sortira vainqueur du piège tendu par la toile du temps ? Premier roman de l’auteur paru en France, Dans la toile du temps s’inscrit dans la lignée du cycle Élévation de David Brin. Il nous fait découvrir l’évolution d’une civilisation radicalement autre et sa confrontation inévitable avec l’espèce humaine. Le roman a reçu le prix Arthur C. Clarke en 2016",
+                "industryIdentifiers": [
+                    {
+                        "type": "ISBN_13",
+                        "identifier": "9782072853319"
+                    },
+                    {
+                        "type": "ISBN_10",
+                        "identifier": "2072853311"
+                    }
+                ],
+                "readingModes": {
+                    "text": true,
+                    "image": true
+                },
+                "pageCount": 478,
+                "printType": "BOOK",
+                "categories": [
+                    "Fiction"
+                ],
+                "maturityRating": "NOT_MATURE",
+                "allowAnonLogging": true,
+                "contentVersion": "1.1.1.0.preview.3",
+                "panelizationSummary": {
+                    "containsEpubBubbles": false,
+                    "containsImageBubbles": false
+                },
+                "imageLinks": {
+                    "smallThumbnail": "http://books.google.com/books/content?id=G7utDwAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
+                    "thumbnail": "http://books.google.com/books/content?id=G7utDwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+                },
+                "language": "fr",
+                "previewLink": "http://books.google.fr/books?id=G7utDwAAQBAJ&printsec=frontcover&dq=children+of+time+2015&hl=&cd=2&source=gbs_api",
+                "infoLink": "http://books.google.fr/books?id=G7utDwAAQBAJ&dq=children+of+time+2015&hl=&source=gbs_api",
+                "canonicalVolumeLink": "https://books.google.com/books/about/Dans_la_toile_du_temps.html?hl=&id=G7utDwAAQBAJ"
+            },
+            "saleInfo": {
+                "country": "FR",
+                "saleability": "NOT_FOR_SALE",
+                "isEbook": false
+            },
+            "accessInfo": {
+                "country": "FR",
+                "viewability": "PARTIAL",
+                "embeddable": true,
+                "publicDomain": false,
+                "textToSpeechPermission": "ALLOWED",
+                "epub": {
+                    "isAvailable": true,
+                    "acsTokenLink": "http://books.google.fr/books/download/Dans_la_toile_du_temps-sample-epub.acsm?id=G7utDwAAQBAJ&format=epub&output=acs4_fulfillment_token&dl_type=sample&source=gbs_api"
+                },
+                "pdf": {
+                    "isAvailable": true,
+                    "acsTokenLink": "http://books.google.fr/books/download/Dans_la_toile_du_temps-sample-pdf.acsm?id=G7utDwAAQBAJ&format=pdf&output=acs4_fulfillment_token&dl_type=sample&source=gbs_api"
+                },
+                "webReaderLink": "http://play.google.com/books/reader?id=G7utDwAAQBAJ&hl=&source=gbs_api",
+                "accessViewStatus": "SAMPLE",
+                "quoteSharingAllowed": false
+            },
+            "searchInfo": {
+                "textSnippet": "Qui sortira vainqueur du piège tendu par la toile du temps ? Premier roman de l’auteur paru en France, Dans la toile du temps s’inscrit dans la lignée du cycle Élévation de David Brin."
+            }
+        }
+    ]
+}
