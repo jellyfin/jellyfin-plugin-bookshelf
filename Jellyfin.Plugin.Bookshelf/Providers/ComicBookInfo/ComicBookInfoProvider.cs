@@ -195,7 +195,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
         {
             try
             {
-                return new CultureInfo(language).DisplayName;
+                return CultureInfo.GetCultureInfo(language).DisplayName;
             }
             catch (Exception)
             {
