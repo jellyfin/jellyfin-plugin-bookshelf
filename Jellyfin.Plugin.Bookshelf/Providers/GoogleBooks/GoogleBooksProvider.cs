@@ -4,12 +4,10 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Json;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Jellyfin.Extensions.Json;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
@@ -22,7 +20,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
     /// <summary>
     /// Google books provider.
     /// </summary>
-    public class GoogleBooksProvider : IRemoteMetadataProvider<Book, BookInfo>
+    public class GoogleBooksProvider : BaseGoogleBooksProvider, IRemoteMetadataProvider<Book, BookInfo>
     {
         // convert these characters to whitespace for better matching
         // there are two dashes with different char codes
@@ -69,6 +67,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
         public GoogleBooksProvider(
             ILogger<GoogleBooksProvider> logger,
             IHttpClientFactory httpClientFactory)
+            : base(logger, httpClientFactory)
         {
             _httpClientFactory = httpClientFactory;
             _logger = logger;
@@ -81,38 +80,59 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
         public async Task<IEnumerable<RemoteSearchResult>> GetSearchResults(BookInfo searchInfo, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var list = new List<RemoteSearchResult>();
 
-            var searchResults = await GetSearchResultsInternal(searchInfo, cancellationToken).ConfigureAwait(false);
-            if (searchResults is null)
+            Func<BookResult, RemoteSearchResult> getSearchResultFromBook = (BookResult info) =>
             {
-                return Enumerable.Empty<RemoteSearchResult>();
-            }
-
-            foreach (var result in searchResults.Items)
-            {
-                if (result.VolumeInfo is null)
-                {
-                    continue;
-                }
-
                 var remoteSearchResult = new RemoteSearchResult();
 
-                remoteSearchResult.SetProviderId(GoogleBooksConstants.ProviderId, result.Id);
+                remoteSearchResult.SetProviderId(GoogleBooksConstants.ProviderId, info.Id);
                 remoteSearchResult.SearchProviderName = GoogleBooksConstants.ProviderName;
-                remoteSearchResult.Name = result.VolumeInfo.Title;
-                remoteSearchResult.Overview = WebUtility.HtmlDecode(result.VolumeInfo.Description);
-                remoteSearchResult.ProductionYear = GetYearFromPublishedDate(result.VolumeInfo.PublishedDate);
+                remoteSearchResult.Name = info.VolumeInfo?.Title;
+                remoteSearchResult.Overview = WebUtility.HtmlDecode(info.VolumeInfo?.Description);
+                remoteSearchResult.ProductionYear = GetYearFromPublishedDate(info.VolumeInfo?.PublishedDate);
 
-                if (result.VolumeInfo.ImageLinks?.Thumbnail != null)
+                if (info.VolumeInfo?.ImageLinks?.Thumbnail != null)
                 {
-                    remoteSearchResult.ImageUrl = result.VolumeInfo.ImageLinks.Thumbnail;
+                    remoteSearchResult.ImageUrl = info.VolumeInfo.ImageLinks.Thumbnail;
                 }
 
-                list.Add(remoteSearchResult);
-            }
+                return remoteSearchResult;
+            };
 
-            return list;
+            var googleBookId = searchInfo.GetProviderId(GoogleBooksConstants.ProviderId);
+
+            if (!string.IsNullOrWhiteSpace(googleBookId))
+            {
+                var bookData = await FetchBookData(googleBookId, cancellationToken).ConfigureAwait(false);
+
+                if (bookData == null || bookData.VolumeInfo == null)
+                {
+                    return Enumerable.Empty<RemoteSearchResult>();
+                }
+
+                return new[] { getSearchResultFromBook(bookData) };
+            }
+            else
+            {
+                var searchResults = await GetSearchResultsInternal(searchInfo, cancellationToken).ConfigureAwait(false);
+                if (searchResults is null)
+                {
+                    return Enumerable.Empty<RemoteSearchResult>();
+                }
+
+                var list = new List<RemoteSearchResult>();
+                foreach (var result in searchResults.Items)
+                {
+                    if (result.VolumeInfo is null)
+                    {
+                        continue;
+                    }
+
+                    list.Add(getSearchResultFromBook(result));
+                }
+
+                return list;
+            }
         }
 
         /// <inheritdoc />
@@ -173,11 +193,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             var searchString = GetSearchString(item);
             var url = string.Format(CultureInfo.InvariantCulture, GoogleApiUrls.SearchUrl, WebUtility.UrlEncode(searchString), 0, 20);
 
-            var httpClient = _httpClientFactory.CreateClient(NamedClient.Default);
-
-            using var response = await httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
-
-            return await response.Content.ReadFromJsonAsync<SearchResult>(JsonDefaults.Options, cancellationToken).ConfigureAwait(false);
+            return await GetResultFromAPI<SearchResult>(url, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<string?> FetchBookId(BookInfo item, CancellationToken cancellationToken)
@@ -238,19 +254,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             }
 
             return bookReleaseYear;
-        }
-
-        private async Task<BookResult?> FetchBookData(string googleBookId, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var url = string.Format(CultureInfo.InvariantCulture, GoogleApiUrls.DetailsUrl, googleBookId);
-
-            var httpClient = _httpClientFactory.CreateClient(NamedClient.Default);
-
-            using var response = await httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
-
-            return await response.Content.ReadFromJsonAsync<BookResult>(JsonDefaults.Options, cancellationToken).ConfigureAwait(false);
         }
 
         private Book? ProcessBookData(BookResult bookResult, CancellationToken cancellationToken)
