@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -24,16 +24,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
     /// </summary>
     public class GoogleBooksProvider : IRemoteMetadataProvider<Book, BookInfo>
     {
-        /// <summary>
-        /// Name of the provider.
-        /// </summary>
-        public const string ProviderName = "Google Books";
-
-        /// <summary>
-        /// Id of the provider.
-        /// </summary>
-        public const string ProviderId = "GoogleBooks";
-
         // convert these characters to whitespace for better matching
         // there are two dashes with different char codes
         private const string Spacers = "/,.:;\\(){}[]+-_=–*";
@@ -85,7 +75,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
         }
 
         /// <inheritdoc />
-        public string Name => ProviderName;
+        public string Name => GoogleBooksConstants.ProviderName;
 
         /// <inheritdoc />
         public async Task<IEnumerable<RemoteSearchResult>> GetSearchResults(BookInfo searchInfo, CancellationToken cancellationToken)
@@ -108,8 +98,8 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
 
                 var remoteSearchResult = new RemoteSearchResult();
 
-                remoteSearchResult.SetProviderId(ProviderId, result.Id);
-                remoteSearchResult.SearchProviderName = ProviderName;
+                remoteSearchResult.SetProviderId(GoogleBooksConstants.ProviderId, result.Id);
+                remoteSearchResult.SearchProviderName = GoogleBooksConstants.ProviderName;
                 remoteSearchResult.Name = result.VolumeInfo.Title;
                 remoteSearchResult.Overview = result.VolumeInfo.Description;
                 remoteSearchResult.ProductionYear = GetYearFromPublishedDate(result.VolumeInfo.PublishedDate);
@@ -135,7 +125,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
                 QueriedById = true
             };
 
-            var googleBookId = info.GetProviderId(ProviderId);
+            var googleBookId = info.GetProviderId(GoogleBooksConstants.ProviderId);
 
             if (string.IsNullOrWhiteSpace(googleBookId))
             {
@@ -324,7 +314,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
 
             if (!string.IsNullOrWhiteSpace(bookResult.Id))
             {
-                book.SetProviderId(ProviderId, bookResult.Id);
+                book.SetProviderId(GoogleBooksConstants.ProviderId, bookResult.Id);
             }
 
             return book;

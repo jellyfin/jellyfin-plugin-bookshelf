@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks;
 using Jellyfin.Plugin.Bookshelf.Tests.Http;
 using MediaBrowser.Controller.Entities;
@@ -10,35 +10,17 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
 {
     public class GoogleBooksProviderTests
     {
-        /// <summary>
-        /// Get the content of a fixture file.
-        /// </summary>
-        /// <param name="fileName">Name of the fixture file.</param>
-        /// <returns>The file's content.</returns>
-        /// <exception cref="FileNotFoundException">If the file does not exist.</exception>
-        private string GetFixture(string fileName)
-        {
-            var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Fixtures", fileName);
-
-            if (!File.Exists(filePath))
-            {
-                throw new FileNotFoundException($"The fixture file '{filePath}' was not found.");
-            }
-
-            return File.ReadAllText(filePath);
-        }
-
         // From the query 'https://www.googleapis.com/books/v1/volumes?q=children+of+time+2015'
-        private string GetTestSearchResult() => GetFixture("google-books-volume-search.json");
+        private string GetTestSearchResult() => TestHelpers.GetFixture("google-books-volume-search.json");
 
-        private string GetEnglishTestVolumeResult() => GetFixture("google-books-single-volume-en.json");
-        private string GetFrenchTestVolumeResult() => GetFixture("google-books-single-volume-fr.json");
+        private string GetEnglishTestVolumeResult() => TestHelpers.GetFixture("google-books-single-volume-en.json");
+        private string GetFrenchTestVolumeResult() => TestHelpers.GetFixture("google-books-single-volume-fr.json");
 
         private bool HasGoogleId(string id, Dictionary<string, string> providerIds)
         {
             return providerIds.Count == 1
-                && providerIds.ContainsKey(GoogleBooksProvider.ProviderId)
-                && providerIds[GoogleBooksProvider.ProviderId] == id;
+                && providerIds.ContainsKey(GoogleBooksConstants.ProviderId)
+                && providerIds[GoogleBooksConstants.ProviderId] == id;
         }
 
         #region GetSearchResults
@@ -58,7 +40,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
 
             var results = await provider.GetSearchResults(new BookInfo() { Name = "Children of Time" }, CancellationToken.None);
 
-            Assert.True(results.All(result => result.SearchProviderName == GoogleBooksProvider.ProviderName));
+            Assert.True(results.All(result => result.SearchProviderName == GoogleBooksConstants.ProviderName));
 
             Assert.Collection(
             results,
@@ -157,7 +139,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
             var metadataResult = await provider.GetMetadata(new BookInfo()
             {
                 Name = "Children of Time",
-                ProviderIds = { { GoogleBooksProvider.ProviderId, "G7utDwAAQBAJ" } }
+                ProviderIds = { { GoogleBooksConstants.ProviderId, "G7utDwAAQBAJ" } }
             }, CancellationToken.None);
 
             Assert.True(metadataResult.QueriedById);
