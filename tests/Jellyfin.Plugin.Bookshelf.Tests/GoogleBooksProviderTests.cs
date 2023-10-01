@@ -3,6 +3,7 @@ using Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks;
 using Jellyfin.Plugin.Bookshelf.Tests.Http;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
+using MediaBrowser.Model.Entities;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 
@@ -211,6 +212,19 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
             Assert.Equal("Children of Time", bookInfo.Name);
         }
 
+
+        [Fact]
+        public void GetBookMetadata_WithNameAndDefaultSeriesName_CorrectlyResetSeriesName()
+        {
+            GoogleBooksProvider provider = new GoogleBooksProvider(NullLogger<GoogleBooksProvider>.Instance, Substitute.For<IHttpClientFactory>());
+
+            var bookInfo = new BookInfo() { SeriesName = CollectionType.Books, Name = "Children of Time" };
+            provider.GetBookMetadata(bookInfo);
+
+            Assert.Equal("Children of Time", bookInfo.Name);
+            Assert.Equal(string.Empty, bookInfo.SeriesName);
+        }
+
         [Fact]
         public void GetBookMetadata_WithNameAndYear_CorrectlyMatchesFileName()
         {
@@ -250,7 +264,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
         }
 
         [Fact]
-        public void GetBookMetadata_WithIndexdNameAndYear_CorrectlyMatchesFileName()
+        public void GetBookMetadata_WithIndexNameAndYear_CorrectlyMatchesFileName()
         {
             GoogleBooksProvider provider = new GoogleBooksProvider(NullLogger<GoogleBooksProvider>.Instance, Substitute.For<IHttpClientFactory>());
 
@@ -324,6 +338,19 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
             Assert.Equal("Children of Time", bookInfo.SeriesName);
             Assert.Equal(2, bookInfo.IndexNumber);
             Assert.Equal(2019, bookInfo.Year);
+        }
+
+        [Fact]
+        public void GetBookMetadata_WithSeriesAndName_OverridesSeriesName()
+        {
+            GoogleBooksProvider provider = new GoogleBooksProvider(NullLogger<GoogleBooksProvider>.Instance, Substitute.For<IHttpClientFactory>());
+
+            var bookInfo = new BookInfo() { SeriesName = "Adrian Tchaikovsky", Name = "Children of Ruin (Children of Time, #2)" };
+            provider.GetBookMetadata(bookInfo);
+
+            Assert.Equal("Children of Ruin", bookInfo.Name);
+            Assert.Equal("Children of Time", bookInfo.SeriesName);
+            Assert.Equal(2, bookInfo.IndexNumber);
         }
 
         #endregion

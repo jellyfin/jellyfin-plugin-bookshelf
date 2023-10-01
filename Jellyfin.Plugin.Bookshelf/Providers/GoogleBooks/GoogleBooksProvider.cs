@@ -44,7 +44,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             new Regex(@"(?<name>.*)")
         };
 
-        private readonly Dictionary<string, string> _replaceEndNumerals = new()
+        private readonly Dictionary<string, string> _replaceEndNumerals = new ()
         {
             { " i", " 1" },
             { " ii", " 2" },
@@ -419,9 +419,16 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
                 }
 
                 // Reset the name, since we'll get it from parsing
-                // Don't reset the series name, since it may be set from the parent folder's name
-                // We'll just override it if we find it in the file name
                 item.Name = string.Empty;
+
+                if (item.SeriesName == CollectionType.Books)
+                {
+                    // If the book is in a folder, the folder's name will be set as the series name
+                    // And we'll override it if we find it in the file name
+                    // If it's not in a folder, the series name will be set to the name of the collection
+                    // In this case reset it so it's not included in the search string
+                    item.SeriesName = string.Empty;
+                }
 
                 // catch return value because user may want to index books from zero
                 // but zero is also the return value from int.TryParse failure
