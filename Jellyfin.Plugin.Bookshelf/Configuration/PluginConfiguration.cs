@@ -1,4 +1,4 @@
-﻿using MediaBrowser.Model.Plugins;
+using MediaBrowser.Model.Plugins;
 
 namespace Jellyfin.Plugin.Bookshelf.Configuration
 {
@@ -7,5 +7,9 @@ namespace Jellyfin.Plugin.Bookshelf.Configuration
     /// </summary>
     public class PluginConfiguration : BasePluginConfiguration
     {
+        /// <summary>
+        /// Gets or sets the Comic Vine API key.
+        /// </summary>
+        public string ComicVineApiKey { get; set; } = string.Empty;
     }
 }

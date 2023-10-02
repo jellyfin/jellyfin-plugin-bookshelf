@@ -1,65 +1,57 @@
-﻿<!DOCTYPE html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
+    <meta charset="utf-8">
     <title>Bookshelf</title>
 </head>
 
 <body>
-    <div id="bookshelfConfigurationPage" data-role="page" class="page type-interior pluginConfigurationPage">
+    <div id="bookshelfConfigurationPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input">
         <div data-role="content">
             <div class="content-primary">
-                <h1>Bookshelf</h1>
-                <p>To set up Bookshelf, just add a media library in the server configuration and set the content type to
-                    books. If you want to see support for a specific provider we always welcome code
-                    contributions!
-                </p>
-                <h1>Supported Formats</h1>
-                Please take in mind that this is not a complete list.
-                <ul>
-                    <li>epub</li>
-                    <li>mobi</li>
-                    <li>pdf</li>
-                    <li>cbz</li>
-                    <li>cbr</li>
-                    <li>mp3</li>
-                    <li>m4a</li>
-                    <li>m4b</li>
-                    <li>flac</li>
-                </ul>
-
-                <h1>Offline Metadata providers</h1>
-                <ul>
-                    <li>Open Packaging Format (OPF)</li>
-                    <li>Calibre OPF</li>
-                    <li>ComicInfo</li>
-                    <li>ComicBookInfo</li>
-                </ul>
-                The following <b>limitations</b> apply:
-                <ul>
-                    <li>
-                        .cbr Comics tagged with ComicRack's ComicInfo format
-                        are partially supported. Any metadata bundled with the
-                        comic book itself will be ignored. External files will be read.
-                    </li>
-                    <li>
-                        The
-                        <a href="https://launchpad.net/acbf">Advanced Comic Book Format</a>
-                        format is not supported.
-                    </li>
-                    <li>
-                        The
-                        <a href="https://www.denvog.com/comet/comet-specification/">CoMet</a>
-                        format is not supported.
-                    </li>
-                </ul>
-
-                <h1>Online Metadata providers</h1>
-                <ul>
-                    <li>Google Books</li>
-                </ul>
+                <form id="bookshelfConfigurationForm">
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="comicVineApiKey">Comic Vine API Key</label>
+                        <input id="comicVineApiKey" name="ComicVineApiKey" type="text" is="emby-input" required />
+                        <div class="fieldDescription"> Comic Vine API Key. <a href="https://comicvine.gamespot.com/api/" target="_blank">Get one here</a>.</div>
+                    </div>
+                    <div>
+                        <button is="emby-button" type="submit" class="raised button-submit block emby-button">
+                            <span>Save</span>
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
+        <script type="text/javascript">
+            var TemplateConfig = {
+                pluginUniqueId: '9c4e63f1-031b-4f25-988b-4f7d78a8b53e'
+            };
+
+            document.querySelector('#bookshelfConfigurationPage')
+                .addEventListener('pageshow', function () {
+                    Dashboard.showLoadingMsg();
+                    ApiClient.getPluginConfiguration(TemplateConfig.pluginUniqueId).then(function (config) {
+                        document.querySelector('#comicVineApiKey').value = config.ComicVineApiKey;
+                        Dashboard.hideLoadingMsg();
+                    });
+                });
+
+            document.querySelector('#bookshelfConfigurationForm')
+                .addEventListener('submit', function (e) {
+                    Dashboard.showLoadingMsg();
+                    ApiClient.getPluginConfiguration(TemplateConfig.pluginUniqueId).then(function (config) {
+                        config.ComicVineApiKey = document.querySelector('#comicVineApiKey').value;
+                        ApiClient.updatePluginConfiguration(TemplateConfig.pluginUniqueId, config).then(function (result) {
+                            Dashboard.processPluginConfigurationUpdateResult(result);
+                        });
+                    });
+
+                    e.preventDefault();
+                    return false;
+                });
+        </script>
     </div>
 </body>
 
