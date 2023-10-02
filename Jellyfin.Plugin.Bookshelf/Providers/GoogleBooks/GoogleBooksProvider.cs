@@ -101,7 +101,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
                 remoteSearchResult.SetProviderId(GoogleBooksConstants.ProviderId, result.Id);
                 remoteSearchResult.SearchProviderName = GoogleBooksConstants.ProviderName;
                 remoteSearchResult.Name = result.VolumeInfo.Title;
-                remoteSearchResult.Overview = result.VolumeInfo.Description;
+                remoteSearchResult.Overview = WebUtility.HtmlDecode(result.VolumeInfo.Description);
                 remoteSearchResult.ProductionYear = GetYearFromPublishedDate(result.VolumeInfo.PublishedDate);
 
                 if (result.VolumeInfo.ImageLinks?.Thumbnail != null)
@@ -272,7 +272,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             cancellationToken.ThrowIfCancellationRequested();
 
             book.Name = bookResult.VolumeInfo.Title;
-            book.Overview = bookResult.VolumeInfo.Description;
+            book.Overview = WebUtility.HtmlDecode(bookResult.VolumeInfo.Description);
             book.ProductionYear = GetYearFromPublishedDate(bookResult.VolumeInfo.PublishedDate);
 
             if (!string.IsNullOrWhiteSpace(bookResult.VolumeInfo.Publisher))

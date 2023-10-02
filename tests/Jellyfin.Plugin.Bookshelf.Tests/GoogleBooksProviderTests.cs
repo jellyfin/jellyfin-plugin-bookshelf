@@ -103,13 +103,13 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
                     Assert.Equal("Orbit", s);
                 });
             Assert.Equal(2018, metadataResult.Item.ProductionYear);
-            Assert.Equal("\u003cb\u003eAdrian Tchaikovksy's award-winning novel \u003ci\u003eChildren of Time\u003c/i\u003e, is the epic story of humanity's battle for survival on a terraformed planet." +
-                "\u003c/b\u003e\u003cb\u003e\u003cbr\u003e\u003c/b\u003eWho will inherit this new Earth?" +
-                "\u003cbr\u003e\u003cbr\u003eThe last remnants of the human race left a dying Earth, desperate to find a new home among the stars. " +
+            Assert.Equal("<b>Adrian Tchaikovksy's award-winning novel <i>Children of Time</i>, is the epic story of humanity's battle for survival on a terraformed planet.</b><b>" +
+                "<br></b>Who will inherit this new Earth?<br><br>" +
+                "The last remnants of the human race left a dying Earth, desperate to find a new home among the stars. " +
                 "Following in the footsteps of their ancestors, they discover the greatest treasure of the past age - a world terraformed and prepared for human life." +
-                "\u003cbr\u003e\u003cbr\u003eBut all is not right in this new Eden. In the long years since the planet was abandoned, the work of its architects has borne disastrous fruit. " +
+                "<br><br>But all is not right in this new Eden. In the long years since the planet was abandoned, the work of its architects has borne disastrous fruit. " +
                 "The planet is not waiting for them, pristine and unoccupied. New masters have turned it from a refuge into mankind's worst nightmare." +
-                "\u003cbr\u003e\u003cbr\u003eNow two civilizations are on a collision course, both testing the boundaries of what they will do to survive. " +
+                "<br><br>Now two civilizations are on a collision course, both testing the boundaries of what they will do to survive. " +
                 "As the fate of humanity hangs in the balance, who are the true heirs of this new Earth?span", metadataResult.Item.Overview);
             Assert.Collection(metadataResult.Item.Genres,
                 genre => Assert.Equal("Fiction", genre));
