@@ -1,0 +1,151 @@
+{
+    "error": "OK",
+    "limit": 10,
+    "offset": 0,
+    "number_of_page_results": 10,
+    "number_of_total_results": 8785,
+    "status_code": 1,
+    "results": [
+        {
+            "aliases": null,
+            "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/issue\/4000-989412\/",
+            "cover_date": "2015-08-01",
+            "date_added": "2023-05-14 09:20:45",
+            "date_last_updated": "2023-05-14 10:35:56",
+            "deck": null,
+            "description": null,
+            "has_staff_review": false,
+            "id": 989412,
+            "image": {
+                "icon_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/square_avatar\/11\/110017\/8943106-wwww.jpg",
+                "medium_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/scale_medium\/11\/110017\/8943106-wwww.jpg",
+                "screen_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/screen_medium\/11\/110017\/8943106-wwww.jpg",
+                "screen_large_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/screen_kubrick\/11\/110017\/8943106-wwww.jpg",
+                "small_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/scale_small\/11\/110017\/8943106-wwww.jpg",
+                "super_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/scale_large\/11\/110017\/8943106-wwww.jpg",
+                "thumb_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/scale_avatar\/11\/110017\/8943106-wwww.jpg",
+                "tiny_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/square_mini\/11\/110017\/8943106-wwww.jpg",
+                "original_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/original\/11\/110017\/8943106-wwww.jpg",
+                "image_tags": "All Images"
+            },
+            "associated_images": [],
+            "issue_number": "20",
+            "name": null,
+            "site_detail_url": "https:\/\/comicvine.gamespot.com\/invincible-20\/4000-989412\/",
+            "store_date": null,
+            "volume": {
+                "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/volume\/4050-150392\/",
+                "id": 150392,
+                "name": "Invincible",
+                "site_detail_url": "https:\/\/comicvine.gamespot.com\/invincible\/4050-150392\/"
+            },
+            "resource_type": "issue"
+        },
+        {
+            "aliases": null,
+            "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/issue\/4000-128610\/",
+            "cover_date": "2005-01-01",
+            "date_added": "2008-06-06 11:20:58",
+            "date_last_updated": "2015-06-18 10:35:43",
+            "deck": null,
+            "description": "<p><em>Mark Grayson is just like everyone else his age, except that his father is the most powerful superhero on the planet. And now he's begun to inherit his father's powers. It all sounds okay at first, but how do you follow in your father's footsteps when you know you will never live up to his standards? For nine years now (or however long it's been since issue #6 came out) readers have been wondering, \"What's up with that robot zombie from issue #6?\" Well, wonder no longer, because he's in this issue! Mark is on campus at his new college and something is amiss. What lurks behind...oh, wait: You already know!<\/em><\/p><p>Atom Eve decides to retire from the superhero business and use her powers to actually make a difference in the world. Amber gets mad at Mark when he mysteriously disappears to fight a Reaniman that is attacking the campus, she mistakenly thinks he ran off like a coward. If only she knew Mark is actually the brave superhero, Invincible. D. A. Sinclair formulates that his next Reaniman should be constructed from a...live subject!<\/p>",
+            "has_staff_review": false,
+            "id": 128610,
+            "image": {
+                "icon_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/square_avatar\/6\/67663\/2185628-20.jpg",
+                "medium_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/scale_medium\/6\/67663\/2185628-20.jpg",
+                "screen_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/screen_medium\/6\/67663\/2185628-20.jpg",
+                "screen_large_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/screen_kubrick\/6\/67663\/2185628-20.jpg",
+                "small_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/scale_small\/6\/67663\/2185628-20.jpg",
+                "super_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/scale_large\/6\/67663\/2185628-20.jpg",
+                "thumb_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/scale_avatar\/6\/67663\/2185628-20.jpg",
+                "tiny_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/square_mini\/6\/67663\/2185628-20.jpg",
+                "original_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/original\/6\/67663\/2185628-20.jpg",
+                "image_tags": "All Images"
+            },
+            "associated_images": [],
+            "issue_number": "20",
+            "name": null,
+            "site_detail_url": "https:\/\/comicvine.gamespot.com\/invincible-20\/4000-128610\/",
+            "store_date": null,
+            "volume": {
+                "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/volume\/4050-17993\/",
+                "id": 17993,
+                "name": "Invincible",
+                "site_detail_url": "https:\/\/comicvine.gamespot.com\/invincible\/4050-17993\/"
+            },
+            "resource_type": "issue"
+        },
+        {
+            "aliases": null,
+            "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/issue\/4000-989389\/",
+            "cover_date": "2016-04-01",
+            "date_added": "2023-05-14 08:33:23",
+            "date_last_updated": "2023-05-14 08:34:36",
+            "deck": null,
+            "description": null,
+            "has_staff_review": false,
+            "id": 989389,
+            "image": {
+                "icon_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/square_avatar\/11\/110017\/8943006-invincible-20-0001.jpg",
+                "medium_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/scale_medium\/11\/110017\/8943006-invincible-20-0001.jpg",
+                "screen_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/screen_medium\/11\/110017\/8943006-invincible-20-0001.jpg",
+                "screen_large_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/screen_kubrick\/11\/110017\/8943006-invincible-20-0001.jpg",
+                "small_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/scale_small\/11\/110017\/8943006-invincible-20-0001.jpg",
+                "super_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/scale_large\/11\/110017\/8943006-invincible-20-0001.jpg",
+                "thumb_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/scale_avatar\/11\/110017\/8943006-invincible-20-0001.jpg",
+                "tiny_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/square_mini\/11\/110017\/8943006-invincible-20-0001.jpg",
+                "original_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/original\/11\/110017\/8943006-invincible-20-0001.jpg",
+                "image_tags": "All Images"
+            },
+            "associated_images": [],
+            "issue_number": "20",
+            "name": "Amici",
+            "site_detail_url": "https:\/\/comicvine.gamespot.com\/invincible-20-amici\/4000-989389\/",
+            "store_date": null,
+            "volume": {
+                "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/volume\/4050-150390\/",
+                "id": 150390,
+                "name": "Invincible",
+                "site_detail_url": "https:\/\/comicvine.gamespot.com\/invincible\/4050-150390\/"
+            },
+            "resource_type": "issue"
+        },
+        {
+            "aliases": null,
+            "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/issue\/4000-575038\/",
+            "cover_date": "2017-01-31",
+            "date_added": "2017-01-03 10:40:29",
+            "date_last_updated": "2017-03-26 05:10:58",
+            "deck": null,
+            "description": null,
+            "has_staff_review": false,
+            "id": 575038,
+            "image": {
+                "icon_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/square_avatar\/6\/67663\/5628895-20.jpg",
+                "medium_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/scale_medium\/6\/67663\/5628895-20.jpg",
+                "screen_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/screen_medium\/6\/67663\/5628895-20.jpg",
+                "screen_large_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/screen_kubrick\/6\/67663\/5628895-20.jpg",
+                "small_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/scale_small\/6\/67663\/5628895-20.jpg",
+                "super_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/scale_large\/6\/67663\/5628895-20.jpg",
+                "thumb_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/scale_avatar\/6\/67663\/5628895-20.jpg",
+                "tiny_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/square_mini\/6\/67663\/5628895-20.jpg",
+                "original_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/original\/6\/67663\/5628895-20.jpg",
+                "image_tags": "All Images"
+            },
+            "associated_images": [],
+            "issue_number": "20",
+            "name": "Amis et alliés",
+            "site_detail_url": "https:\/\/comicvine.gamespot.com\/invincible-20-amis-et-allies\/4000-575038\/",
+            "store_date": "2017-01-04",
+            "volume": {
+                "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/volume\/4050-91662\/",
+                "id": 91662,
+                "name": "Invincible",
+                "site_detail_url": "https:\/\/comicvine.gamespot.com\/invincible\/4050-91662\/"
+            },
+            "resource_type": "issue"
+        }
+    ],
+    "version": "1.0"
+}

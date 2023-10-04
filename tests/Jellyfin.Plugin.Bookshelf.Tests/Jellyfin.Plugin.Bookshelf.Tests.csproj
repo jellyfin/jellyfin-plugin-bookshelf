@@ -32,7 +32,16 @@
     <ProjectReference Include="..\..\Jellyfin.Plugin.Bookshelf\Jellyfin.Plugin.Bookshelf.csproj" />
   </ItemGroup>
 
-   <ItemGroup>
+  <ItemGroup>
+    <None Update="Fixtures\comic-vine-single-issue.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Fixtures\comic-vine-issue-search-numbered-issues.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Fixtures\comic-vine-issue-search-named-issues.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Fixtures\google-books-single-volume-en.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

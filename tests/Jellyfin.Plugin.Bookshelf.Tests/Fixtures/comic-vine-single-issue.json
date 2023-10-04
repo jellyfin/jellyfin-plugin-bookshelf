@@ -1,0 +1,231 @@
+{
+    "error": "OK",
+    "limit": 1,
+    "offset": 0,
+    "number_of_page_results": 1,
+    "number_of_total_results": 1,
+    "status_code": 1,
+    "results": {
+        "aliases": null,
+        "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/issue\/4000-441467\/",
+        "associated_images": [
+            {
+                "original_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/original\/6\/67663\/3558136-10-full.jpg",
+                "id": 3558136,
+                "caption": null,
+                "image_tags": "All Images"
+            }
+        ],
+        "character_credits": [
+            {
+                "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/character\/4005-94028\/",
+                "id": 94028,
+                "name": "Armin Arlert",
+                "site_detail_url": "https:\/\/comicvine.gamespot.com\/armin-arlert\/4005-94028\/"
+            },
+            {
+                "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/character\/4005-94955\/",
+                "id": 94955,
+                "name": "Bertolt Hoover",
+                "site_detail_url": "https:\/\/comicvine.gamespot.com\/bertolt-hoover\/4005-94955\/"
+            },
+            {
+                "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/character\/4005-94951\/",
+                "id": 94951,
+                "name": "Connie Springer",
+                "site_detail_url": "https:\/\/comicvine.gamespot.com\/connie-springer\/4005-94951\/"
+            },
+            {
+                "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/character\/4005-94030\/",
+                "id": 94030,
+                "name": "Eren Yeager",
+                "site_detail_url": "https:\/\/comicvine.gamespot.com\/eren-yeager\/4005-94030\/"
+            },
+            {
+                "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/character\/4005-96722\/",
+                "id": 96722,
+                "name": "Gelgar",
+                "site_detail_url": "https:\/\/comicvine.gamespot.com\/gelgar\/4005-96722\/"
+            },
+            {
+                "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/character\/4005-94942\/",
+                "id": 94942,
+                "name": "Hannes",
+                "site_detail_url": "https:\/\/comicvine.gamespot.com\/hannes\/4005-94942\/"
+            },
+            {
+                "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/character\/4005-96729\/",
+                "id": 96729,
+                "name": "Henning",
+                "site_detail_url": "https:\/\/comicvine.gamespot.com\/henning\/4005-96729\/"
+            },
+            {
+                "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/character\/4005-94953\/",
+                "id": 94953,
+                "name": "Jean Kirstein",
+                "site_detail_url": "https:\/\/comicvine.gamespot.com\/jean-kirstein\/4005-94953\/"
+            },
+            {
+                "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/character\/4005-96726\/",
+                "id": 96726,
+                "name": "Keiji",
+                "site_detail_url": "https:\/\/comicvine.gamespot.com\/keiji\/4005-96726\/"
+            },
+            {
+                "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/character\/4005-94949\/",
+                "id": 94949,
+                "name": "Krista Lenz",
+                "site_detail_url": "https:\/\/comicvine.gamespot.com\/krista-lenz\/4005-94949\/"
+            },
+            {
+                "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/character\/4005-96731\/",
+                "id": 96731,
+                "name": "Lynne",
+                "site_detail_url": "https:\/\/comicvine.gamespot.com\/lynne\/4005-96731\/"
+            },
+            {
+                "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/character\/4005-94029\/",
+                "id": 94029,
+                "name": "Mikasa Ackerman",
+                "site_detail_url": "https:\/\/comicvine.gamespot.com\/mikasa-ackerman\/4005-94029\/"
+            },
+            {
+                "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/character\/4005-96735\/",
+                "id": 96735,
+                "name": "Nanaba",
+                "site_detail_url": "https:\/\/comicvine.gamespot.com\/nanaba\/4005-96735\/"
+            },
+            {
+                "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/character\/4005-94956\/",
+                "id": 94956,
+                "name": "Reiner Braun",
+                "site_detail_url": "https:\/\/comicvine.gamespot.com\/reiner-braun\/4005-94956\/"
+            },
+            {
+                "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/character\/4005-94950\/",
+                "id": 94950,
+                "name": "Sasha Blouse",
+                "site_detail_url": "https:\/\/comicvine.gamespot.com\/sasha-blouse\/4005-94950\/"
+            },
+            {
+                "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/character\/4005-94960\/",
+                "id": 94960,
+                "name": "Ymir",
+                "site_detail_url": "https:\/\/comicvine.gamespot.com\/ymir\/4005-94960\/"
+            },
+            {
+                "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/character\/4005-96715\/",
+                "id": 96715,
+                "name": "Zoe Hange",
+                "site_detail_url": "https:\/\/comicvine.gamespot.com\/zoe-hange\/4005-96715\/"
+            }
+        ],
+        "character_died_in": [
+            {
+                "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/character\/4005-96729\/",
+                "id": 96729,
+                "name": "Henning",
+                "site_detail_url": "https:\/\/comicvine.gamespot.com\/henning\/4005-96729\/"
+            },
+            {
+                "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/character\/4005-96731\/",
+                "id": 96731,
+                "name": "Lynne",
+                "site_detail_url": "https:\/\/comicvine.gamespot.com\/lynne\/4005-96731\/"
+            }
+        ],
+        "concept_credits": [],
+        "cover_date": "2014-01-31",
+        "date_added": "2014-01-07 01:14:07",
+        "date_last_updated": "2016-04-04 02:41:39",
+        "deck": null,
+        "description": "<p><em>FORTRESS OF BLOOD<\/em><\/p><p><em>With no combat gear and Wall Rose breached, the 104th scrambles to evacuate the villages in the Titans' path. On their way to the safety of Wall Sheena, they decide to spend the night in Utgard Castle. But their sanctuary becomes a slaughterhouse when they discover that, for some reason, these Titans attack at night!<\/em><\/p><h2>Chapter Titles<\/h2><ul><li>Episode 39: Soldier<\/li><li>Episode 40: Ymir<\/li><li>Episode 41: Historia<\/li><li>Episode 42: Warrior<\/li><\/ul>",
+        "first_appearance_characters": null,
+        "first_appearance_concepts": null,
+        "first_appearance_locations": null,
+        "first_appearance_objects": null,
+        "first_appearance_storyarcs": null,
+        "first_appearance_teams": null,
+        "has_staff_review": false,
+        "id": 441467,
+        "image": {
+            "icon_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/square_avatar\/6\/67663\/3556541-10.jpg",
+            "medium_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/scale_medium\/6\/67663\/3556541-10.jpg",
+            "screen_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/screen_medium\/6\/67663\/3556541-10.jpg",
+            "screen_large_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/screen_kubrick\/6\/67663\/3556541-10.jpg",
+            "small_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/scale_small\/6\/67663\/3556541-10.jpg",
+            "super_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/scale_large\/6\/67663\/3556541-10.jpg",
+            "thumb_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/scale_avatar\/6\/67663\/3556541-10.jpg",
+            "tiny_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/square_mini\/6\/67663\/3556541-10.jpg",
+            "original_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/original\/6\/67663\/3556541-10.jpg",
+            "image_tags": "All Images"
+        },
+        "issue_number": "10",
+        "location_credits": [
+            {
+                "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/location\/4020-59082\/",
+                "id": 59082,
+                "name": "Utgard",
+                "site_detail_url": "https:\/\/comicvine.gamespot.com\/utgard\/4020-59082\/"
+            }
+        ],
+        "name": "Fortress Of Blood",
+        "object_credits": [],
+        "person_credits": [
+            {
+                "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/person\/4040-74578\/",
+                "id": 74578,
+                "name": "Ben Applegate",
+                "site_detail_url": "https:\/\/comicvine.gamespot.com\/ben-applegate\/4040-74578\/",
+                "role": "editor"
+            },
+            {
+                "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/person\/4040-64651\/",
+                "id": 64651,
+                "name": "Hajime Isayama",
+                "site_detail_url": "https:\/\/comicvine.gamespot.com\/hajime-isayama\/4040-64651\/",
+                "role": "writer, artist, cover"
+            },
+            {
+                "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/person\/4040-74576\/",
+                "id": 74576,
+                "name": "Ko Ransom",
+                "site_detail_url": "https:\/\/comicvine.gamespot.com\/ko-ransom\/4040-74576\/",
+                "role": "other"
+            },
+            {
+                "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/person\/4040-47630\/",
+                "id": 47630,
+                "name": "Steve Wands",
+                "site_detail_url": "https:\/\/comicvine.gamespot.com\/steve-wands\/4040-47630\/",
+                "role": "letterer"
+            },
+            {
+                "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/person\/4040-74571\/",
+                "id": 74571,
+                "name": "Takashi Shimoyama",
+                "site_detail_url": "https:\/\/comicvine.gamespot.com\/takashi-shimoyama\/4040-74571\/",
+                "role": "cover, other"
+            }
+        ],
+        "site_detail_url": "https:\/\/comicvine.gamespot.com\/attack-on-titan-10-fortress-of-blood\/4000-441467\/",
+        "store_date": "2014-01-08",
+        "story_arc_credits": [],
+        "team_credits": [
+            {
+                "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/team\/4060-60528\/",
+                "id": 60528,
+                "name": "Survey Corps",
+                "site_detail_url": "https:\/\/comicvine.gamespot.com\/survey-corps\/4060-60528\/"
+            }
+        ],
+        "team_disbanded_in": [],
+        "volume": {
+            "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/volume\/4050-49866\/",
+            "id": 49866,
+            "name": "Attack on Titan",
+            "site_detail_url": "https:\/\/comicvine.gamespot.com\/attack-on-titan\/4050-49866\/"
+        }
+    },
+    "version": "1.0"
+}
