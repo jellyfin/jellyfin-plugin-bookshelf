@@ -1,84 +1,125 @@
-﻿/*namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
-{
-    public class ComicVineImageProvider : IRemoteImageProvider
-    {
-        private readonly IHttpClient _httpClient;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
+using MediaBrowser.Common.Net;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Providers;
+using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.Providers;
+using Microsoft.Extensions.Logging;
 
-        public ComicVineImageProvider(IHttpClient httpClient, IJsonSerializer jsonSerializer)
+namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
+{
+    /// <summary>
+    /// Comic Vine image provider.
+    /// </summary>
+    public class ComicVineImageProvider : BaseComicVineProvider, IRemoteImageProvider
+    {
+        private readonly ILogger<ComicVineImageProvider> _logger;
+        private readonly IHttpClientFactory _httpClientFactory;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ComicVineImageProvider"/> class.
+        /// </summary>
+        /// <param name="comicVineMetadataCacheManager">Instance of the <see cref="IComicVineMetadataCacheManager"/> interface.</param>
+        /// <param name="logger">Instance of the <see cref="ILogger{ComicVineImageProvider}"/> interface.</param>
+        /// <param name="httpClientFactory">Instance of the <see cref="IHttpClientFactory"/> interface.</param>
+        public ComicVineImageProvider(IComicVineMetadataCacheManager comicVineMetadataCacheManager, ILogger<ComicVineImageProvider> logger, IHttpClientFactory httpClientFactory)
+            : base(logger, comicVineMetadataCacheManager, httpClientFactory)
         {
-            _httpClient = httpClient;
-            _jsonSerializer = jsonSerializer;
+            _logger = logger;
+            _httpClientFactory = httpClientFactory;
         }
 
-        private readonly CultureInfo _usCulture = new CultureInfo("en-US");
-        private readonly IJsonSerializer _jsonSerializer;
+        /// <inheritdoc/>
+        public string Name => ComicVineConstants.ProviderName;
 
-        public async Task<IEnumerable<RemoteImageInfo>> GetImages(IHasMetadata item, CancellationToken cancellationToken)
+        /// <inheritdoc/>
+        public bool Supports(BaseItem item)
         {
-            var volumeId = item.GetProviderId(ComicVineVolumeExternalId.KeyName);
+            return item is Book;
+        }
 
-            var images = new List<RemoteImageInfo>();
+        /// <inheritdoc/>
+        public IEnumerable<ImageType> GetSupportedImages(BaseItem item)
+        {
+            yield return ImageType.Primary;
+        }
 
-            if (!string.IsNullOrEmpty(volumeId))
+        /// <inheritdoc/>
+        public async Task<IEnumerable<RemoteImageInfo>> GetImages(BaseItem item, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var issueProviderId = item.GetProviderId(ComicVineConstants.ProviderId);
+
+            if (string.IsNullOrWhiteSpace(issueProviderId))
             {
-                var issueNumber = ComicVineMetadataProvider.GetIssueNumberFromName(item.Name).ToString(_usCulture);
+                return Enumerable.Empty<RemoteImageInfo>();
+            }
 
-                await ComicVineMetadataProvider.Current.EnsureCacheFile(volumeId, issueNumber, cancellationToken).ConfigureAwait(false);
+            var issueDetails = await GetOrAddIssueDetailsFromCache(issueProviderId, cancellationToken).ConfigureAwait(false);
 
-                var cachePath = ComicVineMetadataProvider.Current.GetCacheFilePath(volumeId, issueNumber);
+            if (issueDetails == null)
+            {
+                return Enumerable.Empty<RemoteImageInfo>();
+            }
 
-                try
+            var images = ProcessIssueImages(issueDetails)
+                .Select(url => new RemoteImageInfo
                 {
-                    var issueInfo = _jsonSerializer.DeserializeFromFile<SearchResult>(cachePath);
+                    Url = url,
+                    ProviderName = ComicVineConstants.ProviderName
+                });
 
-                    if (issueInfo.results.Count > 0)
-                    {
-                        var result = issueInfo.results[0].image;
+            return images;
+        }
 
-                        if (!string.IsNullOrEmpty(result.medium_url))
-                        {
-                            images.Add(new RemoteImageInfo
-                            {
-                                Url = result.medium_url,
-                                ProviderName = Name
-                            });
-                        }
-                    }
-                }
-                catch (FileNotFoundException)
-                {
-                }
-                catch (DirectoryNotFoundException)
-                {
-                }
+        /// <summary>
+        /// Gets images URLs from the issue.
+        /// </summary>
+        /// <param name="issueDetails">The issue details.</param>
+        /// <returns>The list of images URLs.</returns>
+        private IEnumerable<string> ProcessIssueImages(IssueDetails issueDetails)
+        {
+            if (issueDetails.Image == null)
+            {
+                return Enumerable.Empty<string>();
+            }
+
+            var images = new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(issueDetails.Image.OriginalUrl))
+            {
+                images.Add(issueDetails.Image.OriginalUrl);
+            }
+            else if (!string.IsNullOrWhiteSpace(issueDetails.Image.SuperUrl))
+            {
+                images.Add(issueDetails.Image.ScreenLargeUrl);
+            }
+            else if (!string.IsNullOrWhiteSpace(issueDetails.Image.MediumUrl))
+            {
+                images.Add(issueDetails.Image.MediumUrl);
+            }
+            else if (!string.IsNullOrWhiteSpace(issueDetails.Image.SmallUrl))
+            {
+                images.Add(issueDetails.Image.SmallUrl);
+            }
+            else if (!string.IsNullOrWhiteSpace(issueDetails.Image.ThumbUrl))
+            {
+                images.Add(issueDetails.Image.ScreenLargeUrl);
             }
 
             return images;
         }
 
-        public Task<HttpResponseMessage> GetImageResponse(string url, CancellationToken cancellationToken)
+        /// <inheritdoc/>
+        public async Task<HttpResponseMessage> GetImageResponse(string url, CancellationToken cancellationToken)
         {
-            return _httpClient.GetResponse(new HttpRequestOptions
-            {
-                CancellationToken = cancellationToken,
-                Url = url,
-                ResourcePool = Plugin.Instance.ComicVineSemiphore
-            });
-        }
-
-        public IEnumerable<ImageType> GetSupportedImages(IHasMetadata item)
-        {
-            return new List<ImageType> {ImageType.Primary};
-        }
-
-        public string Name
-        {
-            get { return "Comic Vine"; }
-        }
-
-        public bool Supports(IHasMetadata item)
-        {
-            return item is Book;
+            var httpClient = _httpClientFactory.CreateClient(NamedClient.Default);
+            return await httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
         }
     }
-}*/
+}

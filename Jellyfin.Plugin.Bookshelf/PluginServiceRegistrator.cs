@@ -1,6 +1,7 @@
 using Jellyfin.Plugin.Bookshelf.Providers;
 using Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo;
 using Jellyfin.Plugin.Bookshelf.Providers.ComicInfo;
+using Jellyfin.Plugin.Bookshelf.Providers.ComicVine;
 using MediaBrowser.Common.Plugins;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -21,6 +22,8 @@ namespace Jellyfin.Plugin.Bookshelf
             serviceCollection.AddSingleton<IComicFileProvider, ExternalComicInfoProvider>();
             serviceCollection.AddSingleton<IComicFileProvider, InternalComicInfoProvider>();
             serviceCollection.AddSingleton<IComicFileProvider, ComicBookInfoProvider>();
+
+            serviceCollection.AddSingleton<IComicVineMetadataCacheManager, ComicVineMetadataCacheManager>();
         }
     }
 }
