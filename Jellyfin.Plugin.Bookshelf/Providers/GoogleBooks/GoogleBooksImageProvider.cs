@@ -84,9 +84,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
 
             using var response = await httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
 
-            #pragma warning disable CA2007
-            await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-            #pragma warning restore CA2007
+            using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
 
             return await JsonSerializer.DeserializeAsync<BookResult>(stream, JsonDefaults.Options, cancellationToken).ConfigureAwait(false);
         }
