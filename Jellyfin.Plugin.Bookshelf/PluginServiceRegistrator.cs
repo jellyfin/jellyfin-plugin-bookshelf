@@ -24,6 +24,7 @@ namespace Jellyfin.Plugin.Bookshelf
             serviceCollection.AddSingleton<IComicFileProvider, ComicBookInfoProvider>();
 
             serviceCollection.AddSingleton<IComicVineMetadataCacheManager, ComicVineMetadataCacheManager>();
+            serviceCollection.AddSingleton<IComicVineApiKeyProvider, ComicVineApiKeyProvider>();
         }
     }
 }

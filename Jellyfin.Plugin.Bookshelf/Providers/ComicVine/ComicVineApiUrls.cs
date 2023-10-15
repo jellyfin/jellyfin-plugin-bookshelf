@@ -3,12 +3,12 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
     /// <summary>
     /// Comic Vine API urls.
     /// </summary>
-    public static class ComicVineApiUrls
+    internal static class ComicVineApiUrls
     {
         /// <summary>
         /// Gets the base url of the website.
         /// </summary>
-        public const string BaseWebsiteUrl = @"http://comicvine.gamespot.com";
+        public const string BaseWebsiteUrl = @"https://comicvine.gamespot.com";
 
         /// <summary>
         /// Gets the base url of the API.

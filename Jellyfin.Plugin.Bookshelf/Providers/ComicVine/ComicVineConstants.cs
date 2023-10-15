@@ -3,7 +3,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
     /// <summary>
     /// Constants for the Comic Vine provider.
     /// </summary>
-    public static class ComicVineConstants
+    internal static class ComicVineConstants
     {
         /// <summary>
         /// Name of the Comic Vine provider.

@@ -1,3 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Jellyfin.Plugin.Bookshelf.Providers.ComicVine.Models;
+
 namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
 {
     /// <summary>
@@ -29,5 +34,10 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
         /// Gets the roles for this person (ex: "artist", "writer", etc), separated by commas.
         /// </summary>
         public string Role { get; init; } = string.Empty;
+
+        /// <summary>
+        /// Gets the list of roles for this person.
+        /// </summary>
+        public IEnumerable<PersonCreditRole> Roles => Role.Split(", ").Select(r => Enum.Parse<PersonCreditRole>(r, true));
     }
 }

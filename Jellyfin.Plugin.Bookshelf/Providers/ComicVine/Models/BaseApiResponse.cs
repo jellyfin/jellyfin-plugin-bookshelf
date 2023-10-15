@@ -1,13 +1,10 @@
-using System.Collections.Generic;
-using System.Linq;
-
 namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
 {
     /// <summary>
     /// Comic Vine API response.
     /// </summary>
     /// <typeparam name="T">Type of object returned by the response.</typeparam>
-    public class ApiResponse<T>
+    public class BaseApiResponse<T>
     {
         /// <summary>
         /// Gets an integer indicating the result of the request. Acceptable values are:
@@ -68,11 +65,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
         /// Gets the value of the offset filter specified, or 0 if not specified.
         /// </summary>
         public int Offset { get; init; }
-
-        /// <summary>
-        /// Gets zero or more items that match the filters specified.
-        /// </summary>
-        public IEnumerable<T> Results { get; init; } = Enumerable.Empty<T>();
 
         /// <summary>
         /// Gets a value indicating whether the response is an error.

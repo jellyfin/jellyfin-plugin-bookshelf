@@ -110,41 +110,6 @@
                 "site_detail_url": "https:\/\/comicvine.gamespot.com\/invincible\/4050-150390\/"
             },
             "resource_type": "issue"
-        },
-        {
-            "aliases": null,
-            "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/issue\/4000-575038\/",
-            "cover_date": "2017-01-31",
-            "date_added": "2017-01-03 10:40:29",
-            "date_last_updated": "2017-03-26 05:10:58",
-            "deck": null,
-            "description": null,
-            "has_staff_review": false,
-            "id": 575038,
-            "image": {
-                "icon_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/square_avatar\/6\/67663\/5628895-20.jpg",
-                "medium_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/scale_medium\/6\/67663\/5628895-20.jpg",
-                "screen_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/screen_medium\/6\/67663\/5628895-20.jpg",
-                "screen_large_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/screen_kubrick\/6\/67663\/5628895-20.jpg",
-                "small_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/scale_small\/6\/67663\/5628895-20.jpg",
-                "super_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/scale_large\/6\/67663\/5628895-20.jpg",
-                "thumb_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/scale_avatar\/6\/67663\/5628895-20.jpg",
-                "tiny_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/square_mini\/6\/67663\/5628895-20.jpg",
-                "original_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/original\/6\/67663\/5628895-20.jpg",
-                "image_tags": "All Images"
-            },
-            "associated_images": [],
-            "issue_number": "20",
-            "name": "Amis et alliés",
-            "site_detail_url": "https:\/\/comicvine.gamespot.com\/invincible-20-amis-et-allies\/4000-575038\/",
-            "store_date": "2017-01-04",
-            "volume": {
-                "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/volume\/4050-91662\/",
-                "id": 91662,
-                "name": "Invincible",
-                "site_detail_url": "https:\/\/comicvine.gamespot.com\/invincible\/4050-91662\/"
-            },
-            "resource_type": "issue"
         }
     ],
     "version": "1.0"

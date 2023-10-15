@@ -3,10 +3,13 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Extensions.Json;
+using Jellyfin.Plugin.Bookshelf.Providers.ComicVine.Models;
 using MediaBrowser.Common.Net;
 using Microsoft.Extensions.Logging;
 
@@ -17,9 +20,20 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
     /// </summary>
     public abstract class BaseComicVineProvider
     {
+        private const string IssueIdMatchGroup = "issueId";
+
         private readonly ILogger<BaseComicVineProvider> _logger;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IComicVineMetadataCacheManager _comicVineMetadataCacheManager;
+        private readonly IComicVineApiKeyProvider _apiKeyProvider;
+
+        private static readonly Regex[] _issueIdMatches = new[]
+        {
+            // The slug needs to be stored in the provider id for the IExternalId implementation
+            new Regex(@"^(?<slug>.+?)\/(?<issueId>\d+-\d+)$"),
+            // Also support the issue id on its own for manual searches
+            new Regex(@"^(?<issueId>\d+-\d+)$")
+        };
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BaseComicVineProvider"/> class.
@@ -27,11 +41,13 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
         /// <param name="logger">Instance of the <see cref="ILogger{BaseComicVineProvider}"/> interface.</param>
         /// <param name="comicVineMetadataCacheManager">Instance of the <see cref="IComicVineMetadataCacheManager"/> interface.</param>
         /// <param name="httpClientFactory">Instance of the <see cref="IHttpClientFactory"/> interface.</param>
-        protected BaseComicVineProvider(ILogger<BaseComicVineProvider> logger, IComicVineMetadataCacheManager comicVineMetadataCacheManager, IHttpClientFactory httpClientFactory)
+        /// <param name="apiKeyProvider">Instance of the <see cref="IComicVineApiKeyProvider"/> interface.</param>
+        protected BaseComicVineProvider(ILogger<BaseComicVineProvider> logger, IComicVineMetadataCacheManager comicVineMetadataCacheManager, IHttpClientFactory httpClientFactory, IComicVineApiKeyProvider apiKeyProvider)
         {
             _logger = logger;
             _comicVineMetadataCacheManager = comicVineMetadataCacheManager;
             _httpClientFactory = httpClientFactory;
+            _apiKeyProvider = apiKeyProvider;
         }
 
         /// <summary>
@@ -41,23 +57,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
         {
             PropertyNamingPolicy = new JsonSnakeCaseNamingPolicy()
         };
-
-        /// <summary>
-        /// Get the Comic Vine API key from the configuration.
-        /// </summary>
-        /// <returns>The API key or null.</returns>
-        protected string? GetApiKey()
-        {
-            var apiKey = Plugin.Instance?.Configuration.ComicVineApiKey;
-
-            if (string.IsNullOrWhiteSpace(apiKey))
-            {
-                _logger.LogWarning("Comic Vine API key is not set.");
-                return null;
-            }
-
-            return apiKey;
-        }
 
         /// <summary>
         /// Get the details of an issue from the cache.
@@ -121,7 +120,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var apiKey = GetApiKey();
+            var apiKey = _apiKeyProvider.GetApiKey();
 
             if (apiKey == null)
             {
@@ -130,13 +129,18 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
 
             var url = string.Format(CultureInfo.InvariantCulture, ComicVineApiUrls.IssueDetailUrl, apiKey, issueApiId);
 
-            var httpClient = _httpClientFactory.CreateClient(NamedClient.Default);
+            var response = await _httpClientFactory
+                .CreateClient(NamedClient.Default)
+                .GetAsync(url, cancellationToken)
+                .ConfigureAwait(false);
 
-            using var response = await httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogError("Got non successful response code from Comic Vine API: {StatusCode}.", response.StatusCode);
+                return null;
+            }
 
-            using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-
-            var apiResponse = await JsonSerializer.DeserializeAsync<ApiResponse<IssueDetails>>(stream, JsonOptions, cancellationToken).ConfigureAwait(false);
+            var apiResponse = await response.Content.ReadFromJsonAsync<ItemApiResponse<IssueDetails>>(JsonOptions, cancellationToken).ConfigureAwait(false);
 
             if (apiResponse == null)
             {
@@ -161,7 +165,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
         /// <typeparam name="T">Type of the results.</typeparam>
         /// <param name="response">API response.</param>
         /// <returns>The results.</returns>
-        protected IEnumerable<T> GetFromApiResponse<T>(ApiResponse<T> response)
+        protected IEnumerable<T> GetFromApiResponse<T>(BaseApiResponse<T> response)
         {
             if (response.IsError)
             {
@@ -169,7 +173,18 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
                 return Enumerable.Empty<T>();
             }
 
-            return response.Results;
+            if (response is SearchApiResponse<T> searchResponse)
+            {
+                return searchResponse.Results;
+            }
+            else if (response is ItemApiResponse<T> itemResponse)
+            {
+                return itemResponse.Results == null ? Enumerable.Empty<T>() : new[] { itemResponse.Results };
+            }
+            else
+            {
+                return Enumerable.Empty<T>();
+            }
         }
 
         /// <summary>
@@ -177,9 +192,28 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
         /// </summary>
         /// <param name="providerId">Provider id.</param>
         /// <returns>The API id.</returns>
-        protected static string GetIssueApiIdFromProviderId(string providerId)
+        protected string? GetIssueApiIdFromProviderId(string providerId)
         {
-            return providerId.Split('/').Last();
+            foreach (var regex in _issueIdMatches)
+            {
+                var match = regex.Match(providerId);
+
+                if (!match.Success)
+                {
+                    continue;
+                }
+
+                if (match.Groups.ContainsKey(IssueIdMatchGroup))
+                {
+                    var value = match.Groups[IssueIdMatchGroup];
+                    if (value.Success)
+                    {
+                        return value.Value;
+                    }
+                }
+            }
+
+            return null;
         }
     }
 }

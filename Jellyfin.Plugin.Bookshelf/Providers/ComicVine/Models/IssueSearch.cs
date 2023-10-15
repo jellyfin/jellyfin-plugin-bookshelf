@@ -63,7 +63,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
         /// <summary>
         /// Gets the name of the issue.
         /// </summary>
-        public string Name { get; init; } = string.Empty;
+        public string? Name { get; init; }
 
         /// <summary>
         /// Gets the URL pointing to the issue on the Comic Vine website.

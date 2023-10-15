@@ -4,10 +4,11 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text.Json;
+using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Plugin.Bookshelf.Common;
+using Jellyfin.Plugin.Bookshelf.Providers.ComicVine.Models;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
@@ -24,7 +25,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
     {
         private readonly ILogger<ComicVineMetadataProvider> _logger;
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly IComicVineMetadataCacheManager _comicVineMetadataCacheManager;
+        private readonly IComicVineApiKeyProvider _apiKeyProvider;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ComicVineMetadataProvider"/> class.
@@ -32,12 +33,13 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
         /// <param name="logger">Instance of the <see cref="ILogger{ComicVineMetadataProvider}"/> interface.</param>
         /// <param name="httpClientFactory">Instance of the <see cref="IHttpClientFactory"/> interface.</param>
         /// <param name="comicVineMetadataCacheManager">Instance of the <see cref="IComicVineMetadataCacheManager"/> interface.</param>
-        public ComicVineMetadataProvider(ILogger<ComicVineMetadataProvider> logger, IHttpClientFactory httpClientFactory, IComicVineMetadataCacheManager comicVineMetadataCacheManager)
-            : base(logger, comicVineMetadataCacheManager, httpClientFactory)
+        /// <param name="apiKeyProvider">Instance of the <see cref="IComicVineApiKeyProvider"/> interface.</param>
+        public ComicVineMetadataProvider(ILogger<ComicVineMetadataProvider> logger, IHttpClientFactory httpClientFactory, IComicVineMetadataCacheManager comicVineMetadataCacheManager, IComicVineApiKeyProvider apiKeyProvider)
+            : base(logger, comicVineMetadataCacheManager, httpClientFactory, apiKeyProvider)
         {
             _logger = logger;
             _httpClientFactory = httpClientFactory;
-            _comicVineMetadataCacheManager = comicVineMetadataCacheManager;
+            _apiKeyProvider = apiKeyProvider;
         }
 
         /// <inheritdoc/>
@@ -114,6 +116,8 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
             item.SeriesName = issue.Volume?.Name;
             item.Overview = WebUtility.HtmlDecode(issue.Description);
             item.ProductionYear = GetYearFromCoverDate(issue.CoverDate);
+
+            // TODO: Get volume details to get the studio
         }
 
         /// <summary>
@@ -128,12 +132,38 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
 
             foreach (var person in issue.PersonCredits)
             {
-                item.AddPerson(new PersonInfo
+                var personInfo = new PersonInfo
                 {
                     Name = person.Name,
-                    Type = person.Role, // TODO: Separate by comma
-                });
+                    Type = person.Role.Any() ? GetPersonKindFromRole(person.Roles.First()) : "Unknown"
+                };
+
+                personInfo.SetProviderId(ComicVineConstants.ProviderName, GetProviderIdFromSiteDetailUrl(person.SiteDetailUrl));
+
+                item.AddPerson(personInfo);
             }
+        }
+
+        private string GetPersonKindFromRole(PersonCreditRole role)
+        {
+            return role switch
+            {
+                PersonCreditRole.Artist => "Artist",
+                PersonCreditRole.Colorist => "Colorist",
+                PersonCreditRole.Cover => "CoverArtist",
+                PersonCreditRole.Editor => "Editor",
+                PersonCreditRole.Inker => "Inker",
+                PersonCreditRole.Letterer => "Letterer",
+                PersonCreditRole.Penciler => "Penciller",
+                PersonCreditRole.Translator => "Translator",
+                PersonCreditRole.Writer => "Writer",
+                PersonCreditRole.Assistant
+                    or PersonCreditRole.Designer
+                    or PersonCreditRole.Journalist
+                    or PersonCreditRole.Production
+                    or PersonCreditRole.Other => "Unknown",
+                _ => throw new ArgumentException($"Unknown role: {role}"),
+            };
         }
 
         /// <summary>
@@ -156,7 +186,8 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
                 return null;
             }
 
-            // var comparableName = GetComparableName(parsedItem.Name, parsedItem.SeriesName, parsedItem.IndexNumber);
+            var comparableName = BookFileNameParser.GetComparableString(parsedItem.Name, false);
+            var comparableSeriesName = BookFileNameParser.GetComparableString(parsedItem.SeriesName, false);
 
             foreach (var result in searchResults)
             {
@@ -165,13 +196,22 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
                     continue;
                 }
 
-                // TODO: Update name comparison
-                /*
-                if (!GetComparableName(result.Name, result.Volume?.Name, issueNumber).Equals(comparableName, StringComparison.Ordinal))
+                // Match series name and issue number, and optionally the name
+
+                var seriesName = BookFileNameParser.GetComparableString(result.Volume?.Name ?? string.Empty, false);
+                if (issueNumber != parsedItem.IndexNumber || !comparableSeriesName.Equals(seriesName, StringComparison.Ordinal))
                 {
                     continue;
                 }
-                */
+
+                if (!string.IsNullOrWhiteSpace(comparableName) && !string.IsNullOrWhiteSpace(result.Name))
+                {
+                    var nameComparison = BookFileNameParser.GetComparableString(result.Name, false);
+                    if (!comparableName.Equals(nameComparison, StringComparison.Ordinal))
+                    {
+                        continue;
+                    }
+                }
 
                 if (parsedItem.Year.HasValue)
                 {
@@ -201,33 +241,53 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            IEnumerable<IssueSearch> searchResults = await GetSearchResultsInternal(searchInfo, cancellationToken).ConfigureAwait(false);
-            if (!searchResults.Any())
-            {
-                return Enumerable.Empty<RemoteSearchResult>();
-            }
-
-            var list = new List<RemoteSearchResult>();
-
-            foreach (var result in searchResults)
+            Func<IssueSearch, RemoteSearchResult> getSearchResultFromIssue = (IssueSearch issue) =>
             {
                 var remoteSearchResult = new RemoteSearchResult();
 
-                remoteSearchResult.SetProviderId(ComicVineConstants.ProviderId, GetIssueProviderIdFromSiteDetailUrl(result.SiteDetailUrl));
+                remoteSearchResult.SetProviderId(ComicVineConstants.ProviderId, GetProviderIdFromSiteDetailUrl(issue.SiteDetailUrl));
                 remoteSearchResult.SearchProviderName = ComicVineConstants.ProviderName;
-                remoteSearchResult.Name = result.Name;
-                remoteSearchResult.Overview = WebUtility.HtmlDecode(result.Description);
-                remoteSearchResult.ProductionYear = GetYearFromCoverDate(result.CoverDate);
+                remoteSearchResult.Name = string.IsNullOrWhiteSpace(issue.Name) ? $"#{issue.IssueNumber.PadLeft(3, '0')}" : issue.Name;
+                remoteSearchResult.Overview = string.IsNullOrWhiteSpace(issue.Description) ? string.Empty : WebUtility.HtmlDecode(issue.Description);
+                remoteSearchResult.ProductionYear = GetYearFromCoverDate(issue.CoverDate);
 
-                if (!string.IsNullOrWhiteSpace(result.Image?.ThumbUrl))
+                if (!string.IsNullOrWhiteSpace(issue.Image?.ThumbUrl))
                 {
-                    remoteSearchResult.ImageUrl = result.Image.ThumbUrl;
+                    remoteSearchResult.ImageUrl = issue.Image.ThumbUrl;
                 }
 
-                list.Add(remoteSearchResult);
-            }
+                return remoteSearchResult;
+            };
 
-            return list;
+            var issueProviderId = searchInfo.GetProviderId(ComicVineConstants.ProviderId);
+
+            if (!string.IsNullOrWhiteSpace(issueProviderId))
+            {
+                var issueDetails = await GetOrAddIssueDetailsFromCache(issueProviderId, cancellationToken).ConfigureAwait(false);
+
+                if (issueDetails == null)
+                {
+                    return Enumerable.Empty<RemoteSearchResult>();
+                }
+
+                return new[] { getSearchResultFromIssue(issueDetails) };
+            }
+            else
+            {
+                var searchResults = await GetSearchResultsInternal(searchInfo, cancellationToken).ConfigureAwait(false);
+                if (!searchResults.Any())
+                {
+                    return Enumerable.Empty<RemoteSearchResult>();
+                }
+
+                var list = new List<RemoteSearchResult>();
+                foreach (var result in searchResults)
+                {
+                    list.Add(getSearchResultFromIssue(result));
+                }
+
+                return list;
+            }
         }
 
         /// <summary>
@@ -249,7 +309,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var apiKey = GetApiKey();
+            var apiKey = _apiKeyProvider.GetApiKey();
 
             if (apiKey == null)
             {
@@ -259,13 +319,12 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
             var searchString = GetSearchString(item);
             var url = string.Format(CultureInfo.InvariantCulture, ComicVineApiUrls.IssueSearchUrl, apiKey, WebUtility.UrlEncode(searchString));
 
-            var httpClient = _httpClientFactory.CreateClient(NamedClient.Default);
+            var response = await _httpClientFactory
+                .CreateClient(NamedClient.Default)
+                .GetAsync(url, cancellationToken)
+                .ConfigureAwait(false);
 
-            using var response = await httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
-
-            using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-
-            var apiResponse = await JsonSerializer.DeserializeAsync<ApiResponse<IssueSearch>>(stream, JsonOptions, cancellationToken).ConfigureAwait(false);
+            var apiResponse = await response.Content.ReadFromJsonAsync<SearchApiResponse<IssueSearch>>(JsonOptions, cancellationToken).ConfigureAwait(false);
 
             if (apiResponse == null)
             {
@@ -290,20 +349,20 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
 
             if (!string.IsNullOrWhiteSpace(item.SeriesName))
             {
-                result += $"{result} {item.SeriesName}".Trim();
+                result += $" {item.SeriesName}";
             }
 
             if (item.IndexNumber.HasValue)
             {
-                result = $"{result} {item.IndexNumber.Value}".Trim();
+                result += $" {item.IndexNumber.Value}";
             }
 
             if (!string.IsNullOrWhiteSpace(item.Name))
             {
-                result = $"{result} {item.Name}".Trim();
+                result += $" {item.Name}";
             }
 
-            return result;
+            return result.Trim();
         }
 
         /// <summary>
@@ -333,9 +392,9 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
         /// </summary>
         /// <param name="siteDetailUrl">The site detail URL.</param>
         /// <returns>The slug and id.</returns>
-        private static string GetIssueProviderIdFromSiteDetailUrl(string siteDetailUrl)
+        private static string GetProviderIdFromSiteDetailUrl(string siteDetailUrl)
         {
-            return siteDetailUrl.Replace(ComicVineApiUrls.BaseWebsiteUrl, string.Empty, StringComparison.OrdinalIgnoreCase);
+            return siteDetailUrl.Replace(ComicVineApiUrls.BaseWebsiteUrl, string.Empty, StringComparison.OrdinalIgnoreCase).Trim('/');
         }
     }
 }

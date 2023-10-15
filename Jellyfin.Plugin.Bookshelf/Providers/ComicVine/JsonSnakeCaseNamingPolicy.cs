@@ -3,6 +3,7 @@ using System.Text.Json;
 
 namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
 {
+    // TODO: This will no longer be needed when targeting .NET 8
     internal sealed class JsonSnakeCaseNamingPolicy : JsonNamingPolicy
     {
         public JsonSnakeCaseNamingPolicy()

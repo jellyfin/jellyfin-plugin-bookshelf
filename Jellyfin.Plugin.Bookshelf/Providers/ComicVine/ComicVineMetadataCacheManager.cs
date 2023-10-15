@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using System.IO;
 using System.Text.Json;
 using System.Threading;
@@ -14,7 +13,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
     /// <summary>
     /// Comic Vine metadata cache manager.
     /// </summary>
-    public class ComicVineMetadataCacheManager : IComicVineMetadataCacheManager
+    internal class ComicVineMetadataCacheManager : IComicVineMetadataCacheManager
     {
         /// <summary>
         /// Cache time in days.
@@ -44,7 +43,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
 
         private string GetCacheFilePath(string issueApiId)
         {
-            return Path.Combine(GetComicVineCachePath(), issueApiId.ToString(CultureInfo.InvariantCulture) + ".json");
+            return Path.Combine(GetComicVineCachePath(), $"{issueApiId}.json");
         }
 
         private string GetComicVineCachePath()
