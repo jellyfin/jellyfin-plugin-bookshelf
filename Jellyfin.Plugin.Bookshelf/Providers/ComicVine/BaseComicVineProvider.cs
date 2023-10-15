@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -59,45 +60,46 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
         };
 
         /// <summary>
-        /// Get the details of an issue from the cache.
+        /// Get the details of a resource item from the cache.
         /// If it's not already cached, fetch it from the API and add it to the cache.
         /// </summary>
-        /// <param name="issueProviderId">The provider id for the issue.</param>
+        /// <param name="providerId">The provider id for the resource.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The issue details, or null if not found.</returns>
-        protected async Task<IssueDetails?> GetOrAddIssueDetailsFromCache(string issueProviderId, CancellationToken cancellationToken)
+        /// <typeparam name="T">The type of the resource.</typeparam>
+        /// <returns>The resource details, or null if not found.</returns>
+        protected async Task<T?> GetOrAddItemDetailsFromCache<T>(string providerId, CancellationToken cancellationToken)
         {
             try
             {
-                var issueApiId = GetIssueApiIdFromProviderId(issueProviderId);
+                var itemApiId = GetApiIdFromProviderId(providerId);
 
-                if (string.IsNullOrWhiteSpace(issueApiId))
+                if (string.IsNullOrWhiteSpace(itemApiId))
                 {
-                    _logger.LogInformation("Couldn't get issue API id from provider id {IssueProviderId}.", issueProviderId);
-                    return null;
+                    _logger.LogInformation("Couldn't get API id from provider id {ProviderId}.", providerId);
+                    return default;
                 }
 
-                if (!_comicVineMetadataCacheManager.HasCache(issueApiId))
+                if (!_comicVineMetadataCacheManager.HasCache(itemApiId))
                 {
-                    var issueDetails = await FetchIssueDetails(issueApiId, cancellationToken).ConfigureAwait(false);
+                    var itemDetails = await FetchItemDetails<T>(itemApiId, cancellationToken).ConfigureAwait(false);
 
-                    if (issueDetails == null)
+                    if (itemDetails == null)
                     {
-                        _logger.LogInformation("Issue {IssueApiId} was not found.", issueApiId);
-                        return null;
+                        _logger.LogInformation("Resource with id {ApiId} was not found.", itemApiId);
+                        return default;
                     }
 
-                    _logger.LogInformation("Adding issue {IssueApiId} to the cache.", issueApiId);
+                    _logger.LogInformation("Adding resource with id {ApiId} to the cache.", itemApiId);
 
-                    await _comicVineMetadataCacheManager.AddToCache(issueApiId, issueDetails, cancellationToken).ConfigureAwait(false);
+                    await _comicVineMetadataCacheManager.AddToCache<T>(itemApiId, itemDetails, cancellationToken).ConfigureAwait(false);
 
-                    return issueDetails;
+                    return itemDetails;
                 }
                 else
                 {
-                    _logger.LogInformation("Found issue {IssueApiId} in cache.", issueApiId);
+                    _logger.LogInformation("Found resource with id {ApiId} in the cache.", itemApiId);
 
-                    return await _comicVineMetadataCacheManager.GetFromCache(issueApiId, cancellationToken).ConfigureAwait(false);
+                    return await _comicVineMetadataCacheManager.GetFromCache<T>(itemApiId, cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (FileNotFoundException)
@@ -107,16 +109,16 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
             {
             }
 
-            return null;
+            return default;
         }
 
         /// <summary>
-        /// Get the details for a specific issue from its id.
+        /// Get the details for a specific resource from its id.
         /// </summary>
-        /// <param name="issueApiId">The id of the issue.</param>
+        /// <param name="apiId">The id of the resource.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The issue if found.</returns>
-        private async Task<IssueDetails?> FetchIssueDetails(string issueApiId, CancellationToken cancellationToken)
+        /// <returns>The resource details if found.</returns>
+        private async Task<T?> FetchItemDetails<T>(string apiId, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -124,10 +126,17 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
 
             if (apiKey == null)
             {
-                return null;
+                return default;
             }
 
-            var url = string.Format(CultureInfo.InvariantCulture, ComicVineApiUrls.IssueDetailUrl, apiKey, issueApiId);
+            string resourceDetailsUrl = typeof(T) switch
+            {
+                Type issue when issue == typeof(IssueDetails) => ComicVineApiUrls.IssueDetailUrl,
+                Type volume when volume == typeof(VolumeDetails) => ComicVineApiUrls.VolumeDetailUrl,
+                _ => throw new InvalidOperationException($"Unexpected resource type {typeof(T)}.")
+            };
+
+            var url = string.Format(CultureInfo.InvariantCulture, resourceDetailsUrl, apiKey, apiId);
 
             var response = await _httpClientFactory
                 .CreateClient(NamedClient.Default)
@@ -137,23 +146,23 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogError("Got non successful response code from Comic Vine API: {StatusCode}.", response.StatusCode);
-                return null;
+                return default;
             }
 
-            var apiResponse = await response.Content.ReadFromJsonAsync<ItemApiResponse<IssueDetails>>(JsonOptions, cancellationToken).ConfigureAwait(false);
+            var apiResponse = await response.Content.ReadFromJsonAsync<ItemApiResponse<T>>(JsonOptions, cancellationToken).ConfigureAwait(false);
 
             if (apiResponse == null)
             {
                 _logger.LogError("Failed to deserialize Comic Vine API response.");
-                return null;
+                return default;
             }
 
-            var results = GetFromApiResponse<IssueDetails>(apiResponse);
+            var results = GetFromApiResponse<T>(apiResponse);
 
             if (results.Count() != 1)
             {
                 _logger.LogError("Unexpected number of results in Comic Vine API response.");
-                return null;
+                return default;
             }
 
             return results.Single();
@@ -192,7 +201,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
         /// </summary>
         /// <param name="providerId">Provider id.</param>
         /// <returns>The API id.</returns>
-        protected string? GetIssueApiIdFromProviderId(string providerId)
+        protected string? GetApiIdFromProviderId(string providerId)
         {
             foreach (var regex in _issueIdMatches)
             {

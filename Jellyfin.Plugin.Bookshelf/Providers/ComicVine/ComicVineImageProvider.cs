@@ -61,7 +61,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
                 return Enumerable.Empty<RemoteImageInfo>();
             }
 
-            var issueDetails = await GetOrAddIssueDetailsFromCache(issueProviderId, cancellationToken).ConfigureAwait(false);
+            var issueDetails = await GetOrAddItemDetailsFromCache<IssueDetails>(issueProviderId, cancellationToken).ConfigureAwait(false);
 
             if (issueDetails == null)
             {

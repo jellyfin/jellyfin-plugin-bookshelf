@@ -22,6 +22,8 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
         private string GetSearchResultWithNumberedIssues() => TestHelpers.GetFixture("comic-vine-issue-search-numbered-issues.json");
 
         private string GetSingleIssueResult() => TestHelpers.GetFixture("comic-vine-single-issue.json");
+        private string GetSingleUnnamedIssueResult() => TestHelpers.GetFixture("comic-vine-single-numbered-issue.json");
+        private string GetSingleVolumeResult() => TestHelpers.GetFixture("comic-vine-single-volume.json");
 
         private bool HasComicVineId(string id, Dictionary<string, string> providerIds)
         {
@@ -261,40 +263,215 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
 
         #region GetMetadata
 
-        [Fact]
-        public Task GetMetadata_MatchesByName_Success()
+        private void AssertMetadata(MetadataResult<Book> metadataResult, bool queriedById)
         {
-            throw new NotImplementedException();
+            Assert.Equal(queriedById, metadataResult.QueriedById);
+            Assert.True(metadataResult.HasMetadata);
+
+            Assert.Collection(metadataResult.People,
+                p =>
+                {
+                    Assert.Equal("Ben Applegate", p.Name);
+                    Assert.Equal("Editor", p.Type);
+                    Assert.True(HasComicVineId("ben-applegate/4040-74578", p.ProviderIds));
+                },
+                p =>
+                {
+                    Assert.Equal("Hajime Isayama", p.Name);
+                    Assert.Equal("Writer", p.Type);
+                    Assert.True(HasComicVineId("hajime-isayama/4040-64651", p.ProviderIds));
+                },
+                p =>
+                {
+                    Assert.Equal("Ko Ransom", p.Name);
+                    Assert.Equal("Unknown", p.Type);
+                    Assert.True(HasComicVineId("ko-ransom/4040-74576", p.ProviderIds));
+                },
+                p =>
+                {
+                    Assert.Equal("Steve Wands", p.Name);
+                    Assert.Equal("Letterer", p.Type);
+                    Assert.True(HasComicVineId("steve-wands/4040-47630", p.ProviderIds));
+                },
+                p =>
+                {
+                    Assert.Equal("Takashi Shimoyama", p.Name);
+                    Assert.Equal("CoverArtist", p.Type);
+                    Assert.True(HasComicVineId("takashi-shimoyama/4040-74571", p.ProviderIds));
+                });
+
+            Assert.True(HasComicVineId("attack-on-titan-10-fortress-of-blood/4000-441467", metadataResult.Item.ProviderIds));
+            Assert.Equal("Fortress Of Blood", metadataResult.Item.Name);
+            Assert.Equal("010 - Attack on Titan, Fortress Of Blood", metadataResult.Item.ForcedSortName);
+            Assert.Collection(metadataResult.Item.Studios,
+                s =>
+                {
+                    Assert.Equal("Kodansha Comics USA", s);
+                });
+            Assert.Equal(2014, metadataResult.Item.ProductionYear);
+            Assert.Equal("<p><em>FORTRESS OF BLOOD</em></p>" +
+                "<p><em>With no combat gear and Wall Rose breached, the 104th scrambles to evacuate the villages in the Titans' path." +
+                " On their way to the safety of Wall Sheena, they decide to spend the night in Utgard Castle." +
+                " But their sanctuary becomes a slaughterhouse when they discover that, for some reason, these Titans attack at night!</em></p>" +
+                "<h2>Chapter Titles</h2><ul><li>Episode 39: Soldier</li><li>Episode 40: Ymir</li><li>Episode 41: Historia</li><li>Episode 42: Warrior</li></ul>", metadataResult.Item.Overview);
+            Assert.Empty(metadataResult.Item.Genres);
+            Assert.Empty(metadataResult.Item.Tags);
+            Assert.Null(metadataResult.Item.CommunityRating);
         }
 
         [Fact]
-        public Task GetMetadata_MatchesByProviderId_Success()
+        public async Task GetMetadata_MatchesByName_Success()
         {
-            throw new NotImplementedException();
+            var mockedMessageHandler = new MockHttpMessageHandler(new List<(Func<Uri, bool> requestMatcher, MockHttpResponse response)>
+            {
+                ((Uri uri) => uri.AbsoluteUri.Contains("/search"), new MockHttpResponse(HttpStatusCode.OK, GetSearchResultWithNamedIssues())),
+                ((Uri uri) => uri.AbsoluteUri.Contains("/issue/4000-441467"), new MockHttpResponse(HttpStatusCode.OK, GetSingleIssueResult())),
+                ((Uri uri) => uri.AbsoluteUri.Contains("/volume/4050-49866"), new MockHttpResponse(HttpStatusCode.OK, GetSingleVolumeResult())),
+            });
+
+            var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
+            mockedHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(new HttpClient(mockedMessageHandler));
+
+            IRemoteMetadataProvider<Book, BookInfo> provider = new ComicVineMetadataProvider(
+                NullLogger<ComicVineMetadataProvider>.Instance,
+                mockedHttpClientFactory,
+                Substitute.For<IComicVineMetadataCacheManager>(),
+                _mockApiKeyProvider);
+
+            var metadataResult = await provider.GetMetadata(new BookInfo()
+            {
+                SeriesName = "Attack on Titan",
+                Name = "10 - Fortress of Blood"
+            }, CancellationToken.None);
+
+            AssertMetadata(metadataResult, false);
         }
 
         [Fact]
-        public Task GetMetadata_WithNoCache_AddsToCache()
+        public async Task GetMetadata_MatchesByProviderId_Success()
         {
-            throw new NotImplementedException();
+            var mockedMessageHandler = new MockHttpMessageHandler(new List<(Func<Uri, bool> requestMatcher, MockHttpResponse response)>
+            {
+                ((Uri uri) => uri.AbsoluteUri.Contains("/issue/4000-441467"), new MockHttpResponse(HttpStatusCode.OK, GetSingleIssueResult())),
+                ((Uri uri) => uri.AbsoluteUri.Contains("/volume/4050-49866"), new MockHttpResponse(HttpStatusCode.OK, GetSingleVolumeResult())),
+            });
+
+            var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
+            mockedHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(new HttpClient(mockedMessageHandler));
+
+            IRemoteMetadataProvider<Book, BookInfo> provider = new ComicVineMetadataProvider(
+                NullLogger<ComicVineMetadataProvider>.Instance,
+                mockedHttpClientFactory,
+                Substitute.For<IComicVineMetadataCacheManager>(),
+                _mockApiKeyProvider);
+
+            var metadataResult = await provider.GetMetadata(new BookInfo()
+            {
+                ProviderIds = new Dictionary<string, string>()
+                {
+                    { ComicVineConstants.ProviderId, "attack-on-titan-10-fortress-of-blood/4000-441467" }
+                }
+            }, CancellationToken.None);
+
+            AssertMetadata(metadataResult, true);
         }
 
         [Fact]
-        public Task GetMetadata_WithValidCache_GetsFromCache()
+        public async Task GetMetadata_WithNoCache_AddsToCache()
         {
-            throw new NotImplementedException();
+            var mockedMessageHandler = new MockHttpMessageHandler(new List<(Func<Uri, bool> requestMatcher, MockHttpResponse response)>
+            {
+                ((Uri uri) => uri.AbsoluteUri.Contains("/issue/4000-441467"), new MockHttpResponse(HttpStatusCode.OK, GetSingleIssueResult())),
+                ((Uri uri) => uri.AbsoluteUri.Contains("/volume/4050-49866"), new MockHttpResponse(HttpStatusCode.OK, GetSingleVolumeResult())),
+            });
+
+            var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
+            mockedHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(new HttpClient(mockedMessageHandler));
+
+            var cache = Substitute.For<IComicVineMetadataCacheManager>();
+
+            IRemoteMetadataProvider<Book, BookInfo> provider = new ComicVineMetadataProvider(
+                NullLogger<ComicVineMetadataProvider>.Instance,
+                mockedHttpClientFactory,
+                cache,
+                _mockApiKeyProvider);
+
+            var metadataResult = await provider.GetMetadata(new BookInfo()
+            {
+                ProviderIds = new Dictionary<string, string>()
+                {
+                    { ComicVineConstants.ProviderId, "attack-on-titan-10-fortress-of-blood/4000-441467" }
+                }
+            }, CancellationToken.None);
+
+            await cache.Received().AddToCache<IssueDetails>("4000-441467", Arg.Any<IssueDetails>(), Arg.Any<CancellationToken>());
         }
 
         [Fact]
-        public Task GetMetadata_WithInvalidCache_ReplacesCache()
+        public async Task GetMetadata_WithValidCache_GetsFromCache()
         {
-            throw new NotImplementedException();
+            var mockedMessageHandler = new MockHttpMessageHandler(new List<(Func<Uri, bool> requestMatcher, MockHttpResponse response)>());
+
+            var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
+            mockedHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(new HttpClient(mockedMessageHandler));
+
+            var cache = Substitute.For<IComicVineMetadataCacheManager>();
+            cache.HasCache("4000-441467").Returns(true);
+
+            IRemoteMetadataProvider<Book, BookInfo> provider = new ComicVineMetadataProvider(
+                NullLogger<ComicVineMetadataProvider>.Instance,
+                mockedHttpClientFactory,
+                cache,
+                _mockApiKeyProvider);
+
+            var metadataResult = await provider.GetMetadata(new BookInfo()
+            {
+                ProviderIds = new Dictionary<string, string>()
+                {
+                    { ComicVineConstants.ProviderId, "attack-on-titan-10-fortress-of-blood/4000-441467" }
+                }
+            }, CancellationToken.None);
+
+            await cache.DidNotReceive().AddToCache<IssueDetails>("4000-441467", Arg.Any<IssueDetails>(), Arg.Any<CancellationToken>());
+            await cache.Received().GetFromCache<IssueDetails>("4000-441467",Arg.Any<CancellationToken>());
         }
 
         [Fact]
-        public Task GetMetadata_MatchesByNameWithYearVariance_SkipsResult()
+        public async Task GetMetadata_MatchesByIssueNumber_PicksCorrectResult()
         {
-            throw new NotImplementedException();
+            var mockedMessageHandler = new MockHttpMessageHandler(new List<(Func<Uri, bool> requestMatcher, MockHttpResponse response)>
+            {
+                ((Uri uri) => uri.AbsoluteUri.Contains("/search"), new MockHttpResponse(HttpStatusCode.OK, GetSearchResultWithNumberedIssues())),
+                ((Uri uri) => uri.AbsoluteUri.Contains("/issue/4000-128610"), new MockHttpResponse(HttpStatusCode.OK, GetSingleUnnamedIssueResult())),
+                ((Uri uri) => uri.AbsoluteUri.Contains("/volume/"), new MockHttpResponse(HttpStatusCode.NotFound, string.Empty)),
+            });
+
+            var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
+            mockedHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(new HttpClient(mockedMessageHandler));
+
+            IRemoteMetadataProvider<Book, BookInfo> provider = new ComicVineMetadataProvider(
+                NullLogger<ComicVineMetadataProvider>.Instance,
+                mockedHttpClientFactory,
+                Substitute.For<IComicVineMetadataCacheManager>(),
+                _mockApiKeyProvider);
+
+            // Only one search result matches the provided year
+            var metadataResult = await provider.GetMetadata(new BookInfo() { Name = "Invincible #20 (2005)" }, CancellationToken.None);
+
+            Assert.False(metadataResult.QueriedById);
+            Assert.True(metadataResult.HasMetadata);
+
+            Assert.True(HasComicVineId("invincible-20/4000-128610", metadataResult.Item.ProviderIds));
+            Assert.Equal("#020", metadataResult.Item.Name);
+            Assert.Equal(2005, metadataResult.Item.ProductionYear);
+            Assert.Equal("<p><em>Mark Grayson is just like everyone else his age, except that his father is the most powerful superhero on the planet." +
+                " And now he's begun to inherit his father's powers. It all sounds okay at first, but how do you follow in your father's footsteps when you know you will never live up to his standards?" +
+                " For nine years now (or however long it's been since issue #6 came out) readers have been wondering, \"What's up with that robot zombie from issue #6?\"" +
+                " Well, wonder no longer, because he's in this issue! Mark is on campus at his new college and something is amiss." +
+                " What lurks behind...oh, wait: You already know!</em></p>" +
+                "<p>Atom Eve decides to retire from the superhero business and use her powers to actually make a difference in the world." +
+                " Amber gets mad at Mark when he mysteriously disappears to fight a Reaniman that is attacking the campus, she mistakenly thinks he ran off like a coward." +
+                " If only she knew Mark is actually the brave superhero, Invincible. D. A. Sinclair formulates that his next Reaniman should be constructed from a...live subject!</p>", metadataResult.Item.Overview);
         }
 
         #endregion

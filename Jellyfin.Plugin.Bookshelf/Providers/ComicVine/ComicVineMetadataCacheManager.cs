@@ -41,9 +41,9 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
             Directory.CreateDirectory(GetComicVineCachePath());
         }
 
-        private string GetCacheFilePath(string issueApiId)
+        private string GetCacheFilePath(string apiId)
         {
-            return Path.Combine(GetComicVineCachePath(), $"{issueApiId}.json");
+            return Path.Combine(GetComicVineCachePath(), $"{apiId}.json");
         }
 
         private string GetComicVineCachePath()
@@ -52,9 +52,9 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
         }
 
         /// <inheritdoc/>
-        public bool HasCache(string issueApiId)
+        public bool HasCache(string apiId)
         {
-            var path = GetCacheFilePath(issueApiId);
+            var path = GetCacheFilePath(apiId);
 
             var fileInfo = _fileSystem.GetFileSystemInfo(path);
 
@@ -71,21 +71,21 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
         }
 
         /// <inheritdoc/>
-        public async Task AddToCache(string issueApiId, IssueDetails issue, CancellationToken cancellationToken)
+        public async Task AddToCache<T>(string apiId, T resource, CancellationToken cancellationToken)
         {
-            var filePath = GetCacheFilePath(issueApiId);
+            var filePath = GetCacheFilePath(apiId);
             using FileStream fileStream = AsyncFile.OpenWrite(filePath);
-            await JsonSerializer.SerializeAsync<IssueDetails>(fileStream, issue, _jsonOptions, cancellationToken).ConfigureAwait(false);
+            await JsonSerializer.SerializeAsync<T>(fileStream, resource, _jsonOptions, cancellationToken).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task<IssueDetails?> GetFromCache(string issueApiId, CancellationToken cancellationToken)
+        public async Task<T?> GetFromCache<T>(string apiId, CancellationToken cancellationToken)
         {
-            var filePath = GetCacheFilePath(issueApiId);
+            var filePath = GetCacheFilePath(apiId);
             using FileStream fileStream = AsyncFile.OpenRead(filePath);
-            var issue = await JsonSerializer.DeserializeAsync<IssueDetails>(fileStream, _jsonOptions, cancellationToken).ConfigureAwait(false);
+            var resource = await JsonSerializer.DeserializeAsync<T>(fileStream, _jsonOptions, cancellationToken).ConfigureAwait(false);
 
-            return issue;
+            return resource;
         }
     }
 }

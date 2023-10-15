@@ -55,28 +55,35 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
                 QueriedById = true
             };
 
-            var issueWebsiteId = info.GetProviderId(ComicVineConstants.ProviderId);
+            var issueProviderId = info.GetProviderId(ComicVineConstants.ProviderId);
 
-            if (string.IsNullOrWhiteSpace(issueWebsiteId))
+            if (string.IsNullOrWhiteSpace(issueProviderId))
             {
-                issueWebsiteId = await FetchIssueId(info, cancellationToken).ConfigureAwait(false);
+                issueProviderId = await FetchIssueId(info, cancellationToken).ConfigureAwait(false);
                 metadataResult.QueriedById = false;
             }
 
-            if (string.IsNullOrWhiteSpace(issueWebsiteId))
+            if (string.IsNullOrWhiteSpace(issueProviderId))
             {
                 return metadataResult;
             }
 
-            var issueDetails = await GetOrAddIssueDetailsFromCache(issueWebsiteId, cancellationToken).ConfigureAwait(false);
+            var issueDetails = await GetOrAddItemDetailsFromCache<IssueDetails>(issueProviderId, cancellationToken).ConfigureAwait(false);
 
             if (issueDetails != null)
             {
                 metadataResult.Item = new Book();
-                metadataResult.Item.SetProviderId(ComicVineConstants.ProviderId, issueWebsiteId);
+                metadataResult.Item.SetProviderId(ComicVineConstants.ProviderId, issueProviderId);
                 metadataResult.HasMetadata = true;
 
-                ProcessIssueData(metadataResult.Item, issueDetails, cancellationToken);
+                VolumeDetails? volumeDetails = null;
+
+                if (!string.IsNullOrWhiteSpace(issueDetails.Volume?.SiteDetailUrl))
+                {
+                    volumeDetails = await GetOrAddItemDetailsFromCache<VolumeDetails>(GetProviderIdFromSiteDetailUrl(issueDetails.Volume.SiteDetailUrl), cancellationToken).ConfigureAwait(false);
+                }
+
+                ProcessIssueData(metadataResult.Item, issueDetails, volumeDetails, cancellationToken);
                 ProcessIssueMetadata(metadataResult, issueDetails, cancellationToken);
             }
 
@@ -88,8 +95,9 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
         /// </summary>
         /// <param name="item">The Book item.</param>
         /// <param name="issue">The issue details.</param>
+        /// <param name="volume">The volume details.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        private void ProcessIssueData(Book item, IssueDetails issue, CancellationToken cancellationToken)
+        private void ProcessIssueData(Book item, IssueDetails issue, VolumeDetails? volume, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -117,7 +125,10 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
             item.Overview = WebUtility.HtmlDecode(issue.Description);
             item.ProductionYear = GetYearFromCoverDate(issue.CoverDate);
 
-            // TODO: Get volume details to get the studio
+            if (!string.IsNullOrWhiteSpace(volume?.Publisher?.Name))
+            {
+                item.AddStudio(volume.Publisher.Name);
+            }
         }
 
         /// <summary>
@@ -138,7 +149,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
                     Type = person.Role.Any() ? GetPersonKindFromRole(person.Roles.First()) : "Unknown"
                 };
 
-                personInfo.SetProviderId(ComicVineConstants.ProviderName, GetProviderIdFromSiteDetailUrl(person.SiteDetailUrl));
+                personInfo.SetProviderId(ComicVineConstants.ProviderId, GetProviderIdFromSiteDetailUrl(person.SiteDetailUrl));
 
                 item.AddPerson(personInfo);
             }
@@ -198,16 +209,16 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
 
                 // Match series name and issue number, and optionally the name
 
-                var seriesName = BookFileNameParser.GetComparableString(result.Volume?.Name ?? string.Empty, false);
-                if (issueNumber != parsedItem.IndexNumber || !comparableSeriesName.Equals(seriesName, StringComparison.Ordinal))
+                var comparableVolumeName = BookFileNameParser.GetComparableString(result.Volume?.Name ?? string.Empty, false);
+                if (issueNumber != parsedItem.IndexNumber || !comparableSeriesName.Equals(comparableVolumeName, StringComparison.Ordinal))
                 {
                     continue;
                 }
 
                 if (!string.IsNullOrWhiteSpace(comparableName) && !string.IsNullOrWhiteSpace(result.Name))
                 {
-                    var nameComparison = BookFileNameParser.GetComparableString(result.Name, false);
-                    if (!comparableName.Equals(nameComparison, StringComparison.Ordinal))
+                    var comparableIssueName = BookFileNameParser.GetComparableString(result.Name, false);
+                    if (!comparableName.Equals(comparableIssueName, StringComparison.Ordinal))
                     {
                         continue;
                     }
@@ -223,7 +234,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
                     }
                 }
 
-                return result.ApiDetailUrl;
+                return GetProviderIdFromSiteDetailUrl(result.SiteDetailUrl);
             }
 
             return null;
@@ -263,7 +274,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
 
             if (!string.IsNullOrWhiteSpace(issueProviderId))
             {
-                var issueDetails = await GetOrAddIssueDetailsFromCache(issueProviderId, cancellationToken).ConfigureAwait(false);
+                var issueDetails = await GetOrAddItemDetailsFromCache<IssueDetails>(issueProviderId, cancellationToken).ConfigureAwait(false);
 
                 if (issueDetails == null)
                 {

@@ -9,27 +9,29 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
     public interface IComicVineMetadataCacheManager
     {
         /// <summary>
-        /// Check if the issue is already cached.
+        /// Check if the resource is already cached.
         /// </summary>
-        /// <param name="issueApiId">The API Id of the issue.</param>
-        /// <returns>Whether the issue is cached.</returns>
-        public bool HasCache(string issueApiId);
+        /// <param name="apiId">The API id of the resource.</param>
+        /// <returns>Whether the resource is cached.</returns>
+        public bool HasCache(string apiId);
 
         /// <summary>
-        /// Add the issue to the cache.
+        /// Add an API resource to the cache.
         /// </summary>
-        /// <param name="issueApiId">The API Id of the issue.</param>
-        /// <param name="issue">The issue to add to the cache.</param>
+        /// <param name="apiId">The API id of the resource.</param>
+        /// <param name="resource">The resource to add to the cache.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
+        /// <typeparam name="T">The type of the resource.</typeparam>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public Task AddToCache(string issueApiId, IssueDetails issue, CancellationToken cancellationToken);
+        public Task AddToCache<T>(string apiId, T resource, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Get the issue from the cache.
+        /// Get an API resource from the cache.
         /// </summary>
-        /// <param name="issueApiId">The API Id of the issue.</param>
+        /// <param name="apiId">The API id of the resource.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The cached issue.</returns>
-        public Task<IssueDetails?> GetFromCache(string issueApiId, CancellationToken cancellationToken);
+        /// <typeparam name="T">The type of the resource.</typeparam>
+        /// <returns>The cached resource.</returns>
+        public Task<T?> GetFromCache<T>(string apiId, CancellationToken cancellationToken);
     }
 }
