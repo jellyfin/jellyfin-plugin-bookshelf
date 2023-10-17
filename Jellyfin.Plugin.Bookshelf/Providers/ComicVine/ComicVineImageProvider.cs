@@ -92,13 +92,13 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
 
             var images = new List<string>();
 
-            if (!string.IsNullOrWhiteSpace(issueDetails.Image.OriginalUrl))
+            if (!string.IsNullOrWhiteSpace(issueDetails.Image.SuperUrl))
+            {
+                images.Add(issueDetails.Image.SuperUrl);
+            }
+            else if (!string.IsNullOrWhiteSpace(issueDetails.Image.OriginalUrl))
             {
                 images.Add(issueDetails.Image.OriginalUrl);
-            }
-            else if (!string.IsNullOrWhiteSpace(issueDetails.Image.SuperUrl))
-            {
-                images.Add(issueDetails.Image.ScreenLargeUrl);
             }
             else if (!string.IsNullOrWhiteSpace(issueDetails.Image.MediumUrl))
             {
@@ -110,7 +110,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
             }
             else if (!string.IsNullOrWhiteSpace(issueDetails.Image.ThumbUrl))
             {
-                images.Add(issueDetails.Image.ScreenLargeUrl);
+                images.Add(issueDetails.Image.ThumbUrl);
             }
 
             return images;
