@@ -27,7 +27,11 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
         /// <param name="logger">Instance of the <see cref="ILogger{ComicVineImageProvider}"/> interface.</param>
         /// <param name="httpClientFactory">Instance of the <see cref="IHttpClientFactory"/> interface.</param>
         /// <param name="apiKeyProvider">Instance of the <see cref="IComicVineApiKeyProvider"/> interface.</param>
-        public ComicVineImageProvider(IComicVineMetadataCacheManager comicVineMetadataCacheManager, ILogger<ComicVineImageProvider> logger, IHttpClientFactory httpClientFactory, IComicVineApiKeyProvider apiKeyProvider)
+        public ComicVineImageProvider(
+            IComicVineMetadataCacheManager comicVineMetadataCacheManager,
+            ILogger<ComicVineImageProvider> logger,
+            IHttpClientFactory httpClientFactory,
+            IComicVineApiKeyProvider apiKeyProvider)
             : base(logger, comicVineMetadataCacheManager, httpClientFactory, apiKeyProvider)
         {
             _logger = logger;
