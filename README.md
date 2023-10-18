@@ -58,6 +58,9 @@ The following **limitations** apply:
 These Metadata providers will check online services for metadata.
 
 - Google Books
+- Comic Vine
+
+To use the Comic Vine metadata provider, you will need to set an API key on the plugin's configuration page.
 
 ## Build & Installation Process
 
