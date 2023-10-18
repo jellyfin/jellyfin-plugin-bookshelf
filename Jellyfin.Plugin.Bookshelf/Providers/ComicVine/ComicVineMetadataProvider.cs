@@ -146,7 +146,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
                 var personInfo = new PersonInfo
                 {
                     Name = person.Name,
-                    Type = person.Role.Any() ? GetPersonKindFromRole(person.Roles.First()) : "Unknown"
+                    Type = person.Roles.Any() ? GetPersonKindFromRole(person.Roles.First()) : "Unknown"
                 };
 
                 personInfo.SetProviderId(ComicVineConstants.ProviderId, GetProviderIdFromSiteDetailUrl(person.SiteDetailUrl));
