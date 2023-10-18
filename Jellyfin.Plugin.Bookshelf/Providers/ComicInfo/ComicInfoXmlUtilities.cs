@@ -21,7 +21,31 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicInfo
             var hasFoundMetadata = false;
 
             hasFoundMetadata |= ReadStringInto(xml, "ComicInfo/Title", title => book.Name = title);
-            hasFoundMetadata |= ReadStringInto(xml, "ComicInfo/AlternateSeries", title => book.OriginalTitle = title);
+            // this value is used internally only, as Jellyfin has no field to save it to
+            var isManga = false;
+
+            hasFoundMetadata |= ReadStringInto(xml, "ComicInfo/Title", title => book.Name = title);
+            hasFoundMetadata |= ReadStringInto(xml, "ComicInfo/Manga", manga =>
+            {
+                if (manga.Equals("Yes", StringComparison.OrdinalIgnoreCase))
+                {
+                    isManga = true;
+                }
+            });
+            hasFoundMetadata |= ReadStringInto(xml, "ComicInfo/AlternateSeries", title =>
+            {
+                if (isManga)
+                {
+                    // Software like ComicTagger (https://github.com/comictagger/comictagger) uses
+                    // this field for the series name in the original language when tagging manga
+                    book.OriginalTitle = title;
+                }
+                else
+                {
+                    // Based on the The Anansi Project, some US comics can be part of cross-over
+                    // story arcs. This field is then used to specify an alternate series
+                }
+            });
             hasFoundMetadata |= ReadStringInto(xml, "ComicInfo/Series", series => book.SeriesName = series);
             hasFoundMetadata |= ReadIntInto(xml, "ComicInfo/Number", issue => book.IndexNumber = issue);
             hasFoundMetadata |= ReadStringInto(xml, "ComicInfo/Summary", summary => book.Overview = summary);
