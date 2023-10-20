@@ -4,8 +4,8 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -177,9 +177,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
 
             using var response = await httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
 
-            using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-
-            return await JsonSerializer.DeserializeAsync<SearchResult>(stream, JsonDefaults.Options, cancellationToken).ConfigureAwait(false);
+            return await response.Content.ReadFromJsonAsync<SearchResult>(JsonDefaults.Options, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<string?> FetchBookId(BookInfo item, CancellationToken cancellationToken)
@@ -252,9 +250,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
 
             using var response = await httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
 
-            using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-
-            return await JsonSerializer.DeserializeAsync<BookResult>(stream, JsonDefaults.Options, cancellationToken).ConfigureAwait(false);
+            return await response.Content.ReadFromJsonAsync<BookResult>(JsonDefaults.Options, cancellationToken).ConfigureAwait(false);
         }
 
         private Book? ProcessBookData(BookResult bookResult, CancellationToken cancellationToken)

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net.Http;
-using System.Text.Json;
+using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Extensions.Json;
@@ -84,9 +84,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
 
             using var response = await httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
 
-            using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-
-            return await JsonSerializer.DeserializeAsync<BookResult>(stream, JsonDefaults.Options, cancellationToken).ConfigureAwait(false);
+            return await response.Content.ReadFromJsonAsync<BookResult>(JsonDefaults.Options, cancellationToken).ConfigureAwait(false);
         }
 
         private List<string> ProcessBookImage(BookResult bookResult)
