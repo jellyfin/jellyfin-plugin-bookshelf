@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Jellyfin.Plugin.Bookshelf.Providers.ComicVine.Models;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
@@ -13,23 +14,23 @@ using Microsoft.Extensions.Logging;
 namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
 {
     /// <summary>
-    /// Comic Vine image provider.
+    /// Comic Vine person image provider.
     /// </summary>
-    public class ComicVineImageProvider : BaseComicVineProvider, IRemoteImageProvider
+    public class ComicVinePersonImageProvider : BaseComicVineProvider, IRemoteImageProvider
     {
-        private readonly ILogger<ComicVineImageProvider> _logger;
+        private readonly ILogger<ComicVinePersonImageProvider> _logger;
         private readonly IHttpClientFactory _httpClientFactory;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ComicVineImageProvider"/> class.
+        /// Initializes a new instance of the <see cref="ComicVinePersonImageProvider"/> class.
         /// </summary>
         /// <param name="comicVineMetadataCacheManager">Instance of the <see cref="IComicVineMetadataCacheManager"/> interface.</param>
-        /// <param name="logger">Instance of the <see cref="ILogger{ComicVineImageProvider}"/> interface.</param>
+        /// <param name="logger">Instance of the <see cref="ILogger{ComicVinePersonImageProvider}"/> interface.</param>
         /// <param name="httpClientFactory">Instance of the <see cref="IHttpClientFactory"/> interface.</param>
         /// <param name="apiKeyProvider">Instance of the <see cref="IComicVineApiKeyProvider"/> interface.</param>
-        public ComicVineImageProvider(
+        public ComicVinePersonImageProvider(
             IComicVineMetadataCacheManager comicVineMetadataCacheManager,
-            ILogger<ComicVineImageProvider> logger,
+            ILogger<ComicVinePersonImageProvider> logger,
             IHttpClientFactory httpClientFactory,
             IComicVineApiKeyProvider apiKeyProvider)
             : base(logger, comicVineMetadataCacheManager, httpClientFactory, apiKeyProvider)
@@ -44,7 +45,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
         /// <inheritdoc/>
         public bool Supports(BaseItem item)
         {
-            return item is Book;
+            return item is Person;
         }
 
         /// <inheritdoc/>
@@ -58,21 +59,21 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var issueProviderId = item.GetProviderId(ComicVineConstants.ProviderId);
+            var personProviderId = item.GetProviderId(ComicVineConstants.ProviderId);
 
-            if (string.IsNullOrWhiteSpace(issueProviderId))
+            if (string.IsNullOrWhiteSpace(personProviderId))
             {
                 return Enumerable.Empty<RemoteImageInfo>();
             }
 
-            var issueDetails = await GetOrAddItemDetailsFromCache<IssueDetails>(issueProviderId, cancellationToken).ConfigureAwait(false);
+            var personDetails = await GetOrAddItemDetailsFromCache<PersonDetails>(personProviderId, cancellationToken).ConfigureAwait(false);
 
-            if (issueDetails == null)
+            if (personDetails == null)
             {
                 return Enumerable.Empty<RemoteImageInfo>();
             }
 
-            var images = ProcessImages(issueDetails.Image)
+            var images = ProcessImages(personDetails.Image)
                 .Select(url => new RemoteImageInfo
                 {
                     Url = url,
@@ -83,10 +84,9 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
         }
 
         /// <inheritdoc/>
-        public async Task<HttpResponseMessage> GetImageResponse(string url, CancellationToken cancellationToken)
+        public Task<HttpResponseMessage> GetImageResponse(string url, CancellationToken cancellationToken)
         {
-            var httpClient = _httpClientFactory.CreateClient(NamedClient.Default);
-            return await httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
+            return _httpClientFactory.CreateClient(NamedClient.Default).GetAsync(url, cancellationToken);
         }
     }
 }
