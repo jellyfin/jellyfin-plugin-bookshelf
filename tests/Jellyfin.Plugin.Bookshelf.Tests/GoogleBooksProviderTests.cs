@@ -20,8 +20,8 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
         private bool HasGoogleId(string id, Dictionary<string, string> providerIds)
         {
             return providerIds.Count == 1
-                && providerIds.ContainsKey(GoogleBooksConstants.ProviderId)
-                && providerIds[GoogleBooksConstants.ProviderId] == id;
+                && providerIds.TryGetValue(GoogleBooksConstants.ProviderId, out var providerId)
+                && providerId == id;
         }
 
         #region GetSearchResults
@@ -35,7 +35,8 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
             });
 
             var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
-            mockedHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(new HttpClient(mockedMessageHandler));
+            using var client = new HttpClient(mockedMessageHandler);
+            mockedHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(client);
 
             IRemoteMetadataProvider<Book, BookInfo> provider = new GoogleBooksProvider(NullLogger<GoogleBooksProvider>.Instance, mockedHttpClientFactory);
 
@@ -78,7 +79,8 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
             });
 
             var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
-            mockedHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(new HttpClient(mockedMessageHandler));
+            using var client = new HttpClient(mockedMessageHandler);
+            mockedHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(client);
 
             IRemoteMetadataProvider<Book, BookInfo> provider = new GoogleBooksProvider(NullLogger<GoogleBooksProvider>.Instance, mockedHttpClientFactory);
 
@@ -133,7 +135,8 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
             });
 
             var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
-            mockedHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(new HttpClient(mockedMessageHandler));
+            using var client = new HttpClient(mockedMessageHandler);
+            mockedHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(client);
 
             IRemoteMetadataProvider<Book, BookInfo> provider = new GoogleBooksProvider(NullLogger<GoogleBooksProvider>.Instance, mockedHttpClientFactory);
 
@@ -187,7 +190,8 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
             });
 
             var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
-            mockedHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(new HttpClient(mockedMessageHandler));
+            using var client = new HttpClient(mockedMessageHandler);
+            mockedHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(client);
 
             IRemoteMetadataProvider<Book, BookInfo> provider = new GoogleBooksProvider(NullLogger<GoogleBooksProvider>.Instance, mockedHttpClientFactory);
 

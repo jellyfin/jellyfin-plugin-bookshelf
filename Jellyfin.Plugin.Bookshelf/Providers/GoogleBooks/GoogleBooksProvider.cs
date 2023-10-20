@@ -430,14 +430,14 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
                     item.IndexNumber = index;
                 }
 
-                if (match.Groups.ContainsKey("name"))
+                if (match.Groups.TryGetValue("name", out Group? nameGroup))
                 {
-                    item.Name = match.Groups["name"].Value.Trim();
+                    item.Name = nameGroup.Value.Trim();
                 }
 
-                if (match.Groups.ContainsKey("seriesName"))
+                if (match.Groups.TryGetValue("seriesName", out Group? seriesGroup))
                 {
-                    item.SeriesName = match.Groups["seriesName"].Value.Trim();
+                    item.SeriesName = seriesGroup.Value.Trim();
                 }
 
                 // might as well catch the return value here as well
