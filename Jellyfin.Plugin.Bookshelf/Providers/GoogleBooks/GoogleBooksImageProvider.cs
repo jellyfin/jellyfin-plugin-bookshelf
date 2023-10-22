@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net.Http;
-using System.Text.Json;
+using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Extensions.Json;
@@ -31,7 +31,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
         }
 
         /// <inheritdoc />
-        public string Name => "Google Books";
+        public string Name => GoogleBooksConstants.ProviderName;
 
         /// <inheritdoc />
         public bool Supports(BaseItem item)
@@ -51,7 +51,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             cancellationToken.ThrowIfCancellationRequested();
             var list = new List<RemoteImageInfo>();
 
-            var googleBookId = item.GetProviderId("GoogleBooks");
+            var googleBookId = item.GetProviderId(GoogleBooksConstants.ProviderId);
 
             if (string.IsNullOrEmpty(googleBookId))
             {
@@ -84,11 +84,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
 
             using var response = await httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
 
-            #pragma warning disable CA2007
-            await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-            #pragma warning restore CA2007
-
-            return await JsonSerializer.DeserializeAsync<BookResult>(stream, JsonDefaults.Options, cancellationToken).ConfigureAwait(false);
+            return await response.Content.ReadFromJsonAsync<BookResult>(JsonDefaults.Options, cancellationToken).ConfigureAwait(false);
         }
 
         private List<string> ProcessBookImage(BookResult bookResult)
