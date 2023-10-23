@@ -74,7 +74,8 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
             });
 
             var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
-            mockedHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(new HttpClient(mockedMessageHandler));
+            using var client = new HttpClient(mockedMessageHandler);
+            mockedHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(client);
 
             IRemoteMetadataProvider<Book, BookInfo> provider = new GoogleBooksProvider(NullLogger<GoogleBooksProvider>.Instance, mockedHttpClientFactory);
 
@@ -132,7 +133,8 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
             });
 
             var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
-            mockedHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(new HttpClient(mockedMessageHandler));
+            using var client = new HttpClient(mockedMessageHandler);
+            mockedHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(client);
 
             IRemoteMetadataProvider<Book, BookInfo> provider = new GoogleBooksProvider(NullLogger<GoogleBooksProvider>.Instance, mockedHttpClientFactory);
 
@@ -172,7 +174,8 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
             });
 
             var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
-            mockedHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(new HttpClient(mockedMessageHandler));
+            using var client = new HttpClient(mockedMessageHandler);
+            mockedHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(client);
 
             IRemoteMetadataProvider<Book, BookInfo> provider = new GoogleBooksProvider(NullLogger<GoogleBooksProvider>.Instance, mockedHttpClientFactory);
 
