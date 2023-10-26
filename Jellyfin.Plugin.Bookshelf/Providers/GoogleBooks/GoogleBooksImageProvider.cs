@@ -1,32 +1,35 @@
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Jellyfin.Extensions.Json;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Providers;
+using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
 {
     /// <summary>
     /// Google books image provider.
     /// </summary>
-    public class GoogleBooksImageProvider : IRemoteImageProvider
+    public class GoogleBooksImageProvider : BaseGoogleBooksProvider, IRemoteImageProvider
     {
+        private readonly ILogger<GoogleBooksImageProvider> _logger;
         private readonly IHttpClientFactory _httpClientFactory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GoogleBooksImageProvider"/> class.
         /// </summary>
+        /// <param name="logger">Instance of the <see cref="ILogger{GoogleBooksProvider}"/> interface.</param>
         /// <param name="httpClientFactory">Instance of the <see cref="IHttpClientFactory"/> interface.</param>
-        public GoogleBooksImageProvider(IHttpClientFactory httpClientFactory)
+        public GoogleBooksImageProvider(ILogger<GoogleBooksImageProvider> logger, IHttpClientFactory httpClientFactory)
+             : base(logger, httpClientFactory)
         {
+            _logger = logger;
             _httpClientFactory = httpClientFactory;
         }
 
@@ -72,19 +75,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             }));
 
             return list;
-        }
-
-        private async Task<BookResult?> FetchBookData(string googleBookId, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var url = string.Format(CultureInfo.InvariantCulture, GoogleApiUrls.DetailsUrl, googleBookId);
-
-            var httpClient = _httpClientFactory.CreateClient(NamedClient.Default);
-
-            using var response = await httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
-
-            return await response.Content.ReadFromJsonAsync<BookResult>(JsonDefaults.Options, cancellationToken).ConfigureAwait(false);
         }
 
         private List<string> ProcessBookImage(BookResult bookResult)

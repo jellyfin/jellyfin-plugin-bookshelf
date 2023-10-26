@@ -3,6 +3,7 @@ using Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks;
 using Jellyfin.Plugin.Bookshelf.Tests.Http;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
+using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 
 namespace Jellyfin.Plugin.Bookshelf.Tests
@@ -21,7 +22,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
             using var client = new HttpClient(mockedMessageHandler);
             mockedHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(client);
 
-            IRemoteImageProvider provider = new GoogleBooksImageProvider(mockedHttpClientFactory);
+            IRemoteImageProvider provider = new GoogleBooksImageProvider(NullLogger<GoogleBooksImageProvider>.Instance, mockedHttpClientFactory);
 
             var images = await provider.GetImages(new Book()
             {
