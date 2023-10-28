@@ -1,4 +1,10 @@
 using System.Net;
+using Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks;
+using Jellyfin.Plugin.Bookshelf.Tests.Http;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Providers;
+using Microsoft.Extensions.Logging.Abstractions;
+using NSubstitute;
 
 namespace Jellyfin.Plugin.Bookshelf.Tests
 {

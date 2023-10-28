@@ -212,12 +212,11 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
                     continue;
                 }
 
-                if (match.Groups.ContainsKey(IssueIdMatchGroup))
+                if (match.Groups.TryGetValue(IssueIdMatchGroup, out Group? issueIdGroup))
                 {
-                    var value = match.Groups[IssueIdMatchGroup];
-                    if (value.Success)
+                    if (issueIdGroup.Success)
                     {
-                        return value.Value;
+                        return issueIdGroup.Value;
                     }
                 }
             }
