@@ -58,16 +58,8 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
 
             var fileInfo = _fileSystem.GetFileSystemInfo(path);
 
-            if (fileInfo.Exists)
-            {
-                // If it's recent don't re-download
-                if ((DateTime.UtcNow - _fileSystem.GetLastWriteTimeUtc(fileInfo)).TotalDays <= CacheTime)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            // If it's recent don't re-download
+            return fileInfo.Exists && (DateTime.UtcNow - _fileSystem.GetLastWriteTimeUtc(fileInfo)).TotalDays <= CacheTime;
         }
 
         /// <inheritdoc/>

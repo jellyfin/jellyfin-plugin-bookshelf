@@ -5,6 +5,8 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
 {
     public class BookFileNameParserTests
     {
+        #region Parse
+
         [Fact]
         public void Parse_WithNameAndDefaultSeriesName_CorrectlyResetSeriesName()
         {
@@ -179,5 +181,33 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
             var result = BookFileNameParser.Parse("Children of Ruin (Children of Time, #2)", "Adrian Tchaikovsky");
             Assert.Equal(expected, result);
         }
+
+        #endregion
+
+        #region GetComparableString
+
+        [Fact]
+        public void GetComparableString_WithSpacers_Success()
+        {
+            var value = "L'île mystérieuse !";
+            var expected = "lîle mystérieuse";
+
+            var result = BookFileNameParser.GetComparableString(value, false);
+
+            Assert.Equal(expected, result);
+        }
+
+        [Fact]
+        public void GetComparableString_WithNumerals_Success()
+        {
+            var value = "Dark Knight III: The Master Race III";
+            var expected = "dark knight iii master race 3";
+
+            var result = BookFileNameParser.GetComparableString(value, true);
+
+            Assert.Equal(expected, result);
+        }
+
+        #endregion
     }
 }

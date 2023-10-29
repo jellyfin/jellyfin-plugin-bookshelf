@@ -102,11 +102,13 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
                     return await _comicVineMetadataCacheManager.GetFromCache<T>(itemApiId, cancellationToken).ConfigureAwait(false);
                 }
             }
-            catch (FileNotFoundException)
+            catch (FileNotFoundException fileEx)
             {
+                _logger.LogWarning("Cannot find cache file {FileName}.", fileEx.FileName);
             }
-            catch (DirectoryNotFoundException)
+            catch (DirectoryNotFoundException directoryEx)
             {
+                _logger.LogWarning("Cannot find cache directory: {ExceptionMessage}.", directoryEx.Message);
             }
 
             return default;
@@ -212,12 +214,9 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
                     continue;
                 }
 
-                if (match.Groups.TryGetValue(IssueIdMatchGroup, out Group? issueIdGroup))
+                if (match.Groups.TryGetValue(IssueIdMatchGroup, out Group? issueIdGroup) && issueIdGroup.Success)
                 {
-                    if (issueIdGroup.Success)
-                    {
-                        return issueIdGroup.Value;
-                    }
+                    return issueIdGroup.Value;
                 }
             }
 

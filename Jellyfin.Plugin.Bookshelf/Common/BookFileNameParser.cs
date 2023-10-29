@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using MediaBrowser.Controller.Providers;
@@ -71,36 +72,28 @@ namespace Jellyfin.Plugin.Bookshelf.Common
                     continue;
                 }
 
-                if (match.Groups.TryGetValue(NameMatchGroup, out Group? nameGroup))
+                if (match.Groups.TryGetValue(NameMatchGroup, out Group? nameGroup) && nameGroup.Success)
                 {
-                    if (nameGroup.Success)
-                    {
-                        result.Name = nameGroup.Value.Trim();
-                    }
+                    result.Name = nameGroup.Value.Trim();
                 }
 
-                if (match.Groups.TryGetValue(SeriesNameMatchGroup, out Group? seriesGroup))
+                if (match.Groups.TryGetValue(SeriesNameMatchGroup, out Group? seriesGroup) && seriesGroup.Success)
                 {
-                    if (seriesGroup.Success)
-                    {
-                        result.SeriesName = seriesGroup.Value.Trim();
-                    }
+                    result.SeriesName = seriesGroup.Value.Trim();
                 }
 
-                if (match.Groups.TryGetValue(IndexMatchGroup, out Group? indexGroup))
+                if (match.Groups.TryGetValue(IndexMatchGroup, out Group? indexGroup)
+                    && indexGroup.Success
+                    && int.TryParse(indexGroup.Value, out var index))
                 {
-                    if (indexGroup.Success && int.TryParse(indexGroup.Value, out var index))
-                    {
-                        result.Index = index;
-                    }
+                     result.Index = index;
                 }
 
-                if (match.Groups.TryGetValue(YearMatchGroup, out Group? yearGroup))
+                if (match.Groups.TryGetValue(YearMatchGroup, out Group? yearGroup)
+                    && yearGroup.Success
+                    && int.TryParse(yearGroup.Value, out var year))
                 {
-                    if (yearGroup.Success && int.TryParse(yearGroup.Value, out var year))
-                    {
-                        result.Year = year;
-                    }
+                    result.Year = year;
                 }
 
                 break;
@@ -130,13 +123,14 @@ namespace Jellyfin.Plugin.Bookshelf.Common
 
             if (replaceEndNumerals)
             {
-                foreach (var pair in _replaceEndNumerals)
+                string? endNumerals = _replaceEndNumerals.Keys.FirstOrDefault(key => value.EndsWith(key, StringComparison.OrdinalIgnoreCase));
+
+                if (endNumerals != null)
                 {
-                    if (value.EndsWith(pair.Key, StringComparison.OrdinalIgnoreCase))
-                    {
-                        value = value.Remove(value.IndexOf(pair.Key, StringComparison.InvariantCulture), pair.Key.Length);
-                        value += pair.Value;
-                    }
+                    var replacement = _replaceEndNumerals[endNumerals];
+
+                    value = value.Remove(value.Length - endNumerals.Length, endNumerals.Length);
+                    value += replacement;
                 }
             }
 

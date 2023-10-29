@@ -404,7 +404,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
                 cache,
                 _mockApiKeyProvider);
 
-            var metadataResult = await provider.GetMetadata(new BookInfo()
+            await provider.GetMetadata(new BookInfo()
             {
                 ProviderIds = new Dictionary<string, string>()
                 {
@@ -433,7 +433,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
                 cache,
                 _mockApiKeyProvider);
 
-            var metadataResult = await provider.GetMetadata(new BookInfo()
+            await provider.GetMetadata(new BookInfo()
             {
                 ProviderIds = new Dictionary<string, string>()
                 {

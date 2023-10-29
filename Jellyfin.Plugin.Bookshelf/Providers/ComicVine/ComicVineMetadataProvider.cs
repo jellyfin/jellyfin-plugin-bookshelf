@@ -101,20 +101,16 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (!string.IsNullOrWhiteSpace(issue.Name))
-            {
-                item.Name = issue.Name;
-            }
-            else
-            {
-                item.Name = $"#{issue.IssueNumber.PadLeft(3, '0')}";
-            }
+            item.Name = !string.IsNullOrWhiteSpace(issue.Name) ? issue.Name : $"#{issue.IssueNumber.PadLeft(3, '0')}";
 
             string sortIssueName = issue.IssueNumber.PadLeft(3, '0');
 
-            sortIssueName += " - " + issue.Volume?.Name;
+            if (!string.IsNullOrWhiteSpace(issue.Volume?.Name))
+            {
+                sortIssueName += " - " + issue.Volume?.Name;
+            }
 
-            if (!string.IsNullOrEmpty(issue.Name))
+            if (!string.IsNullOrWhiteSpace(issue.Name))
             {
                 sortIssueName += ", " + issue.Name;
             }
