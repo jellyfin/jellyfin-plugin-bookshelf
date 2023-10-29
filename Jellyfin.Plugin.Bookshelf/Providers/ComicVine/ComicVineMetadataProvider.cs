@@ -258,9 +258,9 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
                 remoteSearchResult.Overview = string.IsNullOrWhiteSpace(issue.Description) ? string.Empty : WebUtility.HtmlDecode(issue.Description);
                 remoteSearchResult.ProductionYear = GetYearFromCoverDate(issue.CoverDate);
 
-                if (!string.IsNullOrWhiteSpace(issue.Image?.ThumbUrl))
+                if (!string.IsNullOrWhiteSpace(issue.Image?.SmallUrl))
                 {
-                    remoteSearchResult.ImageUrl = issue.Image.ThumbUrl;
+                    remoteSearchResult.ImageUrl = issue.Image.SmallUrl;
                 }
 
                 return remoteSearchResult;
@@ -282,18 +282,8 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
             else
             {
                 var searchResults = await GetSearchResultsInternal(searchInfo, cancellationToken).ConfigureAwait(false);
-                if (!searchResults.Any())
-                {
-                    return Enumerable.Empty<RemoteSearchResult>();
-                }
 
-                var list = new List<RemoteSearchResult>();
-                foreach (var result in searchResults)
-                {
-                    list.Add(getSearchResultFromIssue(result));
-                }
-
-                return list;
+                return searchResults.Select(getSearchResultFromIssue);
             }
         }
 

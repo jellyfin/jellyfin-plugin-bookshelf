@@ -61,7 +61,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
                 {
                     Assert.Equal("Fortress Of Blood", first.Name);
                     Assert.True(HasComicVineId("attack-on-titan-10-fortress-of-blood/4000-441467", first.ProviderIds));
-                    Assert.Equal("https://comicvine.gamespot.com/a/uploads/scale_avatar/6/67663/3556541-10.jpg", first.ImageUrl);
+                    Assert.Equal("https://comicvine.gamespot.com/a/uploads/scale_small/6/67663/3556541-10.jpg", first.ImageUrl);
                     Assert.Equal("<p><em>FORTRESS OF BLOOD</em></p><p>" +
                         "<em>With no combat gear and Wall Rose breached, the 104th scrambles to evacuate the villages in the Titans' path. On their way to the safety of Wall Sheena, they decide to spend the night in Utgard Castle." +
                         " But their sanctuary becomes a slaughterhouse when they discover that, for some reason, these Titans attack at night!</em></p>" +
@@ -72,7 +72,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
                 {
                     Assert.Equal("Titan on the Hunt", second.Name);
                     Assert.True(HasComicVineId("attack-on-titan-6-titan-on-the-hunt/4000-424591", second.ProviderIds));
-                    Assert.Equal("https://comicvine.gamespot.com/a/uploads/scale_avatar/6/67663/3506331-06.jpg", second.ImageUrl);
+                    Assert.Equal("https://comicvine.gamespot.com/a/uploads/scale_small/6/67663/3506331-06.jpg", second.ImageUrl);
                     Assert.Equal("<p><em>TITAN ON THE HUNT</em></p><p><em>On the way to Eren’s home, deep in Titan territory, the Survey Corps ranks are broken by a charge led by a female Titan!" +
                         " But this Abnormal is different – she kills not to eat but to protect herself, and she seems to be looking for someone." +
                         " Armin comes to a shocking conclusion: She’s a human in a Titan’s body, just like Eren!</em></p>" +
@@ -83,7 +83,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
                 {
                     Assert.Equal("Band 10", third.Name);
                     Assert.True(HasComicVineId("attack-on-titan-10-band-10/4000-546356", third.ProviderIds));
-                    Assert.Equal("https://comicvine.gamespot.com/a/uploads/scale_avatar/6/67663/5400404-10.jpg", third.ImageUrl);
+                    Assert.Equal("https://comicvine.gamespot.com/a/uploads/scale_small/6/67663/5400404-10.jpg", third.ImageUrl);
                     Assert.Equal("<p><em>Die Erde gehört riesigen Menschenfressern: den TITANEN!</em></p><p><em>" +
                         "Die letzten Menschen leben zusammengepfercht in einer Festung mit fünfzig Meter hohen Mauern.</em></p><p><em>" +
                         "Als ein kolossaler Titan die äußere Mauer einreißt, bricht ein letzter Kampf aus – um das Überleben der Menschheit!</em></p>" +
@@ -125,7 +125,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
                 {
                     Assert.Equal("Fortress Of Blood", first.Name);
                     Assert.True(HasComicVineId("attack-on-titan-10-fortress-of-blood/4000-441467", first.ProviderIds));
-                    Assert.Equal("https://comicvine.gamespot.com/a/uploads/scale_avatar/6/67663/3556541-10.jpg", first.ImageUrl);
+                    Assert.Equal("https://comicvine.gamespot.com/a/uploads/scale_small/6/67663/3556541-10.jpg", first.ImageUrl);
                     Assert.Equal("<p><em>FORTRESS OF BLOOD</em></p><p>" +
                         "<em>With no combat gear and Wall Rose breached, the 104th scrambles to evacuate the villages in the Titans' path. On their way to the safety of Wall Sheena, they decide to spend the night in Utgard Castle." +
                         " But their sanctuary becomes a slaughterhouse when they discover that, for some reason, these Titans attack at night!</em></p>" +
@@ -167,7 +167,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
                 {
                     Assert.Equal("Fortress Of Blood", first.Name);
                     Assert.True(HasComicVineId("attack-on-titan-10-fortress-of-blood/4000-441467", first.ProviderIds));
-                    Assert.Equal("https://comicvine.gamespot.com/a/uploads/scale_avatar/6/67663/3556541-10.jpg", first.ImageUrl);
+                    Assert.Equal("https://comicvine.gamespot.com/a/uploads/scale_small/6/67663/3556541-10.jpg", first.ImageUrl);
                     Assert.Equal("<p><em>FORTRESS OF BLOOD</em></p><p>" +
                         "<em>With no combat gear and Wall Rose breached, the 104th scrambles to evacuate the villages in the Titans' path. On their way to the safety of Wall Sheena, they decide to spend the night in Utgard Castle." +
                         " But their sanctuary becomes a slaughterhouse when they discover that, for some reason, these Titans attack at night!</em></p>" +
@@ -203,7 +203,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
                 {
                     Assert.Equal("#020", first.Name);
                     Assert.True(HasComicVineId("invincible-20/4000-989412", first.ProviderIds));
-                    Assert.Equal("https://comicvine.gamespot.com/a/uploads/scale_avatar/11/110017/8943106-wwww.jpg", first.ImageUrl);
+                    Assert.Equal("https://comicvine.gamespot.com/a/uploads/scale_small/11/110017/8943106-wwww.jpg", first.ImageUrl);
                     Assert.Empty(first.Overview);
                     Assert.Equal(2015, first.ProductionYear);
                 },
@@ -211,7 +211,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
                 {
                     Assert.Equal("#020", second.Name);
                     Assert.True(HasComicVineId("invincible-20/4000-128610", second.ProviderIds));
-                    Assert.Equal("https://comicvine.gamespot.com/a/uploads/scale_avatar/6/67663/2185628-20.jpg", second.ImageUrl);
+                    Assert.Equal("https://comicvine.gamespot.com/a/uploads/scale_small/6/67663/2185628-20.jpg", second.ImageUrl);
                     Assert.Equal("<p><em>Mark Grayson is just like everyone else his age, except that his father is the most powerful superhero on the planet." +
                         " And now he's begun to inherit his father's powers. It all sounds okay at first, but how do you follow in your father's footsteps when you know you will never live up to his standards?" +
                         " For nine years now (or however long it's been since issue #6 came out) readers have been wondering, \"What's up with that robot zombie from issue #6?\"" +
@@ -225,7 +225,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
                 {
                     Assert.Equal("Amici", third.Name);
                     Assert.True(HasComicVineId("invincible-20-amici/4000-989389", third.ProviderIds));
-                    Assert.Equal("https://comicvine.gamespot.com/a/uploads/scale_avatar/11/110017/8943006-invincible-20-0001.jpg", third.ImageUrl);
+                    Assert.Equal("https://comicvine.gamespot.com/a/uploads/scale_small/11/110017/8943006-invincible-20-0001.jpg", third.ImageUrl);
                     Assert.Empty(third.Overview);
                     Assert.Equal(2016, third.ProductionYear);
                 });
