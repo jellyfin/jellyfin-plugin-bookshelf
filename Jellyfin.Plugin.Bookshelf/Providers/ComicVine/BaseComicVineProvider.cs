@@ -31,9 +31,9 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
         private static readonly Regex[] _issueIdMatches = new[]
         {
             // The slug needs to be stored in the provider id for the IExternalId implementation
-            new Regex(@"^(?<slug>.+?)\/(?<issueId>\d+-\d+)$"),
+            new Regex(@"^(?<slug>.+?)\/(?<issueId>[0-9]+-[0-9]+)$"),
             // Also support the issue id on its own for manual searches
-            new Regex(@"^(?<issueId>\d+-\d+)$")
+            new Regex(@"^(?<issueId>[0-9]+-[0-9]+)$")
         };
 
         /// <summary>

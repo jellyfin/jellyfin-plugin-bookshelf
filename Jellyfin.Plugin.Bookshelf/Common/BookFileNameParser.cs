@@ -28,13 +28,13 @@ namespace Jellyfin.Plugin.Bookshelf.Common
         private static readonly Regex[] _nameMatches =
         {
             // seriesName (seriesYear) #index (of count) (year), with only seriesName and index required
-            new Regex(@"^(?<seriesName>.+?)((\s\((?<seriesYear>\d{4})\))?)\s#(?<index>\d+)((\s\(of\s(?<count>\d+)\))?)((\s\((?<year>\d{4})\))?)$"),
+            new Regex(@"^(?<seriesName>.+?)((\s\((?<seriesYear>[0-9]{4})\))?)\s#(?<index>[0-9]+)((\s\(of\s(?<count>[0-9]+)\))?)((\s\((?<year>[0-9]{4})\))?)$"),
             // name (seriesName, #index) (year), with year optional
-            new Regex(@"^(?<name>.+?)\s\((?<seriesName>.+?),\s#(?<index>\d+)\)((\s\((?<year>\d{4})\))?)$"),
+            new Regex(@"^(?<name>.+?)\s\((?<seriesName>.+?),\s#(?<index>[0-9]+)\)((\s\((?<year>[0-9]{4})\))?)$"),
             // index - name (year), with year optional
-            new Regex(@"^(?<index>\d+)\s\-\s(?<name>.+?)((\s\((?<year>\d{4})\))?)$"),
+            new Regex(@"^(?<index>[0-9]+)\s\-\s(?<name>.+?)((\s\((?<year>[0-9]{4})\))?)$"),
             // name (year)
-            new Regex(@"(?<name>.*)\((?<year>\d{4})\)"),
+            new Regex(@"(?<name>.*)\((?<year>[0-9]{4})\)"),
             // last resort matches the whole string as the name
             new Regex(@"(?<name>.*)")
         };
