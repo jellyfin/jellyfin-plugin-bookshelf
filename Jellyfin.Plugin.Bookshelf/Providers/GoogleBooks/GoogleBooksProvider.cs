@@ -4,10 +4,9 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Jellyfin.Plugin.Bookshelf.Common;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
@@ -22,40 +21,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
     /// </summary>
     public class GoogleBooksProvider : BaseGoogleBooksProvider, IRemoteMetadataProvider<Book, BookInfo>
     {
-        // convert these characters to whitespace for better matching
-        // there are two dashes with different char codes
-        private const string Spacers = "/,.:;\\(){}[]+-_=–*";
-
-        private const string Remove = "\"'!`?";
-
-        private static readonly Regex[] _nameMatches =
-        {
-            // seriesName (seriesYear) #index (of count) (year), with only seriesName and index required
-            new Regex(@"^(?<seriesName>.+?)((\s\((?<seriesYear>\d{4})\))?)\s#(?<index>\d+)((\s\(of\s(?<count>\d+)\))?)((\s\((?<year>\d{4})\))?)$"),
-            // name (seriesName, #index) (year), with year optional
-            new Regex(@"^(?<name>.+?)\s\((?<seriesName>.+?),\s#(?<index>\d+)\)((\s\((?<year>\d{4})\))?)$"),
-            // index - name (year), with year optional
-            new Regex(@"^(?<index>\d+)\s\-\s(?<name>.+?)((\s\((?<year>\d{4})\))?)$"),
-            // name (year)
-            new Regex(@"(?<name>.*)\((?<year>\d{4})\)"),
-            // last resort matches the whole string as the name
-            new Regex(@"(?<name>.*)")
-        };
-
-        private readonly Dictionary<string, string> _replaceEndNumerals = new ()
-        {
-            { " i", " 1" },
-            { " ii", " 2" },
-            { " iii", " 3" },
-            { " iv", " 4" },
-            { " v", " 5" },
-            { " vi", " 6" },
-            { " vii", " 7" },
-            { " viii", " 8" },
-            { " ix", " 9" },
-            { " x", " 10" }
-        };
-
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger<GoogleBooksProvider> _logger;
 
@@ -202,16 +167,16 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
 
             // pattern match the filename
             // year can be included for better results
-            GetBookMetadata(item);
+            var parsedItem = BookFileNameParser.GetBookMetadata(item);
 
-            var searchResults = await GetSearchResultsInternal(item, cancellationToken)
+            var searchResults = await GetSearchResultsInternal(parsedItem, cancellationToken)
                 .ConfigureAwait(false);
             if (searchResults?.Items == null)
             {
                 return null;
             }
 
-            var comparableName = GetComparableName(item.Name, item.SeriesName, item.IndexNumber);
+            var comparableName = GetComparableName(parsedItem.Name, parsedItem.SeriesName, parsedItem.IndexNumber);
             foreach (var i in searchResults.Items)
             {
                 if (i.VolumeInfo is null)
@@ -233,7 +198,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
                 }
 
                 // allow a one year variance
-                if (Math.Abs(resultYear - item.Year ?? 0) > 1)
+                if (Math.Abs(resultYear - parsedItem.Year ?? 0) > 1)
                 {
                     continue;
                 }
@@ -337,121 +302,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             }
         }
 
-        private string GetComparableName(string? name, string? seriesName = null, int? index = null)
-        {
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                if (!string.IsNullOrWhiteSpace(seriesName) && index != null)
-                {
-                    // We searched by series name and index, so use that
-                    name = $"{seriesName} {index}";
-                }
-                else
-                {
-                    return string.Empty;
-                }
-            }
-
-            name = name.ToLower(CultureInfo.InvariantCulture);
-            name = name.Normalize(NormalizationForm.FormC);
-
-            foreach (var pair in _replaceEndNumerals)
-            {
-                if (name.EndsWith(pair.Key, StringComparison.OrdinalIgnoreCase))
-                {
-                    name = name.Remove(name.IndexOf(pair.Key, StringComparison.InvariantCulture), pair.Key.Length);
-                    name += pair.Value;
-                }
-            }
-
-            var sb = new StringBuilder();
-            foreach (var c in name)
-            {
-                if (c >= 0x2B0 && c <= 0x0333)
-                {
-                    // skip char modifier and diacritics
-                }
-                else if (Remove.IndexOf(c, StringComparison.Ordinal) > -1)
-                {
-                    // skip chars we are removing
-                }
-                else if (Spacers.IndexOf(c, StringComparison.Ordinal) > -1)
-                {
-                    sb.Append(' ');
-                }
-                else if (c == '&')
-                {
-                    sb.Append(" and ");
-                }
-                else
-                {
-                    sb.Append(c);
-                }
-            }
-
-            name = sb.ToString();
-            name = name.Replace("the", " ", StringComparison.OrdinalIgnoreCase);
-            name = name.Replace(" - ", ": ", StringComparison.Ordinal);
-
-            var regex = new Regex(@"\s+");
-            name = regex.Replace(name, " ");
-
-            return name.Trim();
-        }
-
-        /// <summary>
-        /// Extract metadata from the file name.
-        /// </summary>
-        /// <param name="item">The info item.</param>
-        internal void GetBookMetadata(BookInfo item)
-        {
-            foreach (var regex in _nameMatches)
-            {
-                var match = regex.Match(item.Name);
-                if (!match.Success)
-                {
-                    continue;
-                }
-
-                // Reset the name, since we'll get it from parsing
-                item.Name = string.Empty;
-
-                if (item.SeriesName == CollectionType.Books)
-                {
-                    // If the book is in a folder, the folder's name will be set as the series name
-                    // And we'll override it if we find it in the file name
-                    // If it's not in a folder, the series name will be set to the name of the collection
-                    // In this case reset it so it's not included in the search string
-                    item.SeriesName = string.Empty;
-                }
-
-                // catch return value because user may want to index books from zero
-                // but zero is also the return value from int.TryParse failure
-                var result = int.TryParse(match.Groups["index"].Value, out var index);
-                if (result)
-                {
-                    item.IndexNumber = index;
-                }
-
-                if (match.Groups.TryGetValue("name", out Group? nameGroup))
-                {
-                    item.Name = nameGroup.Value.Trim();
-                }
-
-                if (match.Groups.TryGetValue("seriesName", out Group? seriesGroup))
-                {
-                    item.SeriesName = seriesGroup.Value.Trim();
-                }
-
-                // might as well catch the return value here as well
-                result = int.TryParse(match.Groups["year"].Value, out var year);
-                if (result)
-                {
-                    item.Year = year;
-                }
-            }
-        }
-
         /// <summary>
         /// Get the search string for the item.
         /// If the item is part of a series, use the series name and the issue name or index.
@@ -487,6 +337,31 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Format information about a book to a comparable name string.
+        /// </summary>
+        /// <param name="name">Name of the book.</param>
+        /// <param name="seriesName">Name of the book series.</param>
+        /// <param name="index">Index of the book in the series.</param>
+        /// <returns>The book name as a string.</returns>
+        private static string GetComparableName(string? name, string? seriesName = null, int? index = null)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                if (!string.IsNullOrWhiteSpace(seriesName) && index != null)
+                {
+                    // We have series name and index, so use that
+                    name = $"{BookFileNameParser.GetComparableString(seriesName, false)} {index}";
+                }
+                else
+                {
+                    return string.Empty;
+                }
+            }
+
+            return BookFileNameParser.GetComparableString(name, true);
         }
     }
 }

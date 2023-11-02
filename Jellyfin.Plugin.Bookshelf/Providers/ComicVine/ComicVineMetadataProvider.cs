@@ -1,384 +1,397 @@
-﻿/*namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using Jellyfin.Plugin.Bookshelf.Common;
+using Jellyfin.Plugin.Bookshelf.Providers.ComicVine.Models;
+using MediaBrowser.Common.Net;
+using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Providers;
+using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.Providers;
+using Microsoft.Extensions.Logging;
+
+namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
 {
-    public class ComicVineMetadataProvider : IRemoteMetadataProvider<Book, BookInfo>
+    /// <summary>
+    /// Comic Vine metadata provider.
+    /// </summary>
+    public class ComicVineMetadataProvider : BaseComicVineProvider, IRemoteMetadataProvider<Book, BookInfo>
     {
-        private const string ApiKey = "cc632e23e4b370807f4de6f0e3ba0116c734c10b";
-        private const string VolumeSearchUrl =
-            @"http:api.comicvine.com/search/?api_key={0}&format=json&resources=issue&query={1}";
-
-        private const string IssueSearchUrl =
-            @"http:api.comicvine.com/issues/?api_key={0}&format=json&filter=issue_number:{1},volume:{2}";
-
-        private static readonly Regex[] NameMatches =
-        {
-            new Regex(@"(?<name>.*)\((?<year>\d{4})\)"),  matches "My Comic (2001)" and gives us the name and the year
-            new Regex(@"(?<name>.*)")  last resort matches the whole string as the name
-        };
-
-        private readonly CultureInfo _usCulture = new CultureInfo("en-US");
-
         private readonly ILogger<ComicVineMetadataProvider> _logger;
-        private readonly IHttpClient _httpClient;
-        private readonly IJsonSerializer _jsonSerializer;
-        private readonly IFileSystem _fileSystem;
-        private readonly IApplicationPaths _appPaths;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IComicVineApiKeyProvider _apiKeyProvider;
 
-        public static ComicVineMetadataProvider Current;
-
-        public ComicVineMetadataProvider(ILogger<ComicVineMetadataProvider> logger, IHttpClient httpClient, IJsonSerializer jsonSerializer, IFileSystem fileSystem, IApplicationPaths appPaths)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ComicVineMetadataProvider"/> class.
+        /// </summary>
+        /// <param name="logger">Instance of the <see cref="ILogger{ComicVineMetadataProvider}"/> interface.</param>
+        /// <param name="httpClientFactory">Instance of the <see cref="IHttpClientFactory"/> interface.</param>
+        /// <param name="comicVineMetadataCacheManager">Instance of the <see cref="IComicVineMetadataCacheManager"/> interface.</param>
+        /// <param name="apiKeyProvider">Instance of the <see cref="IComicVineApiKeyProvider"/> interface.</param>
+        public ComicVineMetadataProvider(ILogger<ComicVineMetadataProvider> logger, IHttpClientFactory httpClientFactory, IComicVineMetadataCacheManager comicVineMetadataCacheManager, IComicVineApiKeyProvider apiKeyProvider)
+            : base(logger, comicVineMetadataCacheManager, httpClientFactory, apiKeyProvider)
         {
             _logger = logger;
-            _httpClient = httpClient;
-            _jsonSerializer = jsonSerializer;
-            _fileSystem = fileSystem;
-            _appPaths = appPaths;
-            Current = this;
+            _httpClientFactory = httpClientFactory;
+            _apiKeyProvider = apiKeyProvider;
         }
 
+        /// <inheritdoc/>
+        public string Name => ComicVineConstants.ProviderName;
+
+        /// <inheritdoc/>
         public async Task<MetadataResult<Book>> GetMetadata(BookInfo info, CancellationToken cancellationToken)
-        {
-            var result = new MetadataResult<Book>();
-
-            var volumeId = info.GetProviderId(ComicVineVolumeExternalId.KeyName) ??
-                              await FetchComicVolumeId(info, cancellationToken).ConfigureAwait(false);
-
-            if (string.IsNullOrEmpty(volumeId))
-            {
-                return result;
-            }
-
-            var issueNumber = GetIssueNumberFromName(info.Name).ToString(_usCulture);
-
-            await EnsureCacheFile(volumeId, issueNumber, cancellationToken).ConfigureAwait(false);
-
-            var cachePath = GetCacheFilePath(volumeId, issueNumber);
-
-            try
-            {
-                var issueInfo = _jsonSerializer.DeserializeFromFile<SearchResult>(cachePath);
-
-                result.Item = new Book();
-                result.Item.SetProviderId(ComicVineVolumeExternalId.KeyName, volumeId);
-                result.HasMetadata = true;
-
-                ProcessIssueData(result.Item, issueInfo, cancellationToken);
-            }
-            catch (FileNotFoundException)
-            {
-            }
-            catch (DirectoryNotFoundException)
-            {
-            }
-
-            return result;
-        }
-
-        / <summary>
-        /
-        / </summary>
-        / <param name="item"></param>
-        / <param name="issue"></param>
-        / <param name="cancellationToken"></param>
-        private void ProcessIssueData(Book item, SearchResult issue, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (issue.results == null || issue.results.Count == 0)
-                return;
+            var metadataResult = new MetadataResult<Book>()
+            {
+                QueriedById = true
+            };
 
-            var name = issue.results[0].issue_number;
+            var issueProviderId = info.GetProviderId(ComicVineConstants.ProviderId);
 
-            if (!string.IsNullOrEmpty(issue.results[0].name))
-                name += " - " + issue.results[0].name;
+            if (string.IsNullOrWhiteSpace(issueProviderId))
+            {
+                issueProviderId = await FetchIssueId(info, cancellationToken).ConfigureAwait(false);
+                metadataResult.QueriedById = false;
+            }
 
-            item.Name = name;
+            if (string.IsNullOrWhiteSpace(issueProviderId))
+            {
+                return metadataResult;
+            }
 
-            string sortIssueName = issue.results[0].issue_number;
+            var issueDetails = await GetOrAddItemDetailsFromCache<IssueDetails>(issueProviderId, cancellationToken).ConfigureAwait(false);
 
-            if (sortIssueName.Length == 1)
-                sortIssueName = "00" + sortIssueName;
-            else if (sortIssueName.Length == 2)
-                sortIssueName = "0" + sortIssueName;
+            if (issueDetails != null)
+            {
+                metadataResult.Item = new Book();
+                metadataResult.Item.SetProviderId(ComicVineConstants.ProviderId, issueProviderId);
+                metadataResult.HasMetadata = true;
 
-            sortIssueName += " - " + issue.results[0].volume.name;
+                VolumeDetails? volumeDetails = null;
 
-            if (!string.IsNullOrEmpty(issue.results[0].name))
-                sortIssueName += ", " + issue.results[0].name;
+                if (!string.IsNullOrWhiteSpace(issueDetails.Volume?.SiteDetailUrl))
+                {
+                    volumeDetails = await GetOrAddItemDetailsFromCache<VolumeDetails>(GetProviderIdFromSiteDetailUrl(issueDetails.Volume.SiteDetailUrl), cancellationToken).ConfigureAwait(false);
+                }
+
+                ProcessIssueData(metadataResult.Item, issueDetails, volumeDetails, cancellationToken);
+                ProcessIssueMetadata(metadataResult, issueDetails, cancellationToken);
+            }
+
+            return metadataResult;
+        }
+
+        /// <summary>
+        /// Process the issue data.
+        /// </summary>
+        /// <param name="item">The Book item.</param>
+        /// <param name="issue">The issue details.</param>
+        /// <param name="volume">The volume details.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        private void ProcessIssueData(Book item, IssueDetails issue, VolumeDetails? volume, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            item.Name = !string.IsNullOrWhiteSpace(issue.Name) ? issue.Name : $"#{issue.IssueNumber.PadLeft(3, '0')}";
+
+            string sortIssueName = issue.IssueNumber.PadLeft(3, '0');
+
+            if (!string.IsNullOrWhiteSpace(issue.Volume?.Name))
+            {
+                sortIssueName += " - " + issue.Volume?.Name;
+            }
+
+            if (!string.IsNullOrWhiteSpace(issue.Name))
+            {
+                sortIssueName += ", " + issue.Name;
+            }
 
             item.ForcedSortName = sortIssueName;
 
-            item.SeriesName = issue.results[0].volume.name;
+            item.SeriesName = issue.Volume?.Name;
+            item.Overview = WebUtility.HtmlDecode(issue.Description);
+            item.ProductionYear = GetYearFromCoverDate(issue.CoverDate);
 
-            item.Overview = WebUtility.HtmlDecode(issue.results[0].description);
+            if (!string.IsNullOrWhiteSpace(volume?.Publisher?.Name))
+            {
+                item.AddStudio(volume.Publisher.Name);
+            }
         }
 
-        / <summary>
-        /
-        / </summary>
-        / <param name="item"></param>
-        / <param name="cancellationToken"></param>
-        / <returns></returns>
-        private async Task<string> FetchComicVolumeId(BookInfo item, CancellationToken cancellationToken)
+        /// <summary>
+        /// Process the issue metadata.
+        /// </summary>
+        /// <param name="item">The metadata result.</param>
+        /// <param name="issue">The issue details.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        private void ProcessIssueMetadata(MetadataResult<Book> item, IssueDetails issue, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            /*
-             * Comics should be stored so that they represent the volume number and the parent represents the comic series.
-             #1#
-            var name = item.SeriesName;
-            var year = string.Empty;
-
-            foreach (var re in NameMatches)
+            foreach (var person in issue.PersonCredits)
             {
-                Match m = re.Match(name);
-                if (m.Success)
+                var personInfo = new PersonInfo
                 {
-                    name = m.Groups["name"].Value.Trim();
-                    year = m.Groups["year"] != null ? m.Groups["year"].Value : null;
-                    break;
-                }
+                    Name = person.Name,
+                    Type = person.Roles.Any() ? GetPersonKindFromRole(person.Roles.First()) : "Unknown"
+                };
+
+                personInfo.SetProviderId(ComicVineConstants.ProviderId, GetProviderIdFromSiteDetailUrl(person.SiteDetailUrl));
+
+                item.AddPerson(personInfo);
             }
+        }
 
-            if (string.IsNullOrEmpty(year) && item.Year != null)
+        private string GetPersonKindFromRole(PersonCreditRole role)
+        {
+            return role switch
             {
-                year = item.Year.ToString();
-            }
+                PersonCreditRole.Artist => "Artist",
+                PersonCreditRole.Colorist => "Colorist",
+                PersonCreditRole.Cover => "CoverArtist",
+                PersonCreditRole.Editor => "Editor",
+                PersonCreditRole.Inker => "Inker",
+                PersonCreditRole.Letterer => "Letterer",
+                PersonCreditRole.Penciler => "Penciller",
+                PersonCreditRole.Translator => "Translator",
+                PersonCreditRole.Writer => "Writer",
+                PersonCreditRole.Assistant
+                    or PersonCreditRole.Designer
+                    or PersonCreditRole.Journalist
+                    or PersonCreditRole.Production
+                    or PersonCreditRole.Other => "Unknown",
+                _ => throw new ArgumentException($"Unknown role: {role}"),
+            };
+        }
 
-            var url = string.Format(VolumeSearchUrl, ApiKey, UrlEncode(name));
-            var stream = await _httpClient.Get(url, Plugin.Instance.ComicVineSemiphore, cancellationToken);
+        /// <summary>
+        /// Try to find the issue id from the item info.
+        /// </summary>
+        /// <param name="item">The BookInfo item.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The issue id if found.</returns>
+        private async Task<string?> FetchIssueId(BookInfo item, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
 
-            if (stream == null)
+            var parsedItem = BookFileNameParser.GetBookMetadata(item);
+
+            var searchResults = await GetSearchResultsInternal(parsedItem, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (!searchResults.Any())
             {
-                _logger.Info("response is null");
                 return null;
             }
 
-            var searchResult = _jsonSerializer.DeserializeFromStream<SearchResult>(stream);
+            var comparableName = BookFileNameParser.GetComparableString(parsedItem.Name, false);
+            var comparableSeriesName = BookFileNameParser.GetComparableString(parsedItem.SeriesName, false);
 
-            var comparableName = GetComparableName(name);
-
-            foreach (var result in searchResult.results)
+            foreach (var result in searchResults)
             {
-                if (result.volume.name != null &&
-                    GetComparableName(result.volume.name).Equals(comparableName, StringComparison.OrdinalIgnoreCase))
+                if (!int.TryParse(result.IssueNumber, out var issueNumber))
                 {
-                    _logger.Info("volume name: " + GetComparableName(result.volume.name) + ", matches: " + comparableName);
-                    if (!string.IsNullOrEmpty(year))
-                    {
-                        var resultYear = result.cover_date.Substring(0, 4);
+                    continue;
+                }
 
-                        if (year == resultYear)
-                            return result.volume.id.ToString(CultureInfo.InvariantCulture);
-                    }
-                    else
-                        return result.volume.id.ToString(CultureInfo.InvariantCulture);
-                }
-                else
+                // Match series name and issue number, and optionally the name
+
+                var comparableVolumeName = BookFileNameParser.GetComparableString(result.Volume?.Name ?? string.Empty, false);
+                if (issueNumber != parsedItem.IndexNumber || !comparableSeriesName.Equals(comparableVolumeName, StringComparison.Ordinal))
                 {
-                    if (result.volume.name != null)
-                        _logger.Info(comparableName + " does not match " + GetComparableName(result.volume.name));
+                    continue;
                 }
+
+                if (!string.IsNullOrWhiteSpace(comparableName) && !string.IsNullOrWhiteSpace(result.Name))
+                {
+                    var comparableIssueName = BookFileNameParser.GetComparableString(result.Name, false);
+                    if (!comparableName.Equals(comparableIssueName, StringComparison.Ordinal))
+                    {
+                        continue;
+                    }
+                }
+
+                if (parsedItem.Year.HasValue)
+                {
+                    var resultYear = GetYearFromCoverDate(result.CoverDate);
+
+                    if (Math.Abs(resultYear - parsedItem.Year ?? 0) > 1)
+                    {
+                        continue;
+                    }
+                }
+
+                return GetProviderIdFromSiteDetailUrl(result.SiteDetailUrl);
             }
 
             return null;
         }
 
-        / <summary>
-        /
-        / </summary>
-        / <param name="volumeId"></param>
-        / <param name="issueNumber"></param>
-        / <param name="cancellationToken"></param>
-        / <returns></returns>
-        private async Task<SearchResult> GetComicIssue(string volumeId, float issueNumber, CancellationToken cancellationToken)
+        /// <inheritdoc />
+        public async Task<HttpResponseMessage> GetImageResponse(string url, CancellationToken cancellationToken)
         {
-            var url = string.Format(IssueSearchUrl, ApiKey, issueNumber, volumeId);
+            var httpClient = _httpClientFactory.CreateClient(NamedClient.Default);
+            return await httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
+        }
 
-            var stream = await _httpClient.Get(url, Plugin.Instance.ComicVineSemiphore, cancellationToken);
+        /// <inheritdoc/>
+        public async Task<IEnumerable<RemoteSearchResult>> GetSearchResults(BookInfo searchInfo, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
 
-            if (stream == null)
+            Func<IssueSearch, RemoteSearchResult> getSearchResultFromIssue = (IssueSearch issue) =>
             {
-                _logger.Info("response is null");
-                return null;
+                var remoteSearchResult = new RemoteSearchResult();
+
+                remoteSearchResult.SetProviderId(ComicVineConstants.ProviderId, GetProviderIdFromSiteDetailUrl(issue.SiteDetailUrl));
+                remoteSearchResult.SearchProviderName = ComicVineConstants.ProviderName;
+                remoteSearchResult.Name = string.IsNullOrWhiteSpace(issue.Name) ? $"#{issue.IssueNumber.PadLeft(3, '0')}" : issue.Name;
+                remoteSearchResult.Overview = string.IsNullOrWhiteSpace(issue.Description) ? string.Empty : WebUtility.HtmlDecode(issue.Description);
+                remoteSearchResult.ProductionYear = GetYearFromCoverDate(issue.CoverDate);
+
+                if (!string.IsNullOrWhiteSpace(issue.Image?.SmallUrl))
+                {
+                    remoteSearchResult.ImageUrl = issue.Image.SmallUrl;
+                }
+
+                return remoteSearchResult;
+            };
+
+            var issueProviderId = searchInfo.GetProviderId(ComicVineConstants.ProviderId);
+
+            if (!string.IsNullOrWhiteSpace(issueProviderId))
+            {
+                var issueDetails = await GetOrAddItemDetailsFromCache<IssueDetails>(issueProviderId, cancellationToken).ConfigureAwait(false);
+
+                if (issueDetails == null)
+                {
+                    return Enumerable.Empty<RemoteSearchResult>();
+                }
+
+                return new[] { getSearchResultFromIssue(issueDetails) };
             }
-
-            return _jsonSerializer.DeserializeFromStream<SearchResult>(stream);
-        }
-
-
-        / <summary>
-        /
-        / </summary>
-        / <param name="name"></param>
-        / <returns></returns>
-        public static float GetIssueNumberFromName(string name)
-        {
-            var result = Regex.Match(name, @"\d+\.\d").Value;
-
-            if (string.IsNullOrEmpty(result))
-                result = Regex.Match(name, @"#\d+").Value;
-
-            if (string.IsNullOrEmpty(result))
-                result = Regex.Match(name, @"\d+").Value;
-
-            if (!string.IsNullOrEmpty(result))
+            else
             {
-                result = result.Replace("#", "");
-                 Remove any leading zeros so that 005 becomes 5
-                result = result.TrimStart(new[] { '0' });
+                var searchResults = await GetSearchResultsInternal(searchInfo, cancellationToken).ConfigureAwait(false);
 
-                var issueNumber = float.Parse(result);
-                return issueNumber;
-            }
-
-            return 0;
-        }
-
-        private const string Remove = "\"'!`?";
-         "Face/Off" support.
-        private const string Spacers = "/,.:;\\(){}[]+-_=–*";  (there are not actually two - they are different char codes)
-
-        / <summary>
-        /
-        / </summary>
-        / <param name="name"></param>
-        / <returns></returns>
-        internal static string GetComparableName(string name)
-        {
-            name = name.ToLower();
-            name = name.Normalize(NormalizationForm.FormC);
-
-            foreach (var pair in ReplaceEndNumerals)
-            {
-                if (name.EndsWith(pair.Key))
-                {
-                    name = name.Remove(name.IndexOf(pair.Key, StringComparison.InvariantCulture), pair.Key.Length);
-                    name = name + pair.Value;
-                }
-            }
-
-            var sb = new StringBuilder();
-            foreach (var c in name)
-            {
-                if (c >= 0x2B0 && c <= 0x0333)
-                {
-                     skip char modifier and diacritics
-                }
-                else if (Remove.IndexOf(c) > -1)
-                {
-                     skip chars we are removing
-                }
-                else if (Spacers.IndexOf(c) > -1)
-                {
-                    sb.Append(" ");
-                }
-                else if (c == '&')
-                {
-                    sb.Append(" and ");
-                }
-                else
-                {
-                    sb.Append(c);
-                }
-            }
-            name = sb.ToString();
-            name = name.Replace("the", " ");
-            name = name.Replace(" - ", ": ");
-
-            string prevName;
-            do
-            {
-                prevName = name;
-                name = name.Replace("  ", " ");
-            } while (name.Length != prevName.Length);
-
-            return name.Trim();
-        }
-
-        / <summary>
-        /
-        / </summary>
-        static readonly Dictionary<string, string> ReplaceEndNumerals = new Dictionary<string, string> {
-            {" i", " 1"},
-            {" ii", " 2"},
-            {" iii", " 3"},
-            {" iv", " 4"},
-            {" v", " 5"},
-            {" vi", " 6"},
-            {" vii", " 7"},
-            {" viii", " 8"},
-            {" ix", " 9"},
-            {" x", " 10"}
-        };
-
-        private static string UrlEncode(string name)
-        {
-            return WebUtility.UrlEncode(name);
-        }
-
-        public string Name
-        {
-            get { return "Comic Vine"; }
-        }
-
-        private readonly Task _cachedResult = Task.FromResult(true);
-
-        internal Task EnsureCacheFile(string volumeId, string issueNumber, CancellationToken cancellationToken)
-        {
-            var path = GetCacheFilePath(volumeId, issueNumber);
-
-            var fileInfo = _fileSystem.GetFileSystemInfo(path);
-
-            if (fileInfo.Exists)
-            {
-                 If it's recent don't re-download
-                if ((DateTime.UtcNow - _fileSystem.GetLastWriteTimeUtc(fileInfo)).TotalDays <= 7)
-                {
-                    return _cachedResult;
-                }
-            }
-
-            return DownloadIssueInfo(volumeId, issueNumber, cancellationToken);
-        }
-
-        internal async Task DownloadIssueInfo(string volumeId, string issueNumber, CancellationToken cancellationToken)
-        {
-            var url = string.Format(IssueSearchUrl, ApiKey, issueNumber, volumeId);
-
-            var xmlPath = GetCacheFilePath(volumeId, issueNumber);
-
-            using (var stream = await _httpClient.Get(url, Plugin.Instance.ComicVineSemiphore, cancellationToken).ConfigureAwait(false))
-            {
-                Directory.CreateDirectory(Path.GetDirectoryName(xmlPath));
-
-                using (var fileStream = _fileSystem.GetFileStream(xmlPath, FileMode.Create, FileAccess.Write, FileShare.Read, true))
-                {
-                    await stream.CopyToAsync(fileStream).ConfigureAwait(false);
-                }
+                return searchResults.Select(getSearchResultFromIssue);
             }
         }
 
-        internal string GetCacheFilePath(string volumeId, string issueNumber)
+        /// <summary>
+        /// Get the year from the cover date.
+        /// </summary>
+        /// <param name="coverDate">The date, in the format "yyyy-MM-dd".</param>
+        /// <returns>The year.</returns>
+        private int? GetYearFromCoverDate(string coverDate)
         {
-            var gameDataPath = GetComicVineDataPath();
-            return Path.Combine(gameDataPath, volumeId, "issue-" + issueNumber.ToString(_usCulture) + ".json");
+            if (DateTimeOffset.TryParse(coverDate, out var result))
+            {
+                return result.Year;
+            }
+
+            return null;
         }
 
-        private string GetComicVineDataPath()
+        private async Task<IEnumerable<IssueSearch>> GetSearchResultsInternal(BookInfo item, CancellationToken cancellationToken)
         {
-            var dataPath = Path.Combine(_appPaths.CachePath, "comicvine");
+            cancellationToken.ThrowIfCancellationRequested();
 
-            return dataPath;
+            var apiKey = _apiKeyProvider.GetApiKey();
+
+            if (apiKey == null)
+            {
+                return Enumerable.Empty<IssueSearch>();
+            }
+
+            var searchString = GetSearchString(item);
+            var url = string.Format(CultureInfo.InvariantCulture, ComicVineApiUrls.IssueSearchUrl, apiKey, WebUtility.UrlEncode(searchString));
+
+            var response = await _httpClientFactory
+                .CreateClient(NamedClient.Default)
+                .GetAsync(url, cancellationToken)
+                .ConfigureAwait(false);
+
+            var apiResponse = await response.Content.ReadFromJsonAsync<SearchApiResponse<IssueSearch>>(JsonOptions, cancellationToken).ConfigureAwait(false);
+
+            if (apiResponse == null)
+            {
+                _logger.LogError("Failed to deserialize Comic Vine API response.");
+                return Enumerable.Empty<IssueSearch>();
+            }
+
+            var results = GetFromApiResponse<IssueSearch>(apiResponse);
+
+            return results;
         }
 
-        public Task<HttpResponseMessage> GetImageResponse(string url, CancellationToken cancellationToken)
+        /// <summary>
+        /// Get the search string for the item.
+        /// Will try to use the format "{SeriesName} {IndexNumber} {Name}".
+        /// </summary>
+        /// <param name="item">The BookInfo item.</param>
+        /// <returns>The search string.</returns>
+        internal string GetSearchString(BookInfo item)
         {
-            throw new NotImplementedException();
+            string result = string.Empty;
+
+            if (!string.IsNullOrWhiteSpace(item.SeriesName))
+            {
+                result += $" {item.SeriesName}";
+            }
+
+            if (item.IndexNumber.HasValue)
+            {
+                result += $" {item.IndexNumber.Value}";
+            }
+
+            if (!string.IsNullOrWhiteSpace(item.Name))
+            {
+                result += $" {item.Name}";
+            }
+
+            return result.Trim();
         }
 
-        public Task<IEnumerable<RemoteSearchResult>> GetSearchResults(BookInfo searchInfo, CancellationToken cancellationToken)
+        /// <summary>
+        /// Gets the issue id from the site detail URL.
+        /// <para>
+        /// Issues have a unique Id, but also a different one used for the API.
+        /// The URL to the issue detail page also includes a slug before the id.
+        /// </para>
+        /// <listheader>For example:</listheader>
+        /// <list type="bullet">
+        ///     <item>
+        ///         <term>id</term>
+        ///         <description>441467</description>
+        ///     </item>
+        ///     <item>
+        ///         <term>api_detail_url</term>
+        ///         <description>https://comicvine.gamespot.com/api/issue/4000-441467</description>
+        ///     </item>
+        ///     <item>
+        ///         <term>site_detail_url</term>
+        ///         <description>https://comicvine.gamespot.com/attack-on-titan-10-fortress-of-blood/4000-441467</description>
+        ///     </item>
+        /// </list>
+        /// <para>
+        /// We need to keep the last two parts of the site detail URL (the slug and the id) as the provider id for the IExternalId implementation to work.
+        /// </para>
+        /// </summary>
+        /// <param name="siteDetailUrl">The site detail URL.</param>
+        /// <returns>The slug and id.</returns>
+        private static string GetProviderIdFromSiteDetailUrl(string siteDetailUrl)
         {
-            throw new NotImplementedException();
+            return siteDetailUrl.Replace(ComicVineApiUrls.BaseWebsiteUrl, string.Empty, StringComparison.OrdinalIgnoreCase).Trim('/');
         }
     }
-}*/
+}

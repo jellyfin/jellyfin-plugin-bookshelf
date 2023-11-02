@@ -1,0 +1,65 @@
+{
+    "error": "OK",
+    "limit": 1,
+    "offset": 0,
+    "number_of_page_results": 1,
+    "number_of_total_results": 1,
+    "status_code": 1,
+    "results": {
+        "aliases": null,
+        "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/volume\/4050-49866\/",
+        "characters": [],
+        "concepts": [
+            {
+                "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/concept\/4015-56579\/",
+                "id": 56579,
+                "name": "Translated Comic",
+                "site_detail_url": "https:\/\/comicvine.gamespot.com\/translated-comic\/4015-56579\/",
+                "count": "15"
+            }
+        ],
+        "count_of_issues": 34,
+        "date_added": "2012-06-20 17:37:38",
+        "date_last_updated": "2023-01-24 06:54:12",
+        "deck": null,
+        "description": "<p><em>Roughly a century before the beginning of the series, a mysterious race of giant, man-eating humanoids, known as <a title=\"Titan\" href=\"https:\/\/attackontitan.fandom.com\/wiki\/Titan\" rel=\"nofollow\">\"Titans\"<\/a>, suddenly appeared and nearly exterminated humanity. In order to protect themselves from this threat, the few survivors built three concentric <a title=\"Walls\" href=\"https:\/\/attackontitan.fandom.com\/wiki\/Walls\" rel=\"nofollow\">Walls<\/a>, called Maria, Rose, and Sheena, and encased themselves in this limited territory, forgetting everything about the outside world and the history before the building of the Walls.<\/em><\/p><p><em>In the present, a boy named <a title=\"Eren Yeager\" href=\"https:\/\/attackontitan.fandom.com\/wiki\/Eren_Yeager\" rel=\"nofollow\">Eren Yeager<\/a> and his childhood friends <a title=\"Mikasa Ackerman\" href=\"https:\/\/attackontitan.fandom.com\/wiki\/Mikasa_Ackerman\" rel=\"nofollow\">Mikasa Ackerman<\/a> and <a title=\"Armin Arlert\" href=\"https:\/\/attackontitan.fandom.com\/wiki\/Armin_Arlert\" rel=\"nofollow\">Armin Arlert<\/a> dream about seeing the world outside the Walls some day; but their peace is abruptly interrupted when an unusual 60-meter tall <a title=\"Colossus Titan\" href=\"https:\/\/attackontitan.fandom.com\/wiki\/Colossus_Titan\" rel=\"nofollow\">Colossus Titan<\/a> and an <a title=\"Armored Titan\" href=\"https:\/\/attackontitan.fandom.com\/wiki\/Armored_Titan\" rel=\"nofollow\">Armored Titan<\/a> breach the outermost Wall, and Eren sees his mother dying in the resulting devastation. Eren vows revenge against the Titans and later enlists in the military branch <a title=\"Survey Corps\" href=\"https:\/\/attackontitan.fandom.com\/wiki\/Survey_Corps\" rel=\"nofollow\">Survey Corps<\/a>, accompanied by both Mikasa and <a title=\"Armin Arlert\" href=\"https:\/\/attackontitan.fandom.com\/wiki\/Armin_Arlert\" rel=\"nofollow\">Armin<\/a>.<\/em><\/p><p><em>As the story progresses, more mysteries surrounding the true origin and nature of the <a title=\"Titans\" href=\"https:\/\/attackontitan.fandom.com\/wiki\/Titans\" rel=\"nofollow\">Titans<\/a>, as well as the lost history of the world are addressed, and the reader gradually discovers that the Titans may not be the real enemies. Eren and the Survey Corps find themselves as the only remaining hope for their civilization, as they fight to uncover secrets from the past and stop the forces that want to bring about the destruction of mankind in the present and future.<\/em><\/p><p>English translation of the Japanese manga <a href=\"https:\/\/www.comicvine.com\/shingeki-no-kyojin\/4050-71291\/\" data-ref-id=\"4050-71291\">Shingeki no Kyojin<\/a>.<\/p><h4>Collected Editions<\/h4><ul><li><a href=\"\/attack-on-titan-colossal-edition-1-vol-1\/4000-454156\/\" data-ref-id=\"4000-454156\">Attack on Titan Colossal Edition Vol. 1<\/a> (Vol. 1-5)<\/li><li><a href=\"\/attack-on-titan-omnibus-1-vol-1-3\/4000-890058\/\" data-ref-id=\"4000-890058\">Attack on Titan Omnibus Vol. 1<\/a> (Vol. 1-3)<\/li><li><a href=\"\/attack-on-titan-colossal-edition-2-vol-2\/4000-503460\/\" data-ref-id=\"4000-503460\">Attack on Titan Colossal Edition Vol. 2<\/a> (Vol. 6-10)<\/li><li><a href=\"https:\/\/comicvine.gamespot.com\/attack-on-titan-colossal-edition-3-vol-3\/4000-551118\/\" data-ref-id=\"4000-551118\">Attack on Titan Colossal Edition Vol. 3<\/a> (Vol. 11-15)<\/li><li><a href=\"\/attack-on-titan-colossal-edition-4-vol-4\/4000-680401\/\" data-ref-id=\"4000-680401\">Attack on Titan Colossal Edition Vol. 4<\/a> (Vol. 16-20)<\/li><li><a href=\"\/attack-on-titan-colossal-edition-5-vol-5\/4000-808125\/\" data-ref-id=\"4000-808125\">Attack on Titan Colossal Edition Vol. 5<\/a> (Vol. 20-25)<\/li><li><a href=\"\/attack-on-titan-colossal-edition-6-vol-6\/4000-891982\/\" data-ref-id=\"4000-891982\">Attack on Titan Colossal Edition Vol. 6<\/a> (Vol. 26-30)<\/li><li>Attack on Titan Colossal Edition Vol. 7 (Vol. 31-34)<\/li><\/ul>",
+        "first_issue": {
+            "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/issue\/4000-342215\/",
+            "id": 342215,
+            "name": "The Desperate Battle Begins!",
+            "issue_number": "1"
+        },
+        "id": 49866,
+        "image": {
+            "icon_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/square_avatar\/6\/67663\/3506326-01.jpg",
+            "medium_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/scale_medium\/6\/67663\/3506326-01.jpg",
+            "screen_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/screen_medium\/6\/67663\/3506326-01.jpg",
+            "screen_large_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/screen_kubrick\/6\/67663\/3506326-01.jpg",
+            "small_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/scale_small\/6\/67663\/3506326-01.jpg",
+            "super_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/scale_large\/6\/67663\/3506326-01.jpg",
+            "thumb_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/scale_avatar\/6\/67663\/3506326-01.jpg",
+            "tiny_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/square_mini\/6\/67663\/3506326-01.jpg",
+            "original_url": "https:\/\/comicvine.gamespot.com\/a\/uploads\/original\/6\/67663\/3506326-01.jpg",
+            "image_tags": "All Images"
+        },
+        "issues": [],
+        "last_issue": {
+            "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/issue\/4000-890048\/",
+            "id": 890048,
+            "name": "Freedom...",
+            "issue_number": "34"
+        },
+        "locations": [],
+        "name": "Attack on Titan",
+        "objects": [],
+        "people": [],
+        "publisher": {
+            "api_detail_url": "https:\/\/comicvine.gamespot.com\/api\/publisher\/4010-3317\/",
+            "id": 3317,
+            "name": "Kodansha Comics USA"
+        },
+        "site_detail_url": "https:\/\/comicvine.gamespot.com\/attack-on-titan\/4050-49866\/",
+        "start_year": "2012"
+    },
+    "version": "1.0"
+}
