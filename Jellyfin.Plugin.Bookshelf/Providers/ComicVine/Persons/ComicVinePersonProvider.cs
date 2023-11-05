@@ -83,7 +83,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
                 person.HomePageUrl = personDetails.Website ?? string.Empty;
                 person.Overview = personDetails.Description ?? personDetails.Deck ?? string.Empty;
 
-                // Replace relarive urls with absolute urls
+                // Replace relative urls with absolute urls
                 person.Overview = person.Overview?.Replace("href=\"", $"href=\"{ComicVineApiUrls.BaseWebsiteUrl}", StringComparison.Ordinal);
 
                 person.PremiereDate = personDetails.BirthDate;
