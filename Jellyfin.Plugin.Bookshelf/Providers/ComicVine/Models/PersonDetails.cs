@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Text.Json.Serialization;
 
 namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine.Models
@@ -22,20 +23,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine.Models
         /// Gets a date, if one exists, that the person was born on. Not an origin date.
         /// </summary>
         [JsonIgnore]
-        public DateTime? BirthDate
-        {
-            get
-            {
-                if (Birth != null && DateTime.TryParse(Birth, out DateTime result))
-                {
-                    var date = DateOnly.FromDateTime(result);
-
-                    return new DateTimeOffset(date.Year, date.Month, date.Day, 0, 0, 0, TimeSpan.Zero).UtcDateTime;
-                }
-
-                return null;
-            }
-        }
+        public DateTime? BirthDate => ParseAsUTC(Birth);
 
         /// <summary>
         /// Gets the country the person resides in.
@@ -51,20 +39,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine.Models
         /// Gets the date this person died on.
         /// </summary>
         [JsonIgnore]
-        public DateTime? DeathDate
-        {
-            get
-            {
-                if (Death != null && DateTime.TryParse(Death, out DateTime result))
-                {
-                    var date = DateOnly.FromDateTime(result);
-
-                    return new DateTimeOffset(date.Year, date.Month, date.Day, 0, 0, 0, TimeSpan.Zero).UtcDateTime;
-                }
-
-                return null;
-            }
-        }
+        public DateTime? DeathDate => ParseAsUTC(Death);
 
         /// <summary>
         /// Gets a brief summary of the person.
@@ -100,5 +75,15 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine.Models
         /// Gets the URL to the person website.
         /// </summary>
         public string? Website { get; init; }
+
+        private static DateTime? ParseAsUTC(string? value)
+        {
+            if (!string.IsNullOrWhiteSpace(value) && DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out DateTime result))
+            {
+                return result;
+            }
+
+            return null;
+        }
     }
 }
