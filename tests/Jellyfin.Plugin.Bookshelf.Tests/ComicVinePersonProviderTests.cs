@@ -25,8 +25,8 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
         private bool HasComicVineId(string id, Dictionary<string, string> providerIds)
         {
             return providerIds.Count == 1
-                && providerIds.ContainsKey(ComicVineConstants.ProviderId)
-                && providerIds[ComicVineConstants.ProviderId] == id;
+                && providerIds.TryGetValue(ComicVineConstants.ProviderId, out string? providerId)
+                && providerId == id;
         }
 
         #region GetSearchResults
@@ -40,7 +40,8 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
             });
 
             var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
-            mockedHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(new HttpClient(mockedMessageHandler));
+            using var client = new HttpClient(mockedMessageHandler);
+            mockedHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(client);
 
             IRemoteMetadataProvider<Person, PersonLookupInfo> provider = new ComicVinePersonProvider(
                 NullLogger<ComicVinePersonProvider>.Instance,
@@ -78,7 +79,8 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
             });
 
             var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
-            mockedHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(new HttpClient(mockedMessageHandler));
+            using var client = new HttpClient(mockedMessageHandler);
+            mockedHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(client);
 
             IRemoteMetadataProvider<Person, PersonLookupInfo> provider = new ComicVinePersonProvider(
                 NullLogger<ComicVinePersonProvider>.Instance,
@@ -115,7 +117,8 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
             });
 
             var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
-            mockedHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(new HttpClient(mockedMessageHandler));
+            using var client = new HttpClient(mockedMessageHandler);
+            mockedHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(client);
 
             IRemoteMetadataProvider<Person, PersonLookupInfo> provider = new ComicVinePersonProvider(
                 NullLogger<ComicVinePersonProvider>.Instance,
@@ -157,7 +160,8 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
             });
 
             var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
-            mockedHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(new HttpClient(mockedMessageHandler));
+            using var client = new HttpClient(mockedMessageHandler);
+            mockedHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(client);
 
             IRemoteMetadataProvider<Person, PersonLookupInfo> provider = new ComicVinePersonProvider(
                 NullLogger<ComicVinePersonProvider>.Instance,
@@ -194,7 +198,8 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
             });
 
             var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
-            mockedHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(new HttpClient(mockedMessageHandler));
+            using var client = new HttpClient(mockedMessageHandler);
+            mockedHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(client);
 
             IRemoteMetadataProvider<Person, PersonLookupInfo> provider = new ComicVinePersonProvider(
                 NullLogger<ComicVinePersonProvider>.Instance,

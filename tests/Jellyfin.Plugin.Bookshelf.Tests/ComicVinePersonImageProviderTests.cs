@@ -22,7 +22,8 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
             });
 
             var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
-            mockedHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(new HttpClient(mockedMessageHandler));
+            using var client = new HttpClient(mockedMessageHandler);
+            mockedHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(client);
 
             IRemoteImageProvider provider = new ComicVinePersonImageProvider(Substitute.For<IComicVineMetadataCacheManager>(), NullLogger<ComicVinePersonImageProvider>.Instance, mockedHttpClientFactory, mockApiKeyProvider);
 
