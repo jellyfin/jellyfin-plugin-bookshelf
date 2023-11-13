@@ -249,7 +249,12 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
                 " being replaced by <a data-ref-id=\"4040-23115\" href=\"https://comicvine.gamespot.com/axel-alonso/4040-23115/\">Axel Alonso</a>.</p>",
                 metadataResult.Item.Overview);
             Assert.Equal("http://www.joequesada.com/", metadataResult.Item.HomePageUrl);
+
+            // Birth date should be UTC
+            Assert.True(metadataResult.Item.PremiereDate.HasValue);
             Assert.Equal(new DateTimeOffset(1962, 12, 01, 0, 0, 0, TimeSpan.Zero).UtcDateTime, metadataResult.Item.PremiereDate);
+            Assert.Equal(metadataResult.Item.PremiereDate.Value.ToUniversalTime(), metadataResult.Item.PremiereDate);
+
             Assert.Null(metadataResult.Item.EndDate);
             Assert.Equal(new string[] { "New York City" }, metadataResult.Item.ProductionLocations);
         }
