@@ -1,12 +1,9 @@
-using System;
-using System.IO.Compression;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.IO;
 using Microsoft.Extensions.Logging;
+using SharpCompress.Archives;
 
 namespace Jellyfin.Plugin.Bookshelf.Providers.ComicInfo
 {
@@ -85,19 +82,19 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicInfo
             try
             {
                 // Open the comic archive
-                using var comicBookFile = ZipFile.OpenRead(path);
+                using var comicBookFile = ArchiveFactory.Open(path);
 
                 // Try to get the ComicInfo.xml entry
-                var container = comicBookFile.GetEntry("ComicInfo.xml");
+                var entry = comicBookFile.Entries.FirstOrDefault(x => x.Key.Equals("ComicInfo.xml", StringComparison.OrdinalIgnoreCase));
 
-                if (container is null)
+                if (entry is null)
                 {
                     return null;
                 }
 
                 // Open the xml
                 #pragma warning disable CA2007
-                await using var containerStream = container.Open();
+                await using var containerStream = entry.OpenEntryStream();
                 #pragma warning restore CA2007
 
                 var comicInfoXml = XDocument.LoadAsync(containerStream, LoadOptions.None, cancellationToken);
