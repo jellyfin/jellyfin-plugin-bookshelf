@@ -1,0 +1,14 @@
+<Project>
+  <ItemGroup>
+    <PackageVersion Include="Jellyfin.Controller" Version="10.8.13" />
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="8.0.0" />
+    <PackageVersion Include="sharpcompress" Version="0.36.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageVersion Include="NSubstitute" Version="5.1.0" />
+    <PackageVersion Include="NSubstitute.Analyzers.CSharp" Version="1.0.16"/>
+    <PackageVersion Include="xunit" Version="2.6.6" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.6"/>
+    <PackageVersion Include="coverlet.collector" Version="6.0.0"/>
+      <PackageVersion Include="StyleCop.Analyzers" Version="1.1.118" PrivateAssets="All" />
+  </ItemGroup>
+</Project>

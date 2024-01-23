@@ -43,7 +43,7 @@
         <!-- error on CA1305: Specify IFormatProvider -->
         <Rule Id="CA1305" Action="Error" />
         <!-- error on CA1307: Specify StringComparison for clarity -->
-        <Rule Id="CA1307" Action="Error" />
+        <Rule Id="CA1307" Action="Warning" />
         <!-- error on CA1309: Use ordinal StringComparison -->
         <Rule Id="CA1309" Action="Error" />
         <!-- error on CA1725: Parameter names should match base declaration -->

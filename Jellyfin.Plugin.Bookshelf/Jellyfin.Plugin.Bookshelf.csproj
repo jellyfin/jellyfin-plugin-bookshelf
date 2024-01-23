@@ -1,19 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>Jellyfin.Plugin.Bookshelf</RootNamespace>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <AnalysisMode>AllEnabledByDefault</AnalysisMode>
     <CodeAnalysisRuleSet>../jellyfin.ruleset</CodeAnalysisRuleSet>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Jellyfin.Controller" Version="10.*-*" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="6.*-*" />
-    <PackageReference Include="sharpcompress" Version="0.32.2" />
+    <PackageReference Include="Jellyfin.Controller" />
+    <PackageReference Include="Microsoft.Extensions.Http" />
+    <PackageReference Include="sharpcompress" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,7 +19,7 @@
 
   <!-- Code Analyzers-->
   <ItemGroup>
-    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118" PrivateAssets="All" />
+    <PackageReference Include="StyleCop.Analyzers" />
   </ItemGroup>
 
 </Project>
