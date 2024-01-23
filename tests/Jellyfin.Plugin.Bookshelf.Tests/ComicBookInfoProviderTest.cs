@@ -31,7 +31,7 @@ public class ComicBookInfoProviderTest
 
         var actual = _uut.ReadComicBookMetadata(_comicBookInfoFormat.Metadata!);
         Assert.NotNull(actual);
-        Assert.Equal("At Midnight, All the Agents", actual!.Name);
+        Assert.Equal("At Midnight, All the Agents", actual.Name);
     }
 
     [Fact(DisplayName = "Check that the series has no alternative title.")]
@@ -41,7 +41,7 @@ public class ComicBookInfoProviderTest
 
         var actual = _uut.ReadComicBookMetadata(_comicBookInfoFormat.Metadata!);
         Assert.NotNull(actual);
-        Assert.Null(actual!.OriginalTitle);
+        Assert.Null(actual.OriginalTitle);
     }
 
     [Fact]
@@ -51,7 +51,7 @@ public class ComicBookInfoProviderTest
 
         var actual = _uut.ReadComicBookMetadata(_comicBookInfoFormat.Metadata!);
         Assert.NotNull(actual);
-        Assert.Equal("Watchmen", actual!.SeriesName);
+        Assert.Equal("Watchmen", actual.SeriesName);
     }
 
     [Fact(DisplayName = "Check that the issue equals the index number.")]
@@ -61,7 +61,7 @@ public class ComicBookInfoProviderTest
 
         var actual = _uut.ReadComicBookMetadata(_comicBookInfoFormat.Metadata!);
         Assert.NotNull(actual);
-        Assert.Equal(1, actual!.IndexNumber);
+        Assert.Equal(1, actual.IndexNumber);
     }
 
     [Fact]
@@ -73,7 +73,7 @@ public class ComicBookInfoProviderTest
         var expected = "Tales of the Black Freighter...";
 
         Assert.NotNull(actual);
-        Assert.Equal(expected, actual!.Overview);
+        Assert.Equal(expected, actual.Overview);
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public class ComicBookInfoProviderTest
 
         var actual = _uut.ReadComicBookMetadata(_comicBookInfoFormat.Metadata!);
         Assert.NotNull(actual);
-        Assert.Equal(1986, actual!.ProductionYear);
+        Assert.Equal(1986, actual.ProductionYear);
     }
 
     [Fact]
@@ -95,7 +95,7 @@ public class ComicBookInfoProviderTest
         var expected = new DateTime(1986, 9, 1);
 
         Assert.NotNull(actual);
-        Assert.Equal(expected, actual!.PremiereDate);
+        Assert.Equal(expected, actual.PremiereDate);
     }
 
     [Fact]
@@ -105,8 +105,8 @@ public class ComicBookInfoProviderTest
 
         var actual = _uut.ReadComicBookMetadata(_comicBookInfoFormat.Metadata!);
         Assert.NotNull(actual);
-        Assert.Single(actual!.Genres);
-        Assert.Equal("Superhero", actual!.Genres.GetValue(0));
+        Assert.Single(actual.Genres);
+        Assert.Equal("Superhero", actual.Genres.GetValue(0));
     }
 
     [Fact]
@@ -116,8 +116,8 @@ public class ComicBookInfoProviderTest
 
         var actual = _uut.ReadComicBookMetadata(_comicBookInfoFormat.Metadata!);
         Assert.NotNull(actual);
-        Assert.Single(actual!.Studios);
-        Assert.Equal("DC Comics", actual!.Studios.GetValue(0));
+        Assert.Single(actual.Studios);
+        Assert.Equal("DC Comics", actual.Studios.GetValue(0));
     }
 
     [Fact]
@@ -185,9 +185,9 @@ public class ComicBookInfoProviderTest
         var tags = new string[] { "Rorschach", "Ozymandias", "Nite Owl" };
 
         Assert.NotNull(actual);
-        Assert.NotEmpty(actual!.Tags);
+        Assert.NotEmpty(actual.Tags);
         Assert.Collection(
-            actual!.Tags,
+            actual.Tags,
             tag0 => Assert.Equal(tags[0], tag0),
             tag1 => Assert.Equal(tags[1], tag1),
             tag2 => Assert.Equal(tags[2], tag2));
@@ -197,8 +197,8 @@ public class ComicBookInfoProviderTest
     public void ReadCultureInfoInto_Success()
     {
         Assert.NotNull(_comicBookInfoFormat.Metadata);
-        Assert.NotNull(_comicBookInfoFormat.Metadata!.Language);
-        var actualCultureInfo = _uut.ReadCultureInfoInto(_comicBookInfoFormat.Metadata!.Language!);
+        Assert.NotNull(_comicBookInfoFormat.Metadata.Language);
+        var actualCultureInfo = _uut.ReadCultureInfoInto(_comicBookInfoFormat.Metadata.Language!);
 
         Assert.NotNull(actualCultureInfo);
         Assert.Equal("english", actualCultureInfo);

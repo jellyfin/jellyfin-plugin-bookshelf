@@ -1,5 +1,11 @@
 <Project>
     <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <IsPackable>false</IsPackable>
+        <CodeAnalysisRuleSet>jellyfin.ruleset</CodeAnalysisRuleSet>
+
         <Version>10.0.0.0</Version>
         <AssemblyVersion>10.0.0.0</AssemblyVersion>
         <FileVersion>10.0.0.0</FileVersion>
