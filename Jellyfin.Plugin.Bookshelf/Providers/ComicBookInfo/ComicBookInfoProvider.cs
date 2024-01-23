@@ -1,15 +1,12 @@
-using System;
 using System.Globalization;
-using System.IO;
-using System.Linq;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using Jellyfin.Extensions.Json;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.IO;
 using Microsoft.Extensions.Logging;
+using SharpCompress.Archives;
+using SharpCompress.Archives.Rar;
 using SharpCompress.Archives.Zip;
 
 namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
@@ -49,18 +46,18 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
             {
                 Stream stream = File.OpenRead(path);
                 await using (stream.ConfigureAwait(false))
-                using (var archive = ZipArchive.Open(stream)) // not yet async: https://github.com/adamhathcock/sharpcompress/pull/565
+                using (var archive = ArchiveFactory.Open(stream)) // not yet async: https://github.com/adamhathcock/sharpcompress/pull/565
                 {
                     if (archive.IsComplete)
                     {
-                        var volume = archive.Volumes.First();
-                        if (volume.Comment is null)
+                        var comment = GetComment(archive);
+                        if (comment is null)
                         {
                             _logger.LogInformation("{Path} does not contain any ComicBookInfo metadata", info.Path);
                             return new MetadataResult<Book> { HasMetadata = false };
                         }
 
-                        var comicBookMetadata = JsonSerializer.Deserialize<ComicBookInfoFormat>(volume.Comment, JsonDefaults.Options);
+                        var comicBookMetadata = JsonSerializer.Deserialize<ComicBookInfoFormat>(comment, JsonDefaults.Options);
                         if (comicBookMetadata is null)
                         {
                             _logger.LogError("Failed to load ComicBookInfo metadata from archive comment for {Path}", info.Path);
@@ -80,6 +77,21 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
                 return new MetadataResult<Book> { HasMetadata = false };
             }
         }
+
+        private string? GetComment(IArchive archive)
+        {
+            if (archive is RarArchive rarArchive)
+            {
+                return rarArchive.Volumes.FirstOrDefault()?.Comment;
+            }
+            if (archive is ZipArchive zipArchive)
+            {
+                return zipArchive.Volumes.FirstOrDefault()?.Comment;
+            }
+
+            return null;
+        }
+
 
         /// <inheritdoc />
         public bool HasItemChanged(BaseItem item)
