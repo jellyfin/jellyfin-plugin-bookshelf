@@ -12,6 +12,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "shared", "shared", "{480AD4
 		build.yaml = build.yaml
 		jellyfin.ruleset = jellyfin.ruleset
 		README.md = README.md
+		Directory.Packages.props = Directory.Packages.props
+		nuget.config = nuget.config
 	EndProjectSection
 EndProject
 Global

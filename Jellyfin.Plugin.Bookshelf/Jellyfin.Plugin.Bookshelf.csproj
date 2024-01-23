@@ -3,12 +3,13 @@
   <PropertyGroup>
     <RootNamespace>Jellyfin.Plugin.Bookshelf</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <CodeAnalysisRuleSet>../jellyfin.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Jellyfin.Controller" Version="10.*" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="8.*" />
-    <PackageReference Include="sharpcompress" Version="0.36.0" />
+    <PackageReference Include="Jellyfin.Controller" />
+    <PackageReference Include="Microsoft.Extensions.Http" />
+    <PackageReference Include="sharpcompress" />
   </ItemGroup>
 
   <ItemGroup>
@@ -18,7 +19,7 @@
 
   <!-- Code Analyzers-->
   <ItemGroup>
-    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118" PrivateAssets="All" />
+    <PackageReference Include="StyleCop.Analyzers" />
   </ItemGroup>
 
 </Project>
