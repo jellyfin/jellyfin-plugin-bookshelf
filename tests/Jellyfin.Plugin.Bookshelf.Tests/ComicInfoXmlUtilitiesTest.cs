@@ -26,7 +26,7 @@ public class ComicInfoXmlUtilitiesTest
     {
         var actual = _uut.ReadComicBookMetadata(_document);
         Assert.NotNull(actual);
-        Assert.Equal("The Desperate Battle Begins!", actual!.Name);
+        Assert.Equal("The Desperate Battle Begins!", actual.Name);
     }
 
     [Fact]
@@ -39,7 +39,7 @@ public class ComicInfoXmlUtilitiesTest
         // this field for the series name in the original language when tagging manga
         var actual = _uut.ReadComicBookMetadata(_document);
         Assert.NotNull(actual);
-        Assert.Equal("進撃の巨人", actual!.OriginalTitle);
+        Assert.Equal("進撃の巨人", actual.OriginalTitle);
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public class ComicInfoXmlUtilitiesTest
     {
         var actual = _uut.ReadComicBookMetadata(_document);
         Assert.NotNull(actual);
-        Assert.Equal("Attack on Titan", actual!.SeriesName);
+        Assert.Equal("Attack on Titan", actual.SeriesName);
     }
 
     [Fact(DisplayName = "Check that the issue equals the index number.")]
@@ -55,7 +55,7 @@ public class ComicInfoXmlUtilitiesTest
     {
         var actual = _uut.ReadComicBookMetadata(_document);
         Assert.NotNull(actual);
-        Assert.Equal(1, actual!.IndexNumber);
+        Assert.Equal(1, actual.IndexNumber);
     }
 
     [Fact]
@@ -68,7 +68,7 @@ public class ComicInfoXmlUtilitiesTest
             "2,000 Years From NowEpisode 2: That DayEpisode 3: Night of the Disbanding CeremonyEpisode 4: First Battle";
 
         Assert.NotNull(actual);
-        Assert.Equal(expected, actual!.Overview);
+        Assert.Equal(expected, actual.Overview);
     }
 
     [Fact]
@@ -76,7 +76,7 @@ public class ComicInfoXmlUtilitiesTest
     {
         var actual = _uut.ReadComicBookMetadata(_document);
         Assert.NotNull(actual);
-        Assert.Equal(2012, actual!.ProductionYear);
+        Assert.Equal(2012, actual.ProductionYear);
     }
 
     [Fact]
@@ -86,7 +86,7 @@ public class ComicInfoXmlUtilitiesTest
         var expected = new DateTime(2012, 6, 30);
 
         Assert.NotNull(actual);
-        Assert.Equal(expected, actual!.PremiereDate);
+        Assert.Equal(expected, actual.PremiereDate);
     }
 
     [Fact]
@@ -94,10 +94,10 @@ public class ComicInfoXmlUtilitiesTest
     {
         var actual = _uut.ReadComicBookMetadata(_document);
         Assert.NotNull(actual);
-        Assert.NotEmpty(actual!.Genres);
-        Assert.Equal("Action", actual!.Genres.GetValue(0));
-        Assert.Equal("Dark fantasy", actual!.Genres.GetValue(1));
-        Assert.Equal("Post-apocalyptic", actual!.Genres.GetValue(2));
+        Assert.NotEmpty(actual.Genres);
+        Assert.Equal("Action", actual.Genres.GetValue(0));
+        Assert.Equal("Dark fantasy", actual.Genres.GetValue(1));
+        Assert.Equal("Post-apocalyptic", actual.Genres.GetValue(2));
     }
 
     [Fact]
@@ -105,8 +105,8 @@ public class ComicInfoXmlUtilitiesTest
     {
         var actual = _uut.ReadComicBookMetadata(_document);
         Assert.NotNull(actual);
-        Assert.Single(actual!.Studios);
-        Assert.Equal("Kodansha Comics USA", actual!.Studios.GetValue(0));
+        Assert.Single(actual.Studios);
+        Assert.Equal("Kodansha Comics USA", actual.Studios.GetValue(0));
     }
 
     [Fact]

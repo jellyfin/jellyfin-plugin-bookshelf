@@ -6,6 +6,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{6215AFB5
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Jellyfin.Plugin.Bookshelf.Tests", "tests\Jellyfin.Plugin.Bookshelf.Tests\Jellyfin.Plugin.Bookshelf.Tests.csproj", "{FC333648-2AEE-4759-9088-35386909CB58}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "shared", "shared", "{480AD473-007F-46A7-AE41-6E04C8347931}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Build.props = Directory.Build.props
+		build.yaml = build.yaml
+		jellyfin.ruleset = jellyfin.ruleset
+		README.md = README.md
+		Directory.Packages.props = Directory.Packages.props
+		nuget.config = nuget.config
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
