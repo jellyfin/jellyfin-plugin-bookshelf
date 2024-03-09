@@ -13,6 +13,6 @@ jobs:
       version: ${{ github.event.release.tag_name }}
       is-unstable: ${{ github.event.release.prerelease }}
     secrets:
-      deploy-host: ${{ secrets.DEPLOY_HOST }}
-      deploy-user: ${{ secrets.DEPLOY_USER }}
-      deploy-key: ${{ secrets.DEPLOY_KEY }}
+      deploy-host: ${{ secrets.REPO_HOST }}
+      deploy-user: ${{ secrets.REPO_USER }}
+      deploy-key: ${{ secrets.REPO_KEY }}
