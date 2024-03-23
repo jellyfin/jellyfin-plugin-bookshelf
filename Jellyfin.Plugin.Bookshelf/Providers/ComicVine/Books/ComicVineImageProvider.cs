@@ -27,7 +27,11 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
         /// <param name="logger">Instance of the <see cref="ILogger{ComicVineImageProvider}"/> interface.</param>
         /// <param name="httpClientFactory">Instance of the <see cref="IHttpClientFactory"/> interface.</param>
         /// <param name="apiKeyProvider">Instance of the <see cref="IComicVineApiKeyProvider"/> interface.</param>
-        public ComicVineImageProvider(IComicVineMetadataCacheManager comicVineMetadataCacheManager, ILogger<ComicVineImageProvider> logger, IHttpClientFactory httpClientFactory, IComicVineApiKeyProvider apiKeyProvider)
+        public ComicVineImageProvider(
+            IComicVineMetadataCacheManager comicVineMetadataCacheManager,
+            ILogger<ComicVineImageProvider> logger,
+            IHttpClientFactory httpClientFactory,
+            IComicVineApiKeyProvider apiKeyProvider)
             : base(logger, comicVineMetadataCacheManager, httpClientFactory, apiKeyProvider)
         {
             _logger = logger;
@@ -68,50 +72,12 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
                 return Enumerable.Empty<RemoteImageInfo>();
             }
 
-            var images = ProcessIssueImages(issueDetails)
+            var images = ProcessImages(issueDetails.Image)
                 .Select(url => new RemoteImageInfo
                 {
                     Url = url,
                     ProviderName = ComicVineConstants.ProviderName
                 });
-
-            return images;
-        }
-
-        /// <summary>
-        /// Gets images URLs from the issue.
-        /// </summary>
-        /// <param name="issueDetails">The issue details.</param>
-        /// <returns>The list of images URLs.</returns>
-        private IEnumerable<string> ProcessIssueImages(IssueDetails issueDetails)
-        {
-            if (issueDetails.Image == null)
-            {
-                return Enumerable.Empty<string>();
-            }
-
-            var images = new List<string>();
-
-            if (!string.IsNullOrWhiteSpace(issueDetails.Image.SuperUrl))
-            {
-                images.Add(issueDetails.Image.SuperUrl);
-            }
-            else if (!string.IsNullOrWhiteSpace(issueDetails.Image.OriginalUrl))
-            {
-                images.Add(issueDetails.Image.OriginalUrl);
-            }
-            else if (!string.IsNullOrWhiteSpace(issueDetails.Image.MediumUrl))
-            {
-                images.Add(issueDetails.Image.MediumUrl);
-            }
-            else if (!string.IsNullOrWhiteSpace(issueDetails.Image.SmallUrl))
-            {
-                images.Add(issueDetails.Image.SmallUrl);
-            }
-            else if (!string.IsNullOrWhiteSpace(issueDetails.Image.ThumbUrl))
-            {
-                images.Add(issueDetails.Image.ThumbUrl);
-            }
 
             return images;
         }

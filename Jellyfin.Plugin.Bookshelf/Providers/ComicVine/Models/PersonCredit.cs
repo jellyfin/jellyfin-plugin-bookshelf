@@ -38,6 +38,17 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
         /// <summary>
         /// Gets the list of roles for this person.
         /// </summary>
-        public IEnumerable<PersonCreditRole> Roles => Role.Split(", ").Select(r => Enum.Parse<PersonCreditRole>(r, true));
+        public IEnumerable<PersonCreditRole> Roles
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(Role))
+                {
+                    return Enumerable.Empty<PersonCreditRole>();
+                }
+
+                return Role.Split(", ", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Select(r => Enum.Parse<PersonCreditRole>(r, true));
+            }
+        }
     }
 }
