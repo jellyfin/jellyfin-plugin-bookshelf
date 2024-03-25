@@ -1,4 +1,5 @@
 using System.Net;
+using Jellyfin.Data.Enums;
 using Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks;
 using Jellyfin.Plugin.Bookshelf.Tests.Http;
 using MediaBrowser.Controller.Entities;
@@ -218,7 +219,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
                 p =>
                 {
                     Assert.Equal("Adrian Tchaikovsky", p.Name);
-                    Assert.Equal("Author", p.Type);
+                    Assert.Equal(PersonKind.Author, p.Type);
                 });
 
             Assert.True(HasGoogleId("49T5twEACAAJ", metadataResult.Item.ProviderIds));
@@ -278,7 +279,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
                 p =>
                 {
                     Assert.Equal("Adrian Tchaikovsky", p.Name);
-                    Assert.Equal("Author", p.Type);
+                    Assert.Equal(PersonKind.Author, p.Type);
                 });
 
             Assert.True(HasGoogleId("G7utDwAAQBAJ", metadataResult.Item.ProviderIds));

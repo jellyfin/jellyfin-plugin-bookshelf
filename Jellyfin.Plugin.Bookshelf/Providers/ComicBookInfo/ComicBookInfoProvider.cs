@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Jellyfin.Data.Enums;
 using Jellyfin.Extensions.Json;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
@@ -185,7 +186,17 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo
                     person.Person = name[1].Trim(' ') + " " + name[0].Trim(' ');
                 }
 
-                var personInfo = new PersonInfo { Name = person.Person, Type = person.Role };
+                if (!Enum.TryParse(person.Role, out PersonKind personKind))
+                {
+                    personKind = PersonKind.Unknown;
+                }
+
+                if (string.Equals("Colorer", person.Role, StringComparison.OrdinalIgnoreCase))
+                {
+                    personKind = PersonKind.Colorist;
+                }
+
+                var personInfo = new PersonInfo { Name = person.Person, Type = personKind };
                 metadataResult.AddPerson(personInfo);
             }
         }

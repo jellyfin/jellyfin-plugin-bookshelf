@@ -2,7 +2,8 @@ using Jellyfin.Plugin.Bookshelf.Providers;
 using Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo;
 using Jellyfin.Plugin.Bookshelf.Providers.ComicInfo;
 using Jellyfin.Plugin.Bookshelf.Providers.ComicVine;
-using MediaBrowser.Common.Plugins;
+using MediaBrowser.Controller;
+using MediaBrowser.Controller.Plugins;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Jellyfin.Plugin.Bookshelf
@@ -13,7 +14,7 @@ namespace Jellyfin.Plugin.Bookshelf
     public class PluginServiceRegistrator : IPluginServiceRegistrator
     {
         /// <inheritdoc />
-        public void RegisterServices(IServiceCollection serviceCollection)
+        public void RegisterServices(IServiceCollection serviceCollection, IServerApplicationHost applicationHost)
         {
             // register the proxy local metadata provider for comic files
             serviceCollection.AddSingleton<ComicFileProvider>();

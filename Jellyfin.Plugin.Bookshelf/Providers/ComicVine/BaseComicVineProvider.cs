@@ -161,7 +161,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
 
             var results = GetFromApiResponse<T>(apiResponse);
 
-            if (results.Count() != 1)
+            if (results.Count != 1)
             {
                 _logger.LogError("Unexpected number of results in Comic Vine API response.");
                 return default;
@@ -176,25 +176,25 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
         /// <typeparam name="T">Type of the results.</typeparam>
         /// <param name="response">API response.</param>
         /// <returns>The results.</returns>
-        protected IEnumerable<T> GetFromApiResponse<T>(BaseApiResponse<T> response)
+        protected IReadOnlyList<T> GetFromApiResponse<T>(BaseApiResponse<T> response)
         {
             if (response.IsError)
             {
                 _logger.LogError("Comic Vine API response received with error code {ErrorCode} : {ErrorMessage}", response.StatusCode, response.Error);
-                return Enumerable.Empty<T>();
+                return Array.Empty<T>();
             }
 
             if (response is SearchApiResponse<T> searchResponse)
             {
-                return searchResponse.Results;
+                return searchResponse.Results.ToList();
             }
             else if (response is ItemApiResponse<T> itemResponse)
             {
-                return itemResponse.Results == null ? Enumerable.Empty<T>() : new[] { itemResponse.Results };
+                return itemResponse.Results == null ? Array.Empty<T>() : [itemResponse.Results];
             }
             else
             {
-                return Enumerable.Empty<T>();
+                return Array.Empty<T>();
             }
         }
 

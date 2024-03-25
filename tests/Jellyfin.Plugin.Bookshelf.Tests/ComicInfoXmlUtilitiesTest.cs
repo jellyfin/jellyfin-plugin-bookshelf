@@ -2,6 +2,7 @@ using Xunit;
 using System;
 using System.Xml.Linq;
 using System.Globalization;
+using Jellyfin.Data.Enums;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Controller.Entities;
 
@@ -117,13 +118,13 @@ public class ComicInfoXmlUtilitiesTest
 
         _uut.ReadPeopleMetadata(_document, metadataResult);
 
-        var author = new PersonInfo { Name = "Hajime Isayama", Type = "Author" };
-        var penciller = new PersonInfo { Name = "A Penciller", Type = "Penciller" };
-        var inker = new PersonInfo { Name = "An Inker", Type = "Inker" };
-        var letterer = new PersonInfo { Name = "Steve Wands", Type = "Letterer" };
-        var coverArtist0 = new PersonInfo { Name = "Artist A", Type = "Cover Artist" };
-        var coverArtist1 = new PersonInfo { Name = "Takashi Shimoyama", Type = "Cover Artist" };
-        var colourist = new PersonInfo { Name = "An Colourist", Type = "Colourist" };
+        var author = new PersonInfo { Name = "Hajime Isayama", Type = PersonKind.Author };
+        var penciller = new PersonInfo { Name = "A Penciller", Type = PersonKind.Penciller };
+        var inker = new PersonInfo { Name = "An Inker", Type = PersonKind.Inker };
+        var letterer = new PersonInfo { Name = "Steve Wands", Type = PersonKind.Letterer };
+        var coverArtist0 = new PersonInfo { Name = "Artist A", Type = PersonKind.CoverArtist };
+        var coverArtist1 = new PersonInfo { Name = "Takashi Shimoyama", Type = PersonKind.CoverArtist };
+        var colourist = new PersonInfo { Name = "An Colourist", Type = PersonKind.Colorist };
 
         Assert.Collection(metadataResult.People, authorActual =>
             {

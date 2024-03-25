@@ -114,5 +114,7 @@
         <Rule Id="CA2101" Action="None" />
         <!-- disable warning CA2234: Pass System.Uri objects instead of strings -->
         <Rule Id="CA2234" Action="None" />
+        <!-- Use composite formate -->
+        <Rule Id="CA1863" Action="None"/>
     </Rules>
 </RuleSet>

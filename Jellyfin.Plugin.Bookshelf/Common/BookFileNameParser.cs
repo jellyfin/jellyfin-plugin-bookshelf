@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using Jellyfin.Data.Enums;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
 
@@ -39,7 +40,7 @@ namespace Jellyfin.Plugin.Bookshelf.Common
             new Regex(@"(?<name>.*)")
         };
 
-        private static readonly Dictionary<string, string> _replaceEndNumerals = new ()
+        private static readonly Dictionary<string, string> _replaceEndNumerals = new()
         {
             { " i", " 1" },
             { " ii", " 2" },
@@ -102,7 +103,7 @@ namespace Jellyfin.Plugin.Bookshelf.Common
             // If the book is in a folder, the folder's name will be set as the series name
             // If it's not in a folder, the series name will be set to the name of the collection
             // So if we couldn't find the series name in the book name, use the folder name instead
-            if (string.IsNullOrWhiteSpace(result.SeriesName) && seriesName != CollectionType.Books)
+            if (string.IsNullOrWhiteSpace(result.SeriesName) && !string.Equals(seriesName, "books", StringComparison.OrdinalIgnoreCase))
             {
                 result.SeriesName = seriesName;
             }
