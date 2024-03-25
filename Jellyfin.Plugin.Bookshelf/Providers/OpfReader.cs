@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Xml;
+using Jellyfin.Data.Enums;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
@@ -105,7 +106,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             var bookResult = new MetadataResult<Book> { Item = book, HasMetadata = true };
             ReadStringInto("//dc:creator", author =>
             {
-                var person = new PersonInfo { Name = author, Type = "Author" };
+                var person = new PersonInfo { Name = author, Type = PersonKind.Author };
                 bookResult.AddPerson(person);
             });
 

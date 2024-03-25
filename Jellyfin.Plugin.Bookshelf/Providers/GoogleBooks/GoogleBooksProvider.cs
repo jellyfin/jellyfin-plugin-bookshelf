@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Jellyfin.Data.Enums;
 using Jellyfin.Plugin.Bookshelf.Common;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Entities;
@@ -292,7 +293,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
                 metadataResult.AddPerson(new PersonInfo
                 {
                     Name = author,
-                    Type = "Author",
+                    Type = PersonKind.Author,
                 });
             }
 

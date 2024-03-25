@@ -1,4 +1,5 @@
 using System;
+using Jellyfin.Data.Enums;
 using Jellyfin.Plugin.Bookshelf.Providers.ComicBookInfo;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
@@ -129,13 +130,13 @@ public class ComicBookInfoProviderTest
         Assert.NotNull(_comicBookInfoFormat.Metadata);
         _uut.ReadPeopleMetadata(_comicBookInfoFormat.Metadata!, metadataResult);
 
-        var writer = new PersonInfo { Name = "Alan Moore", Type = "Writer" };
-        var artist = new PersonInfo { Name = "Dave Gibbons", Type = "Artist" };
-        var letterer = new PersonInfo { Name = "Dave Gibbons", Type = "Letterer" };
-        var colorer = new PersonInfo { Name = "John Gibbons", Type = "Colorer" };
-        var editor0 = new PersonInfo { Name = "Len Wein", Type = "Editor" };
-        var editor1 = new PersonInfo { Name = "Barbara Kesel", Type = "Editor" };
-        var example = new PersonInfo { Name = "Takashi Shimoyama", Type = "Example" };
+        var writer = new PersonInfo { Name = "Alan Moore", Type = PersonKind.Writer };
+        var artist = new PersonInfo { Name = "Dave Gibbons", Type = PersonKind.Artist };
+        var letterer = new PersonInfo { Name = "Dave Gibbons", Type = PersonKind.Letterer };
+        var colorer = new PersonInfo { Name = "John Gibbons", Type = PersonKind.Colorist };
+        var editor0 = new PersonInfo { Name = "Len Wein", Type = PersonKind.Editor };
+        var editor1 = new PersonInfo { Name = "Barbara Kesel", Type = PersonKind.Editor };
+        var example = new PersonInfo { Name = "Takashi Shimoyama", Type = PersonKind.Unknown };
 
         Assert.Collection(
             metadataResult.People,

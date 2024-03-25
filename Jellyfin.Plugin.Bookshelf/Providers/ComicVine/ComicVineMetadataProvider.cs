@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Jellyfin.Data.Enums;
 using Jellyfin.Plugin.Bookshelf.Common;
 using Jellyfin.Plugin.Bookshelf.Providers.ComicVine.Models;
 using MediaBrowser.Common.Net;
@@ -142,7 +143,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
                 var personInfo = new PersonInfo
                 {
                     Name = person.Name,
-                    Type = person.Roles.Any() ? GetPersonKindFromRole(person.Roles.First()) : "Unknown"
+                    Type = person.Roles.Any() ? GetPersonKindFromRole(person.Roles.First()) : PersonKind.Unknown
                 };
 
                 personInfo.SetProviderId(ComicVineConstants.ProviderId, GetProviderIdFromSiteDetailUrl(person.SiteDetailUrl));
@@ -151,24 +152,24 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
             }
         }
 
-        private string GetPersonKindFromRole(PersonCreditRole role)
+        private PersonKind GetPersonKindFromRole(PersonCreditRole role)
         {
             return role switch
             {
-                PersonCreditRole.Artist => "Artist",
-                PersonCreditRole.Colorist => "Colorist",
-                PersonCreditRole.Cover => "CoverArtist",
-                PersonCreditRole.Editor => "Editor",
-                PersonCreditRole.Inker => "Inker",
-                PersonCreditRole.Letterer => "Letterer",
-                PersonCreditRole.Penciler => "Penciller",
-                PersonCreditRole.Translator => "Translator",
-                PersonCreditRole.Writer => "Writer",
+                PersonCreditRole.Artist => PersonKind.Artist,
+                PersonCreditRole.Colorist => PersonKind.Colorist,
+                PersonCreditRole.Cover => PersonKind.CoverArtist,
+                PersonCreditRole.Editor => PersonKind.Editor,
+                PersonCreditRole.Inker => PersonKind.Inker,
+                PersonCreditRole.Letterer => PersonKind.Letterer,
+                PersonCreditRole.Penciler => PersonKind.Penciller,
+                PersonCreditRole.Translator => PersonKind.Translator,
+                PersonCreditRole.Writer => PersonKind.Writer,
                 PersonCreditRole.Assistant
                     or PersonCreditRole.Designer
                     or PersonCreditRole.Journalist
                     or PersonCreditRole.Production
-                    or PersonCreditRole.Other => "Unknown",
+                    or PersonCreditRole.Other => PersonKind.Unknown,
                 _ => throw new ArgumentException($"Unknown role: {role}"),
             };
         }

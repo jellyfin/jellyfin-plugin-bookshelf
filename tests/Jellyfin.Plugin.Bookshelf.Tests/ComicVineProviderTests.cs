@@ -1,4 +1,5 @@
 using System.Net;
+using Jellyfin.Data.Enums;
 using Jellyfin.Plugin.Bookshelf.Providers.ComicVine;
 using Jellyfin.Plugin.Bookshelf.Tests.Http;
 using MediaBrowser.Controller.Entities;
@@ -277,31 +278,31 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
                 p =>
                 {
                     Assert.Equal("Ben Applegate", p.Name);
-                    Assert.Equal("Editor", p.Type);
+                    Assert.Equal(PersonKind.Editor, p.Type);
                     Assert.True(HasComicVineId("ben-applegate/4040-74578", p.ProviderIds));
                 },
                 p =>
                 {
                     Assert.Equal("Hajime Isayama", p.Name);
-                    Assert.Equal("Writer", p.Type);
+                    Assert.Equal(PersonKind.Writer, p.Type);
                     Assert.True(HasComicVineId("hajime-isayama/4040-64651", p.ProviderIds));
                 },
                 p =>
                 {
                     Assert.Equal("Ko Ransom", p.Name);
-                    Assert.Equal("Unknown", p.Type);
+                    Assert.Equal(PersonKind.Unknown, p.Type);
                     Assert.True(HasComicVineId("ko-ransom/4040-74576", p.ProviderIds));
                 },
                 p =>
                 {
                     Assert.Equal("Steve Wands", p.Name);
-                    Assert.Equal("Letterer", p.Type);
+                    Assert.Equal(PersonKind.Letterer, p.Type);
                     Assert.True(HasComicVineId("steve-wands/4040-47630", p.ProviderIds));
                 },
                 p =>
                 {
                     Assert.Equal("Takashi Shimoyama", p.Name);
-                    Assert.Equal("CoverArtist", p.Type);
+                    Assert.Equal(PersonKind.CoverArtist, p.Type);
                     Assert.True(HasComicVineId("takashi-shimoyama/4040-74571", p.ProviderIds));
                 });
 

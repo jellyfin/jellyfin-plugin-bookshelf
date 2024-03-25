@@ -1,3 +1,4 @@
+using Jellyfin.Data.Enums;
 using Jellyfin.Plugin.Bookshelf.Common;
 using MediaBrowser.Model.Entities;
 
@@ -15,7 +16,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
                 Name = "Children of Time"
             };
 
-            var result = BookFileNameParser.Parse("Children of Time", CollectionType.Books);
+            var result = BookFileNameParser.Parse("Children of Time", "books");
 
             Assert.Equal(expected, result);
         }
@@ -29,7 +30,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
                 Year = 2015
             };
 
-            var result = BookFileNameParser.Parse("Children of Time (2015)", CollectionType.Books);
+            var result = BookFileNameParser.Parse("Children of Time (2015)", "books");
 
             Assert.Equal(expected, result);
         }
@@ -43,7 +44,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
                 Index = 1
             };
 
-            var result = BookFileNameParser.Parse("1 - Children of Time", CollectionType.Books);
+            var result = BookFileNameParser.Parse("1 - Children of Time", "books");
 
             Assert.Equal(expected, result);
         }
@@ -73,7 +74,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
                 Index = 1
             };
 
-            var result = BookFileNameParser.Parse("1 - Children of Time (2015)", CollectionType.Books);
+            var result = BookFileNameParser.Parse("1 - Children of Time (2015)", "books");
 
             Assert.Equal(expected, result);
         }
@@ -92,7 +93,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
                 Index = 2
             };
 
-            result = BookFileNameParser.Parse("Children of Time (2015) #2 (of 3) (2019)", CollectionType.Books);
+            result = BookFileNameParser.Parse("Children of Time (2015) #2 (of 3) (2019)", "books");
             Assert.Equal(expected, result);
 
             // Without series year
@@ -103,7 +104,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
                 Index = 2
             };
 
-            result = BookFileNameParser.Parse("Children of Time #2 (of 3) (2019)", CollectionType.Books);
+            result = BookFileNameParser.Parse("Children of Time #2 (of 3) (2019)", "books");
             Assert.Equal(expected, result);
 
             // Without total count
@@ -114,7 +115,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
                 Index = 2
             };
 
-            result = BookFileNameParser.Parse("Children of Time #2 (2019)", CollectionType.Books);
+            result = BookFileNameParser.Parse("Children of Time #2 (2019)", "books");
             Assert.Equal(expected, result);
 
             // With only issue number
@@ -124,7 +125,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
                 Index = 2
             };
 
-            result = BookFileNameParser.Parse("Children of Time #2", CollectionType.Books);
+            result = BookFileNameParser.Parse("Children of Time #2", "books");
             Assert.Equal(expected, result);
 
             // With only issue number and leading zeroes
@@ -134,7 +135,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
                 Index = 2
             };
 
-            result = BookFileNameParser.Parse("Children of Time #002", CollectionType.Books);
+            result = BookFileNameParser.Parse("Children of Time #002", "books");
             Assert.Equal(expected, result);
         }
 
@@ -152,7 +153,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
                 Index = 2
             };
 
-            result = BookFileNameParser.Parse("Children of Ruin (Children of Time, #2)", CollectionType.Books);
+            result = BookFileNameParser.Parse("Children of Ruin (Children of Time, #2)", "books");
             Assert.Equal(expected, result);
 
             // Goodreads format with year added
@@ -164,7 +165,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
                 Year = 2019
             };
 
-            result = BookFileNameParser.Parse("Children of Ruin (Children of Time, #2) (2019)", CollectionType.Books);
+            result = BookFileNameParser.Parse("Children of Ruin (Children of Time, #2) (2019)", "books");
             Assert.Equal(expected, result);
         }
 

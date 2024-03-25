@@ -21,7 +21,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicInfo
 
         private readonly IFileSystem _fileSystem;
         private readonly ILogger<ExternalComicInfoProvider> _logger;
-        private readonly IComicInfoXmlUtilities _utilities = new ComicInfoXmlUtilities();
+        private readonly ComicInfoXmlUtilities _utilities = new ComicInfoXmlUtilities();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ExternalComicInfoProvider"/> class.

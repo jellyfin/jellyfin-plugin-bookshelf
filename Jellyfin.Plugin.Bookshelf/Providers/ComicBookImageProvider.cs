@@ -108,7 +108,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
         /// </summary>
         /// <param name="archive">The archive to search.</param>
         /// <returns>The search result.</returns>
-        private (ZipArchiveEntry coverEntry, ImageFormat imageFormat)? FindCoverEntryInZip(ZipArchive archive)
+        private (ZipArchiveEntry CoverEntry, ImageFormat ImageFormat)? FindCoverEntryInZip(ZipArchive archive)
         {
             foreach (ImageFormat imageFormat in Enum.GetValues(typeof(ImageFormat)))
             {

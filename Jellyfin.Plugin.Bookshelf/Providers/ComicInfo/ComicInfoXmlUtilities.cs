@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Xml.Linq;
 using System.Xml.XPath;
+using Jellyfin.Data.Enums;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 
@@ -70,7 +71,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicInfo
             {
                 foreach (var author in authors)
                 {
-                    var person = new PersonInfo { Name = author, Type = "Author" };
+                    var person = new PersonInfo { Name = author, Type = PersonKind.Author };
                     metadataResult.AddPerson(person);
                 }
             });
@@ -78,7 +79,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicInfo
             {
                 foreach (var penciller in pencilers)
                 {
-                    var person = new PersonInfo { Name = penciller, Type = "Penciller" };
+                    var person = new PersonInfo { Name = penciller, Type = PersonKind.Penciller };
                     metadataResult.AddPerson(person);
                 }
             });
@@ -86,7 +87,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicInfo
             {
                 foreach (var inker in inkers)
                 {
-                    var person = new PersonInfo { Name = inker, Type = "Inker" };
+                    var person = new PersonInfo { Name = inker, Type = PersonKind.Inker };
                     metadataResult.AddPerson(person);
                 }
             });
@@ -94,7 +95,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicInfo
             {
                 foreach (var letterer in letterers)
                 {
-                    var person = new PersonInfo { Name = letterer, Type = "Letterer" };
+                    var person = new PersonInfo { Name = letterer, Type = PersonKind.Letterer };
                     metadataResult.AddPerson(person);
                 }
             });
@@ -102,7 +103,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicInfo
             {
                 foreach (var coverartist in coverartists)
                 {
-                    var person = new PersonInfo { Name = coverartist, Type = "Cover Artist" };
+                    var person = new PersonInfo { Name = coverartist, Type = PersonKind.CoverArtist };
                     metadataResult.AddPerson(person);
                 }
             });
@@ -110,7 +111,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicInfo
             {
                 foreach (var colourist in colourists)
                 {
-                    var person = new PersonInfo { Name = colourist, Type = "Colourist" };
+                    var person = new PersonInfo { Name = colourist, Type = PersonKind.Colorist };
                     metadataResult.AddPerson(person);
                 }
             });
