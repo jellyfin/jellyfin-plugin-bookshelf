@@ -1,0 +1,16 @@
+name: '🚀 Publish (Unstable) Plugin'
+
+on:
+  push:
+    branches:
+      - unstable
+  workflow_dispatch:
+
+jobs:
+  call:
+    uses: jellyfin/jellyfin-meta-plugins/.github/workflows/publish-unstable.yaml@master
+    secrets:
+      deploy-host: ${{ secrets.REPO_HOST }}
+      deploy-user: ${{ secrets.REPO_USER }}
+      deploy-key: ${{ secrets.REPO_KEY }}
+      token: ${{ secrets.JF_BOT_TOKEN }}
