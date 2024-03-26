@@ -1,7 +1,7 @@
 ---
 name: "Bookshelf"
 guid: "9c4e63f1-031b-4f25-988b-4f7d78a8b53e"
-version: 10
+version: 11
 targetAbi: "10.8.13.0"
 framework: "net6.0"
 owner: "jellyfin"
@@ -12,20 +12,7 @@ description: >
 category: "Metadata"
 artifacts:
   - "Jellyfin.Plugin.Bookshelf.dll"
-changelog: |-
-  - Add Unit tests for ComicInfo and ComicBookInfo formats (#70) @carif
-
-  ### New features and improvements ###
-  - Add Comic Vine metadata provider (#81) @Pithaya
-  - Add Google Books external id (#80) @Pithaya
-  - Add unit tests for the Google Books providers (#78) @Pithaya
-  - Improve title handling of epub files (#75) @carif
-
-  ### Bug Fixes ###
-  - Update EpubMetadataImageProvider.cs (#66) @wuyu8512
-
-  ### Documentation updates ###
-  - Fix typo and improve README formatting (#74) @carif
-
+changelog: |2-
   ### Dependency updates ###
-  - Update xunit-dotnet monorepo to v2.5.3 (#82) @renovate
+  - Update dependency coverlet.collector to v6.0.2 (#101) @renovate
+  - Update dependency coverlet.collector to v6.0.1 (#98) @renovate
