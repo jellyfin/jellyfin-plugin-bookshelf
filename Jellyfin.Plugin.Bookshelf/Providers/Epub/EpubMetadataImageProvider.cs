@@ -102,7 +102,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.Epub
             }
 
             var opfRootDirectory = Path.GetDirectoryName(opfFilePath);
-            if (string.IsNullOrEmpty(opfRootDirectory))
+            if (opfRootDirectory == null)
             {
                 return new DynamicImageResponse { HasImage = false };
             }
