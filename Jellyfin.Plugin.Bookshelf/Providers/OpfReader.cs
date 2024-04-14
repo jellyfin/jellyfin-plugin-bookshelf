@@ -54,13 +54,13 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
                 return coverImage;
             }
 
-            var coverId = ReadEpubCoverInto(opfRootDirectory, "//opf:item[@id='cover']");
+            var coverId = ReadEpubCoverInto(opfRootDirectory, "//opf:item[@id='cover' and @media-type='image/*']");
             if (coverId is not null)
             {
                 return coverId;
             }
 
-            var coverImageId = ReadEpubCoverInto(opfRootDirectory, "//opf:item[@id='cover-image']");
+            var coverImageId = ReadEpubCoverInto(opfRootDirectory, "//opf:item[@id='*cover-image']");
             if (coverImageId is not null)
             {
                 return coverImageId;
@@ -238,7 +238,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             {
                 try
                 {
-                    commitResult(Convert.ToInt32(resultValue, CultureInfo.InvariantCulture));
+                    commitResult(Convert.ToInt32(Convert.ToDouble(resultValue, CultureInfo.InvariantCulture)));
                 }
                 catch (Exception e)
                 {
