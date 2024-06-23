@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Jellyfin.Extensions;
 using Jellyfin.Plugin.Bookshelf.Common;
 using Jellyfin.Plugin.Bookshelf.Providers.ComicVine.Models;
 using MediaBrowser.Common.Net;
@@ -96,11 +97,10 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
 
                 if (!string.IsNullOrWhiteSpace(personDetails.Aliases))
                 {
-                    var splittedAliases = personDetails.Aliases.Split('\n');
-                    if (splittedAliases.Any())
-                    {
-                        person.OriginalTitle = splittedAliases.First();
-                    }
+                    person.OriginalTitle = personDetails.Aliases
+                        .AsSpan()
+                        .LeftPart('\n')
+                        .ToString();
                 }
 
                 metadataResult.Item = person;

@@ -233,33 +233,29 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
         {
             if (imageList == null)
             {
-                return Enumerable.Empty<string>();
+                yield break;
             }
-
-            var images = new List<string>();
 
             if (!string.IsNullOrWhiteSpace(imageList.SuperUrl))
             {
-                images.Add(imageList.SuperUrl);
+                yield return imageList.SuperUrl;
             }
             else if (!string.IsNullOrWhiteSpace(imageList.OriginalUrl))
             {
-                images.Add(imageList.OriginalUrl);
+                yield return imageList.OriginalUrl;
             }
             else if (!string.IsNullOrWhiteSpace(imageList.MediumUrl))
             {
-                images.Add(imageList.MediumUrl);
+                yield return imageList.MediumUrl;
             }
             else if (!string.IsNullOrWhiteSpace(imageList.SmallUrl))
             {
-                images.Add(imageList.SmallUrl);
+                yield return imageList.SmallUrl;
             }
             else if (!string.IsNullOrWhiteSpace(imageList.ThumbUrl))
             {
-                images.Add(imageList.ThumbUrl);
+                yield return imageList.ThumbUrl;
             }
-
-            return images;
         }
 
         /// <summary>
