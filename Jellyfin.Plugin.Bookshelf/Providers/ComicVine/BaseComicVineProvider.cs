@@ -135,6 +135,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
             {
                 Type issue when issue == typeof(IssueDetails) => ComicVineApiUrls.IssueDetailUrl,
                 Type volume when volume == typeof(VolumeDetails) => ComicVineApiUrls.VolumeDetailUrl,
+                Type person when person == typeof(PersonDetails) => ComicVineApiUrls.PersonDetailUrl,
                 _ => throw new InvalidOperationException($"Unexpected resource type {typeof(T)}.")
             };
 
@@ -221,6 +222,72 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Gets images URLs from a list of images.
+        /// </summary>
+        /// <param name="imageList">The list of images.</param>
+        /// <returns>The list of images URLs.</returns>
+        protected IEnumerable<string> ProcessImages(ImageList? imageList)
+        {
+            if (imageList == null)
+            {
+                yield break;
+            }
+
+            if (!string.IsNullOrWhiteSpace(imageList.SuperUrl))
+            {
+                yield return imageList.SuperUrl;
+            }
+            else if (!string.IsNullOrWhiteSpace(imageList.OriginalUrl))
+            {
+                yield return imageList.OriginalUrl;
+            }
+            else if (!string.IsNullOrWhiteSpace(imageList.MediumUrl))
+            {
+                yield return imageList.MediumUrl;
+            }
+            else if (!string.IsNullOrWhiteSpace(imageList.SmallUrl))
+            {
+                yield return imageList.SmallUrl;
+            }
+            else if (!string.IsNullOrWhiteSpace(imageList.ThumbUrl))
+            {
+                yield return imageList.ThumbUrl;
+            }
+        }
+
+        /// <summary>
+        /// Gets the issue id from the site detail URL.
+        /// <para>
+        /// Issues have a unique Id, but also a different one used for the API.
+        /// The URL to the issue detail page also includes a slug before the id.
+        /// </para>
+        /// <listheader>For example:</listheader>
+        /// <list type="bullet">
+        ///     <item>
+        ///         <term>id</term>
+        ///         <description>441467</description>
+        ///     </item>
+        ///     <item>
+        ///         <term>api_detail_url</term>
+        ///         <description>https://comicvine.gamespot.com/api/issue/4000-441467</description>
+        ///     </item>
+        ///     <item>
+        ///         <term>site_detail_url</term>
+        ///         <description>https://comicvine.gamespot.com/attack-on-titan-10-fortress-of-blood/4000-441467</description>
+        ///     </item>
+        /// </list>
+        /// <para>
+        /// We need to keep the last two parts of the site detail URL (the slug and the id) as the provider id for the IExternalId implementation to work.
+        /// </para>
+        /// </summary>
+        /// <param name="siteDetailUrl">The site detail URL.</param>
+        /// <returns>The slug and id.</returns>
+        protected static string GetProviderIdFromSiteDetailUrl(string siteDetailUrl)
+        {
+            return siteDetailUrl.Replace(ComicVineApiUrls.BaseWebsiteUrl, string.Empty, StringComparison.OrdinalIgnoreCase).Trim('/');
         }
     }
 }
