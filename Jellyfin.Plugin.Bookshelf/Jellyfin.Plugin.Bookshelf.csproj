@@ -13,7 +13,7 @@
   <ItemGroup>
     <PackageReference Include="Jellyfin.Controller" Version="10.*-*" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
-    <PackageReference Include="sharpcompress" Version="0.36.0" />
+    <PackageReference Include="sharpcompress" Version="0.37.2" />
   </ItemGroup>
 
   <ItemGroup>
