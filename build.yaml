@@ -1,8 +1,8 @@
 ---
 name: "Bookshelf"
 guid: "9c4e63f1-031b-4f25-988b-4f7d78a8b53e"
-version: 11
-targetAbi: "10.9.0.0"
+version: 12
+targetAbi: "10.9.7.0"
 framework: "net8.0"
 owner: "jellyfin"
 overview: "Manage your books"
@@ -13,9 +13,4 @@ category: "Metadata"
 artifacts:
   - "Jellyfin.Plugin.Bookshelf.dll"
 changelog: |-
-  - Unstable (#103) @crobibero
-  - Improve cover image extraction from epub files (#102) @unfedorg
-
-  ### Dependency updates ###
-  - Update dependency coverlet.collector to v6.0.2 (#101) @renovate
-  - Update dependency coverlet.collector to v6.0.1 (#98) @renovate
+  - Add Comic Vine Person provider (#85) @Pithaya
