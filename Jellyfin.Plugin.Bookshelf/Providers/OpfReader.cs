@@ -104,11 +104,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
 
             var book = CreateBookFromOpf();
             var bookResult = new MetadataResult<Book> { Item = book, HasMetadata = true };
-            ReadStringInto("//dc:creator", author =>
-            {
-                var person = new PersonInfo { Name = author, Type = PersonKind.Author };
-                bookResult.AddPerson(person);
-            });
+            FindAuthors(bookResult);
 
             ReadStringInto("//dc:language", language => bookResult.ResultLanguage = language);
 
@@ -126,6 +122,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             ReadStringInto("//dc:publisher", publisher => book.AddStudio(publisher));
             ReadStringInto("//dc:identifier[@opf:scheme='ISBN']", isbn => book.SetProviderId("ISBN", isbn));
             ReadStringInto("//dc:identifier[@opf:scheme='AMAZON']", amazon => book.SetProviderId("Amazon", amazon));
+            ReadStringInto("//dc:identifier[@opf:scheme='GOOGLE']", google => book.SetProviderId("GoogleBooks", google));
 
             ReadStringInto("//dc:date", date =>
             {
@@ -220,6 +217,20 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             var titleSort = resultElement?.Attributes?["content"]?.Value;
 
             return titleSort;
+        }
+
+        private void FindAuthors(MetadataResult<Book> book)
+        {
+            var resultElement = _document.SelectNodes("//dc:creator[@opf:role='aut']", _namespaceManager);
+            if (resultElement != null && resultElement.Count > 0)
+            {
+                foreach (XmlElement author in resultElement)
+                {
+                    var authorName = author.InnerText;
+                    var person = new PersonInfo { Name = authorName, Type = PersonKind.Author };
+                    book.AddPerson(person);
+                }
+            }
         }
 
         private void ReadStringInto(string xPath, Action<string> commitResult)
