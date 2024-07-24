@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -221,15 +223,45 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
 
         private void FindAuthors(MetadataResult<Book> book)
         {
-            var resultElement = _document.SelectNodes("//dc:creator[@opf:role='aut']", _namespaceManager);
+            var resultElement = _document.SelectNodes("//dc:creator", _namespaceManager);
             if (resultElement != null && resultElement.Count > 0)
             {
-                foreach (XmlElement author in resultElement)
+                foreach (XmlElement creator in resultElement)
                 {
-                    var authorName = author.InnerText;
-                    var person = new PersonInfo { Name = authorName, Type = PersonKind.Author };
+                    var creatorName = creator.InnerText;
+                    string? role = creator.GetAttribute("opf:role");
+                    var person = new PersonInfo { Name = creatorName, Type = GetRole(role) };
                     book.AddPerson(person);
                 }
+            }
+        }
+
+        private PersonKind GetRole(string role)
+        {
+            switch (role)
+            {
+                case "arr":
+                    return PersonKind.Arranger;
+                case "art":
+                    return PersonKind.Artist;
+                case "aut":
+                case "aqt":
+                case "aft":
+                case "aui":
+                default:
+                    return PersonKind.Author;
+                case "edt":
+                    return PersonKind.Editor;
+                case "ill":
+                    return PersonKind.Illustrator;
+                case "lyr":
+                    return PersonKind.Lyricist;
+                case "mus":
+                    return PersonKind.AlbumArtist;
+                case "oth":
+                    return PersonKind.Unknown;
+                case "trl":
+                    return PersonKind.Translator;
             }
         }
 
