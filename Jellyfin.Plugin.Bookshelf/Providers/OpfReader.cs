@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -104,11 +106,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
 
             var book = CreateBookFromOpf();
             var bookResult = new MetadataResult<Book> { Item = book, HasMetadata = true };
-            ReadStringInto("//dc:creator", author =>
-            {
-                var person = new PersonInfo { Name = author, Type = PersonKind.Author };
-                bookResult.AddPerson(person);
-            });
+            FindAuthors(bookResult);
 
             ReadStringInto("//dc:language", language => bookResult.ResultLanguage = language);
 
@@ -126,6 +124,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             ReadStringInto("//dc:publisher", publisher => book.AddStudio(publisher));
             ReadStringInto("//dc:identifier[@opf:scheme='ISBN']", isbn => book.SetProviderId("ISBN", isbn));
             ReadStringInto("//dc:identifier[@opf:scheme='AMAZON']", amazon => book.SetProviderId("Amazon", amazon));
+            ReadStringInto("//dc:identifier[@opf:scheme='GOOGLE']", google => book.SetProviderId("GoogleBooks", google));
 
             ReadStringInto("//dc:date", date =>
             {
@@ -220,6 +219,50 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             var titleSort = resultElement?.Attributes?["content"]?.Value;
 
             return titleSort;
+        }
+
+        private void FindAuthors(MetadataResult<Book> book)
+        {
+            var resultElement = _document.SelectNodes("//dc:creator", _namespaceManager);
+            if (resultElement != null && resultElement.Count > 0)
+            {
+                foreach (XmlElement creator in resultElement)
+                {
+                    var creatorName = creator.InnerText;
+                    string? role = creator.GetAttribute("opf:role");
+                    var person = new PersonInfo { Name = creatorName, Type = GetRole(role) };
+                    book.AddPerson(person);
+                }
+            }
+        }
+
+        private PersonKind GetRole(string role)
+        {
+            switch (role)
+            {
+                case "arr":
+                    return PersonKind.Arranger;
+                case "art":
+                    return PersonKind.Artist;
+                case "aut":
+                case "aqt":
+                case "aft":
+                case "aui":
+                default:
+                    return PersonKind.Author;
+                case "edt":
+                    return PersonKind.Editor;
+                case "ill":
+                    return PersonKind.Illustrator;
+                case "lyr":
+                    return PersonKind.Lyricist;
+                case "mus":
+                    return PersonKind.AlbumArtist;
+                case "oth":
+                    return PersonKind.Unknown;
+                case "trl":
+                    return PersonKind.Translator;
+            }
         }
 
         private void ReadStringInto(string xPath, Action<string> commitResult)
