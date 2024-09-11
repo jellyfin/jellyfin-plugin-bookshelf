@@ -1,15 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Jellyfin.Extensions;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Drawing;
 using MediaBrowser.Model.Entities;
 using Microsoft.Extensions.Logging;
+using SharpCompress.Archives;
 
 namespace Jellyfin.Plugin.Bookshelf.Providers
 {
@@ -20,7 +21,8 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
     /// </summary>
     public class ComicBookImageProvider : IDynamicImageProvider
     {
-        private const string CbzFileExtension = ".cbz";
+        private readonly string[] _comicBookExtensions = [".cb7", ".cbr", ".cbt", ".cbz"];
+        private readonly string[] _coverExtensions = [".png", ".jpeg", ".jpg", ".webp", ".bmp", ".gif"];
 
         private readonly ILogger<ComicBookImageProvider> _logger;
 
@@ -34,14 +36,14 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
         }
 
         /// <inheritdoc />
-        public string Name => "Comic Book Zip Archive Cover Extractor";
+        public string Name => "Comic Book Archive Cover Extractor";
 
         /// <inheritdoc />
         public Task<DynamicImageResponse> GetImage(BaseItem item, ImageType type, CancellationToken cancellationToken)
         {
             // Check if the file is a .cbz file
             var extension = Path.GetExtension(item.Path);
-            if (string.Equals(extension, CbzFileExtension, StringComparison.OrdinalIgnoreCase))
+            if (_comicBookExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
             {
                 return LoadCover(item);
             }
@@ -74,15 +76,19 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             var memoryStream = new MemoryStream();
             try
             {
+                ImageFormat imageFormat;
                 // Open the .cbz
                 // This should return a valid reference or throw
-                using var archive = ZipFile.OpenRead(item.Path);
+                using (Stream stream = File.OpenRead(item.Path))
+                using (var archive = ArchiveFactory.Open(stream))
+                {
+                    // If no cover is found, throw exception to log results
+                    IArchiveEntry cover;
+                    (cover, imageFormat) = FindCoverEntryInArchive(archive) ?? throw new InvalidOperationException("No supported cover found");
 
-                // If no cover is found, throw exception to log results
-                var (cover, imageFormat) = FindCoverEntryInZip(archive) ?? throw new InvalidOperationException("No supported cover found");
-
-                // Copy our cover to memory stream
-                await cover.Open().CopyToAsync(memoryStream).ConfigureAwait(false);
+                    // Copy our cover to memory stream
+                    await cover.OpenEntryStream().CopyToAsync(memoryStream).ConfigureAwait(false);
+                }
 
                 // Reset stream position after copying
                 memoryStream.Position = 0;
@@ -108,23 +114,29 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
         /// </summary>
         /// <param name="archive">The archive to search.</param>
         /// <returns>The search result.</returns>
-        private (ZipArchiveEntry CoverEntry, ImageFormat ImageFormat)? FindCoverEntryInZip(ZipArchive archive)
+        private (IArchiveEntry CoverEntry, ImageFormat ImageFormat)? FindCoverEntryInArchive(IArchive archive)
         {
-            foreach (ImageFormat imageFormat in Enum.GetValues(typeof(ImageFormat)))
+            IArchiveEntry? cover = null;
+
+            // There are comics with a cover file, but others with varying names for the cover
+            // e.g. attackontitan_vol1_Page_001 with no indication that this is the cover except
+            // that it is the first jpeg entry (and page)
+            foreach (var extension in _coverExtensions)
             {
-                var extension = GetExtension(imageFormat);
-
-                // There are comics with a cover file, but others with varying names for the cover
-                // e.g. attackontitan_vol1_Page_001 with no indication that this is the cover except
-                // that it is the first jpeg entry (and page)
-                var cover = archive.GetEntry("cover" + extension)
-                            ?? archive.Entries
-                                .OrderBy(x => x.Name)
-                                .FirstOrDefault(x => x.Name.EndsWith(extension, StringComparison.OrdinalIgnoreCase));
-
-                // If we have found something, return immediately
+                cover = archive.Entries.FirstOrDefault(e => e.Key == "cover" + extension);
                 if (cover is not null)
                 {
+                    var imageFormat = GetImageFormat(extension);
+                    // If we have found something, return immediately
+                    return (cover, imageFormat);
+                }
+            }
+
+            {
+                cover = archive.Entries.OrderBy(x => x.Key).FirstOrDefault(x => _coverExtensions.Contains(Path.GetExtension(x.Key), StringComparison.OrdinalIgnoreCase));
+                if (cover is not null)
+                {
+                    var imageFormat = GetImageFormat(Path.GetExtension(cover.Key ?? string.Empty));
                     return (cover, imageFormat);
                 }
             }
@@ -132,14 +144,16 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             return null;
         }
 
-        private string GetExtension(ImageFormat imageFormat) => imageFormat switch
+        private static ImageFormat GetImageFormat(string extension) => extension.ToLowerInvariant() switch
         {
-            ImageFormat.Jpg => ".jpg",
-            ImageFormat.Png => ".png",
-            ImageFormat.Webp => ".webp",
-            ImageFormat.Bmp => ".bmp",
-            ImageFormat.Gif => ".gif",
-            _ => throw new ArgumentException($"Unsupported ComicCoverType: {imageFormat.GetType()}"),
+            ".jpg" => ImageFormat.Jpg,
+            ".jpeg" => ImageFormat.Jpg,
+            ".png" => ImageFormat.Png,
+            ".webp" => ImageFormat.Webp,
+            ".bmp" => ImageFormat.Bmp,
+            ".gif" => ImageFormat.Gif,
+            ".svg" => ImageFormat.Svg,
+            _ => throw new ArgumentException($"Unsupported extension: {extension}"),
         };
     }
 }
