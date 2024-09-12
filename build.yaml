@@ -12,6 +12,8 @@ description: >
 category: "Metadata"
 artifacts:
   - "Jellyfin.Plugin.Bookshelf.dll"
+  - "SharpCompress.dll"
+  - "ZstdSharp.dll"
 changelog: |-
   - Unstable (#103) @crobibero
   - Improve cover image extraction from epub files (#102) @unfedorg
