@@ -47,8 +47,13 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            Func<BookResult, RemoteSearchResult> getSearchResultFromBook = (BookResult info) =>
+            Func<BookResult, RemoteSearchResult?> getSearchResultFromBook = (BookResult info) =>
             {
+                if (string.IsNullOrEmpty(info.Id))
+                {
+                    return null;
+                }
+
                 var remoteSearchResult = new RemoteSearchResult();
 
                 remoteSearchResult.SetProviderId(GoogleBooksConstants.ProviderId, info.Id);
@@ -76,7 +81,8 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
                     return Enumerable.Empty<RemoteSearchResult>();
                 }
 
-                return new[] { getSearchResultFromBook(bookData) };
+                var searchResult = getSearchResultFromBook(bookData);
+                return searchResult is null ? [] : [searchResult];
             }
             else
             {
@@ -94,7 +100,11 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
                         continue;
                     }
 
-                    list.Add(getSearchResultFromBook(result));
+                    var searchResult = getSearchResultFromBook(result);
+                    if (searchResult is not null)
+                    {
+                        list.Add(searchResult);
+                    }
                 }
 
                 return list;
