@@ -18,9 +18,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
         public ExternalIdMediaType? Type => null; // TODO: No ExternalIdMediaType value for book
 
         /// <inheritdoc />
-        public string? UrlFormatString => "https://books.google.com/books?id={0}";
-
-        /// <inheritdoc />
         public bool Supports(IHasProviderIds item) => item is Book;
     }
 }
