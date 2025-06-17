@@ -62,6 +62,79 @@ These Metadata providers will check online services for metadata.
 
 To use the Comic Vine metadata provider, you will need to set an API key on the plugin's configuration page.
 
+## Enhanced Audiobook Support
+
+This fork includes significant enhancements to audiobook metadata extraction and management:
+
+### 📸 Screenshots
+
+#### Before
+![Before Image](./bookshelf_before.png)
+
+#### After
+![After Image](./bookshelf_after.png)
+
+#### Author Info
+![Author Info](./bookshelf_author.png)
+
+
+### 🎧 Improved Audiobook Metadata Extraction
+
+- **Smart Title Detection**: Extracts clean book titles from folder names instead of messy filenames
+- **Enhanced Series Detection**: Automatically detects series information from:
+  - Audio file tags (album, title fields)
+  - Book titles with patterns like "Series Name, Book 1" or "Series Name #1"
+  - Folder structure analysis
+- **Multi-Source Metadata**: Combines local metadata with online sources for richer information
+- **Format Support**: Supports `.m4b`, `.mp3`, `.m4a`, `.aac`, `.ogg`, `.flac`, `.wma` files
+
+### 🌐 OpenLibrary Integration
+
+- **Book Metadata**: Added OpenLibrary as a metadata provider for enhanced book information
+- **Author Biographies**: Fetches detailed author biographies and biographical information
+- **Dual-Endpoint Strategy**: Uses both OpenLibrary's works and editions APIs for comprehensive metadata
+- **Intelligent Fallback**: OpenLibrary serves as fallback when Google Books lacks information
+
+### 📚 Author Biography Support
+
+- **Rich Author Profiles**: Displays author biographies in Jellyfin's person pages
+- **Birth/Death Dates**: Shows author biographical dates when available
+- **Person Provider**: Implements full person metadata provider for audiobook authors
+- **Automatic Lookup**: Author biographies are fetched automatically during metadata refresh
+
+### 🔄 Multi-Provider Strategy
+
+The enhanced system uses an intelligent fallback approach:
+
+1. **Local Extraction**: Extracts metadata from audio file tags and folder structure
+2. **Google Books**: Primary online source for descriptions, genres, publication info
+3. **OpenLibrary**: Fallback provider for missing metadata and author biographies
+4. **Smart Merging**: Combines best information from all sources
+
+### 📖 Series Support
+
+- **Automatic Detection**: Identifies book series from multiple sources
+- **Flexible Parsing**: Handles various series naming patterns
+- **Index Numbers**: Correctly assigns book numbers within series
+- **Display Integration**: TODO
+
+### 📁 Folder Structure Support
+
+The system works best with organized folder structures like:
+```
+/Audiobooks/
+  ├── Author Name/
+  │   ├── Book Title/
+  │   │   └── book.m4b
+  │   └── Series Name/
+  │       ├── Book 1 Title/
+  │       │   └── book1.m4b
+  │       └── Book 2 Title/
+  │           └── book2.m4b
+```
+
+But also handles flat structures and various naming conventions.
+
 ## Build & Installation Process
 
 1. Clone this repository
