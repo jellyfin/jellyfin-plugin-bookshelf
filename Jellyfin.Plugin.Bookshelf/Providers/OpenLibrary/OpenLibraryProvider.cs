@@ -48,7 +48,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.OpenLibrary
         /// <inheritdoc />
         public async Task<MetadataResult<Book>> GetMetadata(BookInfo info, CancellationToken cancellationToken)
         {
-
             var result = new MetadataResult<Book>();
 
             if (string.IsNullOrWhiteSpace(info.Name))
@@ -269,7 +268,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.OpenLibrary
                         }
                     }
                 }
-
             }
             catch (JsonException ex)
             {
