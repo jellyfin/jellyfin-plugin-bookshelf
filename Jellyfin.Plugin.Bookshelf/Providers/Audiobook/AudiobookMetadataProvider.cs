@@ -291,7 +291,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.Audiobook
                     {
                         mergedBook.IndexNumber = parsedBookNumber;
                     }
-
                 }
                 else
                 {

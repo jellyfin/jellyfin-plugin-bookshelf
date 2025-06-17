@@ -41,7 +41,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.OpenLibrary
         /// <inheritdoc />
         public async Task<IEnumerable<RemoteSearchResult>> GetSearchResults(PersonLookupInfo searchInfo, CancellationToken cancellationToken)
         {
-
             if (string.IsNullOrWhiteSpace(searchInfo.Name))
             {
                 return Enumerable.Empty<RemoteSearchResult>();
@@ -86,7 +85,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.OpenLibrary
         /// <inheritdoc />
         public async Task<MetadataResult<Person>> GetMetadata(PersonLookupInfo info, CancellationToken cancellationToken)
         {
-
             var result = new MetadataResult<Person>();
 
             if (string.IsNullOrWhiteSpace(info.Name))
@@ -135,7 +133,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.OpenLibrary
 
                     result.Item = person;
                     result.HasMetadata = true;
-
                 }
             }
             catch (Exception ex)
@@ -274,7 +271,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.OpenLibrary
                         // Continue without bio if detailed fetch fails
                     }
                 }
-
             }
             catch (JsonException ex)
             {
@@ -315,6 +311,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.OpenLibrary
                 {
                     result.DeathDate = deathElement.GetString();
                 }
+
                 return result;
             }
             catch (JsonException ex)
