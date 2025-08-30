@@ -12,7 +12,9 @@ description: >
 category: "Books"
 artifacts:
   - "Jellyfin.Plugin.Bookshelf.dll"
+  - "PDFtoImage.dll"
   - "SharpCompress.dll"
+  - "SkiaSharp.dll"
   - "ZstdSharp.dll"
 changelog: |-
   - Fix nullability for 10.10 (#116) @crobibero

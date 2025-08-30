@@ -8,7 +8,6 @@ using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Drawing;
 using MediaBrowser.Model.Entities;
 using Microsoft.Extensions.Logging;
-using SkiaSharp;
 
 namespace Jellyfin.Plugin.Bookshelf.Providers
 {
