@@ -105,6 +105,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             {
                 // Log and return nothing
                 _logger.LogError(e, "Failed to load cover from {Path}", item.Path);
+                await memoryStream.DisposeAsync().ConfigureAwait(false);
                 return new DynamicImageResponse { HasImage = false };
             }
         }

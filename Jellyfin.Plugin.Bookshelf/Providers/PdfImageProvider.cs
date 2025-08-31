@@ -72,7 +72,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
                 using (Stream pdfStream = File.OpenRead(item.Path))
                 {
 #pragma warning disable CA1416 // Validate platform compatibility
-                    PDFtoImage.Conversion.SavePng(memoryStream, pdfStream, leaveOpen: true);
+                    PDFtoImage.Conversion.SavePng(memoryStream, pdfStream);
 #pragma warning restore CA1416 // Validate platform compatibility
                 }
 
@@ -97,6 +97,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             {
                 // Log and return nothing
                 _logger.LogError(e, "Failed to load cover from {Path}", item.Path);
+                memoryStream.Dispose();
                 return new DynamicImageResponse { HasImage = false };
             }
         }
