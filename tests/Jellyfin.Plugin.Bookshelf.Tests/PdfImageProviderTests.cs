@@ -16,7 +16,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
 
             var image = await provider.GetImage(new Book
             {
-                Path = TestHelpers.GetFixturePath("dracula-bram-stoker.pdf")
+                Path = TestHelpers.GetFixturePath("pdf-test.pdf")
             }, ImageType.Primary, CancellationToken.None);
 
             Assert.True(image.HasImage);
