@@ -12,10 +12,11 @@ description: >
 category: "Books"
 artifacts:
   - "Jellyfin.Plugin.Bookshelf.dll"
-  - "PDFtoImage.dll"
+  - "Docnet.Core.dll"
   - "SharpCompress.dll"
   - "SkiaSharp.dll"
   - "ZstdSharp.dll"
+  - "pdfium.so"
 changelog: |-
   - Fix nullability for 10.10 (#116) @crobibero
   - Update opf and add ISBN (#108) @AshleyDeo

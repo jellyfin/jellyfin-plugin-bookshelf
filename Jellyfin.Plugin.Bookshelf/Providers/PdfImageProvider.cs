@@ -3,11 +3,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Docnet.Core;
+using Docnet.Core.Converters;
+using Docnet.Core.Models;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Drawing;
 using MediaBrowser.Model.Entities;
 using Microsoft.Extensions.Logging;
+using SkiaSharp;
 
 namespace Jellyfin.Plugin.Bookshelf.Providers
 {
@@ -68,13 +72,22 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             try
             {
                 // Open the .pdf
-                // This should return a valid reference or throw
-                using (Stream pdfStream = File.OpenRead(item.Path))
-                {
-#pragma warning disable CA1416 // Validate platform compatibility
-                    PDFtoImage.Conversion.SavePng(memoryStream, pdfStream);
-#pragma warning restore CA1416 // Validate platform compatibility
-                }
+                using var docReader = DocLib.Instance.GetDocReader(
+                    item.Path,
+                    new PageDimensions(1080, 1920));
+
+                using var pageReader = docReader.GetPageReader(0);
+
+                var width = pageReader.GetPageWidth();
+                var height = pageReader.GetPageHeight();
+                var imageInfo = new SKImageInfo(width, height, SKColorType.Bgra8888);
+
+                var bytes = pageReader.GetImage(new NaiveTransparencyRemover());
+
+                // Convert to PNG using SkiaSharp
+                using var image = SKImage.FromPixelCopy(imageInfo, bytes);
+                using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+                data.SaveTo(memoryStream);
 
                 // If no image data was written, throw exception to log results
                 if (memoryStream.Length == 0)

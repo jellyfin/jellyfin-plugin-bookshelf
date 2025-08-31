@@ -11,10 +11,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Docnet.Core" Version="2.6.0" />
     <PackageReference Include="Jellyfin.Controller" Version="10.*-*" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.0" />
-    <PackageReference Include="PDFtoImage" Version="5.1.1" />
     <PackageReference Include="SharpCompress" Version="0.38.0" />
+    <PackageReference Include="SkiaSharp" Version="3.116.0" />
   </ItemGroup>
 
   <ItemGroup>
