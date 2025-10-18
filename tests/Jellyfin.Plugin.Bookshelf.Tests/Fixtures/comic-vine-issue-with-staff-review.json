@@ -1,0 +1,186 @@
+{
+    "error": "OK",
+    "limit": 1,
+    "offset": 0,
+    "number_of_page_results": 1,
+    "number_of_total_results": 1,
+    "status_code": 1,
+    "results": {
+        "aliases": null,
+        "api_detail_url": "https://comicvine.gamespot.com/api/issue/4000-466290/",
+        "associated_images": [
+            {
+                "original_url": "https://comicvine.gamespot.com/a/uploads/original/6/67663/4116595-01-variant.jpg",
+                "id": 4116595,
+                "caption": null,
+                "image_tags": "All Images"
+            }
+        ],
+        "character_credits": [
+            {
+                "api_detail_url": "https://comicvine.gamespot.com/api/character/4005-61046/",
+                "id": 61046,
+                "name": "Alien Warrior",
+                "site_detail_url": "https://comicvine.gamespot.com/alien-warrior/4005-61046/"
+            },
+            {
+                "api_detail_url": "https://comicvine.gamespot.com/api/character/4005-107932/",
+                "id": 107932,
+                "name": "Derrick Russell",
+                "site_detail_url": "https://comicvine.gamespot.com/derrick-russell/4005-107932/"
+            },
+            {
+                "api_detail_url": "https://comicvine.gamespot.com/api/character/4005-107931/",
+                "id": 107931,
+                "name": "Genevieve Dione",
+                "site_detail_url": "https://comicvine.gamespot.com/genevieve-dione/4005-107931/"
+            },
+            {
+                "api_detail_url": "https://comicvine.gamespot.com/api/character/4005-107930/",
+                "id": 107930,
+                "name": "Nolan Cale",
+                "site_detail_url": "https://comicvine.gamespot.com/nolan-cale/4005-107930/"
+            },
+            {
+                "api_detail_url": "https://comicvine.gamespot.com/api/character/4005-107929/",
+                "id": 107929,
+                "name": "Ramona",
+                "site_detail_url": "https://comicvine.gamespot.com/ramona/4005-107929/"
+            }
+        ],
+        "character_died_in": [],
+        "concept_credits": [],
+        "cover_date": "2014-09-30",
+        "date_added": "2014-09-23 00:01:57",
+        "date_last_updated": "2015-07-09 19:27:26",
+        "deck": null,
+        "description": "<p><em>During a vicious xenomorph outbreak, terraforming engineer Derrick Russell leads a desperate group of survivors onto a rickety mining vessel. They hope to escape the creatures overrunning their colony\u2014but they\u2019ll face horrors both in space and on the strange planet they crash on. Ties in with the <strong>Prometheus</strong> and <strong>Aliens</strong> films!</em></p><p><em>First issue in an exciting direction for <strong>Aliens</strong>!</em></p><p><em>From critically acclaimed writer Chris Roberson!</em></p><h4>List of covers and their creators:</h4><table data-max-width=\"true\"><thead><tr><th scope=\"col\">Cover</th><th scope=\"col\">Name</th><th scope=\"col\">Creator(s)</th><th scope=\"col\">Sidebar Location</th></tr></thead><tbody><tr><td>Reg</td><td>Regular Cover</td><td>David Palumbo</td><td>1</td></tr><tr><td>Var</td><td>Variant Cover</td><td>Fiona Staples</td><td>2</td></tr></tbody></table>",
+        "first_appearance_characters": null,
+        "first_appearance_concepts": null,
+        "first_appearance_locations": null,
+        "first_appearance_objects": null,
+        "first_appearance_storyarcs": null,
+        "first_appearance_teams": null,
+        "has_staff_review": {
+            "api_detail_url": "https://comicvine.gamespot.com/api/review/1900-3467/",
+            "id": 3467,
+            "name": "Aliens: Fire and Stone #1 Review",
+            "site_detail_url": "https://comicvine.gamespot.com/reviews/aliens-fire-and-stone-1/1900-3467/"
+        },
+        "id": 466290,
+        "image": {
+            "icon_url": "https://comicvine.gamespot.com/a/uploads/square_avatar/6/67663/4116387-01.jpg",
+            "medium_url": "https://comicvine.gamespot.com/a/uploads/scale_medium/6/67663/4116387-01.jpg",
+            "screen_url": "https://comicvine.gamespot.com/a/uploads/screen_medium/6/67663/4116387-01.jpg",
+            "screen_large_url": "https://comicvine.gamespot.com/a/uploads/screen_kubrick/6/67663/4116387-01.jpg",
+            "small_url": "https://comicvine.gamespot.com/a/uploads/scale_small/6/67663/4116387-01.jpg",
+            "super_url": "https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/4116387-01.jpg",
+            "thumb_url": "https://comicvine.gamespot.com/a/uploads/scale_avatar/6/67663/4116387-01.jpg",
+            "tiny_url": "https://comicvine.gamespot.com/a/uploads/square_mini/6/67663/4116387-01.jpg",
+            "original_url": "https://comicvine.gamespot.com/a/uploads/original/6/67663/4116387-01.jpg",
+            "image_tags": "All Images"
+        },
+        "issue_number": "1",
+        "location_credits": [],
+        "name": "Chapter One",
+        "object_credits": [
+            {
+                "api_detail_url": "https://comicvine.gamespot.com/api/object/4055-58363/",
+                "id": 58363,
+                "name": "The Onager",
+                "site_detail_url": "https://comicvine.gamespot.com/the-onager/4055-58363/"
+            }
+        ],
+        "person_credits": [
+            {
+                "api_detail_url": "https://comicvine.gamespot.com/api/person/4040-19991/",
+                "id": 19991,
+                "name": "Chris Roberson",
+                "site_detail_url": "https://comicvine.gamespot.com/chris-roberson/4040-19991/",
+                "role": "writer"
+            },
+            {
+                "api_detail_url": "https://comicvine.gamespot.com/api/person/4040-3762/",
+                "id": 3762,
+                "name": "Dave Stewart",
+                "site_detail_url": "https://comicvine.gamespot.com/dave-stewart/4040-3762/",
+                "role": "colorist"
+            },
+            {
+                "api_detail_url": "https://comicvine.gamespot.com/api/person/4040-57177/",
+                "id": 57177,
+                "name": "David Palumbo",
+                "site_detail_url": "https://comicvine.gamespot.com/david-palumbo/4040-57177/",
+                "role": "cover"
+            },
+            {
+                "api_detail_url": "https://comicvine.gamespot.com/api/person/4040-52884/",
+                "id": 52884,
+                "name": "Fiona Staples",
+                "site_detail_url": "https://comicvine.gamespot.com/fiona-staples/4040-52884/",
+                "role": "cover"
+            },
+            {
+                "api_detail_url": "https://comicvine.gamespot.com/api/person/4040-43079/",
+                "id": 43079,
+                "name": "Nate Piekos",
+                "site_detail_url": "https://comicvine.gamespot.com/nate-piekos/4040-43079/",
+                "role": "letterer"
+            },
+            {
+                "api_detail_url": "https://comicvine.gamespot.com/api/person/4040-60776/",
+                "id": 60776,
+                "name": "Patric Reynolds",
+                "site_detail_url": "https://comicvine.gamespot.com/patric-reynolds/4040-60776/",
+                "role": "artist"
+            },
+            {
+                "api_detail_url": "https://comicvine.gamespot.com/api/person/4040-51142/",
+                "id": 51142,
+                "name": "Philip Ray Simon",
+                "site_detail_url": "https://comicvine.gamespot.com/philip-ray-simon/4040-51142/",
+                "role": "editor"
+            },
+            {
+                "api_detail_url": "https://comicvine.gamespot.com/api/person/4040-76992/",
+                "id": 76992,
+                "name": "Roxy Polk",
+                "site_detail_url": "https://comicvine.gamespot.com/roxy-polk/4040-76992/",
+                "role": "editor"
+            },
+            {
+                "api_detail_url": "https://comicvine.gamespot.com/api/person/4040-45989/",
+                "id": 45989,
+                "name": "Ryan Jorgensen",
+                "site_detail_url": "https://comicvine.gamespot.com/ryan-jorgensen/4040-45989/",
+                "role": "production"
+            }
+        ],
+        "site_detail_url": "https://comicvine.gamespot.com/aliens-fire-and-stone-1-chapter-one/4000-466290/",
+        "store_date": "2014-09-24",
+        "story_arc_credits": [
+            {
+                "api_detail_url": "https://comicvine.gamespot.com/api/story_arc/4045-58346/",
+                "id": 58346,
+                "name": "\"Aliens/Predator/Prometheus\" Fire and Stone",
+                "site_detail_url": "https://comicvine.gamespot.com/alienspredatorprometheus-fire-and-stone/4045-58346/"
+            }
+        ],
+        "team_credits": [
+            {
+                "api_detail_url": "https://comicvine.gamespot.com/api/team/4060-20659/",
+                "id": 20659,
+                "name": "Aliens (Xenomorphs)",
+                "site_detail_url": "https://comicvine.gamespot.com/aliens-xenomorphs/4060-20659/"
+            }
+        ],
+        "team_disbanded_in": [],
+        "volume": {
+            "api_detail_url": "https://comicvine.gamespot.com/api/volume/4050-77100/",
+            "id": 77100,
+            "name": "Aliens: Fire and Stone",
+            "site_detail_url": "https://comicvine.gamespot.com/aliens-fire-and-stone/4050-77100/"
+        }
+    },
+    "version": "1.0"
+}

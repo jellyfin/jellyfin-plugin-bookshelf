@@ -1,3 +1,6 @@
+using System.Text.Json.Serialization;
+using Jellyfin.Plugin.Bookshelf.Providers.ComicVine.Models;
+
 namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
 {
     /// <summary>
@@ -41,9 +44,10 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
         public string? Description { get; init; }
 
         /// <summary>
-        /// Gets a value indicating whether the issue has a staff review.
+        /// Gets the staff review for the issue, or null if there is no staff review.
         /// </summary>
-        public bool HasStaffReview { get; init; }
+        [JsonConverter(typeof(HasStaffReviewConverter))]
+        public StaffReview? HasStaffReview { get; init; }
 
         /// <summary>
         /// Gets the unique ID of the issue.
