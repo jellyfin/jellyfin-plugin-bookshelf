@@ -46,8 +46,9 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
         /// <summary>
         /// Gets the staff review for the issue, or null if there is no staff review.
         /// </summary>
+        [JsonPropertyName("has_staff_review")]
         [JsonConverter(typeof(HasStaffReviewConverter))]
-        public StaffReview? HasStaffReview { get; init; }
+        public StaffReview? StaffReview { get; init; }
 
         /// <summary>
         /// Gets the unique ID of the issue.

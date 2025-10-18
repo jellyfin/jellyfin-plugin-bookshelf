@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Jellyfin.Plugin.Bookshelf.Providers.ComicVine.Models;
 
 namespace Jellyfin.Plugin.Bookshelf.Tests
@@ -23,7 +24,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
             var result = JsonSerializer.Deserialize<TestModel>(json, _jsonOptions);
 
             Assert.NotNull(result);
-            Assert.Null(result.HasStaffReview);
+            Assert.Null(result.StaffReview);
         }
 
         [Fact]
@@ -49,17 +50,18 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
             var result = JsonSerializer.Deserialize<TestModel>(json, _jsonOptions);
 
             Assert.NotNull(result);
-            Assert.NotNull(result.HasStaffReview);
-            Assert.Equal(3467, result.HasStaffReview.Id);
-            Assert.Equal("Aliens: Fire and Stone #1 Review", result.HasStaffReview.Name);
-            Assert.Equal("https://comicvine.gamespot.com/api/review/1900-3467/", result.HasStaffReview.ApiDetailUrl);
-            Assert.Equal("https://comicvine.gamespot.com/reviews/aliens-fire-and-stone-1/1900-3467/", result.HasStaffReview.SiteDetailUrl);
+            Assert.NotNull(result.StaffReview);
+            Assert.Equal(3467, result.StaffReview.Id);
+            Assert.Equal("Aliens: Fire and Stone #1 Review", result.StaffReview.Name);
+            Assert.Equal("https://comicvine.gamespot.com/api/review/1900-3467/", result.StaffReview.ApiDetailUrl);
+            Assert.Equal("https://comicvine.gamespot.com/reviews/aliens-fire-and-stone-1/1900-3467/", result.StaffReview.SiteDetailUrl);
         }
 
         private class TestModel
         {
-            [System.Text.Json.Serialization.JsonConverter(typeof(HasStaffReviewConverter))]
-            public StaffReview? HasStaffReview { get; set; }
+            [JsonPropertyName("has_staff_review")]
+            [JsonConverter(typeof(HasStaffReviewConverter))]
+            public StaffReview? StaffReview { get; set; }
         }
     }
 }
