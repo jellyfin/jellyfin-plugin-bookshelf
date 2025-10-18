@@ -19,14 +19,14 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
             _mockApiKeyProvider.GetApiKey().Returns(Guid.NewGuid().ToString());
         }
 
-        private string GetSearchResultWithNamedIssues() => TestHelpers.GetFixture("comic-vine-issue-search-named-issues.json");
-        private string GetSearchResultWithNumberedIssues() => TestHelpers.GetFixture("comic-vine-issue-search-numbered-issues.json");
+        private static string GetSearchResultWithNamedIssues() => TestHelpers.GetFixture("comic-vine-issue-search-named-issues.json");
+        private static string GetSearchResultWithNumberedIssues() => TestHelpers.GetFixture("comic-vine-issue-search-numbered-issues.json");
 
-        private string GetSingleIssueResult() => TestHelpers.GetFixture("comic-vine-single-issue.json");
-        private string GetSingleUnnamedIssueResult() => TestHelpers.GetFixture("comic-vine-single-numbered-issue.json");
-        private string GetSingleVolumeResult() => TestHelpers.GetFixture("comic-vine-single-volume.json");
+        private static string GetSingleIssueResult() => TestHelpers.GetFixture("comic-vine-single-issue.json");
+        private static string GetSingleUnnamedIssueResult() => TestHelpers.GetFixture("comic-vine-single-numbered-issue.json");
+        private static string GetSingleVolumeResult() => TestHelpers.GetFixture("comic-vine-single-volume.json");
 
-        private bool HasComicVineId(string id, Dictionary<string, string> providerIds)
+        private static bool HasComicVineId(string id, Dictionary<string, string> providerIds)
         {
             return providerIds.Count == 1
                 && providerIds.TryGetValue(ComicVineConstants.ProviderId, out string? providerId)
@@ -443,7 +443,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
             }, CancellationToken.None);
 
             await cache.DidNotReceive().AddToCache<IssueDetails>("4000-441467", Arg.Any<IssueDetails>(), Arg.Any<CancellationToken>());
-            await cache.Received().GetFromCache<IssueDetails>("4000-441467",Arg.Any<CancellationToken>());
+            await cache.Received().GetFromCache<IssueDetails>("4000-441467", Arg.Any<CancellationToken>());
         }
 
         [Fact]
