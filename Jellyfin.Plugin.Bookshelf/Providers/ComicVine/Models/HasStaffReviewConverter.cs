@@ -20,6 +20,12 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine.Models
                 return null;
             }
 
+            // For values that we serialized in the cache
+            if (reader.TokenType == JsonTokenType.Null)
+            {
+                return null;
+            }
+
             // If it's an object (review details), deserialize it
             if (reader.TokenType == JsonTokenType.StartObject)
             {
@@ -32,7 +38,16 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine.Models
         /// <inheritdoc/>
         public override void Write(Utf8JsonWriter writer, StaffReview? value, JsonSerializerOptions options)
         {
-            throw new NotImplementedException("Serialization is not implemented.");
+            // The converter will not be called if the value is null, so really this case will not happen
+            // Instead a "null" value will be written, which is why we need to handle it in the deserialization
+            if (value == null)
+            {
+                writer.WriteBooleanValue(false);
+            }
+            else
+            {
+                JsonSerializer.Serialize(writer, value, options);
+            }
         }
     }
 }
