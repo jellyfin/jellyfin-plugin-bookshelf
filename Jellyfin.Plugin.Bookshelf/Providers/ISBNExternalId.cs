@@ -18,9 +18,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
         public ExternalIdMediaType? Type => null;
 
         /// <inheritdoc />
-        public string? UrlFormatString => "https://search.worldcat.org/search?q=bn:{0}";
-
-        /// <inheritdoc />
         public bool Supports(IHasProviderIds item) => item is Book;
     }
 }

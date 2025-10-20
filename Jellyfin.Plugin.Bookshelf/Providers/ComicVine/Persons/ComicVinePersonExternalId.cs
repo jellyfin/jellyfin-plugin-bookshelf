@@ -18,9 +18,6 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
         public ExternalIdMediaType? Type => ExternalIdMediaType.Person;
 
         /// <inheritdoc />
-        public string? UrlFormatString => ComicVineApiUrls.BaseWebsiteUrl + "/{0}";
-
-        /// <inheritdoc />
         public bool Supports(IHasProviderIds item) => item is Person;
     }
 }
