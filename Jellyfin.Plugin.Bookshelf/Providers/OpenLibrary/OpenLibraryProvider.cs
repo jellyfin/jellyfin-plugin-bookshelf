@@ -152,15 +152,8 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.OpenLibrary
                 return null;
             }
 
-            // Create metadata result and fetch author information
-            var result = new MetadataResult<Book>
-            {
-                Item = book,
-                HasMetadata = true,
-                People = new List<PersonInfo>()
-            };
-
             // Fetch author bios if we have author keys
+            var people = new List<PersonInfo>();
             if (searchResult.AuthorKeys.Count > 0)
             {
                 foreach (var authorKey in searchResult.AuthorKeys)
@@ -168,10 +161,18 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.OpenLibrary
                     var authorInfo = await GetAuthorInfo(authorKey, cancellationToken).ConfigureAwait(false);
                     if (authorInfo != null)
                     {
-                        result.People.Add(authorInfo);
+                        people.Add(authorInfo);
                     }
                 }
             }
+
+            // Create metadata result with author information
+            var result = new MetadataResult<Book>
+            {
+                Item = book,
+                HasMetadata = true,
+                People = people
+            };
 
             return result;
         }
