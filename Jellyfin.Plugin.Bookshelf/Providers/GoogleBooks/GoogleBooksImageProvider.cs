@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediaBrowser.Common.Net;
 using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Providers;
@@ -39,7 +40,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
         /// <inheritdoc />
         public bool Supports(BaseItem item)
         {
-            return item is Book;
+            return item is Book || item is Audio;
         }
 
         /// <inheritdoc />
