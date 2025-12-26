@@ -6,14 +6,13 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AnalysisMode>AllEnabledByDefault</AnalysisMode>
-    <CodeAnalysisRuleSet>../jellyfin.ruleset</CodeAnalysisRuleSet>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Jellyfin.Controller" Version="10.*-*" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.1" />
-    <PackageReference Include="SharpCompress" Version="0.38.0" />
+    <PackageReference Include="SharpCompress" Version="0.42.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,6 +22,7 @@
 
   <!-- Code Analyzers-->
   <ItemGroup>
+    <PackageReference Include="SerilogAnalyzer" Version="0.15.0" PrivateAssets="All" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556" PrivateAssets="All" />
   </ItemGroup>
 

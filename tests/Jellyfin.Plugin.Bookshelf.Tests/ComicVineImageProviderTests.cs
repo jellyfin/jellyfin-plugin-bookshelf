@@ -6,35 +6,34 @@ using MediaBrowser.Controller.Providers;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 
-namespace Jellyfin.Plugin.Bookshelf.Tests
+namespace Jellyfin.Plugin.Bookshelf.Tests;
+
+public class ComicVineImageProviderTests
 {
-    public class ComicVineImageProviderTests
+    [Fact]
+    public async Task GetImages_WithAllLinks_ReturnsLargest()
     {
-        [Fact]
-        public async Task GetImages_WithAllLinks_ReturnsLargest()
+        var mockApiKeyProvider = Substitute.For<IComicVineApiKeyProvider>();
+        mockApiKeyProvider.GetApiKey().Returns(Guid.NewGuid().ToString());
+
+        var mockedMessageHandler = new MockHttpMessageHandler(new List<(Func<Uri, bool> requestMatcher, MockHttpResponse response)>
         {
-            var mockApiKeyProvider = Substitute.For<IComicVineApiKeyProvider>();
-            mockApiKeyProvider.GetApiKey().Returns(Guid.NewGuid().ToString());
+            ((Uri uri) => uri.AbsoluteUri.Contains("issue/4000-441467", StringComparison.Ordinal), new MockHttpResponse(HttpStatusCode.OK, TestHelpers.GetFixture("comic-vine-single-issue.json")))
+        });
 
-            var mockedMessageHandler = new MockHttpMessageHandler(new List<(Func<Uri, bool> requestMatcher, MockHttpResponse response)>
-            {
-                ((Uri uri) => uri.AbsoluteUri.Contains("issue/4000-441467"), new MockHttpResponse(HttpStatusCode.OK, TestHelpers.GetFixture("comic-vine-single-issue.json")))
-            });
+        var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
+        using var client = new HttpClient(mockedMessageHandler);
+        mockedHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(client);
 
-            var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
-            using var client = new HttpClient(mockedMessageHandler);
-            mockedHttpClientFactory.CreateClient(Arg.Any<string>()).Returns(client);
+        IRemoteImageProvider provider = new ComicVineImageProvider(Substitute.For<IComicVineMetadataCacheManager>(), NullLogger<ComicVineImageProvider>.Instance, mockedHttpClientFactory, mockApiKeyProvider);
 
-            IRemoteImageProvider provider = new ComicVineImageProvider(Substitute.For<IComicVineMetadataCacheManager>(), NullLogger<ComicVineImageProvider>.Instance, mockedHttpClientFactory, mockApiKeyProvider);
+        var images = await provider.GetImages(new Book()
+        {
+            ProviderIds = { { ComicVineConstants.ProviderId, "attack-on-titan-10-fortress-of-blood/4000-441467" } }
+        }, CancellationToken.None);
 
-            var images = await provider.GetImages(new Book()
-            {
-                ProviderIds = { { ComicVineConstants.ProviderId, "attack-on-titan-10-fortress-of-blood/4000-441467" } }
-            }, CancellationToken.None);
-
-            Assert.Collection(
-                images,
-                large => Assert.Equal("https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/3556541-10.jpg", large.Url));
-        }
+        Assert.Collection(
+            images,
+            large => Assert.Equal("https://comicvine.gamespot.com/a/uploads/scale_large/6/67663/3556541-10.jpg", large.Url));
     }
 }
