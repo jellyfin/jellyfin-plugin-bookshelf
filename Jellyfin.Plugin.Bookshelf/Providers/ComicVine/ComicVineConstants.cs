@@ -1,18 +1,17 @@
-namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
+namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine;
+
+/// <summary>
+/// Constants for the Comic Vine provider.
+/// </summary>
+internal static class ComicVineConstants
 {
     /// <summary>
-    /// Constants for the Comic Vine provider.
+    /// Name of the Comic Vine provider.
     /// </summary>
-    internal static class ComicVineConstants
-    {
-        /// <summary>
-        /// Name of the Comic Vine provider.
-        /// </summary>
-        public const string ProviderName = "Comic Vine";
+    public const string ProviderName = "Comic Vine";
 
-        /// <summary>
-        /// Id of the Comic Vine provider.
-        /// </summary>
-        public const string ProviderId = "ComicVine";
-    }
+    /// <summary>
+    /// Id of the Comic Vine provider.
+    /// </summary>
+    public const string ProviderId = "ComicVine";
 }

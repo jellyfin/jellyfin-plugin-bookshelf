@@ -1,7 +1,6 @@
-namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
+namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks;
+
+internal class ErrorResponse
 {
-    internal class ErrorResponse
-    {
-        public Error Error { get; set; } = new Error();
-    }
+    public Error Error { get; set; } = new Error();
 }

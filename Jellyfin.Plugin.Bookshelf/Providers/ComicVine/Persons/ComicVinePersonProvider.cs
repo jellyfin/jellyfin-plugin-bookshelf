@@ -17,212 +17,211 @@ using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Providers;
 using Microsoft.Extensions.Logging;
 
-namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
-{
-    /// <summary>
-    /// Comic Vine person metadata provider.
-    /// </summary>
-    public class ComicVinePersonProvider : BaseComicVineProvider, IRemoteMetadataProvider<Person, PersonLookupInfo>
-    {
-        private readonly ILogger<ComicVinePersonProvider> _logger;
-        private readonly IHttpClientFactory _httpClientFactory;
-        private readonly IComicVineApiKeyProvider _apiKeyProvider;
+namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ComicVinePersonProvider"/> class.
-        /// </summary>
-        /// <param name="logger">Instance of the <see cref="ILogger{ComicVinePersonProvider}"/> interface.</param>
-        /// <param name="httpClientFactory">Instance of the <see cref="IHttpClientFactory"/> interface.</param>
-        /// <param name="comicVineMetadataCacheManager">Instance of the <see cref="IComicVineMetadataCacheManager"/> interface.</param>
-        /// <param name="apiKeyProvider">Instance of the <see cref="IComicVineApiKeyProvider"/> interface.</param>
-        public ComicVinePersonProvider(
-            ILogger<ComicVinePersonProvider> logger,
-            IHttpClientFactory httpClientFactory,
-            IComicVineMetadataCacheManager comicVineMetadataCacheManager,
-            IComicVineApiKeyProvider apiKeyProvider)
-            : base(logger, comicVineMetadataCacheManager, httpClientFactory, apiKeyProvider)
+/// <summary>
+/// Comic Vine person metadata provider.
+/// </summary>
+public class ComicVinePersonProvider : BaseComicVineProvider, IRemoteMetadataProvider<Person, PersonLookupInfo>
+{
+    private readonly ILogger<ComicVinePersonProvider> _logger;
+    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IComicVineApiKeyProvider _apiKeyProvider;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ComicVinePersonProvider"/> class.
+    /// </summary>
+    /// <param name="logger">Instance of the <see cref="ILogger{ComicVinePersonProvider}"/> interface.</param>
+    /// <param name="httpClientFactory">Instance of the <see cref="IHttpClientFactory"/> interface.</param>
+    /// <param name="comicVineMetadataCacheManager">Instance of the <see cref="IComicVineMetadataCacheManager"/> interface.</param>
+    /// <param name="apiKeyProvider">Instance of the <see cref="IComicVineApiKeyProvider"/> interface.</param>
+    public ComicVinePersonProvider(
+        ILogger<ComicVinePersonProvider> logger,
+        IHttpClientFactory httpClientFactory,
+        IComicVineMetadataCacheManager comicVineMetadataCacheManager,
+        IComicVineApiKeyProvider apiKeyProvider)
+        : base(logger, comicVineMetadataCacheManager, httpClientFactory, apiKeyProvider)
+    {
+        _logger = logger;
+        _httpClientFactory = httpClientFactory;
+        _apiKeyProvider = apiKeyProvider;
+    }
+
+    /// <inheritdoc/>
+    public string Name => ComicVineConstants.ProviderName;
+
+    /// <inheritdoc/>
+    public async Task<MetadataResult<Person>> GetMetadata(PersonLookupInfo info, CancellationToken cancellationToken)
+    {
+        var metadataResult = new MetadataResult<Person>()
         {
-            _logger = logger;
-            _httpClientFactory = httpClientFactory;
-            _apiKeyProvider = apiKeyProvider;
+            QueriedById = true
+        };
+
+        var personProviderId = info.GetProviderId(ComicVineConstants.ProviderId);
+
+        if (string.IsNullOrWhiteSpace(personProviderId))
+        {
+            personProviderId = await FetchPersonId(info, cancellationToken).ConfigureAwait(false);
+            metadataResult.QueriedById = false;
         }
 
-        /// <inheritdoc/>
-        public string Name => ComicVineConstants.ProviderName;
-
-        /// <inheritdoc/>
-        public async Task<MetadataResult<Person>> GetMetadata(PersonLookupInfo info, CancellationToken cancellationToken)
+        if (string.IsNullOrWhiteSpace(personProviderId))
         {
-            var metadataResult = new MetadataResult<Person>()
-            {
-                QueriedById = true
-            };
-
-            var personProviderId = info.GetProviderId(ComicVineConstants.ProviderId);
-
-            if (string.IsNullOrWhiteSpace(personProviderId))
-            {
-                personProviderId = await FetchPersonId(info, cancellationToken).ConfigureAwait(false);
-                metadataResult.QueriedById = false;
-            }
-
-            if (string.IsNullOrWhiteSpace(personProviderId))
-            {
-                return metadataResult;
-            }
-
-            var personDetails = await GetOrAddItemDetailsFromCache<PersonDetails>(personProviderId, cancellationToken).ConfigureAwait(false);
-
-            if (personDetails != null)
-            {
-                metadataResult.HasMetadata = true;
-
-                var person = new Person();
-                person.SetProviderId(ComicVineConstants.ProviderId, personProviderId);
-
-                person.Name = personDetails.Name;
-                person.HomePageUrl = personDetails.Website ?? string.Empty;
-                person.Overview = personDetails.Description ?? personDetails.Deck ?? string.Empty;
-
-                // Replace relative urls with absolute urls
-                person.Overview = person.Overview?.Replace("href=\"", $"href=\"{ComicVineApiUrls.BaseWebsiteUrl}", StringComparison.Ordinal);
-
-                person.PremiereDate = personDetails.BirthDate;
-                person.EndDate = personDetails.DeathDate;
-
-                if (!string.IsNullOrWhiteSpace(personDetails.Hometown))
-                {
-                    person.ProductionLocations = new[] { personDetails.Hometown };
-                }
-
-                if (!string.IsNullOrWhiteSpace(personDetails.Aliases))
-                {
-                    person.OriginalTitle = personDetails.Aliases
-                        .AsSpan()
-                        .LeftPart('\n')
-                        .ToString();
-                }
-
-                metadataResult.Item = person;
-            }
-
             return metadataResult;
         }
 
-        private async Task<string?> FetchPersonId(PersonLookupInfo item, CancellationToken cancellationToken)
+        var personDetails = await GetOrAddItemDetailsFromCache<PersonDetails>(personProviderId, cancellationToken).ConfigureAwait(false);
+
+        if (personDetails != null)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            metadataResult.HasMetadata = true;
 
-            var searchResults = await GetSearchResultsInternal(item, cancellationToken)
-                .ConfigureAwait(false);
+            var person = new Person();
+            person.SetProviderId(ComicVineConstants.ProviderId, personProviderId);
 
-            if (!searchResults.Any())
+            person.Name = personDetails.Name;
+            person.HomePageUrl = personDetails.Website ?? string.Empty;
+            person.Overview = personDetails.Description ?? personDetails.Deck ?? string.Empty;
+
+            // Replace relative urls with absolute urls
+            person.Overview = person.Overview?.Replace("href=\"", $"href=\"{ComicVineApiUrls.BaseWebsiteUrl}", StringComparison.Ordinal);
+
+            person.PremiereDate = personDetails.BirthDate;
+            person.EndDate = personDetails.DeathDate;
+
+            if (!string.IsNullOrWhiteSpace(personDetails.Hometown))
             {
-                return null;
+                person.ProductionLocations = new[] { personDetails.Hometown };
             }
 
-            var comparableName = BookFileNameParser.GetComparableString(item.Name, false);
-
-            foreach (var result in searchResults)
+            if (!string.IsNullOrWhiteSpace(personDetails.Aliases))
             {
-                var comparablePersonName = BookFileNameParser.GetComparableString(result.Name, false);
-                if (!comparableName.Equals(comparablePersonName, StringComparison.Ordinal))
-                {
-                    continue;
-                }
-
-                return GetProviderIdFromSiteDetailUrl(result.SiteDetailUrl);
+                person.OriginalTitle = personDetails.Aliases
+                    .AsSpan()
+                    .LeftPart('\n')
+                    .ToString();
             }
 
+            metadataResult.Item = person;
+        }
+
+        return metadataResult;
+    }
+
+    private async Task<string?> FetchPersonId(PersonLookupInfo item, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var searchResults = await GetSearchResultsInternal(item, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (!searchResults.Any())
+        {
             return null;
         }
 
-        /// <inheritdoc/>
-        public async Task<IEnumerable<RemoteSearchResult>> GetSearchResults(PersonLookupInfo searchInfo, CancellationToken cancellationToken)
+        var comparableName = BookFileNameParser.GetComparableString(item.Name, false);
+
+        foreach (var result in searchResults)
         {
-            Func<PersonDetails, RemoteSearchResult> getSearchResultFromPerson = (PersonDetails person) =>
+            var comparablePersonName = BookFileNameParser.GetComparableString(result.Name, false);
+            if (!comparableName.Equals(comparablePersonName, StringComparison.Ordinal))
             {
-                var remoteSearchResult = new RemoteSearchResult();
-
-                remoteSearchResult.SetProviderId(ComicVineConstants.ProviderId, GetProviderIdFromSiteDetailUrl(person.SiteDetailUrl));
-                remoteSearchResult.SearchProviderName = ComicVineConstants.ProviderName;
-                remoteSearchResult.Name = person.Name;
-                remoteSearchResult.Overview = person.Deck ?? string.Empty;
-
-                if (!string.IsNullOrWhiteSpace(person.Image?.ThumbUrl))
-                {
-                    remoteSearchResult.ImageUrl = person.Image.ThumbUrl;
-                }
-
-                return remoteSearchResult;
-            };
-
-            var personProviderId = searchInfo.GetProviderId(ComicVineConstants.ProviderId);
-
-            if (!string.IsNullOrWhiteSpace(personProviderId))
-            {
-                var personDetails = await GetOrAddItemDetailsFromCache<PersonDetails>(personProviderId, cancellationToken).ConfigureAwait(false);
-
-                if (personDetails == null)
-                {
-                    return Enumerable.Empty<RemoteSearchResult>();
-                }
-
-                return new[] { getSearchResultFromPerson(personDetails) };
+                continue;
             }
-            else
-            {
-                var searchResults = await GetSearchResultsInternal(searchInfo, cancellationToken).ConfigureAwait(false);
-                if (!searchResults.Any())
-                {
-                    return Enumerable.Empty<RemoteSearchResult>();
-                }
 
-                var list = new List<RemoteSearchResult>();
-                foreach (var result in searchResults)
-                {
-                    list.Add(getSearchResultFromPerson(result));
-                }
-
-                return list;
-            }
+            return GetProviderIdFromSiteDetailUrl(result.SiteDetailUrl);
         }
 
-        private async Task<IEnumerable<PersonDetails>> GetSearchResultsInternal(PersonLookupInfo item, CancellationToken cancellationToken)
+        return null;
+    }
+
+    /// <inheritdoc/>
+    public async Task<IEnumerable<RemoteSearchResult>> GetSearchResults(PersonLookupInfo searchInfo, CancellationToken cancellationToken)
+    {
+        Func<PersonDetails, RemoteSearchResult> getSearchResultFromPerson = (PersonDetails person) =>
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            var remoteSearchResult = new RemoteSearchResult();
 
-            var apiKey = _apiKeyProvider.GetApiKey();
+            remoteSearchResult.SetProviderId(ComicVineConstants.ProviderId, GetProviderIdFromSiteDetailUrl(person.SiteDetailUrl));
+            remoteSearchResult.SearchProviderName = ComicVineConstants.ProviderName;
+            remoteSearchResult.Name = person.Name;
+            remoteSearchResult.Overview = person.Deck ?? string.Empty;
 
-            if (apiKey == null)
+            if (!string.IsNullOrWhiteSpace(person.Image?.ThumbUrl))
             {
-                return Enumerable.Empty<PersonDetails>();
+                remoteSearchResult.ImageUrl = person.Image.ThumbUrl;
             }
 
-            var url = string.Format(CultureInfo.InvariantCulture, ComicVineApiUrls.PersonSearchUrlFormat, apiKey, WebUtility.UrlEncode(item.Name));
+            return remoteSearchResult;
+        };
 
-            var response = await _httpClientFactory
-                .CreateClient(NamedClient.Default)
-                .GetAsync(url, cancellationToken)
-                .ConfigureAwait(false);
+        var personProviderId = searchInfo.GetProviderId(ComicVineConstants.ProviderId);
 
-            var apiResponse = await response.Content.ReadFromJsonAsync<SearchApiResponse<PersonDetails>>(JsonOptions, cancellationToken).ConfigureAwait(false);
+        if (!string.IsNullOrWhiteSpace(personProviderId))
+        {
+            var personDetails = await GetOrAddItemDetailsFromCache<PersonDetails>(personProviderId, cancellationToken).ConfigureAwait(false);
 
-            if (apiResponse == null)
+            if (personDetails == null)
             {
-                _logger.LogError("Failed to deserialize Comic Vine API response.");
-                return Enumerable.Empty<PersonDetails>();
+                return Enumerable.Empty<RemoteSearchResult>();
             }
 
-            var results = GetFromApiResponse<PersonDetails>(apiResponse);
-
-            return results;
+            return new[] { getSearchResultFromPerson(personDetails) };
         }
-
-        /// <inheritdoc/>
-        public Task<HttpResponseMessage> GetImageResponse(string url, CancellationToken cancellationToken)
+        else
         {
-            return _httpClientFactory.CreateClient(NamedClient.Default).GetAsync(url, cancellationToken);
+            var searchResults = await GetSearchResultsInternal(searchInfo, cancellationToken).ConfigureAwait(false);
+            if (!searchResults.Any())
+            {
+                return Enumerable.Empty<RemoteSearchResult>();
+            }
+
+            var list = new List<RemoteSearchResult>();
+            foreach (var result in searchResults)
+            {
+                list.Add(getSearchResultFromPerson(result));
+            }
+
+            return list;
         }
+    }
+
+    private async Task<IEnumerable<PersonDetails>> GetSearchResultsInternal(PersonLookupInfo item, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var apiKey = _apiKeyProvider.GetApiKey();
+
+        if (apiKey == null)
+        {
+            return Enumerable.Empty<PersonDetails>();
+        }
+
+        var url = string.Format(CultureInfo.InvariantCulture, ComicVineApiUrls.PersonSearchUrlFormat, apiKey, WebUtility.UrlEncode(item.Name));
+
+        var response = await _httpClientFactory
+            .CreateClient(NamedClient.Default)
+            .GetAsync(url, cancellationToken)
+            .ConfigureAwait(false);
+
+        var apiResponse = await response.Content.ReadFromJsonAsync<SearchApiResponse<PersonDetails>>(JsonOptions, cancellationToken).ConfigureAwait(false);
+
+        if (apiResponse == null)
+        {
+            _logger.LogError("Failed to deserialize Comic Vine API response.");
+            return Enumerable.Empty<PersonDetails>();
+        }
+
+        var results = GetFromApiResponse<PersonDetails>(apiResponse);
+
+        return results;
+    }
+
+    /// <inheritdoc/>
+    public Task<HttpResponseMessage> GetImageResponse(string url, CancellationToken cancellationToken)
+    {
+        return _httpClientFactory.CreateClient(NamedClient.Default).GetAsync(url, cancellationToken);
     }
 }

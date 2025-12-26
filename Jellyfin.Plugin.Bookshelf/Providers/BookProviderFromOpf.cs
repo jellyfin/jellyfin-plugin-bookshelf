@@ -7,96 +7,95 @@ using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.IO;
 using Microsoft.Extensions.Logging;
 
-namespace Jellyfin.Plugin.Bookshelf.Providers
+namespace Jellyfin.Plugin.Bookshelf.Providers;
+
+/// <summary>
+/// OPF book provider.
+/// </summary>
+public class BookProviderFromOpf : ILocalMetadataProvider<Book>, IHasItemChangeMonitor
 {
+    private const string StandardOpfFile = "content.opf";
+    private const string CalibreOpfFile = "metadata.opf";
+
+    private readonly IFileSystem _fileSystem;
+
+    private readonly ILogger<BookProviderFromOpf> _logger;
+
     /// <summary>
-    /// OPF book provider.
+    /// Initializes a new instance of the <see cref="BookProviderFromOpf"/> class.
     /// </summary>
-    public class BookProviderFromOpf : ILocalMetadataProvider<Book>, IHasItemChangeMonitor
+    /// <param name="fileSystem">Instance of the <see cref="IFileSystem"/> interface.</param>
+    /// <param name="logger">Instance of the <see cref="ILogger{BookProviderFromOpf}"/> interface.</param>
+    public BookProviderFromOpf(IFileSystem fileSystem, ILogger<BookProviderFromOpf> logger)
     {
-        private const string StandardOpfFile = "content.opf";
-        private const string CalibreOpfFile = "metadata.opf";
+        _fileSystem = fileSystem;
+        _logger = logger;
+    }
 
-        private readonly IFileSystem _fileSystem;
+    /// <inheritdoc />
+    public string Name => "Open Packaging Format";
 
-        private readonly ILogger<BookProviderFromOpf> _logger;
+    /// <inheritdoc />
+    public bool HasChanged(BaseItem item, IDirectoryService directoryService)
+    {
+        var file = GetXmlFile(item.Path);
+        return file.Exists && _fileSystem.GetLastWriteTimeUtc(file) > item.DateLastSaved;
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="BookProviderFromOpf"/> class.
-        /// </summary>
-        /// <param name="fileSystem">Instance of the <see cref="IFileSystem"/> interface.</param>
-        /// <param name="logger">Instance of the <see cref="ILogger{BookProviderFromOpf}"/> interface.</param>
-        public BookProviderFromOpf(IFileSystem fileSystem, ILogger<BookProviderFromOpf> logger)
+    /// <inheritdoc />
+    public Task<MetadataResult<Book>> GetMetadata(ItemInfo info, IDirectoryService directoryService, CancellationToken cancellationToken)
+    {
+        var path = GetXmlFile(info.Path).FullName;
+
+        try
         {
-            _fileSystem = fileSystem;
-            _logger = logger;
-        }
+            var result = ReadOpfData(path, cancellationToken);
 
-        /// <inheritdoc />
-        public string Name => "Open Packaging Format";
-
-        /// <inheritdoc />
-        public bool HasChanged(BaseItem item, IDirectoryService directoryService)
-        {
-            var file = GetXmlFile(item.Path);
-            return file.Exists && _fileSystem.GetLastWriteTimeUtc(file) > item.DateLastSaved;
-        }
-
-        /// <inheritdoc />
-        public Task<MetadataResult<Book>> GetMetadata(ItemInfo info, IDirectoryService directoryService, CancellationToken cancellationToken)
-        {
-            var path = GetXmlFile(info.Path).FullName;
-
-            try
-            {
-                var result = ReadOpfData(path, cancellationToken);
-
-                if (result is null)
-                {
-                    return Task.FromResult(new MetadataResult<Book> { HasMetadata = false });
-                }
-                else
-                {
-                    return Task.FromResult(result);
-                }
-            }
-            catch (FileNotFoundException)
+            if (result is null)
             {
                 return Task.FromResult(new MetadataResult<Book> { HasMetadata = false });
             }
-        }
-
-        private FileSystemMetadata GetXmlFile(string path)
-        {
-            var fileInfo = _fileSystem.GetFileSystemInfo(path);
-
-            var directoryInfo = fileInfo.IsDirectory ? fileInfo : _fileSystem.GetDirectoryInfo(Path.GetDirectoryName(path)!);
-
-            var directoryPath = directoryInfo.FullName;
-
-            var specificFile = Path.Combine(directoryPath, Path.GetFileNameWithoutExtension(path) + ".opf");
-
-            var file = _fileSystem.GetFileInfo(specificFile);
-
-            if (file.Exists)
+            else
             {
-                return file;
+                return Task.FromResult(result);
             }
-
-            file = _fileSystem.GetFileInfo(Path.Combine(directoryPath, StandardOpfFile));
-
-            return file.Exists ? file : _fileSystem.GetFileInfo(Path.Combine(directoryPath, CalibreOpfFile));
         }
-
-        private MetadataResult<Book> ReadOpfData(string metaFile, CancellationToken cancellationToken)
+        catch (FileNotFoundException)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var doc = new XmlDocument();
-            doc.Load(metaFile);
-
-            var utilities = new OpfReader<BookProviderFromOpf>(doc, _logger);
-            return utilities.ReadOpfData(cancellationToken);
+            return Task.FromResult(new MetadataResult<Book> { HasMetadata = false });
         }
+    }
+
+    private FileSystemMetadata GetXmlFile(string path)
+    {
+        var fileInfo = _fileSystem.GetFileSystemInfo(path);
+
+        var directoryInfo = fileInfo.IsDirectory ? fileInfo : _fileSystem.GetDirectoryInfo(Path.GetDirectoryName(path)!);
+
+        var directoryPath = directoryInfo.FullName;
+
+        var specificFile = Path.Combine(directoryPath, Path.GetFileNameWithoutExtension(path) + ".opf");
+
+        var file = _fileSystem.GetFileInfo(specificFile);
+
+        if (file.Exists)
+        {
+            return file;
+        }
+
+        file = _fileSystem.GetFileInfo(Path.Combine(directoryPath, StandardOpfFile));
+
+        return file.Exists ? file : _fileSystem.GetFileInfo(Path.Combine(directoryPath, CalibreOpfFile));
+    }
+
+    private MetadataResult<Book> ReadOpfData(string metaFile, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var doc = new XmlDocument();
+        doc.Load(metaFile);
+
+        var utilities = new OpfReader<BookProviderFromOpf>(doc, _logger);
+        return utilities.ReadOpfData(cancellationToken);
     }
 }

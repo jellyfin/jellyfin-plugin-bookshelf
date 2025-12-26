@@ -11,115 +11,114 @@ using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Providers;
 using Microsoft.Extensions.Logging;
 
-namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
+namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks;
+
+/// <summary>
+/// Google books image provider.
+/// </summary>
+public class GoogleBooksImageProvider : BaseGoogleBooksProvider, IRemoteImageProvider
 {
+    private readonly ILogger<GoogleBooksImageProvider> _logger;
+    private readonly IHttpClientFactory _httpClientFactory;
+
     /// <summary>
-    /// Google books image provider.
+    /// Initializes a new instance of the <see cref="GoogleBooksImageProvider"/> class.
     /// </summary>
-    public class GoogleBooksImageProvider : BaseGoogleBooksProvider, IRemoteImageProvider
+    /// <param name="logger">Instance of the <see cref="ILogger{GoogleBooksProvider}"/> interface.</param>
+    /// <param name="httpClientFactory">Instance of the <see cref="IHttpClientFactory"/> interface.</param>
+    public GoogleBooksImageProvider(ILogger<GoogleBooksImageProvider> logger, IHttpClientFactory httpClientFactory)
+         : base(logger, httpClientFactory)
     {
-        private readonly ILogger<GoogleBooksImageProvider> _logger;
-        private readonly IHttpClientFactory _httpClientFactory;
+        _logger = logger;
+        _httpClientFactory = httpClientFactory;
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GoogleBooksImageProvider"/> class.
-        /// </summary>
-        /// <param name="logger">Instance of the <see cref="ILogger{GoogleBooksProvider}"/> interface.</param>
-        /// <param name="httpClientFactory">Instance of the <see cref="IHttpClientFactory"/> interface.</param>
-        public GoogleBooksImageProvider(ILogger<GoogleBooksImageProvider> logger, IHttpClientFactory httpClientFactory)
-             : base(logger, httpClientFactory)
+    /// <inheritdoc />
+    public string Name => GoogleBooksConstants.ProviderName;
+
+    /// <inheritdoc />
+    public bool Supports(BaseItem item)
+    {
+        return item is Book;
+    }
+
+    /// <inheritdoc />
+    public IEnumerable<ImageType> GetSupportedImages(BaseItem item)
+    {
+        yield return ImageType.Primary;
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<RemoteImageInfo>> GetImages(BaseItem item, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var list = new List<RemoteImageInfo>();
+
+        var googleBookId = item.GetProviderId(GoogleBooksConstants.ProviderId);
+
+        if (string.IsNullOrEmpty(googleBookId))
         {
-            _logger = logger;
-            _httpClientFactory = httpClientFactory;
-        }
-
-        /// <inheritdoc />
-        public string Name => GoogleBooksConstants.ProviderName;
-
-        /// <inheritdoc />
-        public bool Supports(BaseItem item)
-        {
-            return item is Book;
-        }
-
-        /// <inheritdoc />
-        public IEnumerable<ImageType> GetSupportedImages(BaseItem item)
-        {
-            yield return ImageType.Primary;
-        }
-
-        /// <inheritdoc />
-        public async Task<IEnumerable<RemoteImageInfo>> GetImages(BaseItem item, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            var list = new List<RemoteImageInfo>();
-
-            var googleBookId = item.GetProviderId(GoogleBooksConstants.ProviderId);
-
-            if (string.IsNullOrEmpty(googleBookId))
-            {
-                return list;
-            }
-
-            var bookResult = await FetchBookData(googleBookId, cancellationToken).ConfigureAwait(false);
-
-            if (bookResult == null)
-            {
-                return list;
-            }
-
-            list.AddRange(ProcessBookImage(bookResult).Select(image => new RemoteImageInfo
-            {
-                ProviderName = Name,
-                Url = image
-            }));
-
             return list;
         }
 
-        private List<string> ProcessBookImage(BookResult bookResult)
+        var bookResult = await FetchBookData(googleBookId, cancellationToken).ConfigureAwait(false);
+
+        if (bookResult == null)
         {
-            var images = new List<string>();
-            if (bookResult.VolumeInfo is null)
-            {
-                return images;
-            }
+            return list;
+        }
 
-            if (!string.IsNullOrEmpty(bookResult.VolumeInfo.ImageLinks?.ExtraLarge))
-            {
-                images.Add(bookResult.VolumeInfo.ImageLinks.ExtraLarge);
-            }
-            else if (!string.IsNullOrEmpty(bookResult.VolumeInfo.ImageLinks?.Large))
-            {
-                images.Add(bookResult.VolumeInfo.ImageLinks.Large);
-            }
-            else if (!string.IsNullOrEmpty(bookResult.VolumeInfo.ImageLinks?.Medium))
-            {
-                images.Add(bookResult.VolumeInfo.ImageLinks.Medium);
-            }
-            else if (!string.IsNullOrEmpty(bookResult.VolumeInfo.ImageLinks?.Small))
-            {
-                images.Add(bookResult.VolumeInfo.ImageLinks.Small);
-            }
+        list.AddRange(ProcessBookImage(bookResult).Select(image => new RemoteImageInfo
+        {
+            ProviderName = Name,
+            Url = image
+        }));
 
-            // sometimes the thumbnails can be different from the larger images
-            if (!string.IsNullOrEmpty(bookResult.VolumeInfo.ImageLinks?.Thumbnail))
-            {
-                images.Add(bookResult.VolumeInfo.ImageLinks.Thumbnail);
-            }
-            else if (!string.IsNullOrEmpty(bookResult.VolumeInfo.ImageLinks?.SmallThumbnail))
-            {
-                images.Add(bookResult.VolumeInfo.ImageLinks.SmallThumbnail);
-            }
+        return list;
+    }
 
+    private List<string> ProcessBookImage(BookResult bookResult)
+    {
+        var images = new List<string>();
+        if (bookResult.VolumeInfo is null)
+        {
             return images;
         }
 
-        /// <inheritdoc />
-        public async Task<HttpResponseMessage> GetImageResponse(string url, CancellationToken cancellationToken)
+        if (!string.IsNullOrEmpty(bookResult.VolumeInfo.ImageLinks?.ExtraLarge))
         {
-            var httpClient = _httpClientFactory.CreateClient(NamedClient.Default);
-            return await httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
+            images.Add(bookResult.VolumeInfo.ImageLinks.ExtraLarge);
         }
+        else if (!string.IsNullOrEmpty(bookResult.VolumeInfo.ImageLinks?.Large))
+        {
+            images.Add(bookResult.VolumeInfo.ImageLinks.Large);
+        }
+        else if (!string.IsNullOrEmpty(bookResult.VolumeInfo.ImageLinks?.Medium))
+        {
+            images.Add(bookResult.VolumeInfo.ImageLinks.Medium);
+        }
+        else if (!string.IsNullOrEmpty(bookResult.VolumeInfo.ImageLinks?.Small))
+        {
+            images.Add(bookResult.VolumeInfo.ImageLinks.Small);
+        }
+
+        // sometimes the thumbnails can be different from the larger images
+        if (!string.IsNullOrEmpty(bookResult.VolumeInfo.ImageLinks?.Thumbnail))
+        {
+            images.Add(bookResult.VolumeInfo.ImageLinks.Thumbnail);
+        }
+        else if (!string.IsNullOrEmpty(bookResult.VolumeInfo.ImageLinks?.SmallThumbnail))
+        {
+            images.Add(bookResult.VolumeInfo.ImageLinks.SmallThumbnail);
+        }
+
+        return images;
+    }
+
+    /// <inheritdoc />
+    public async Task<HttpResponseMessage> GetImageResponse(string url, CancellationToken cancellationToken)
+    {
+        var httpClient = _httpClientFactory.CreateClient(NamedClient.Default);
+        return await httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
     }
 }
