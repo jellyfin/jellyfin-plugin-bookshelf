@@ -45,7 +45,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
             var extension = Path.GetExtension(item.Path);
             if (_comicBookExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
             {
-                return LoadCover(item);
+                return LoadCover(item, cancellationToken);
             }
             else
             {
@@ -70,7 +70,8 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
         /// with no image if nothing is found.
         /// </summary>
         /// <param name="item">Item to load a cover for.</param>
-        private async Task<DynamicImageResponse> LoadCover(BaseItem item)
+        /// <param name="cancellationToken">The cancellation token.</param>
+        private async Task<DynamicImageResponse> LoadCover(BaseItem item, CancellationToken cancellationToken)
         {
             // The image will be loaded into memory, create stream
             var memoryStream = new MemoryStream();
@@ -87,7 +88,11 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
                     (cover, imageFormat) = FindCoverEntryInArchive(archive) ?? throw new InvalidOperationException("No supported cover found");
 
                     // Copy our cover to memory stream
-                    await cover.OpenEntryStream().CopyToAsync(memoryStream).ConfigureAwait(false);
+                    var entryStream = await cover.OpenEntryStreamAsync(cancellationToken).ConfigureAwait(false);
+                    await using (entryStream.ConfigureAwait(false))
+                    {
+                        await entryStream.CopyToAsync(memoryStream, cancellationToken).ConfigureAwait(false);
+                    }
                 }
 
                 // Reset stream position after copying
