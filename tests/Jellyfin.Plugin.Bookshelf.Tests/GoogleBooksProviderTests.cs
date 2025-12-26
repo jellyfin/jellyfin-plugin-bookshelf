@@ -31,7 +31,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
         {
             var mockedMessageHandler = new MockHttpMessageHandler(new List<(Func<Uri, bool> requestMatcher, MockHttpResponse response)>
             {
-                ((Uri uri) => uri.AbsoluteUri.Contains("volumes?q="), new MockHttpResponse(HttpStatusCode.OK, GetTestSearchResult())),
+                ((Uri uri) => uri.AbsoluteUri.Contains("volumes?q=", StringComparison.Ordinal), new MockHttpResponse(HttpStatusCode.OK, GetTestSearchResult())),
             });
 
             var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
@@ -70,7 +70,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
         {
             var mockedMessageHandler = new MockHttpMessageHandler(new List<(Func<Uri, bool> requestMatcher, MockHttpResponse response)>
             {
-                ((Uri uri) => uri.AbsoluteUri.Contains("volumes/49T5twEACAAJ"), new MockHttpResponse(HttpStatusCode.OK, GetEnglishTestVolumeResult()))
+                ((Uri uri) => uri.AbsoluteUri.Contains("volumes/49T5twEACAAJ", StringComparison.Ordinal), new MockHttpResponse(HttpStatusCode.OK, GetEnglishTestVolumeResult()))
             });
 
             var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
@@ -129,7 +129,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
             ";
             var mockedMessageHandler = new MockHttpMessageHandler(new List<(Func<Uri, bool> requestMatcher, MockHttpResponse response)>
             {
-                ((Uri uri) => uri.AbsoluteUri.Contains("volumes/49T55wEACAA"), new MockHttpResponse(HttpStatusCode.NotFound, errorResponse))
+                ((Uri uri) => uri.AbsoluteUri.Contains("volumes/49T55wEACAA", StringComparison.Ordinal), new MockHttpResponse(HttpStatusCode.NotFound, errorResponse))
             });
 
             var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
@@ -170,7 +170,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
             ";
             var mockedMessageHandler = new MockHttpMessageHandler(new List<(Func<Uri, bool> requestMatcher, MockHttpResponse response)>
             {
-                ((Uri uri) => uri.AbsoluteUri.Contains("volumes/49T55wEACAAX"), new MockHttpResponse(HttpStatusCode.NotFound, errorResponse))
+                ((Uri uri) => uri.AbsoluteUri.Contains("volumes/49T55wEACAAX", StringComparison.Ordinal), new MockHttpResponse(HttpStatusCode.NotFound, errorResponse))
             });
 
             var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
@@ -199,8 +199,8 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
         {
             var mockedMessageHandler = new MockHttpMessageHandler(new List<(Func<Uri, bool> requestMatcher, MockHttpResponse response)>
             {
-                ((Uri uri) => uri.AbsoluteUri.Contains("volumes?q="), new MockHttpResponse(HttpStatusCode.OK, GetTestSearchResult())),
-                ((Uri uri) => uri.AbsoluteUri.Contains("volumes/49T5twEACAAJ"), new MockHttpResponse(HttpStatusCode.OK, GetEnglishTestVolumeResult()))
+                ((Uri uri) => uri.AbsoluteUri.Contains("volumes?q=", StringComparison.Ordinal), new MockHttpResponse(HttpStatusCode.OK, GetTestSearchResult())),
+                ((Uri uri) => uri.AbsoluteUri.Contains("volumes/49T5twEACAAJ", StringComparison.Ordinal), new MockHttpResponse(HttpStatusCode.OK, GetEnglishTestVolumeResult()))
             });
 
             var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
@@ -256,7 +256,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
         {
             var mockedMessageHandler = new MockHttpMessageHandler(new List<(Func<Uri, bool> requestMatcher, MockHttpResponse response)>
             {
-                ((Uri uri) => uri.AbsoluteUri.Contains("volumes/G7utDwAAQBAJ"), new MockHttpResponse(HttpStatusCode.OK, GetFrenchTestVolumeResult()))
+                ((Uri uri) => uri.AbsoluteUri.Contains("volumes/G7utDwAAQBAJ", StringComparison.Ordinal), new MockHttpResponse(HttpStatusCode.OK, GetFrenchTestVolumeResult()))
             });
 
             var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
@@ -310,8 +310,8 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
         {
             var mockedMessageHandler = new MockHttpMessageHandler(new List<(Func<Uri, bool> requestMatcher, MockHttpResponse response)>
             {
-                ((Uri uri) => uri.AbsoluteUri.Contains("volumes?q="), new MockHttpResponse(HttpStatusCode.OK, GetTestSearchResult())),
-                ((Uri uri) => uri.AbsoluteUri.Contains("volumes/49T5twEACAAJ"), new MockHttpResponse(HttpStatusCode.OK, GetEnglishTestVolumeResult()))
+                ((Uri uri) => uri.AbsoluteUri.Contains("volumes?q=", StringComparison.Ordinal), new MockHttpResponse(HttpStatusCode.OK, GetTestSearchResult())),
+                ((Uri uri) => uri.AbsoluteUri.Contains("volumes/49T5twEACAAJ", StringComparison.Ordinal), new MockHttpResponse(HttpStatusCode.OK, GetEnglishTestVolumeResult()))
             });
 
             var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();

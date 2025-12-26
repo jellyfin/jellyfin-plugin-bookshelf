@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
 {
     /// <summary>
@@ -39,5 +41,15 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
         /// Gets the URL used to fetch a specific person.
         /// </summary>
         public const string PersonDetailUrl = BaseUrl + @"/person/{1}?api_key={0}&format=json&field_list=api_detail_url,id,name,site_detail_url,aliases,birth,country,death,deck,description,email,gender,hometown,image,website";
+
+        /// <summary>
+        /// Gets the cached composite format for the issue search url.
+        /// </summary>
+        public static CompositeFormat IssueSearchUrlFormat { get; } = CompositeFormat.Parse(IssueSearchUrl);
+
+        /// <summary>
+        /// Gets the cached composite format for the person search url.
+        /// </summary>
+        public static CompositeFormat PersonSearchUrlFormat { get; } = CompositeFormat.Parse(PersonSearchUrl);
     }
 }

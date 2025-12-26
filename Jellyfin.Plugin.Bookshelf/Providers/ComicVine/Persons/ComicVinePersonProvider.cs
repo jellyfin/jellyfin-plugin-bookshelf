@@ -199,7 +199,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
                 return Enumerable.Empty<PersonDetails>();
             }
 
-            var url = string.Format(CultureInfo.InvariantCulture, ComicVineApiUrls.PersonSearchUrl, apiKey, WebUtility.UrlEncode(item.Name));
+            var url = string.Format(CultureInfo.InvariantCulture, ComicVineApiUrls.PersonSearchUrlFormat, apiKey, WebUtility.UrlEncode(item.Name));
 
             var response = await _httpClientFactory
                 .CreateClient(NamedClient.Default)

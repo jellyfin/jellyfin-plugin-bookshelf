@@ -319,7 +319,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicVine
             }
 
             var searchString = GetSearchString(item);
-            var url = string.Format(CultureInfo.InvariantCulture, ComicVineApiUrls.IssueSearchUrl, apiKey, WebUtility.UrlEncode(searchString));
+            var url = string.Format(CultureInfo.InvariantCulture, ComicVineApiUrls.IssueSearchUrlFormat, apiKey, WebUtility.UrlEncode(searchString));
 
             var response = await _httpClientFactory
                 .CreateClient(NamedClient.Default)

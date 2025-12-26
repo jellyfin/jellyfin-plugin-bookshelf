@@ -15,7 +15,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
         {
             var mockedMessageHandler = new MockHttpMessageHandler(new List<(Func<Uri, bool> requestMatcher, MockHttpResponse response)>
             {
-                ((Uri uri) => uri.AbsoluteUri.Contains("volumes/G7utDwAAQBAJ"), new MockHttpResponse(HttpStatusCode.OK, TestHelpers.GetFixture("google-books-single-volume-fr.json")))
+                ((Uri uri) => uri.AbsoluteUri.Contains("volumes/G7utDwAAQBAJ", StringComparison.Ordinal), new MockHttpResponse(HttpStatusCode.OK, TestHelpers.GetFixture("google-books-single-volume-fr.json")))
             });
 
             var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();

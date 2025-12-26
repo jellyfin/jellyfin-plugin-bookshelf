@@ -40,7 +40,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
         {
             var mockedMessageHandler = new MockHttpMessageHandler(new List<(Func<Uri, bool> requestMatcher, MockHttpResponse response)>
             {
-                ((Uri uri) => uri.AbsoluteUri.Contains("/search"), new MockHttpResponse(HttpStatusCode.OK, GetSearchResultWithNamedIssues())),
+                ((Uri uri) => uri.AbsoluteUri.Contains("/search", StringComparison.Ordinal), new MockHttpResponse(HttpStatusCode.OK, GetSearchResultWithNamedIssues())),
             });
 
             var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
@@ -98,7 +98,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
         {
             var mockedMessageHandler = new MockHttpMessageHandler(new List<(Func<Uri, bool> requestMatcher, MockHttpResponse response)>
             {
-                ((Uri uri) => uri.AbsoluteUri.Contains("/issue/4000-441467"), new MockHttpResponse(HttpStatusCode.OK, GetSingleIssueResult())),
+                ((Uri uri) => uri.AbsoluteUri.Contains("/issue/4000-441467", StringComparison.Ordinal), new MockHttpResponse(HttpStatusCode.OK, GetSingleIssueResult())),
             });
 
             var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
@@ -140,7 +140,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
         {
             var mockedMessageHandler = new MockHttpMessageHandler(new List<(Func<Uri, bool> requestMatcher, MockHttpResponse response)>
             {
-                ((Uri uri) => uri.AbsoluteUri.Contains("/issue/4000-441467"), new MockHttpResponse(HttpStatusCode.OK, GetSingleIssueResult())),
+                ((Uri uri) => uri.AbsoluteUri.Contains("/issue/4000-441467", StringComparison.Ordinal), new MockHttpResponse(HttpStatusCode.OK, GetSingleIssueResult())),
             });
 
             var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
@@ -182,7 +182,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
         {
             var mockedMessageHandler = new MockHttpMessageHandler(new List<(Func<Uri, bool> requestMatcher, MockHttpResponse response)>
             {
-                ((Uri uri) => uri.AbsoluteUri.Contains("/search"), new MockHttpResponse(HttpStatusCode.OK, GetSearchResultWithNumberedIssues())),
+                ((Uri uri) => uri.AbsoluteUri.Contains("/search", StringComparison.Ordinal), new MockHttpResponse(HttpStatusCode.OK, GetSearchResultWithNumberedIssues())),
             });
 
             var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
@@ -247,7 +247,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
 }";
             var mockedMessageHandler = new MockHttpMessageHandler(new List<(Func<Uri, bool> requestMatcher, MockHttpResponse response)>
             {
-                ((Uri uri) => uri.AbsoluteUri.Contains("/search"), new MockHttpResponse(HttpStatusCode.Unauthorized, errorResponse)),
+                ((Uri uri) => uri.AbsoluteUri.Contains("/search", StringComparison.Ordinal), new MockHttpResponse(HttpStatusCode.Unauthorized, errorResponse)),
             });
 
             var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
@@ -330,9 +330,9 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
         {
             var mockedMessageHandler = new MockHttpMessageHandler(new List<(Func<Uri, bool> requestMatcher, MockHttpResponse response)>
             {
-                ((Uri uri) => uri.AbsoluteUri.Contains("/search"), new MockHttpResponse(HttpStatusCode.OK, GetSearchResultWithNamedIssues())),
-                ((Uri uri) => uri.AbsoluteUri.Contains("/issue/4000-441467"), new MockHttpResponse(HttpStatusCode.OK, GetSingleIssueResult())),
-                ((Uri uri) => uri.AbsoluteUri.Contains("/volume/4050-49866"), new MockHttpResponse(HttpStatusCode.OK, GetSingleVolumeResult())),
+                ((Uri uri) => uri.AbsoluteUri.Contains("/search", StringComparison.Ordinal), new MockHttpResponse(HttpStatusCode.OK, GetSearchResultWithNamedIssues())),
+                ((Uri uri) => uri.AbsoluteUri.Contains("/issue/4000-441467", StringComparison.Ordinal), new MockHttpResponse(HttpStatusCode.OK, GetSingleIssueResult())),
+                ((Uri uri) => uri.AbsoluteUri.Contains("/volume/4050-49866", StringComparison.Ordinal), new MockHttpResponse(HttpStatusCode.OK, GetSingleVolumeResult())),
             });
 
             var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
@@ -359,8 +359,8 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
         {
             var mockedMessageHandler = new MockHttpMessageHandler(new List<(Func<Uri, bool> requestMatcher, MockHttpResponse response)>
             {
-                ((Uri uri) => uri.AbsoluteUri.Contains("/issue/4000-441467"), new MockHttpResponse(HttpStatusCode.OK, GetSingleIssueResult())),
-                ((Uri uri) => uri.AbsoluteUri.Contains("/volume/4050-49866"), new MockHttpResponse(HttpStatusCode.OK, GetSingleVolumeResult())),
+                ((Uri uri) => uri.AbsoluteUri.Contains("/issue/4000-441467", StringComparison.Ordinal), new MockHttpResponse(HttpStatusCode.OK, GetSingleIssueResult())),
+                ((Uri uri) => uri.AbsoluteUri.Contains("/volume/4050-49866", StringComparison.Ordinal), new MockHttpResponse(HttpStatusCode.OK, GetSingleVolumeResult())),
             });
 
             var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
@@ -389,8 +389,8 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
         {
             var mockedMessageHandler = new MockHttpMessageHandler(new List<(Func<Uri, bool> requestMatcher, MockHttpResponse response)>
             {
-                ((Uri uri) => uri.AbsoluteUri.Contains("/issue/4000-441467"), new MockHttpResponse(HttpStatusCode.OK, GetSingleIssueResult())),
-                ((Uri uri) => uri.AbsoluteUri.Contains("/volume/4050-49866"), new MockHttpResponse(HttpStatusCode.OK, GetSingleVolumeResult())),
+                ((Uri uri) => uri.AbsoluteUri.Contains("/issue/4000-441467", StringComparison.Ordinal), new MockHttpResponse(HttpStatusCode.OK, GetSingleIssueResult())),
+                ((Uri uri) => uri.AbsoluteUri.Contains("/volume/4050-49866", StringComparison.Ordinal), new MockHttpResponse(HttpStatusCode.OK, GetSingleVolumeResult())),
             });
 
             var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
@@ -451,9 +451,9 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
         {
             var mockedMessageHandler = new MockHttpMessageHandler(new List<(Func<Uri, bool> requestMatcher, MockHttpResponse response)>
             {
-                ((Uri uri) => uri.AbsoluteUri.Contains("/search"), new MockHttpResponse(HttpStatusCode.OK, GetSearchResultWithNumberedIssues())),
-                ((Uri uri) => uri.AbsoluteUri.Contains("/issue/4000-128610"), new MockHttpResponse(HttpStatusCode.OK, GetSingleUnnamedIssueResult())),
-                ((Uri uri) => uri.AbsoluteUri.Contains("/volume/"), new MockHttpResponse(HttpStatusCode.NotFound, string.Empty)),
+                ((Uri uri) => uri.AbsoluteUri.Contains("/search", StringComparison.Ordinal), new MockHttpResponse(HttpStatusCode.OK, GetSearchResultWithNumberedIssues())),
+                ((Uri uri) => uri.AbsoluteUri.Contains("/issue/4000-128610", StringComparison.Ordinal), new MockHttpResponse(HttpStatusCode.OK, GetSingleUnnamedIssueResult())),
+                ((Uri uri) => uri.AbsoluteUri.Contains("/volume/", StringComparison.Ordinal), new MockHttpResponse(HttpStatusCode.NotFound, string.Empty)),
             });
 
             var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();

@@ -167,7 +167,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.GoogleBooks
             cancellationToken.ThrowIfCancellationRequested();
 
             var searchString = GetSearchString(item);
-            var url = string.Format(CultureInfo.InvariantCulture, GoogleApiUrls.SearchUrl, WebUtility.UrlEncode(searchString), 0, 20);
+            var url = string.Format(CultureInfo.InvariantCulture, GoogleApiUrls.SearchUrlFormat, WebUtility.UrlEncode(searchString), 0, 20);
 
             return await GetResultFromAPI<SearchResult>(url, cancellationToken).ConfigureAwait(false);
         }

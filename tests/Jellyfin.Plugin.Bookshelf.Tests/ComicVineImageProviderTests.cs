@@ -18,7 +18,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
 
             var mockedMessageHandler = new MockHttpMessageHandler(new List<(Func<Uri, bool> requestMatcher, MockHttpResponse response)>
             {
-                ((Uri uri) => uri.AbsoluteUri.Contains("issue/4000-441467"), new MockHttpResponse(HttpStatusCode.OK, TestHelpers.GetFixture("comic-vine-single-issue.json")))
+                ((Uri uri) => uri.AbsoluteUri.Contains("issue/4000-441467", StringComparison.Ordinal), new MockHttpResponse(HttpStatusCode.OK, TestHelpers.GetFixture("comic-vine-single-issue.json")))
             });
 
             var mockedHttpClientFactory = Substitute.For<IHttpClientFactory>();
