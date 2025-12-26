@@ -1,8 +1,8 @@
 ---
 name: "Bookshelf"
 guid: "9c4e63f1-031b-4f25-988b-4f7d78a8b53e"
-version: 13
-targetAbi: "10.11.0.0"
+version: 14
+targetAbi: "10.11.5.0"
 framework: "net9.0"
 owner: "jellyfin"
 overview: "Manage your books"
@@ -14,5 +14,11 @@ artifacts:
   - "Jellyfin.Plugin.Bookshelf.dll"
   - "SharpCompress.dll"
   - "ZstdSharp.dll"
-changelog: |-
-  - Jellyfin 10.11 support (#130) @crobibero
+changelog: |2-
+
+  ### Dependency updates ###
+  - Update dependency Microsoft.NET.Test.Sdk to v18 (#137) @[renovate[bot]](https://github.com/apps/renovate)
+  - Update dependency xunit to 2.9.3 (#125) @[renovate[bot]](https://github.com/apps/renovate)
+  - Update dependency coverlet.collector to 6.0.4 (#124) @[renovate[bot]](https://github.com/apps/renovate)
+  - Update dependency NSubstitute to 5.3.0 (#117) @[renovate[bot]](https://github.com/apps/renovate)
+  - Update dependency Microsoft.Extensions.Http to v10 (#142) @[renovate[bot]](https://github.com/apps/renovate)
