@@ -279,7 +279,7 @@ public class ComicVineMetadataProvider : BaseComicVineProvider, IRemoteMetadataP
 
             if (issueDetails == null)
             {
-                return Enumerable.Empty<RemoteSearchResult>();
+                return [];
             }
 
             return new[] { getSearchResultFromIssue(issueDetails) };
@@ -315,7 +315,7 @@ public class ComicVineMetadataProvider : BaseComicVineProvider, IRemoteMetadataP
 
         if (apiKey == null)
         {
-            return Enumerable.Empty<IssueSearch>();
+            return [];
         }
 
         var searchString = GetSearchString(item);
@@ -331,7 +331,7 @@ public class ComicVineMetadataProvider : BaseComicVineProvider, IRemoteMetadataP
         if (apiResponse == null)
         {
             _logger.LogError("Failed to deserialize Comic Vine API response.");
-            return Enumerable.Empty<IssueSearch>();
+            return [];
         }
 
         var results = GetFromApiResponse<IssueSearch>(apiResponse);

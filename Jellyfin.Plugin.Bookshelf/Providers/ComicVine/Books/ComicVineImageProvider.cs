@@ -62,14 +62,14 @@ public class ComicVineImageProvider : BaseComicVineProvider, IRemoteImageProvide
 
         if (string.IsNullOrWhiteSpace(issueProviderId))
         {
-            return Enumerable.Empty<RemoteImageInfo>();
+            return [];
         }
 
         var issueDetails = await GetOrAddItemDetailsFromCache<IssueDetails>(issueProviderId, cancellationToken).ConfigureAwait(false);
 
         if (issueDetails == null)
         {
-            return Enumerable.Empty<RemoteImageInfo>();
+            return [];
         }
 
         var images = ProcessImages(issueDetails.Image)

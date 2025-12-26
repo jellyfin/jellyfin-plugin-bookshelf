@@ -12,5 +12,5 @@ public sealed class SearchApiResponse<T> : BaseApiResponse<T>
     /// <summary>
     /// Gets zero or more items that match the filters specified.
     /// </summary>
-    public IEnumerable<T> Results { get; init; } = Enumerable.Empty<T>();
+    public IEnumerable<T> Results { get; init; } = [];
 }

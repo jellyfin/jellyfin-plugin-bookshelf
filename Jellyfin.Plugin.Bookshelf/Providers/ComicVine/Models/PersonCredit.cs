@@ -44,7 +44,7 @@ public class PersonCredit
         {
             if (string.IsNullOrWhiteSpace(Role))
             {
-                return Enumerable.Empty<PersonCreditRole>();
+                return [];
             }
 
             return Role.Split(", ", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Select(r => Enum.Parse<PersonCreditRole>(r, true));

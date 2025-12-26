@@ -165,7 +165,7 @@ public class ComicVinePersonProvider : BaseComicVineProvider, IRemoteMetadataPro
 
             if (personDetails == null)
             {
-                return Enumerable.Empty<RemoteSearchResult>();
+                return [];
             }
 
             return new[] { getSearchResultFromPerson(personDetails) };
@@ -175,7 +175,7 @@ public class ComicVinePersonProvider : BaseComicVineProvider, IRemoteMetadataPro
             var searchResults = await GetSearchResultsInternal(searchInfo, cancellationToken).ConfigureAwait(false);
             if (!searchResults.Any())
             {
-                return Enumerable.Empty<RemoteSearchResult>();
+                return [];
             }
 
             var list = new List<RemoteSearchResult>();
@@ -196,7 +196,7 @@ public class ComicVinePersonProvider : BaseComicVineProvider, IRemoteMetadataPro
 
         if (apiKey == null)
         {
-            return Enumerable.Empty<PersonDetails>();
+            return [];
         }
 
         var url = string.Format(CultureInfo.InvariantCulture, ComicVineApiUrls.PersonSearchUrlFormat, apiKey, WebUtility.UrlEncode(item.Name));
@@ -211,7 +211,7 @@ public class ComicVinePersonProvider : BaseComicVineProvider, IRemoteMetadataPro
         if (apiResponse == null)
         {
             _logger.LogError("Failed to deserialize Comic Vine API response.");
-            return Enumerable.Empty<PersonDetails>();
+            return [];
         }
 
         var results = GetFromApiResponse<PersonDetails>(apiResponse);

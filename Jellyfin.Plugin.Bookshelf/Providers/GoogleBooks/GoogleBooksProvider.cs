@@ -78,7 +78,7 @@ public class GoogleBooksProvider : BaseGoogleBooksProvider, IRemoteMetadataProvi
 
             if (bookData == null || bookData.VolumeInfo == null)
             {
-                return Enumerable.Empty<RemoteSearchResult>();
+                return [];
             }
 
             var searchResult = getSearchResultFromBook(bookData);
@@ -89,7 +89,7 @@ public class GoogleBooksProvider : BaseGoogleBooksProvider, IRemoteMetadataProvi
             var searchResults = await GetSearchResultsInternal(searchInfo, cancellationToken).ConfigureAwait(false);
             if (searchResults is null)
             {
-                return Enumerable.Empty<RemoteSearchResult>();
+                return [];
             }
 
             var list = new List<RemoteSearchResult>();
