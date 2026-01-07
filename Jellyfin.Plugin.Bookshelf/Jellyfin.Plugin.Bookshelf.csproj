@@ -8,12 +8,16 @@
     <AnalysisMode>AllEnabledByDefault</AnalysisMode>
     <CodeAnalysisRuleSet>../jellyfin.ruleset</CodeAnalysisRuleSet>
     <Nullable>enable</Nullable>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Jellyfin.Controller" Version="10.*-*" />
+
     <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.1" />
     <PackageReference Include="SharpCompress" Version="0.38.0" />
+    <PackageReference Include="PDFtoImage" Version="4.1.1" />
+    <PackageReference Include="SkiaSharp" Version="3.116.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -26,4 +30,23 @@
     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556" PrivateAssets="All" />
   </ItemGroup>
 
+    <Target Name="RenameWindowsNativeLibs" AfterTargets="Build">
+  <Move SourceFiles="$(OutputPath)runtimes/win-x64/native/pdfium.dll"
+        DestinationFiles="$(OutputPath)runtimes/win-x64/native/pdfium.dll.win"
+        Condition="Exists('$(OutputPath)runtimes/win-x64/native/pdfium.dll')" />
+
+  <Move SourceFiles="$(OutputPath)runtimes/win-arm64/native/pdfium.dll"
+        DestinationFiles="$(OutputPath)runtimes/win-arm64/native/pdfium.dll.win"
+        Condition="Exists('$(OutputPath)runtimes/win-arm64/native/pdfium.dll')" />
+</Target>
+
+<Target Name="RenameWindowsNativeLibsPublish" AfterTargets="Publish">
+  <Move SourceFiles="$(PublishDir)runtimes/win-x64/native/pdfium.dll"
+        DestinationFiles="$(PublishDir)runtimes/win-x64/native/pdfium.dll.win"
+        Condition="Exists('$(PublishDir)runtimes/win-x64/native/pdfium.dll')" />
+
+  <Move SourceFiles="$(PublishDir)runtimes/win-arm64/native/pdfium.dll"
+        DestinationFiles="$(PublishDir)runtimes/win-arm64/native/pdfium.dll.win"
+        Condition="Exists('$(PublishDir)runtimes/win-arm64/native/pdfium.dll')" />
+</Target>
 </Project>

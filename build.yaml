@@ -14,5 +14,13 @@ artifacts:
   - "Jellyfin.Plugin.Bookshelf.dll"
   - "SharpCompress.dll"
   - "ZstdSharp.dll"
+  - "PDFtoImage.dll"
+  - "SkiaSharp.dll"
+  - "runtimes/linux-arm64/native/libpdfium.so"
+  - "runtimes/linux-x64/native/libpdfium.so"
+  - "runtimes/osx-arm64/native/libpdfium.dylib"
+  - "runtimes/osx-x64/native/libpdfium.dylib"
+  - "runtimes/win-arm64/native/pdfium.dll.win"
+  - "runtimes/win-x64/native/pdfium.dll.win"
 changelog: |-
   - Jellyfin 10.11 support (#130) @crobibero
