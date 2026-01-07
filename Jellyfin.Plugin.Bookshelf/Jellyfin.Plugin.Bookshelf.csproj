@@ -30,23 +30,23 @@
     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556" PrivateAssets="All" />
   </ItemGroup>
 
-    <Target Name="RenameWindowsNativeLibs" AfterTargets="Build">
-  <Move SourceFiles="$(OutputPath)runtimes/win-x64/native/pdfium.dll"
-        DestinationFiles="$(OutputPath)runtimes/win-x64/native/pdfium.dll.win"
-        Condition="Exists('$(OutputPath)runtimes/win-x64/native/pdfium.dll')" />
+  <Target Name="RenameWindowsNativeLibs" AfterTargets="Build">
+    <Move SourceFiles="$(OutputPath)runtimes/win-x64/native/pdfium.dll"
+      DestinationFiles="$(OutputPath)runtimes/win-x64/native/pdfium.dll.win"
+      Condition="Exists('$(OutputPath)runtimes/win-x64/native/pdfium.dll')" />
 
-  <Move SourceFiles="$(OutputPath)runtimes/win-arm64/native/pdfium.dll"
-        DestinationFiles="$(OutputPath)runtimes/win-arm64/native/pdfium.dll.win"
-        Condition="Exists('$(OutputPath)runtimes/win-arm64/native/pdfium.dll')" />
-</Target>
+    <Move SourceFiles="$(OutputPath)runtimes/win-arm64/native/pdfium.dll"
+      DestinationFiles="$(OutputPath)runtimes/win-arm64/native/pdfium.dll.win"
+      Condition="Exists('$(OutputPath)runtimes/win-arm64/native/pdfium.dll')" />
+  </Target>
 
-<Target Name="RenameWindowsNativeLibsPublish" AfterTargets="Publish">
-  <Move SourceFiles="$(PublishDir)runtimes/win-x64/native/pdfium.dll"
-        DestinationFiles="$(PublishDir)runtimes/win-x64/native/pdfium.dll.win"
-        Condition="Exists('$(PublishDir)runtimes/win-x64/native/pdfium.dll')" />
+  <Target Name="RenameWindowsNativeLibsPublish" AfterTargets="Publish">
+    <Move SourceFiles="$(PublishDir)runtimes/win-x64/native/pdfium.dll"
+      DestinationFiles="$(PublishDir)runtimes/win-x64/native/pdfium.dll.win"
+      Condition="Exists('$(PublishDir)runtimes/win-x64/native/pdfium.dll')" />
 
-  <Move SourceFiles="$(PublishDir)runtimes/win-arm64/native/pdfium.dll"
-        DestinationFiles="$(PublishDir)runtimes/win-arm64/native/pdfium.dll.win"
-        Condition="Exists('$(PublishDir)runtimes/win-arm64/native/pdfium.dll')" />
-</Target>
+    <Move SourceFiles="$(PublishDir)runtimes/win-arm64/native/pdfium.dll"
+      DestinationFiles="$(PublishDir)runtimes/win-arm64/native/pdfium.dll.win"
+      Condition="Exists('$(PublishDir)runtimes/win-arm64/native/pdfium.dll')" />
+  </Target>
 </Project>
