@@ -25,45 +25,45 @@ namespace Jellyfin.Plugin.Bookshelf
         {
             Instance = this;
             NativeLibrary.SetDllImportResolver(typeof(PDFtoImage.Conversion).Assembly, (libraryName, assembly, searchPath) =>
-        {
-            if (libraryName == "pdfium")
             {
-                string arch = RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "arm64" : "x64";
-                string osPrefix = string.Empty;
-                string libName = string.Empty;
+                if (libraryName == "pdfium")
+                {
+                    string arch = RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "arm64" : "x64";
+                    string osPrefix = string.Empty;
+                    string libName = string.Empty;
 
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                {
-                    osPrefix = "linux";
-                    libName = "libpdfium.so";
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                {
-                    osPrefix = "osx";
-                    libName = "libpdfium.dylib";
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    osPrefix = "win";
-                    // Holding windows dlls with .dll.win extention to avoid Jellyfin from trying to load them by itself
-                    libName = "pdfium.dll.win";
-                }
-
-                if (!string.IsNullOrEmpty(osPrefix))
-                {
-                    string rid = $"{osPrefix}-{arch}";
-                    string pluginFolder = Path.GetDirectoryName(typeof(Plugin).Assembly.Location)!;
-                    string nativePath = Path.Join(pluginFolder, "runtimes", rid, "native", libName);
-
-                    if (File.Exists(nativePath))
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                     {
-                        return NativeLibrary.Load(nativePath);
+                        osPrefix = "linux";
+                        libName = "libpdfium.so";
+                    }
+                    else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                    {
+                        osPrefix = "osx";
+                        libName = "libpdfium.dylib";
+                    }
+                    else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    {
+                        osPrefix = "win";
+                        // Holding windows dlls with .dll.win extention to avoid Jellyfin from trying to load them by itself
+                        libName = "pdfium.dll.win";
+                    }
+
+                    if (!string.IsNullOrEmpty(osPrefix))
+                    {
+                        string rid = $"{osPrefix}-{arch}";
+                        string pluginFolder = Path.GetDirectoryName(typeof(Plugin).Assembly.Location)!;
+                        string nativePath = Path.Join(pluginFolder, "runtimes", rid, "native", libName);
+
+                        if (File.Exists(nativePath))
+                        {
+                            return NativeLibrary.Load(nativePath);
+                        }
                     }
                 }
-            }
 
-            return IntPtr.Zero;
-        });
+                return IntPtr.Zero;
+            });
         }
 
         /// <inheritdoc />
