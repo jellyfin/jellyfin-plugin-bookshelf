@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 using PDFtoImage;
 using SkiaSharp;
 
-namespace Jellyfin.Plugin.Pdfcover.Providers
+namespace Jellyfin.Plugin.Bookshelf.Providers
 {
     /// <summary>
     /// PDF cover provider.

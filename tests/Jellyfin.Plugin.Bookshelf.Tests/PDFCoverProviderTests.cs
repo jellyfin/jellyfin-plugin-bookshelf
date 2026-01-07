@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Jellyfin.Plugin.Pdfcover.Providers;
+using Jellyfin.Plugin.Bookshelf.Providers;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Drawing;
@@ -10,7 +10,7 @@ using MediaBrowser.Model.Entities;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace Jellyfin.Plugin.PDFCover.Tests
+namespace Jellyfin.Plugin.Bookshelf.Tests
 {
     public class PDFCoverProviderTests
     {

@@ -16,8 +16,9 @@
 
     <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.1" />
     <PackageReference Include="SharpCompress" Version="0.38.0" />
+    <!-- Follow what Jellyfin server pinned. https://github.com/jellyfin/jellyfin/pull/14255 -->
+    <PackageReference Include="SkiaSharp" Version="3.116.1" />
     <PackageReference Include="PDFtoImage" Version="4.1.1" />
-    <PackageReference Include="SkiaSharp" Version="3.116.0" />
   </ItemGroup>
 
   <ItemGroup>
