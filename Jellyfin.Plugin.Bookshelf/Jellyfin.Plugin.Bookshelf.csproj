@@ -13,7 +13,6 @@
 
   <ItemGroup>
     <PackageReference Include="Jellyfin.Controller" Version="10.*-*" />
-
     <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.1" />
     <PackageReference Include="SharpCompress" Version="0.38.0" />
     <!-- Follow what Jellyfin server pinned. https://github.com/jellyfin/jellyfin/pull/14255 -->
