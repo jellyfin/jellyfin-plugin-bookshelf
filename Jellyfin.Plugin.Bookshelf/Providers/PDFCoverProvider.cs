@@ -91,7 +91,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers
                     },
                     cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception e)
+            catch (Exception e) when (e is IOException || e is UnauthorizedAccessException || e is InvalidOperationException || e is ArgumentException || e is NotSupportedException)
             {
                 // Log and return nothing
                 _logger.LogError(e, "Failed to load cover from {Path}", item.Path);
