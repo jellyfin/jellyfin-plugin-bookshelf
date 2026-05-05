@@ -205,7 +205,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
                     Assert.Equal("#020", first.Name);
                     Assert.True(HasComicVineId("invincible-20/4000-989412", first.ProviderIds));
                     Assert.Equal("https://comicvine.gamespot.com/a/uploads/scale_small/11/110017/8943106-wwww.jpg", first.ImageUrl);
-                    Assert.True(string.IsNullOrEmpty(first.Overview));
+                    Assert.Equal(string.Empty, first.Overview);
                     Assert.Equal(2015, first.ProductionYear);
                 },
                 second =>
@@ -227,7 +227,7 @@ namespace Jellyfin.Plugin.Bookshelf.Tests
                     Assert.Equal("Amici", third.Name);
                     Assert.True(HasComicVineId("invincible-20-amici/4000-989389", third.ProviderIds));
                     Assert.Equal("https://comicvine.gamespot.com/a/uploads/scale_small/11/110017/8943006-invincible-20-0001.jpg", third.ImageUrl);
-                    Assert.True(string.IsNullOrEmpty(third.Overview));
+                    Assert.Equal(string.Empty, third.Overview);
                     Assert.Equal(2016, third.ProductionYear);
                 });
         }
