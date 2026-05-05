@@ -85,10 +85,7 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicInfo
                 // Open the xml
                 using var reader = XmlReader.Create(path, new XmlReaderSettings { Async = true });
 
-                var comicInfoXml = XDocument.LoadAsync(reader, LoadOptions.None, cancellationToken);
-
-                // Read data from XML
-                return await comicInfoXml.ConfigureAwait(false);
+                return await XDocument.LoadAsync(reader, LoadOptions.None, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e)
             {
