@@ -8,6 +8,6 @@ on:
 
 jobs:
   call:
-    uses: jellyfin/jellyfin-meta-plugins/.github/workflows/command-dispatch.yaml@master
+    uses: jellyfin/jellyfin-meta-plugins/.github/workflows/command-dispatch.yaml@3e7e3bfc493a71e2dc9523127de0982a24639a0c # master
     secrets:
       token: ${{ secrets.JF_BOT_TOKEN }}
