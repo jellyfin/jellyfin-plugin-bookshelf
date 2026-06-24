@@ -85,7 +85,9 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicInfo
             try
             {
                 // Open the comic archive
-                using var comicBookFile = ZipFile.OpenRead(path);
+                #pragma warning disable CA2007
+                await using var comicBookFile = await ZipFile.OpenReadAsync(path, cancellationToken).ConfigureAwait(false);
+                #pragma warning restore CA2007
 
                 // Try to get the ComicInfo.xml entry
                 var container = comicBookFile.GetEntry("ComicInfo.xml");
@@ -97,13 +99,10 @@ namespace Jellyfin.Plugin.Bookshelf.Providers.ComicInfo
 
                 // Open the xml
                 #pragma warning disable CA2007
-                await using var containerStream = container.Open();
+                await using var containerStream = await container.OpenAsync(cancellationToken).ConfigureAwait(false);
                 #pragma warning restore CA2007
 
-                var comicInfoXml = XDocument.LoadAsync(containerStream, LoadOptions.None, cancellationToken);
-
-                // Read data from XML
-                return await comicInfoXml.ConfigureAwait(false);
+                return await XDocument.LoadAsync(containerStream, LoadOptions.None, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e)
             {

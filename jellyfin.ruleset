@@ -116,5 +116,7 @@
         <Rule Id="CA2234" Action="None" />
         <!-- Use composite formate -->
         <Rule Id="CA1863" Action="None"/>
+        <!-- disable warning CA1873: Evaluation of this argument may be expensive and unnecessary if logging is disabled -->
+        <Rule Id="CA1873" Action="None" />
     </Rules>
 </RuleSet>
