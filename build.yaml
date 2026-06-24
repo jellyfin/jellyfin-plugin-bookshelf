@@ -13,6 +13,5 @@ category: "Books"
 artifacts:
   - "Jellyfin.Plugin.Bookshelf.dll"
   - "SharpCompress.dll"
-  - "ZstdSharp.dll"
 changelog: |-
   - Jellyfin 10.11 support (#130) @crobibero
